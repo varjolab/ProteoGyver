@@ -1,0 +1,10 @@
+{
+    "Run data": "/mnt/c/DATA/Varjosalo lab Dropbox/Kari S/WIP_inprogress/2022 Analyysialusta/Combined runlist.tsv",
+    "Known types": {
+        "Who": ["Iftekhar", "Kari"],
+        "Cell line / material": ["HEK293 Flp-In T-ReX"],
+        "Run type": ["same as above", "QE DDA", "TIMS DDA", "TIMS DIA", "6600 DDA", "6600 DIA", "Elite DDA"],
+        "Sample type": ["same as above", "total proteome", "phosphoproteome", "strep apms", "ha apms", "flag apms", "bioid", "ultraid", "turboid", "bioid2", "unknown apms"],
+        "Project": ["same as above", "QE Controls", "TIMS Controls", "Elite Controls"]
+    }
+}
