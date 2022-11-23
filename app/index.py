@@ -8,6 +8,7 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 from DbEngine import DbEngine
+import uuid
 
 # db will house all data, keep track of next row ID, and validate any new data
 db: DbEngine = DbEngine()
@@ -30,35 +31,17 @@ def get_next_n_ids(number:int) -> list:
     """
     return list(range(db.last_id, db.last_id + number))
 
-def generate_input_boxes(names_for_boxes,num_per_col=5) -> html.Div:
-    """Will generate input boxes for needed sample information. 
-    Will be deprecated.
-    """
-    ret: list = [[]]
-    i: int = 0
-    for bname in names_for_boxes:
-        i+=1
-        if bname in db.known_types:
-            known_entries: list = db.known_types[bname]
-            known_entries: list = [k for k in known_entries if k != 'same as above']
-            input_box: dcc.Dropdown = dcc.Dropdown(known_entries,'',id=f'{bname}-input')
-        else:
-            input_box: dcc.Input = dcc.Input(value='',type='text',id=f'{bname}-input')
-        ret[-1].extend([
-                html.Label(bname),
-                html.Br(),
-                input_box,
-                html.Br()
-            ])
-        if i == num_per_col:
-            ret.append([])
-            i: int = 0
-    ret: html.Div = html.Div([
-            html.Div(r,style={'padding':10,'flex':1})
-            for r in ret
-    ],style={'display': 'flex','flex-direction':'row'})
-
-    return ret
+def QC_tab() -> dcc.Tab:
+    session_id: str = str(uuid.uuid4())
+    return dcc.Tab(
+            label='QC',
+            children = [
+                dbc.Container([
+                    html.Div(session_id, id='session-id', style={'display': 'none'}),
+                    html.Div(dcc.Input(id="input_session_id",type="text",value=session_id))
+                ])
+            ]
+        )
 
 def generate_rows(how_many:int) -> list:
     """This function will generate new empty input rows for the data input datatable.
@@ -68,12 +51,12 @@ def generate_rows(how_many:int) -> list:
     nums: list = get_next_n_ids(how_many)
     for number in nums:
         retlist.append({})
-        for c in columns:
-            if c == 'id':
+        for column_name in columns:
+            if column_name == 'id':
                 val: str = str(number)
             else:
                 val: str = ''
-            retlist[-1][c] = val
+            retlist[-1][column_name] = val
     return retlist
 
 #graph = px.bar(data, x='Fruit', y='Amount', color='City', barmode='group')
@@ -82,10 +65,6 @@ def generate_rows(how_many:int) -> list:
 upload_tabs: list = [
     dcc.Tab(
         label='Upload data',
-        children = generate_input_boxes(list(db.data.columns))
-    ),
-    dcc.Tab(
-        label='Upload data table',
         children = [
             dbc.Container([
                 dcc.Upload(
@@ -146,13 +125,13 @@ upload_tabs: list = [
                     filter_action = 'none',
                     #hidden_columns = ['id_upload'],
                     id = 'analysis-data-upload-table',
-                    data = db.data.loc[[db.data.shape[0]-2, db.data.shape[0]-1]].\
-                        to_dict('records') + generate_rows(20),
+                    data = generate_rows(20),
                     columns = db.upload_table_data_columns,
                     dropdown = db.upload_table_data_dropdowns,
                     row_deletable=True,
                     editable = True,
                 ),
+                html.P(id='analysis-table-hidden', style={'display':'none'}),
 
                 html.Button('Add',id='add-rows-button',n_clicks=0),
                 dcc.Input(value=10,type='number',id='add-rows-input'),
@@ -163,6 +142,7 @@ upload_tabs: list = [
             })
         ]
     ),
+    QC_tab(),
     dcc.Tab(
         label='Full runlist',
         children = [
@@ -183,6 +163,43 @@ app.layout = html.Div([
 def validate_row(active_cell) -> str:
     """Validates a data row"""
     return str(active_cell)
+
+@app.callback(
+    Output('analysis-table-hidden', 'children'),
+    [Input('analysis-data-upload-table', 'data')])
+def update_table(rows) -> str:
+    df: pd.DataFrame = pd.DataFrame(rows)
+    problems: str = 'No problems!'
+    df.to_csv(str(uuid.uuid4()) + '.tsv',sep='\t')
+    return problems
+
+"""
+@app.callback(Output('analysis-table-hidden', 'figure'),
+              Input('datatable-upload-container', 'data'))
+def display_graph(rows):
+    df = pd.DataFrame(rows)
+
+    if (df.empty or len(df.columns) < 1):
+        return {
+            'data': [{
+                'x': [],
+                'y': [],
+                'type': 'bar'
+            }]
+        }
+    return {
+        'data': [{
+            'x': df[df.columns[0]],
+            'y': df[df.columns[1]],
+            'type': 'bar'
+        }]
+    }
+
+
+
+"""
+
+
 
 @app.callback(Output('analysis-table-problems', 'children'), \
     [Input('analysis-data-upload-table', 'data'), \
