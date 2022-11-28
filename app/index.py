@@ -6,7 +6,7 @@ import base64
 from matplotlib.pyplot import legend
 import numpy as np
 from random import sample
-
+import plotly.graph_objects as go
 from dash import Dash, html, dcc
 from dash import dash_table
 import pandas as pd
@@ -19,6 +19,7 @@ from DbEngine import DbEngine
 from utilitykit import plotting
 import plotly.io as pio
 import plotly.express as px
+from plotly import tools as tls
 
 # db will house all data, keep track of next row ID, and validate any new data
 db: DbEngine = DbEngine()
@@ -36,20 +37,6 @@ upload_style: dict = {
                     'margin': 'auto',
                     'float': 'right'
 }
-
-
-@app.callback(
-    Output('placeholder', 'children'),
-    Input('figure-template-dropdown', 'value'),
-    #State('output-data-upload','data')
-)
-def update_output(value) -> str:
-    if value:
-        pio.templates.default = value
-    #if data:
-    #    quality_control_charts(data)
-    return ''
-
 
 def read_df_from_content(content, filename) -> pd.DataFrame:
     _, content_string = content.split(',')
@@ -88,7 +75,7 @@ def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
             continue
         newname: str = str(sample_group)
         # We expect replicates to not be specifically named; they will be named here.
-        i: int = 0
+        i: int = 1
         if newname[0].isdigit():
             newname = f'Sample_{newname}'
         while f'{newname}_Rep_{i}' in column_map:
@@ -108,18 +95,24 @@ def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
 
 @app.callback([
                 Output('output-data-upload', 'data'),
-                Output('output-data-upload-problems','children')
-                ],
+                Output('output-data-upload-problems','children'),
+                Output('figure-template-choice', 'data'),
+                Output('placeholder', 'children')
+              ],
+              Input('figure-template-dropdown', 'value'),
               Input('upload-data-file', 'contents'),
               State('upload-data-file', 'filename'),
               Input('upload-expdesign-file', 'contents'),
               State('upload-expdesign-file', 'filename'),)
 def process_input_tables(
+                        figure_template_dropdown_value,
                         data_file_contents,
                         data_file_name,
                         expdesign_file_contents,
                         expdesign_file_name
                         ) -> tuple:
+    if figure_template_dropdown_value:
+        pio.templates.default = figure_template_dropdown_value
     return_message: list = []
     return_dict: dict = {}
     if data_file_contents is None:
@@ -138,14 +131,14 @@ def process_input_tables(
         return_dict['sample groups'] = sample_groups
         
         return_message.append('Upload successful')
-    return return_dict, ' ; '.join(return_message)
+    return return_dict, ' ; '.join(return_message), figure_template_dropdown_value, ''
 
 def add_replicate_colors(data_df, column_to_replicate):
 
     need_cols: int = list(
             {
                 column_to_replicate[sname] for sname in \
-                data_df['Sample name'].unique() \
+                data_df.index.unique() \
                 if sname in column_to_replicate
             }
         )
@@ -153,77 +146,139 @@ def add_replicate_colors(data_df, column_to_replicate):
     colors = plotting.cut_colors_to_hex(colors)
     colors = {sname: colors[i] for i, sname in enumerate(need_cols)}
     color_column:list = []    
-    for sn in data_df['Sample name'].values:
+    for sn in data_df.index.values:
         color_column.append(colors[column_to_replicate[sn]])
     data_df.loc[:,'Color'] = color_column
 
 
-
-def missing_figure(na_data) -> dcc.Graph:
-    na_figure: px.bar = px.bar(
-        na_data,
-        x='Sample name',
-        y='Missing value %',
-        height=500,
-        width=750,
-        title='Missing values per sample',
-        color='Color',
-        color_discrete_map='identity')
-    na_figure.update_xaxes(type='category')
-    return dcc.Graph(id='protein-count-figure',figure=na_figure)
-
-def protein_count_figure(count_data) -> dcc.Graph:
-    count_figure: px.bar = px.bar(
-            count_data, 
-            x='Sample name',
-            y='Protein count',
+def bar_plot(value_df,title,y=0) -> px.bar:
+    figure: px.bar = px.bar(
+            value_df,
+            x=value_df.index,#'Sample name',
+            y=value_df.columns[y],
             height=500,
             width=750,
-            title='Proteins per sample',
+            title=title,
             color='Color',
             color_discrete_map='identity'
             )
-    count_figure.update_xaxes(type='category')
+    figure.update_xaxes(type='category')
+    return figure
+
+def sum_value_figure(sum_data) -> dcc.Graph:
+    sum_figure = bar_plot(sum_data,title='Value sum per sample')
+    return dcc.Graph(id='value-sum-figure', figure=sum_figure)
+
+def avg_value_figure(avg_data) -> dcc.Graph:
+    avg_figure = bar_plot(avg_data,title='Value mean per sample')
+    return dcc.Graph(id='value-sum-figure', figure=avg_figure)
+
+def missing_figure(na_data) -> dcc.Graph:
+    na_figure: px.bar = bar_plot(na_data,title='Missing values per sample')
+    return dcc.Graph(id='protein-count-figure',figure=na_figure)
+
+def protein_count_figure(count_data) -> dcc.Graph:
+    count_figure: px.bar = bar_plot(count_data,title='Proteins per sample')
     return dcc.Graph(id='protein-count-figure',figure=count_figure)
 
-
 def get_na_data(data_table) -> pd.DataFrame:
-    return ((data_table.\
+    data: pd.DataFrame = ((data_table.\
     isna().sum() / data_table.shape[0]) * 100).\
-    to_frame(name='Missing value %').\
-    reset_index().\
-    rename(columns={'index': 'Sample name'})
+    to_frame(name='Missing value %')
+    data.index.name = 'Sample name'
+    return data
+
+def distribution_figure(data_table, color_dict, sample_groups) -> dcc.Graph:
+    data: list = []
+    for col in data_table.columns:
+        data.append(
+            go.Violin(
+                    x=np.log2(data_table[col]),
+                    line_color = color_dict[col],
+                    name=col,
+                    legendgroup = sample_groups[col],
+                    orientation = 'h',
+                    side = 'positive',
+                    width = 3,
+                    points = False
+                )
+            )
+    fheight = 40*len(data)
+    layout: go.Layout = go.Layout(
+        title = 'Value distribution',
+        xaxis={
+            'title': 'Log2 value',
+            'showgrid': False,
+            'zeroline': False
+            },
+        yaxis={
+            'title': 'Sample',
+            'showgrid': True,
+            },
+        legend_traceorder='grouped+reversed',
+        height=fheight,
+        width=750
+    )
+
+    fig: go.Figure = go.Figure(
+            layout = layout,
+            data=data,
+            #height=500,
+            #width=750,
+        )
+
+    return dcc.Graph(id='distribution-figure',figure=fig)
 
 def get_count_data(data_table) -> pd.DataFrame:
-    return data_table.\
+    data: pd.DataFrame = data_table.\
            notna().sum().\
-           to_frame(name='Protein count').\
-           reset_index().\
-           rename(columns={'index': 'Sample name'})
+           to_frame(name='Protein count')
+    data.index.name = 'Sample name'
+    return data
+
+def get_sum_data(data_table) -> pd.DataFrame:
+    data: pd.DataFrame = data_table.sum().\
+           to_frame(name='Value sum')
+    data.index.name = 'Sample name'
+    return data
+
+def get_avg_data(data_table) -> pd.DataFrame:
+    data: pd.DataFrame = data_table.mean().\
+           to_frame(name='Value mean')
+    data.index.name = 'Sample name'
+    return data
 
 @app.callback(
     Output('qc-plot-container','children'),
-    Input('output-data-upload','data'),
     Input('placeholder', 'children'),
+    State('output-data-upload', 'data')
     )
-def quality_control_charts(data_dictionary:dict, _:str)->list:
+def quality_control_charts(_:str, data_dictionary:dict)->list:
     figures:list = []
     if 'table' in data_dictionary:
         data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
         count_data: pd.DataFrame = get_count_data(data_table)
         add_replicate_colors(count_data, data_dictionary['sample groups'])
         rep_colors: dict = {}
-        for _,sample_color_row in count_data[['Sample name', 'Color']].drop_duplicates().iterrows():
-            rep_colors[sample_color_row['Sample name']] = sample_color_row['Color']
+        for sname,sample_color_row in count_data[[ 'Color']].iterrows():
+            rep_colors[sname] = sample_color_row['Color']
         data_dictionary['Replicate colors'] = rep_colors
         figures.append(protein_count_figure(count_data))
-        
+
         na_data: pd.DataFrame = get_na_data(data_table)
-        na_data['Color'] = [rep_colors[sample_name] for sample_name in na_data['Sample name'].values]
+        na_data['Color'] = [rep_colors[sample_name] for sample_name in na_data.index.values]
         figures.append(missing_figure(na_data))
-        
-        # proteins per sample plot
-        # missing per sample plot
+
+        sumdata: pd.DataFrame = get_sum_data(data_table)
+        sumdata['Color'] = [rep_colors[sample_name] for sample_name in sumdata.index.values]
+        figures.append(sum_value_figure(sumdata))
+
+        avgdata: pd.DataFrame = get_avg_data(data_table)
+        avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
+        figures.append(avg_value_figure(avgdata))
+
+        figures.append(distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
+
 
         # Intensity/specs per sample plot
         # Average per sample plot
@@ -271,10 +326,12 @@ def upload_tab():
                 'ggplot2',
                 'seaborn',
                 'simple_white'],
-                id='figure-template-dropdown'),
+                id='figure-template-dropdown',
+                value='plotly_white'),
             html.Div(id='placeholder'),
             html.Div(id='output-data-upload-problems'),
             dcc.Store(id='output-data-upload'),
+            dcc.Store(id='figure-template-choice'),
             dbc.Container(id='qc-plot-container', style={
                 'margin': '0px',
                 'float': 'center'
