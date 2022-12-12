@@ -1,9 +1,9 @@
 
+from uuid import uuid4, UUID
 from dash.dependencies import Input, Output, State
 from dash import Dash, html, callback# dcc,DiskcacheManager, CeleryManager
 import dash_bootstrap_components as dbc
 import dash
-from uuid import uuid4, UUID
 from DbEngine import DbEngine
 
 
@@ -11,7 +11,10 @@ launch_uid: UUID = str(uuid4())
 db: DbEngine = DbEngine()
 
 app: Dash = Dash(__name__, use_pages=True, external_stylesheets = [dbc.themes.DARKLY])
-
+app.title = 'Data analysis alpha version'
+print('Site pages:')
+for page in dash.page_registry.values():
+    print(page ['name'])
 navbar: dbc.NavbarSimple = dbc.NavbarSimple(
     id = 'main-navbar',
     children = [
@@ -22,6 +25,7 @@ navbar: dbc.NavbarSimple = dbc.NavbarSimple(
         ],
     brand='Quick analysis',
     color='primary',
+    
     dark=True
 )
 
@@ -31,7 +35,7 @@ navbar: dbc.NavbarSimple = dbc.NavbarSimple(
     State('session-uid','children'),
     prevent_initial_call=True,
 )
-def sample_table_download(_,uid) -> str:
+def clear_session_data(_,uid) -> str:
     db.clear_session_data(uid)
     return 'cleared'
 
@@ -42,8 +46,8 @@ app.layout = html.Div([
     dbc.Button('Clear session data',\
         id='button-clear-session-data'),
     html.Div(id='notused',hidden=True)
-                
+
 ])
 
 if __name__ == '__main__':
-	app.run_server(debug=True)
+    app.run_server(debug=True)

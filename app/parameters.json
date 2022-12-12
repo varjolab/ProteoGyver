@@ -6,5 +6,14 @@
         "Run type": ["same as above", "QE DDA", "TIMS DDA", "TIMS DIA", "6600 DDA", "6600 DIA", "Elite DDA"],
         "Sample type": ["same as above", "total proteome", "phosphoproteome", "strep apms", "ha apms", "flag apms", "bioid", "ultraid", "turboid", "bioid2", "unknown apms"],
         "Project": ["same as above", "QE Controls", "TIMS Controls", "Elite Controls"]
-    }
+    },
+    "Implemented workflows": ["proteomics", "phosphoproteomics", "interactomics"],
+    "Default workflow": 0,
+    "files": {
+        "assets": {
+            "example-sample_table": ["assets", "example-sample_table.tsv"],
+            "example-data_file": ["assets", "example-data_file.tsv"]
+        }
+    },
+    "cache dir": ".cache_data"
 }

@@ -57,7 +57,7 @@ def add_replicate_colors(data_df, column_to_replicate) -> None:
     colors: list = plotting.get_cut_colors(number_of_colors = len(need_cols))
     colors = plotting.cut_colors_to_hex(colors)
     colors = {sname: colors[i] for i, sname in enumerate(need_cols)}
-    color_column:list = []    
+    color_column:list = []
     for sn in data_df.index.values:
         color_column.append(colors[column_to_replicate[sn]])
     data_df.loc[:,'Color'] = color_column
@@ -152,7 +152,7 @@ def quality_control_charts(_:str, data_dictionary:dict)->list:
         figures.append(figure_generation.avg_value_figure(avgdata))
 
         figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
-        # Long-term: 
+        # Long-term:
         # - protein counts compared to previous similar samples
         # - sum value compared to previous similar samples
         # - Person-to-person comparisons: protein counts, intensity/psm totals
@@ -173,6 +173,149 @@ def sample_table_download(n_clicks):
 )
 def download_data_table(n_clicks):
     return dcc.send_file(db.request_file('assets','example-data_file'))
+
+
+@callback(
+    Output('data-processing-figures', 'children'),
+    Output('analytical-figures-container', 'children'),
+    Input('filter-minimum-percentage','value'),
+    Input('imputation-radio-option','value'),
+    Input('normalization-radio-option','value'),
+    State('output-data-upload','data'),
+    State('data-processing-figures','children')
+)
+def make_data_processing_figures(filter_threshold, imputation_method, normalization_method,data_dictionary,current_figures) -> list:
+    figures: list = []
+    analytical_figures = html.Div(
+                                id='analytical-figures',children=[
+                                    dbc.Button('Generate analytical figures',id='generate-analytical-figures',color='success'),
+                                ]
+                            )
+    if isinstance(data_dictionary, dict):
+        if 'table' in data_dictionary:
+            data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
+            avgdata: pd.DataFrame = data_functions.get_avg_data(data_table)
+            avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
+            # Figures:
+            #  - how many were filtered out per sample group
+            #  - then transform the data
+            #  - histogram of imputed values vs non-imputed values
+            #  - violin plot comparison of normalized vs non-normalized values
+
+        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
+    return figures, analytical_figures
+
+@callback(
+    Output('analytical-figures','children'),
+    Input('data-processing-figures','children'),
+    Input('generate-analytical-figures','n_clicks'),
+    State('workflow-choice', 'data'),
+)
+def restore_generate_analytical_figures_default_state(_,generate_button_clicks, workflow_choice):
+    if generate_button_clicks is not None:
+        if generate_button_clicks > 0:
+            figures: list = []
+            if workflow_choice == 'proteomics':
+                pass
+            return figures
+
+
+    return [
+        dbc.Button('Generate analytical figures',id='generate-analytical-figures',color='success'),
+        ]
+
+@callback(
+    Output('analysis-tabs','children'),
+    Input('workflow-choice', 'data'),
+    State('analysis-tabs','children'),
+    prevent_initial_call=True,
+    )
+def create_workflow_specific_tabs(workflow_choice_data, current_tabs ) -> list:
+    return_tabs: list = current_tabs
+    if workflow_choice_data == 'proteomics':
+        return_tabs =  [
+            current_tabs[0],
+            generate_proteomics_tab()]
+    return return_tabs
+
+def generate_proteomics_tab():
+    proteomics_summary_tab: dbc.Card = dbc.Card(
+        dbc.CardBody(
+            children = [
+                dbc.InputGroup(
+                    [
+                        dbc.InputGroupText('Filter: '),
+                        dbc.Input(placeholder=0.6, type='number', id='filter-minimum-percentage')
+                    ]
+                ),
+                dbc.Label('Imputation:'),
+                dbc.RadioItems(
+                    options=[
+                        {'label': 'QRILC', 'value': 'QRILC'},
+                        {'label': 'minProb', 'value': 'minProb'},
+                        {'label': 'minValue', 'value': 'minValue'},
+                        {'label': 'No imputation','value': None},
+                    ],
+                    value='QRILC',
+                    id='imputation-radio-option'
+                ),
+                dbc.Label('Normalization:'),
+                dbc.RadioItems(
+                    options=[
+                        {'label': 'Median', 'value': 'Median'},
+                        {'label': 'No normalization', 'value': None}
+                    ],
+                    value='Median',
+                    id='normalization-radio-option'
+                ),
+                html.Div(
+                    id='data-processing-figures',
+                ),html.Div(
+                    id='analytical-figures-container',
+                    children=[
+                        html.Div(
+                            id='analytical-figures',children=[
+
+                                # TODO: replace the button with figures when it is pressed
+                            ]
+                        )
+                    ]
+                )
+
+            ],
+            id = 'proteomics-summary-tab-contents'
+        ),
+        className='mt-3'
+    )
+    return dbc.Tab(proteomics_summary_tab, label='Proteomics', id = 'proteomics-tab')
+
+def quality_control_charts(_:str, data_dictionary:dict)->list:
+    figures:list = []
+    if data_dictionary is None:
+        return
+    if 'table' in data_dictionary:
+        data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
+        count_data: pd.DataFrame = data_functions.get_count_data(data_table)
+        add_replicate_colors(count_data, data_dictionary['sample groups'])
+        rep_colors: dict = {}
+        for sname,sample_color_row in count_data[[ 'Color']].iterrows():
+            rep_colors[sname] = sample_color_row['Color']
+        data_dictionary['Replicate colors'] = rep_colors
+        figures.append(figure_generation.protein_count_figure(count_data))
+
+        na_data: pd.DataFrame = data_functions.get_na_data(data_table)
+        na_data['Color'] = [rep_colors[sample_name] for sample_name in na_data.index.values]
+        figures.append(figure_generation.missing_figure(na_data))
+
+        sumdata: pd.DataFrame = data_functions.get_sum_data(data_table)
+        sumdata['Color'] = [rep_colors[sample_name] for sample_name in sumdata.index.values]
+        figures.append(figure_generation.sum_value_figure(sumdata))
+
+        avgdata: pd.DataFrame = data_functions.get_avg_data(data_table)
+        avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
+        figures.append(figure_generation.avg_value_figure(avgdata))
+
+        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
 
 upload_row_1: list = [
     dbc.Col(
@@ -235,7 +378,7 @@ upload_row_3: list = [
             children=html.Div([
                 'Drag and drop or ',
                 html.A(
-                    'select', 
+                    'select',
                     style = styles.upload_a_style
                     ),
                 ' sample_table file'
@@ -247,7 +390,7 @@ upload_row_3: list = [
 ]
 upload_tab: dbc.Card = dbc.Card(
     dbc.CardBody(
-        [        
+        [
             html.Div(
                 [
                 dbc.Row(
@@ -279,145 +422,16 @@ upload_tab: dbc.Card = dbc.Card(
             ),
             html.Div(id='data-app-tabs'),
             html.Div(id='button-area')
-        ]
+        ],
+        className="mt-3"
     ),
-    className="mt-3"
 )
-summary_tab: dbc.Card = dbc.Card(
-    dbc.CardBody(
-        children = [],
-        id='summary-tab-contents'
-    ),
-    className="mt-3"
-)
-
-@callback(
-    Output('data-processing-figures', 'children'),
-    Output('analytical-figures-container', 'children'),
-    Input('filter-minimum-percentage','value')
-    Input('imputation-radio-option','value'),
-    Input('normalization-radio-option','value'),
-    State('output-data-upload','data'),
-    State('data-processing-figures','children')
-)
-def make_data_processing_figures(filter_threshold, imputation_method, normalization_method,data_dictionary,current_figures) -> list:
-    figures: list = []
-    analytical_figures = html.Div(
-                                id='analytical-figures',children=[
-                                    dbc.Button('Generate analytical figures',id='generate-analytical-figures',color='success'),
-                                ]
-                            )
-    if 'table' in data_dictionary:
-        data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
-        avgdata: pd.DataFrame = data_functions.get_avg_data(data_table)
-        avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
-        # Figures: 
-        #  - how many were filtered out per sample group
-        #  - then transform the data
-        #  - histogram of imputed values vs non-imputed values
-        #  - violin plot comparison of normalized vs non-normalized values
-
-        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
-    return figures, analytical_figures
-
-@callback(
-    Output('analysis-tabs','children'),
-    Input('workflow-choice', 'data'),
-    State('analysis-tabs','children'),
-    prevent_initial_call=True,
-    )
-def create_workflow_specific_tabs(workflow_choice_data, current_tabs ) -> list:
-    return_tabs: list = current_tabs
-    if workflow_choice_data == 'proteomics':
-        proteomics_summary_tab: dbc.Card = dbc.Card(
-            dbc.CardBody(
-                children = [
-                    dbc.InputGroup(
-                        [
-                            dbc.InputGroupText('Filter: '),
-                            dbc.Input(placeholder=0.6, type='number', id='filter-minimum-percentage')
-                        ]
-                    ),
-                    dbc.Label('Imputation:'),
-                    dbc.RadioItems(
-                        options=[
-                            {'label': 'QRILC', 'value': 'QRILC'},
-                            {'label': 'minProb', 'value': 'minProb'},
-                            {'label': 'minValue', 'value': 'minValue'},
-                            {'label': 'No imputation','value': None},
-                        ],
-                        value='QRILC',
-                        id='imputation-radio-option'
-                    ),
-                    dbc.Label('Normalization:'),
-                    dbc.RadioItems(
-                        options=[
-                            {'label': 'Median', 'value': 'Median'},
-                            {'label': 'No normalization', 'value': None}
-                        ],
-                        value='Median',
-                        id='normalization-radio-option'
-                    ),
-                    html.Div(
-                        id='data-processing-figures',
-                    ),
-                    html.Div(
-                        id='analytical-figures-container',
-                        children=[
-                            html.Div(
-                                id='analytical-figures',children=[
-                                    dbc.Button('Generate analytical figures',id='generate-analytical-figures',color='success'),
-                                    # TODO: replace the button with figures when it is pressed
-                                ]
-                            )
-                        ]
-                    )
-                    
-                ],
-                id = 'proteomics-summary-tab-contents'
-            ),
-            classname='mt-3'
-        )
-        return_tabs = [
-                current_tabs[0],
-                dbc.Tab(proteomics_summary_tab, label='Proteomics', id = 'proteomics-tab')
-            ]
-    print(workflow_choice_data)
-    return return_tabs
-
-
-def quality_control_charts(_:str, data_dictionary:dict)->list:
-    figures:list = []
-    if 'table' in data_dictionary:
-        data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
-        count_data: pd.DataFrame = data_functions.get_count_data(data_table)
-        add_replicate_colors(count_data, data_dictionary['sample groups'])
-        rep_colors: dict = {}
-        for sname,sample_color_row in count_data[[ 'Color']].iterrows():
-            rep_colors[sname] = sample_color_row['Color']
-        data_dictionary['Replicate colors'] = rep_colors
-        figures.append(figure_generation.protein_count_figure(count_data))
-
-        na_data: pd.DataFrame = data_functions.get_na_data(data_table)
-        na_data['Color'] = [rep_colors[sample_name] for sample_name in na_data.index.values]
-        figures.append(figure_generation.missing_figure(na_data))
-
-        sumdata: pd.DataFrame = data_functions.get_sum_data(data_table)
-        sumdata['Color'] = [rep_colors[sample_name] for sample_name in sumdata.index.values]
-        figures.append(figure_generation.sum_value_figure(sumdata))
-
-        avgdata: pd.DataFrame = data_functions.get_avg_data(data_table)
-        avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
-        figures.append(figure_generation.avg_value_figure(avgdata))
-
-        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
 
 
 tabs = dbc.Tabs(
     id = 'analysis-tabs',
     children= [
         dbc.Tab(upload_tab, label='Data upload and quick QC'),
-        #dbc.Tab(summary_tab, label='Summary', disabled=True, id = 'summary-tab'),
     ]
 )
 layout = html.Div([

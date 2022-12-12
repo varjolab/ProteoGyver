@@ -3,6 +3,11 @@ import plotly.graph_objects as go
 import numpy as np
 from utilitykit import plotting
 from dash import dcc
+import data_functions
+import pandas as pd
+import plotly.express as px
+from statsmodels.stats import multitest
+from scipy.stats import ttest_ind
 
 def add_replicate_colors(data_df, column_to_replicate):
 
@@ -64,7 +69,7 @@ def distribution_figure(data_table, color_dict, sample_groups) -> dcc.Graph:
                     legendgroup = sample_groups[col],
                     orientation = 'h',
                     side = 'positive',
-                    width = 3,
+                    width = 4,
                     points = False
                 )
             )
@@ -93,3 +98,40 @@ def distribution_figure(data_table, color_dict, sample_groups) -> dcc.Graph:
         )
 
     return dcc.Graph(id='distribution-figure',figure=fig)
+
+def volcano_plot(df, sample_columns, control_columns, p_threshold:float=0.05, fc_threshold:float=1) -> dcc.Graph:
+    """ Untested code"""
+
+    # Calculate the fold change for each protein between the two sample groups
+    fold_change = np.log2(df[sample_columns].mean(axis=1) / df[control_columns].mean(axis=1))
+
+    # Calculate the p-value for each protein using a two-sample t-test
+    p_value: float = df.apply(lambda x: ttest_ind(x[sample_columns], x[control_columns])[1], axis=1)
+
+    # Adjust the p-values for multiple testing using the Benjamini-Hochberg correction method
+    _, p_value_adj, _, _ = multitest.multipletests(p_value, method='fdr_bh')
+
+    # Create a new dataframe containing the fold change and adjusted p-value for each protein
+    result: pd.DataFrame = pd.DataFrame({'fold_change': fold_change, 'p_value_adj': p_value_adj})
+
+    # Filter the dataframe to only include proteins that have a p-value less than p_threshold and a significant fold change
+    significant_proteins: pd.DataFrame = result[(result['p_value_adj'] < p_threshold) & ((result['fold_change'] > fc_threshold) | result['fold_change']<-fc_threshold)]
+
+    # Draw the volcano plot using plotly express
+    fig = px.scatter(result, x='fold_change', y=-1 * result.p_value_adj.apply(lambda x: -1 * np.log10(x)), title='Volcano plot')
+
+    # Set the x-axis label
+    fig.update_xaxes(title_text='Fold change')
+    # Set the y-axis label
+    fig.update_yaxes(title_text='-log10 (q-value)')
+
+
+    # Add horizontal and vertical lines indicating the significance thresholds
+    fig.add_shape(type='line', x0=-fc_threshold, y0=np.log10(p_threshold), x1=fc_threshold, y1=np.log10(p_threshold), line=dict(color='black', width=2, style='-'))
+    fig.add_shape(type='line', x0=-fc_threshold, y0=0, x1=-fc_threshold, y1=np.log10(p_threshold), line=dict(color='black', width=2, style='-'))
+
+    # Mark the significant proteins with a red color
+    fig.add_trace(px.scatter(significant_proteins, x='fold_change', y=-1 * significant_proteins.p_value_adj.apply(lambda x: -1 * np.log10(x)), color='red'))
+
+    # Show the plot
+    fig.show()

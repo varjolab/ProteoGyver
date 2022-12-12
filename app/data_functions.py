@@ -1,5 +1,6 @@
 import pandas as pd
 import io
+import numpy as np
 import base64
 
 def read_df_from_content(content, filename) -> pd.DataFrame:
@@ -15,6 +16,24 @@ def read_df_from_content(content, filename) -> pd.DataFrame:
         data:pd.DataFrame = pd.read_excel(io.StringIO(decoded_content))
     return data
 
+def median_normalize(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Median-normalizes a dataframe by dividing each column by its median.
+
+    Args:
+        df (pandas.DataFrame): The dataframe to median-normalize. Each column represents a sample, and each row represents a measurement.
+
+    Returns:
+        pandas.DataFrame: The median-normalized dataframe.
+    """
+    # find the median of each column (i.e., each sample)
+    medians: pd.Series = df.median(axis=0)
+
+    # divide each element in the column by the median
+    for col in df.columns:
+        df[col] = df[col] / medians[col]
+
+    return df
 
 def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
     table: pd.DataFrame = read_df_from_content(data_content,data_name)
@@ -31,7 +50,7 @@ def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
     protein_id_column: str = 'Protein.Group'
     keep_columns: set = set()
     for col in table.columns:
-        if col not in expdesign['Sample name'].values: 
+        if col not in expdesign['Sample name'].values:
             continue
         sample_group = expdesign[expdesign['Sample name']==col].iloc[0]['Sample group']
         # If no value is available for sample in the expdesign (but sample column name is there for some reason), discard column
