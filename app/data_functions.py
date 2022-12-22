@@ -1,3 +1,4 @@
+import qnorm
 import pandas as pd
 import io
 import numpy as np
@@ -26,22 +27,32 @@ def median_normalize(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pandas.DataFrame: The median-normalized dataframe.
     """
-    # find the median of each column (i.e., each sample)
+    # Calculating the medians prior to looping is about 2-3 times more efficient, than calculating the median of each column inside of the loop.
     medians: pd.Series = df.median(axis=0)
-
-    # divide each element in the column by the median
+    mean_of_medians: float = medians.mean()
     for col in df.columns:
-        df[col] = df[col] / medians[col]
-
+        df[col] = (df[col] / medians[col]) * mean_of_medians
     return df
 
-def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
+def quantile_normalize(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """Quantile-normalizes a dataframe.
+
+    Args:
+        df (pandas.DataFrame): The dataframe to quantile-normalize. Each column represents a sample, and each row represents a measurement.
+
+    Returns:
+        pandas.DataFrame: The quantile-normalized dataframe.
+    """
+    return qnorm.quantile_normalize(dataframe)
+
+def parse_data(data_content, data_name, expdes_content, expdes_name,log2_transform=False) -> list:
     table: pd.DataFrame = read_df_from_content(data_content,data_name)
     expdesign: pd.DataFrame = read_df_from_content(expdes_content,expdes_name)
 
     table = table.replace(0,np.nan)
     column_map: dict = {}
     sample_groups: dict = {}
+    rev_sample_groups:dict = {}
     rename_columns: dict = {oldname: oldname.rsplit('\\',maxsplit=1)[-1].rsplit('/')[-1] for oldname in table.columns}
     table = table.rename(columns=rename_columns)
     expdesign['Sample name'] = [
@@ -67,14 +78,15 @@ def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
         if newname not in sample_groups:
             sample_groups[newname] = []
         sample_groups[newname].append(newname_to_use)
-        sample_groups[newname_to_use] = newname
+        rev_sample_groups[newname_to_use] = newname
         column_map[newname_to_use] = col
         keep_columns.add(newname_to_use)
     table: pd.DataFrame = table.rename(columns={v:k for k,v in column_map.items()})
     table.index = table[protein_id_column]
     table = table[[c for c in table.columns if c in keep_columns]]
+    table = table.apply(np.log2)
 
-    return [table, column_map, sample_groups]
+    return [table, column_map, sample_groups, rev_sample_groups]
     
 def get_count_data(data_table) -> pd.DataFrame:
     data: pd.DataFrame = data_table.\

@@ -10,7 +10,7 @@ from DbEngine import DbEngine
 launch_uid: UUID = str(uuid4())
 db: DbEngine = DbEngine()
 
-app: Dash = Dash(__name__, use_pages=True, external_stylesheets = [dbc.themes.DARKLY])
+app: Dash = Dash(__name__, use_pages=True, external_stylesheets = [dbc.themes.DARKLY], suppress_callback_exceptions=True)
 app.title = 'Data analysis alpha version'
 print('Site pages:')
 for page in dash.page_registry.values():
@@ -25,7 +25,7 @@ navbar: dbc.NavbarSimple = dbc.NavbarSimple(
         ],
     brand='Quick analysis',
     color='primary',
-    
+
     dark=True
 )
 

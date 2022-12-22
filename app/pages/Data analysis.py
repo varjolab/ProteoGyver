@@ -9,12 +9,15 @@ from dash.dependencies import Input, Output, State
 import dash
 import pandas as pd
 import dash_bootstrap_components as dbc
+import qnorm
 from DbEngine import DbEngine
 from utilitykit import plotting
 import plotly.io as pio
 import data_functions
 import figure_generation
 from styles import Styles
+
+from utilitykit import dftools
 
 # db will house all data, keep track of next row ID, and validate any new data
 db: DbEngine = DbEngine()
@@ -106,15 +109,17 @@ def process_input_tables(
     if sample_table_file_contents is None:
         return_message.append('Missing sample_table')
     if len(return_message)==0:
-        table, column_map, sample_groups = data_functions.parse_data(
+        table, column_map, sample_groups,rev_sample_groups= data_functions.parse_data(
             data_file_contents,
             data_file_name,
             sample_table_file_contents,
-            sample_table_file_name
+            sample_table_file_name,
+            log2_transform=True
             )
         return_dict['table'] = table.to_json(orient='split')
         return_dict['column map'] = column_map
         return_dict['sample groups'] = sample_groups
+        return_dict['rev sample groups'] = rev_sample_groups
         with open(db.get_cache_file(session_uid + '_data_dict.json'),'w',encoding='utf-8') as fil:
             json.dump(return_dict,fil)
 
@@ -124,15 +129,17 @@ def process_input_tables(
 
 @callback(
     Output('qc-plot-container','children'),
+    Output('rep-colors','data'),
     Input('placeholder', 'children'),
     State('output-data-upload', 'data')
     )
 def quality_control_charts(_:str, data_dictionary:dict)->list:
     figures:list = []
+    rep_colors = {}
     if 'table' in data_dictionary:
         data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
         count_data: pd.DataFrame = data_functions.get_count_data(data_table)
-        add_replicate_colors(count_data, data_dictionary['sample groups'])
+        add_replicate_colors(count_data, data_dictionary['rev sample groups'])
         rep_colors: dict = {}
         for sname,sample_color_row in count_data[[ 'Color']].iterrows():
             rep_colors[sname] = sample_color_row['Color']
@@ -151,12 +158,12 @@ def quality_control_charts(_:str, data_dictionary:dict)->list:
         avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
         figures.append(figure_generation.avg_value_figure(avgdata))
 
-        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
+        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['rev sample groups'],log2_transform=False))
         # Long-term:
         # - protein counts compared to previous similar samples
         # - sum value compared to previous similar samples
         # - Person-to-person comparisons: protein counts, intensity/psm totals
-    return figures
+    return (figures, rep_colors)
 
 @callback(
     Output('download-sample_table-template', 'data'),
@@ -174,6 +181,52 @@ def sample_table_download(n_clicks):
 def download_data_table(n_clicks):
     return dcc.send_file(db.request_file('assets','example-data_file'))
 
+def filter_missing(data_table: pd.DataFrame, sample_groups: dict, threshold:float=0.6) -> pd.DataFrame:
+    keeps: list = []
+    for _, row in data_table.iterrows():
+        keep:bool = False
+        for _, sample_columns in sample_groups.items():
+            keep = keep | (row[sample_columns].notna().sum() >= (threshold*len(sample_columns)))
+            if keep:
+                break
+        keeps.append(keep)
+    return data_table[keeps]
+
+def count_per_sample_group(data_table: pd.DataFrame, sample_groups: dict) -> pd.Series:
+    index: list = list(sample_groups.keys())
+    retser: pd.Series = pd.Series(
+        index=index,
+        data=[data_table[sample_groups[sg]].dropna(how='all').shape[0] for sg in index]
+        )
+    return retser
+
+def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Series:
+    index: list = list(rev_sample_groups.keys())
+    retser: pd.Series = pd.Series(
+        index = index,
+        data = [data_table[i].notna().sum() for i in index]
+    )
+    return retser
+
+def impute(data_table, method='QRILC') -> pd.DataFrame:
+    ret = data_table
+    if method == 'minProb':
+        ret = dftools.impute_minprob_df(data_table)
+    elif method == 'minValue':
+        ret = dftools.impute_minval(data_table)
+    elif method == 'QRILC':
+        ret = dftools.impute_qrilc(data_table)
+
+    return ret
+
+def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFrame:
+    if normalization_method == 'Median':
+        data_table = data_functions.median_normalize(data_table)
+    elif normalization_method == 'Quantile':
+        data_table = data_functions.quantile_normalize(data_table)
+    return data_table
+
+
 
 @callback(
     Output('data-processing-figures', 'children'),
@@ -182,9 +235,10 @@ def download_data_table(n_clicks):
     Input('imputation-radio-option','value'),
     Input('normalization-radio-option','value'),
     State('output-data-upload','data'),
-    State('data-processing-figures','children')
+    State('data-processing-figures','children'),
+    State('rep-colors','data')
 )
-def make_data_processing_figures(filter_threshold, imputation_method, normalization_method,data_dictionary,current_figures) -> list:
+def make_data_processing_figures(filter_threshold, imputation_method, normalization_method,data_dictionary,current_figures,rep_colors) -> list:
     figures: list = []
     analytical_figures = html.Div(
                                 id='analytical-figures',children=[
@@ -193,16 +247,36 @@ def make_data_processing_figures(filter_threshold, imputation_method, normalizat
                             )
     if isinstance(data_dictionary, dict):
         if 'table' in data_dictionary:
+            print('table')
+            if filter_threshold is None:
+                filter_threshold: float = 0.6
+            
+            # define the data:
             data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
-            avgdata: pd.DataFrame = data_functions.get_avg_data(data_table)
-            avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
-            # Figures:
-            #  - how many were filtered out per sample group
-            #  - then transform the data
-            #  - histogram of imputed values vs non-imputed values
-            #  - violin plot comparison of normalized vs non-normalized values
+            sample_groups: dict = data_dictionary['sample groups']
+            rev_sample_groups: dict = data_dictionary['rev sample groups']
 
-        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
+            # Filter by missing value proportion
+            original_counts: pd.Series = count_per_sample(data_table, rev_sample_groups)
+            data_table = filter_missing(data_table,sample_groups,threshold=filter_threshold)
+            filtered_counts: pd.Series = count_per_sample(data_table, rev_sample_groups)
+
+
+
+            print('filtered')
+            figures.append(figure_generation.before_after_plot(original_counts, filtered_counts, rev_sample_groups))
+
+            # Normalization, if needed:
+            if normalization_method:
+                pre_norm = data_table
+                data_table = normalize(data_table, normalization_method)
+                #figures.append(figure_generation.comparative_violin_plot(pre_norm, data_table, names = ['Before normalization','After normalization']))
+
+            imputed_data_table = impute(data_table, method=imputation_method)
+            figures.append(figure_generation.imputation_histogram(data_table, imputed_data_table))
+
+
+            figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['rev sample groups'], log2_transform=False))
     return figures, analytical_figures
 
 @callback(
@@ -263,6 +337,7 @@ def generate_proteomics_tab():
                 dbc.RadioItems(
                     options=[
                         {'label': 'Median', 'value': 'Median'},
+                        {'label': 'Quantile', 'value': 'Quantile'},
                         {'label': 'No normalization', 'value': None}
                     ],
                     value='Median',
@@ -288,34 +363,6 @@ def generate_proteomics_tab():
         className='mt-3'
     )
     return dbc.Tab(proteomics_summary_tab, label='Proteomics', id = 'proteomics-tab')
-
-def quality_control_charts(_:str, data_dictionary:dict)->list:
-    figures:list = []
-    if data_dictionary is None:
-        return
-    if 'table' in data_dictionary:
-        data_table: pd.DataFrame = pd.read_json(data_dictionary['table'],orient='split')
-        count_data: pd.DataFrame = data_functions.get_count_data(data_table)
-        add_replicate_colors(count_data, data_dictionary['sample groups'])
-        rep_colors: dict = {}
-        for sname,sample_color_row in count_data[[ 'Color']].iterrows():
-            rep_colors[sname] = sample_color_row['Color']
-        data_dictionary['Replicate colors'] = rep_colors
-        figures.append(figure_generation.protein_count_figure(count_data))
-
-        na_data: pd.DataFrame = data_functions.get_na_data(data_table)
-        na_data['Color'] = [rep_colors[sample_name] for sample_name in na_data.index.values]
-        figures.append(figure_generation.missing_figure(na_data))
-
-        sumdata: pd.DataFrame = data_functions.get_sum_data(data_table)
-        sumdata['Color'] = [rep_colors[sample_name] for sample_name in sumdata.index.values]
-        figures.append(figure_generation.sum_value_figure(sumdata))
-
-        avgdata: pd.DataFrame = data_functions.get_avg_data(data_table)
-        avgdata['Color'] = [rep_colors[sample_name] for sample_name in avgdata.index.values]
-        figures.append(figure_generation.avg_value_figure(avgdata))
-
-        figures.append(figure_generation.distribution_figure(data_table, rep_colors,data_dictionary['sample groups']))
 
 upload_row_1: list = [
     dbc.Col(
@@ -415,6 +462,7 @@ upload_tab: dbc.Card = dbc.Card(
             dcc.Store(id='output-data-upload'),
             dcc.Store(id='figure-template-choice'),
             dcc.Store(id='workflow-choice'),
+            dcc.Store(id='rep-colors'),
             dbc.Container(id='qc-plot-container', style={
                 'margin': '0px',
                 'float': 'center'

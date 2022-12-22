@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.express as px
 from statsmodels.stats import multitest
 from scipy.stats import ttest_ind
+#import scipy.sparse as sp
 
 def add_replicate_colors(data_df, column_to_replicate):
 
@@ -41,6 +42,35 @@ def bar_plot(value_df,title,y=0) -> px.bar:
     figure.update_xaxes(type='category')
     return figure
 
+def before_after_plot(before:pd.Series, after: pd.Series, rev_sample_groups: dict) -> dcc.Graph:
+    data:list = [['Before or after','Count', 'Sample']]
+    for i in before.index: 
+        if i in after.index:
+            data.extend([
+                ['before',before[i],i],
+                ['after',after[i],i]
+            ])
+    dataframe: pd.DataFrame = pd.DataFrame(data=data[1:], columns=data[0])
+    return dcc.Graph(
+        id='before-and-after-na-filter-figure',
+        figure=px.bar(dataframe,
+            x='Sample',
+            y='Count',
+            color='Before or after',
+            barmode='group')
+        )
+
+def imputation_histogram(non_imputed, imputed) -> dcc.Graph:
+    #x,y = sp.coo_matrix(non_imputed.isnull()).nonzero()
+    non_imputed = non_imputed.melt(ignore_index=False).rename(columns={'variable': 'Sample'})
+    imputed = imputed.melt(ignore_index=False).rename(columns={'variable': 'Sample'}).rename(columns={'value': 'log2 value'})
+    imputed['Imputed'] = non_imputed['value'].isna()
+    figure = px.histogram(
+        imputed, x='log2 value',marginal='violin', color='Imputed'
+    )
+    return dcc.Graph(id='missing-value-histogram',figure=figure)
+
+
 def sum_value_figure(sum_data) -> dcc.Graph:
     sum_figure = bar_plot(sum_data,title='Value sum per sample')
     return dcc.Graph(id='value-sum-figure', figure=sum_figure)
@@ -58,12 +88,15 @@ def protein_count_figure(count_data) -> dcc.Graph:
     return dcc.Graph(id='protein-count-figure',figure=count_figure)
 
 
-def distribution_figure(data_table, color_dict, sample_groups) -> dcc.Graph:
+def distribution_figure(data_table, color_dict, sample_groups, title:str='Value distribution', log2_transform=True) -> dcc.Graph:
     data: list = []
     for col in data_table.columns:
+        coldata:pd.Series = data_table[col]
+        if log2_transform:
+            coldata = np.log2(coldata)
         data.append(
             go.Violin(
-                    x=np.log2(data_table[col]),
+                    x=coldata,
                     line_color = color_dict[col],
                     name=col,
                     legendgroup = sample_groups[col],
@@ -75,7 +108,7 @@ def distribution_figure(data_table, color_dict, sample_groups) -> dcc.Graph:
             )
     fheight = 40*len(data)
     layout: go.Layout = go.Layout(
-        title = 'Value distribution',
+        title = title,
         xaxis={
             'title': 'Log2 value',
             'showgrid': False,
