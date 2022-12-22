@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta
+import nbib
 
 def get_timestamp() -> str:
     return datetime.now().strftime('%Y-%m-%d')
@@ -61,29 +62,21 @@ def get_newest_file(directory, namefilter:str = None) -> str:
     return newest_file
 
 def get_nbibfile(databasename:str) -> str:
-    return os.path.join('..','assets','nbibs',f'{databasename.lower()}.nbib')
+    nbibpath: str = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)).rsplit(os.sep,maxsplit=1)[0],
+        'assets',
+        'nbibs',
+        f'{databasename.lower()}.nbib')
+    return nbibpath
 
 def get_pub_ref(databasename:str) -> list:
-    authors: list = []
-    title: str = ''
-    pmid: str = ''
-    ref: str = ''
-    pubyear: str = ''
-    with open(get_nbibfile(databasename), 'r', encoding='utf-8') as fil:
-        for line in fil:
-            entry, data = line.split('-',maxsplit=1)
-            entry: str=entry.strip()
-            data: str=data.strip()
-            if entry == 'TI':
-                title = data
-            elif entry == 'PMID':
-                pmid = data
-            elif entry == 'DP':
-                pubyear = data.split()[0]
-            elif entry =='AU':
-                authors.append(data)
-            elif entry == 'SO':
-                ref = data
+    
+    nbibdata: list = nbib.read_file(get_nbibfile(databasename))
+    pubyear: str = nbibdata['publication_date'].split(maxsplit=1)[0]
+    authors: list = [a['author_abbreviated'] for a in nbibdata['authors']]
+    ref: str = f'{nbibdata["journal_abbreviated"]}.{nbibdata["publication_date"]}:{nbibdata["doi"]}'
+    title: str = nbibdata['title']
+    pmid: str = nbibdata['pubmed_id']
     if len(authors) < 3:
         short: str = f'({" and ".join(authors)}, {pubyear})'
     elif len(authors)==1:

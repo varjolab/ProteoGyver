@@ -390,7 +390,7 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     organism: human by default, otherwise specify organism ID (e.g. human is 9606)
     fields: uniprot field labels for fields to retrieve. Refer to \
         https://www.uniprot.org/help/return_fields for help with field Labels \
-        (from the label column). If None, download all available labels.
+        (from the label column). If None, download a default selection.
     """
 
     retries: Retry = Retry(total=5, backoff_factor=0.25,
@@ -437,7 +437,7 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
         'https://www.uniprot.org/help/return_fields for help with field Labels.'
     )
     fieldstr = '%2C'.join(fieldstr)
-
+    print(fieldstr)
     pagination_url: str = (
         f'https://rest.uniprot.org/uniprotkb/search?fields={fieldstr}&format={output_format}&'
         f'query=%28reviewed%3Atrue%29%20AND%20%28model_organism%3A{organism}%29&size=500'
@@ -508,8 +508,10 @@ def download_full_uniprot_for_organism(organism: Union[list, int] = None,
 def update(organism = '9606') -> None:
     outdir: str = apitools.get_save_location('Uniprot')
     if is_newer_available(apitools.get_newest_file(outdir, namefilter=organism)):
+        print('newer available')
         today: str = apitools.get_timestamp()
         df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism)
+        print(df.shape)
         outfile: str = os.path.join(outdir, f'{today}_Uniprot.tsv')
         df.to_csv(outfile)
 
@@ -553,7 +555,7 @@ def get_version_info(organism:int=9606) -> str:
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def methods_text(organism=9606) -> str:
-    short,long,pmid = apitools.get_pub_ref('MIPS')
+    short,long,pmid = apitools.get_pub_ref('uniprot')
     return '\n'.join([
         f'Protein annotations were mapped from UniProt (https://uniprot.org)  \
             {short}',
