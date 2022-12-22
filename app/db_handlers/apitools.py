@@ -11,7 +11,10 @@ def is_newer(reference:str, new_date:str) -> bool:
     return (new_date>reference)
 
 def get_save_location(databasename) -> str:
-    base_location: str = 'Datafiles'
+    base_location: str = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'Datafiles'
+    )
     dir_name: str = os.path.join(base_location, databasename)
     if not os.path.isdir(dir_name):
         os.makedirs(dir_name)
@@ -71,12 +74,15 @@ def get_nbibfile(databasename:str) -> str:
 
 def get_pub_ref(databasename:str) -> list:
     
-    nbibdata: list = nbib.read_file(get_nbibfile(databasename))
+    nbibdata: list = nbib.read_file(get_nbibfile(databasename))[0]
     pubyear: str = nbibdata['publication_date'].split(maxsplit=1)[0]
-    authors: list = [a['author_abbreviated'] for a in nbibdata['authors']]
+    try:
+        authors: list = [a['author_abbreviated'] for a in nbibdata['authors']]
+    except KeyError:
+        authors = [nbibdata['corporate_author']]
     ref: str = f'{nbibdata["journal_abbreviated"]}.{nbibdata["publication_date"]}:{nbibdata["doi"]}'
     title: str = nbibdata['title']
-    pmid: str = nbibdata['pubmed_id']
+    pmid: str = str(nbibdata['pubmed_id'])
     if len(authors) < 3:
         short: str = f'({" and ".join(authors)}, {pubyear})'
     elif len(authors)==1:

@@ -437,7 +437,6 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
         'https://www.uniprot.org/help/return_fields for help with field Labels.'
     )
     fieldstr = '%2C'.join(fieldstr)
-    print(fieldstr)
     pagination_url: str = (
         f'https://rest.uniprot.org/uniprotkb/search?fields={fieldstr}&format={output_format}&'
         f'query=%28reviewed%3Atrue%29%20AND%20%28model_organism%3A{organism}%29&size=500'
@@ -505,14 +504,12 @@ def download_full_uniprot_for_organism(organism: Union[list, int] = None,
         next_batch = ['Entry']
     return pd.concat(dfs_to_merge, axis=1)
 
-def update(organism = '9606') -> None:
+def update(organism = 9606,progress=False) -> None:
     outdir: str = apitools.get_save_location('Uniprot')
-    if is_newer_available(apitools.get_newest_file(outdir, namefilter=organism)):
-        print('newer available')
+    if is_newer_available(apitools.get_newest_file(outdir, namefilter=str(organism))):
         today: str = apitools.get_timestamp()
-        df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism)
-        print(df.shape)
-        outfile: str = os.path.join(outdir, f'{today}_Uniprot.tsv')
+        df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism,progress=progress,overall_progress=progress)
+        outfile: str = os.path.join(outdir, f'{today}_Uniprot_{organism}.tsv')
         df.to_csv(outfile)
 
 def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
@@ -557,8 +554,7 @@ def get_version_info(organism:int=9606) -> str:
 def methods_text(organism=9606) -> str:
     short,long,pmid = apitools.get_pub_ref('uniprot')
     return '\n'.join([
-        f'Protein annotations were mapped from UniProt (https://uniprot.org)  \
-            {short}',
+        f'Protein annotations were mapped from UniProt (https://uniprot.org) {short}',
         f'{get_version_info(organism)}',
         pmid,
         long

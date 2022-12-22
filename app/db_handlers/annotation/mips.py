@@ -87,7 +87,8 @@ def download_and_parse(outfile) -> None:
 def update() -> None:
     today: str = apitools.get_timestamp()
     outdir: str = apitools.get_save_location('MIPS')
-    if len(apitools.get_files_newer_than(outdir, today, 30, namefilter='mppi.gz'))<1:
+    if len([f for f in os.listdir(outdir) if 'gz' in f])<1:
+    #if len(apitools.get_files_newer_than(outdir, today, 30, namefilter='mppi.gz'))<1:
         outfile: str = os.path.join(outdir, f'{today}_mppi.gz')
         download_and_parse(outfile)
     
@@ -112,8 +113,7 @@ def get_version_info() -> str:
 def methods_text() -> str:
     short,long,pmid = apitools.get_pub_ref('MIPS')
     return '\n'.join([
-        f'Interactions were mapped with MIPS (https://mips.helmholtz-muenchen.de/proj/ppi/) \
-            {short}',
+        f'Interactions were mapped with MIPS (https://mips.helmholtz-muenchen.de/proj/ppi/) {short}',
         f'{get_version_info()}',
         pmid,
         long
