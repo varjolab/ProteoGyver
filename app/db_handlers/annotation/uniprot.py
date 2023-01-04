@@ -533,20 +533,6 @@ def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
             ret = True
     return ret
 
-def get_interactions(filter = None) -> dict:
-    data_frame: pd.DataFrame = pd.read_csv(apitools.get_newest_file(namefilter = '_interactions.tsv'),sep='\t')
-    interactions: dict = {}
-    for _,row in data_frame[(data_frame['Protein 1 xref ID']!='-') & (data_frame['Protein 2 xref ID']!='-')].iterrows():
-        int1, int2 = row[['Protein 1 xref ID', 'Protein 2 xref ID']]
-        for i in [int1,int2]:
-            if i not in interactions:
-                interactions[i] = {}
-        for i1, i2 in [[int1, int2], [int2, int1]]:
-            if i1 not in interactions[i2]:
-                interactions[i2][i1] = {'references': set()}
-            interactions[i2][i1]['references'].add((f'{row["Reference DB"]}:{row["Reference ID"]}', row['interaction detection name']))
-    return interactions
-
 def get_version_info(organism:int=9606) -> str:
     nfile: str = apitools.get_newest_file(apitools.get_save_location('Uniprot'), namefilter=str(organism))
     return f'Downloaded ({nfile.split("_")[0]})'

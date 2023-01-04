@@ -3,7 +3,6 @@
 import base64
 import io
 import json
-
 import dash
 import dash_bootstrap_components as dbc
 import data_functions
@@ -182,15 +181,13 @@ def quality_control_charts(_: str, data_dictionary: dict) -> list:
 def sample_table_download(n_clicks):
     return dcc.send_file(db.request_file('assets', 'example-sample_table'))
 
-
 @callback(
     Output('download-datafile-example', 'data'),
     Input('button-download-datafile-example', 'n_clicks'),
     prevent_initial_call=True,
 )
-def download_data_table(n_clicks):
+def download_data_table(_):
     return dcc.send_file(db.request_file('assets', 'example-data_file'))
-
 
 def filter_missing(data_table: pd.DataFrame, sample_groups: dict, threshold: float = 0.6) -> pd.DataFrame:
     keeps: list = []
@@ -232,7 +229,6 @@ def impute(data_table, method='QRILC') -> pd.DataFrame:
         ret = dftools.impute_minval(data_table)
     elif method == 'QRILC':
         ret = dftools.impute_qrilc(data_table)
-
     return ret
 
 
@@ -266,7 +262,6 @@ def make_data_processing_figures(filter_threshold, imputation_method, normalizat
         if 'table' in data_dictionary:
             if filter_threshold is None:
                 filter_threshold: float = 0.6
-
             # define the data:
             data_table: pd.DataFrame = pd.read_json(
                 data_dictionary['table'], orient='split')
@@ -280,14 +275,20 @@ def make_data_processing_figures(filter_threshold, imputation_method, normalizat
                 data_table, sample_groups, threshold=filter_threshold)
             filtered_counts: pd.Series = count_per_sample(
                 data_table, rev_sample_groups)
-
-            figures.append(figure_generation.before_after_plot(
-                original_counts, filtered_counts, rev_sample_groups))
+            data_table.to_excel('filtered.xlsx')
 
             # Normalization, if needed:
             if normalization_method:
-                pre_norm: pd.DataFrame = data_table
+                pre_norm: pd.DataFrame = data_table.copy()
                 data_table = normalize(data_table, normalization_method)
+            data_table.to_excel('normalized.xlsx')
+            pre_imp: pd.DataFrame = data_table
+            data_table = impute(
+                data_table, method=imputation_method)
+            data_table.to_excel('imputed.xlsx')
+            figures.append(figure_generation.before_after_plot(
+                original_counts, filtered_counts, rev_sample_groups))
+            if normalization_method:
                 figures.append(
                     figure_generation.comparative_violin_plot(
                         [pre_norm, data_table],
@@ -295,17 +296,19 @@ def make_data_processing_figures(filter_threshold, imputation_method, normalizat
                         id_name='normalization-plot'
                     )
                 )
-            imputed_data_table: pd.DataFrame = impute(
-                data_table, method=imputation_method)
+            pre_imp.to_excel('preimp.xlsx')
+            data_table.to_excel('data_table.xlsx')
             figures.append(figure_generation.imputation_histogram(
-                data_table, imputed_data_table))
+                pre_imp,data_table))
             figures.append(figure_generation.distribution_figure(
-                imputed_data_table, rep_colors, data_dictionary['rev sample groups'], log2_transform=False))
+                data_table, rep_colors, data_dictionary['rev sample groups'], log2_transform=False))
             figures.extend(figure_generation.volcano_plots(
-                imputed_data_table, data_dictionary['sample groups'], control_group))
-            figures.append(figure_generation.coefficient_of_variation_plot(imputed_data_table))
-            figures.append(figure_generation.pca_plot(imputed_data_table,data_dictionary['rev sample groups']))
-            figures.append(figure_generation.t_sne_plot(imputed_data_table,data_dictionary['rev sample groups']))
+                data_table, data_dictionary['sample groups'], control_group))
+            figures.append(figure_generation.coefficient_of_variation_plot(data_table))
+            figures.append(figure_generation.pca_plot(data_table,data_dictionary['rev sample groups']))
+            figures.append(figure_generation.t_sne_plot(data_table,data_dictionary['rev sample groups']))
+            figures.append(figure_generation.correlation_clustermap(data_table))
+            figures.append(figure_generation.full_clustermap(data_table))
     return figures, analytical_figures
 
 

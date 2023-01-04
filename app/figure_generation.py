@@ -13,8 +13,10 @@ import plotly.express as px
 from sklearn import manifold, decomposition
 import plotly.graph_objs as go
 from sklearn.linear_model import Ridge
-from sklearn.preprocessing import PolynomialFeatures, SplineTransformer
+from sklearn.preprocessing import SplineTransformer
+from dash import html
 from sklearn.pipeline import make_pipeline
+import dash_bio
 
 def add_replicate_colors(data_df, column_to_replicate):
 
@@ -238,6 +240,7 @@ def pca_plot(data_table: pd.DataFrame, rev_sample_groups: dict, n_components: in
     fig = px.scatter(
         data_df, x='PCA one', y='PCA two', title=f'PCA{figname}',
         text='Sample group')
+    fig.update_traces(marker_size=15)
     return dcc.Graph(figure=fig, id=f'pca-plot{figname}')
 
 
@@ -258,6 +261,7 @@ def t_sne_plot(data_table: pd.DataFrame, rev_sample_groups: dict, perplexity: in
     fig = px.scatter(
         data_df, x='t-SNE one', y='t-SNE two', title=f't-SNE{figname}',
         text='Sample group')
+    fig.update_traces(marker_size=15)
     return dcc.Graph(figure=fig, id=f'tsne-plot{figname}')
 
 def coefficient_of_variation(row: pd.Series) -> float:
@@ -271,9 +275,9 @@ def df_coefficient_of_variation(data_table: pd.DataFrame) -> pd.DataFrame:
     return new_df
 
 def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coefficient-of-variation') -> dcc.Graph:
+    data_table: pd.DataFrame = df_coefficient_of_variation(data_table)
     col1, col2 = data_table.columns[:2]
-    data_table: pd.DataFrame = data_table.sort_values(by=col2,ascending=True)
-
+    data_table = data_table.sort_values(by=col2,ascending=True,inplace=False)
     fig = px.scatter(data_table, x=col2, y=col1)
 
     plotx: pd.Series = data_table['mean intensity'].values[:,np.newaxis]
@@ -285,3 +289,104 @@ def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coe
     fig2 = px.line(plot_df, x='x', y='y')
     fig = go.Figure(data=fig.data + fig2.data)
     return dcc.Graph(figure=fig, id=f'scatter-{plotname}')
+
+
+def clustergram(plot_data:pd.DataFrame, **kwargs):
+    return dash_bio.Clustergram(
+        data=plot_data,
+        column_labels=list(plot_data.columns.values),
+        row_labels=list(plot_data.index),
+        height=800,
+        width=750,
+        color_map= [
+            [0.0, '#FFFFFF'],
+            [1.0, '#EF553B']
+        ],
+        **kwargs
+    )
+
+def correlation_clustermap(data_table: pd.DataFrame, plotname= None) -> dcc.Graph:
+    if plotname is None: 
+        plotname: str = 'correlation-clustermap'
+    corr_df: pd.DataFrame = data_table.corr()
+    fig = clustergram(corr_df)
+    return dcc.Graph(figure=fig,id=plotname)
+
+def full_clustermap(data_table:pd.DataFrame,plotname=None) -> dcc.Graph:
+    data_table.to_excel('debug.xlsx')
+    if plotname is None: 
+        plotname: str = 'full-clustermap'
+    fig = clustergram(
+        data_table,
+        hidden_labels=['row'],
+        #The cluster parameter should be "column", but that does not work. According to source code, "col" is the correct usage, but it might get changed to reflect documentation later.
+        cluster='col'
+        )
+    return dcc.Graph(figure=fig,id=plotname)
+
+
+
+""" NEeds testing"""
+
+
+def get_volcano_df(data_table: pd.DataFrame, sample_columns, control_columns, p_th) -> pd.DataFrame:
+     # Calculate log2 fold change for each protein between the two sample groups
+    log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
+        axis=1) / data_table[control_columns].mean(axis=1))
+
+    # Calculate the p-value for each protein using a two-sample t-test
+    p_value: float = data_table.apply(lambda x: ttest_ind(
+        x[sample_columns], x[control_columns])[1], axis=1)
+
+    # Adjust the p-values for multiple testing using the Benjamini-Hochberg correction method
+    _, p_value_adj, _, _ = multitest.multipletests(p_value, method='fdr_bh')
+
+    # Create a new dataframe containing the fold change and adjusted p-value for each protein
+    result: pd.DataFrame = pd.DataFrame(
+        {'fold_change': log2_fold_change, 'p_value_adj': p_value_adj, 'p_value': p_value})
+    result['Name'] = data_table.index.values
+    #result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
+    return result
+
+def volcano_plot2(data_table) -> html.Div: 
+    
+    html.Div([
+    'log2FC:',
+    dcc.RangeSlider(
+        id='range-slider',
+        min=-3,
+        max=3,
+        step=0.05,
+        marks={i: {'label': str(i)} for i in range(-3, 3)},
+        value=[-0.5, 1]
+    ),
+    html.Br(),
+    html.Div(
+        dcc.Graph(
+            id='graph',
+            figure=dashbio.VolcanoPlot(
+                dataframe=df
+            )
+        )
+    )
+])
+
+def volcano_plots2(data_table, sample_groups, control_group) -> list:
+    control_cols: list = sample_groups[control_group]
+    volcanoes = []
+    for group_name, group_cols in sample_groups.items():
+        if group_name == control_group:
+            continue
+        volcanoes.append(
+            dcc.Graph(
+                id=f'volcano-{group_name}-vs-{control_group}',
+                figure=volcano_plot(
+                    data_table,
+                    group_name,
+                    control_group,
+                    group_cols,
+                    control_cols
+                )
+            )
+        )
+    return volcanoes

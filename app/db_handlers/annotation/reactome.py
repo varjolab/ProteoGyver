@@ -1,3 +1,12 @@
+import os
+import pandas as pd
+import requests
+import json
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+import apitools
+
 # TODO: date the files, retrieve only, when necessary, e.g. every month? or two months?
 def newer_reactome_available(current_database_file) -> bool:
     current_version: int = int(current_database_file.split('_',maxsplit=1)[0])
@@ -121,7 +130,7 @@ def retrieve_full_reactome(reactome_folder: str = 'Reactome_Data', reactome_dict
     if not reactome_dict:
         reactome_dict: dict = get_default_reactome_dict()
     current_version: str = current_reactome_version()
-    current_date: str = get_timestamp()
+    current_date: str = apitools.get_timestamp()
     if not os.path.isdir(reactome_folder):
         os.makedirs(reactome_folder)
     for out_file, (r_url, headers) in reactome_dict.items():
@@ -130,7 +139,51 @@ def retrieve_full_reactome(reactome_folder: str = 'Reactome_Data', reactome_dict
         get_tab_delimed_file(r_url, out_file, headers)
 
 def current_reactome_version() -> str:
-    for i in range(0, 20):
+    for _ in range(0, 20):
         r: requests.Response = requests.get('https://reactome.org/ContentService/data/database/version')
         if r.status_code == 200: 
             return r.text
+##TODO: Below code is from uniprot.py. Convert it to reactome-specific format. 
+            
+def update(organism = 9606,progress=False) -> None:
+    outdir: str = apitools.get_save_location('Uniprot')
+    if is_newer_available(apitools.get_newest_file(outdir, namefilter=str(organism))):
+        today: str = apitools.get_timestamp()
+        df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism,progress=progress,overall_progress=progress)
+        outfile: str = os.path.join(outdir, f'{today}_Uniprot_{organism}.tsv')
+        df.to_csv(outfile)
+
+def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
+    uniprot_url: str = f"https://rest.uniprot.org/uniprotkb/search?\
+        query=organism_id:{organism}&format=fasta"
+    uniprot_response: requests.Response = requests.get(uniprot_url)
+    newest_version:str = uniprot_response.headers['X-UniProt-Release'].replace('_','-')
+    vals: list =  newest_version.split('-')
+    newest_y: int = int(vals[0])
+    newest_m: int = int(vals[1])
+    vals =  newest_file.split('_',maxsplit=1)[0].split('-')
+    if len(vals) < 2:
+        vals = [-1,-1]
+    current_y: int = vals[0]
+    current_m: int = vals[1]
+    ret: bool = False
+    if current_y < newest_y:
+        ret = True
+    elif current_y == newest_y:
+        if current_m < newest_m:
+            ret = True
+    return ret
+
+def get_version_info(organism:int=9606) -> str:
+    nfile: str = apitools.get_newest_file(apitools.get_save_location('Uniprot'), namefilter=str(organism))
+    return f'Downloaded ({nfile.split("_")[0]})'
+
+def methods_text(organism=9606) -> str:
+    short,long,pmid = apitools.get_pub_ref('uniprot')
+    return '\n'.join([
+        f'Protein annotations were mapped from UniProt (https://uniprot.org) {short}',
+        f'{get_version_info(organism)}',
+        pmid,
+        long
+    ])
+
