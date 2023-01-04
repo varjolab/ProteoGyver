@@ -37,6 +37,8 @@ class DbEngine:
         self.data = self._parameters['Run data']
         if not os.path.isdir(self.cache_dir):
             os.makedirs(self.cache_dir)
+        if not os.path.isdir(self.temp_dir):
+            os.makedirs(self.temp_dir)
 
     @property
     def data(self) -> pd.DataFrame:
@@ -99,6 +101,11 @@ class DbEngine:
     def get_cache_file(self,filename) -> str:
         return os.path.join(self.cache_dir, filename)
 
+    @property
+    def temp_dir(self) -> str:
+        return self._parameters['temp dir']
+    def get_temp_file(self,filename) -> str:
+        return os.path.join(self.temp_dir, filename)
     def set_upload_columns(self) -> None:
         data: pd.DataFrame = self.data
         clist: list = []
