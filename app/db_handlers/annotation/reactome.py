@@ -2,17 +2,11 @@ import os
 import pandas as pd
 import requests
 import json
+import sys
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 import apitools
-
-# TODO: date the files, retrieve only, when necessary, e.g. every month? or two months?
-def newer_reactome_available(current_database_file) -> bool:
-    current_version: int = int(current_database_file.split('_',maxsplit=1)[0])
-    newest_db_version: int = int(current_reactome_version())
-    return (newest_db_version > current_version)
-
 
 def retrieve_reactome_data(reactome_ids: list) -> tuple:
     """Retrieves more detailed data for given reactome identifiers from reactome
@@ -60,10 +54,14 @@ def get_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders:
     """Retrieves a single tab delimed (e.g. reactome) file and saves it to file according to \
         specified output filename and output file headers. Output will be tab delimed.
     """
+    print(output_filename)
+    print(output_fileheaders)
+    print(reactome_url)
     response = requests.get(reactome_url, timeout=10)
     filelines = response.text.split('\n')
     filelines[0] = filelines[0].strip('#').strip()
     filelines = [fl.split('\t') for fl in filelines]
+    print(filelines[0])
     if not output_fileheaders:
         output_fileheaders = filelines[0]
         filelines = filelines[1:]
@@ -109,8 +107,7 @@ def get_default_reactome_dict():
         ),
         'allInteractionsFromPathways':
         (
-            'https://reactome.org/download/current/interactors/\
-                    reactome.all_species.interactions.tab-delimited.txt',
+            'https://reactome.org/download/current/interactors/reactome.all_species.interactions.tab-delimited.txt',
             None
         )
     }
@@ -118,7 +115,7 @@ def get_default_reactome_dict():
 # TODO: date the files, retrieve only, when necessary, e.g. every month? or two months?
 
 
-def retrieve_full_reactome(reactome_folder: str = 'Reactome_Data', reactome_dict: dict = None) -> None:
+def retrieve_reactome(reactome_folder: str = 'Reactome_Data', reactome_dict: dict = None) -> None:
     """Retrieves full mapping and pathway information files from Reactome to a specified folder
 
     Parameters:
@@ -143,46 +140,42 @@ def current_reactome_version() -> str:
         r: requests.Response = requests.get('https://reactome.org/ContentService/data/database/version')
         if r.status_code == 200: 
             return r.text
-##TODO: Below code is from uniprot.py. Convert it to reactome-specific format. 
-            
-def update(organism = 9606,progress=False) -> None:
-    outdir: str = apitools.get_save_location('Uniprot')
-    if is_newer_available(apitools.get_newest_file(outdir, namefilter=str(organism))):
-        today: str = apitools.get_timestamp()
-        df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism,progress=progress,overall_progress=progress)
-        outfile: str = os.path.join(outdir, f'{today}_Uniprot_{organism}.tsv')
-        df.to_csv(outfile)
+          
+def newer_reactome_available() -> bool:
+    data_directory:str = apitools.get_save_location('Reactome')
+    current_database_file:str = apitools.get_newest_file(data_directory)
+    try:
+        current_version: int = int(current_database_file.split('_',maxsplit=1)[0])
+    except ValueError:
+        return True
+    newest_db_version: int = int(current_reactome_version())
+    return (newest_db_version > current_version)
 
-def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
-    uniprot_url: str = f"https://rest.uniprot.org/uniprotkb/search?\
-        query=organism_id:{organism}&format=fasta"
-    uniprot_response: requests.Response = requests.get(uniprot_url)
-    newest_version:str = uniprot_response.headers['X-UniProt-Release'].replace('_','-')
-    vals: list =  newest_version.split('-')
-    newest_y: int = int(vals[0])
-    newest_m: int = int(vals[1])
-    vals =  newest_file.split('_',maxsplit=1)[0].split('-')
-    if len(vals) < 2:
-        vals = [-1,-1]
-    current_y: int = vals[0]
-    current_m: int = vals[1]
-    ret: bool = False
-    if current_y < newest_y:
-        ret = True
-    elif current_y == newest_y:
-        if current_m < newest_m:
-            ret = True
-    return ret
+  
+def update() -> None:
+    reactome_files: dict = get_default_reactome_dict()
+    latest: str = current_reactome_version()
+    data_directory:str = apitools.get_save_location('Reactome')
+    to_be_downloaded: dict = {}
+    for reactome_filename, file_details in reactome_files.items():
+        have: str = apitools.get_newest_file(data_directory,namefilter = reactome_filename).split('_')[0]
+        if have == '':
+            to_be_downloaded[reactome_filename] = file_details
+        elif int(have) < int(latest):
+            to_be_downloaded[reactome_filename] = file_details
+    retrieve_reactome(reactome_folder = data_directory, reactome_dict = to_be_downloaded)
 
-def get_version_info(organism:int=9606) -> str:
-    nfile: str = apitools.get_newest_file(apitools.get_save_location('Uniprot'), namefilter=str(organism))
-    return f'Downloaded ({nfile.split("_")[0]})'
+def get_version_info() -> str:
+    nfile: str = apitools.get_newest_file(apitools.get_save_location('Reactome'))
+    version:str = nfile.split('_')[0]
+    downdate:str = nfile.split('_')[1]
+    return f'Version {version}, downloaded ({downdate}).'
 
-def methods_text(organism=9606) -> str:
-    short,long,pmid = apitools.get_pub_ref('uniprot')
+def methods_text() -> str:
+    short,long,pmid = apitools.get_pub_ref('reactome')
     return '\n'.join([
-        f'Protein annotations were mapped from UniProt (https://uniprot.org) {short}',
-        f'{get_version_info(organism)}',
+        f'Reactome pathways were mapped from Reactome (https://reactome.org) {short}',
+        f'{get_version_info()}',
         pmid,
         long
     ])
