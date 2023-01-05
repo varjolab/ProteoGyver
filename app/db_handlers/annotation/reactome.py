@@ -54,22 +54,15 @@ def get_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders:
     """Retrieves a single tab delimed (e.g. reactome) file and saves it to file according to \
         specified output filename and output file headers. Output will be tab delimed.
     """
-    print(output_filename)
-    print(output_fileheaders)
-    print(reactome_url)
     response = requests.get(reactome_url, timeout=10)
     filelines = response.text.split('\n')
     filelines[0] = filelines[0].strip('#').strip()
     filelines = [fl.split('\t') for fl in filelines]
-    print(filelines[0])
     if not output_fileheaders:
         output_fileheaders = filelines[0]
         filelines = filelines[1:]
     pd.DataFrame(data=filelines, columns=output_fileheaders).to_csv(output_filename,
                                                                     sep='\t', index=False)
-
-# TODO: move to an external file
-
 
 def get_default_reactome_dict():
     """Returns default dict of reactome urls and their column names.
