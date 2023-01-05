@@ -9,11 +9,12 @@ import data_functions
 import figure_generation
 import pandas as pd
 import plotly.io as pio
-from dash import callback, dcc, html
+from dash import callback, dcc, html, DiskcacheManager
 from dash.dependencies import Input, Output, State
 from DbEngine import DbEngine
 from styles import Styles
 from utilitykit import dftools, plotting
+from dash.exceptions import PreventUpdate
 
 # db will house all data, keep track of next row ID, and validate any new data
 db: DbEngine = DbEngine()
@@ -21,7 +22,6 @@ db: DbEngine = DbEngine()
 #server: app.server = app.server
 dash.register_page(__name__, path='/')
 styles: Styles = Styles()
-
 figure_templates = [
     'plotly',
     'plotly_white',
@@ -128,7 +128,6 @@ def process_input_tables(
         return_message.append('Upload successful')
     return return_dict, ' ; '.join(return_message), figure_template_dropdown_value, ''
 
-
 @callback(
     Output('qc-plot-container', 'children'),
     Output('rep-colors', 'data'),
@@ -201,23 +200,12 @@ def filter_missing(data_table: pd.DataFrame, sample_groups: dict, threshold: flo
         keeps.append(keep)
     return data_table[keeps]
 
-
-def count_per_sample_group(data_table: pd.DataFrame, sample_groups: dict) -> pd.Series:
-    index: list = list(sample_groups.keys())
-    retser: pd.Series = pd.Series(
-        index=index,
-        data=[data_table[sample_groups[sg]].dropna(
-            how='all').shape[0] for sg in index]
-    )
-    return retser
-
-
 def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Series:
     index: list = list(rev_sample_groups.keys())
     retser: pd.Series = pd.Series(
         index=index,
         data=[data_table[i].notna().sum() for i in index]
-    )
+    ).to_json()
     return retser
 
 
@@ -242,26 +230,16 @@ def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFra
 
 @callback(
     Output('data-processing-figures', 'children'),
-    Output('analytical-figures-container', 'children'),
+    Output('processed-proteomics-data','data'),
     Input('filter-minimum-percentage', 'value'),
     Input('imputation-radio-option', 'value'),
     Input('normalization-radio-option', 'value'),
     State('output-data-upload', 'data'),
-    State('rep-colors', 'data'),
-    Input('control-dropdown','value')
+    
 )
-def make_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary, rep_colors, control_group) -> list:
-    figures: list = []
-    analytical_figures: html.Div = html.Div(
-        id='analytical-figures', children=[
-            dbc.Button('Generate analytical figures',
-                       id='generate-analytical-figures', color='success'),
-        ]
-    )
+def make_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary) -> list:
     if isinstance(data_dictionary, dict):
         if 'table' in data_dictionary:
-            if filter_threshold is None:
-                filter_threshold: float = 0.6
             # define the data:
             data_table: pd.DataFrame = pd.read_json(
                 data_dictionary['table'], orient='split')
@@ -275,61 +253,204 @@ def make_data_processing_figures(filter_threshold, imputation_method, normalizat
                 data_table, sample_groups, threshold=filter_threshold)
             filtered_counts: pd.Series = count_per_sample(
                 data_table, rev_sample_groups)
-            data_table.to_excel('filtered.xlsx')
+            data_dictionary['filter data'] = [original_counts, filtered_counts]
 
+            data_dictionary['normalization data'] = [data_table.to_json(orient='split')]
             # Normalization, if needed:
             if normalization_method:
-                pre_norm: pd.DataFrame = data_table.copy()
                 data_table = normalize(data_table, normalization_method)
-            data_table.to_excel('normalized.xlsx')
-            pre_imp: pd.DataFrame = data_table
+                data_dictionary['normalization data'].append(data_table.to_json(orient='split'))
             data_table = impute(
                 data_table, method=imputation_method)
-            data_table.to_excel('imputed.xlsx')
-            figures.append(figure_generation.before_after_plot(
-                original_counts, filtered_counts, rev_sample_groups))
-            if normalization_method:
-                figures.append(
-                    figure_generation.comparative_violin_plot(
-                        [pre_norm, data_table],
-                        names=['Before normalization', 'After normalization'],
-                        id_name='normalization-plot'
+            data_dictionary['final data table'] = data_table.to_json(orient='split')
+            
+            return [
+                [
+                    dcc.Loading(type='circle',id='proteomics-filtering-figure'),
+                    dcc.Loading(type='circle',id='proteomics-normalization-figure'),
+                    dcc.Loading(type='circle',id='proteomics-imputation-figure'),
+                    dcc.Loading(type='circle',id='proteomics-distribution-figure'),
+                    dcc.Loading(type='circle',id='proteomics-cv-figure'),
+                    dcc.Loading(type='circle',id='proteomics-pca-figure'),
+                    dcc.Loading(type='circle',id='proteomics-tsne-figure'),
+                    dcc.Loading(type='circle',id='proteomics-correlation-clustermap-figure'),
+                    dcc.Loading(type='circle',id='proteomics-full-clustermap-figure'),
+                    dcc.Loading(type='circle',id='proteomics-volcano-plots'),
+                ],
+                data_dictionary
+                ]
+    return []
+@callback(
+    Output('proteomics-filtering-figure', 'children'),
+    Input('data-processing-figures', 'children'),
+    State('processed-proteomics-data', 'data'),
+)
+def proteomics_filter_figure(_,data_dictionary) -> list:
+    original_counts, filtered_counts = data_dictionary['filter data']
+    return [
+        figure_generation.before_after_plot(
+            pd.read_json(original_counts, typ='series'), 
+            pd.read_json(filtered_counts, typ='series'), 
+            data_dictionary['rev sample groups'],
+            title='NA Filtering'
+            )
+        ]
+
+@callback(
+    Output('proteomics-normalization-figure', 'children'),
+    Input('proteomics-filtering-figure', 'children'),
+    State('processed-proteomics-data', 'data'),
+    
+    
+)
+def proteomics_normalization_figure(_,data_dictionary,) -> list:
+    if len(data_dictionary['normalization data']) < 2:
+        return ''
+    pre_norm, data_table= data_dictionary['normalization data']
+    pre_norm:pd.DataFrame = pd.read_json(pre_norm, orient='split')
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [figure_generation.comparative_violin_plot(
+        [pre_norm, data_table],
+        names=['Before normalization', 'After normalization'],
+        id_name='normalization-plot', title='Normalization'
+    )]
+
+@callback(
+    Output('proteomics-imputation-figure', 'children'),
+    Input('proteomics-normalization-figure', 'children'),
+    State('processed-proteomics-data', 'data'),
+    
+    
+)
+def proteomics_imputation_figure(_, data_dictionary) -> list:
+    pre_imp = data_dictionary['normalization data'][0]
+    data_table = data_dictionary['final data table']
+    pre_imp:pd.DataFrame = pd.read_json(pre_imp, orient='split')
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [figure_generation.imputation_histogram(pre_imp,data_table)]
+
+@callback(
+    Output('proteomics-distribution-figure', 'children'),
+    Input('proteomics-imputation-figure', 'children'),
+    State('processed-proteomics-data', 'data'),
+    State('rep-colors', 'data'),
+    
+    
+)
+def proteomics_distribution_figure(_, data_dictionary,rep_colors) -> list:
+    data_table = data_dictionary['final data table']
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [figure_generation.distribution_figure(
+                data_table, 
+                rep_colors, 
+                data_dictionary['rev sample groups'], 
+                log2_transform=False
+                )]
+
+@callback(
+    Output('proteomics-cv-figure', 'children'),
+    Input('proteomics-distribution-figure', 'children'),
+    State('processed-proteomics-data', 'data'),
+    
+)
+def proteomics_cv_figure(_, data_dictionary) -> list:
+    data_table = data_dictionary['final data table']
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [figure_generation.coefficient_of_variation_plot(data_table,title='%CV')]
+
+@callback(
+    Output('proteomics-pca-figure', 'children'),
+    Input('proteomics-cv-figure', 'children'),
+    State('processed-proteomics-data', 'data'),
+    
+    
+)
+def proteomics_pca_figure(_, data_dictionary) -> list:
+    data_table = data_dictionary['final data table']
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [figure_generation.pca_plot(data_table,data_dictionary['rev sample groups'])]
+
+@callback(
+    Output('proteomics-tsne-figure', 'children'),
+    Input('proteomics-pca-figure', 'children'),
+    State('processed-proteomics-data', 'data'),
+    
+    
+)
+def proteomics_tsne_figure(_, data_dictionary) -> list:
+    data_table = data_dictionary['final data table']
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [figure_generation.t_sne_plot(data_table,data_dictionary['rev sample groups'])]
+
+@callback(
+    Output('proteomics-correlation-clustermap-figure', 'children'),
+    Input('proteomics-tsne-figure', 'children'),
+    State('processed-proteomics-data', 'data'),
+    
+    
+)
+def proteomics_correlation_clustermap_figure(_, data_dictionary) -> list:
+    data_table = data_dictionary['final data table']
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [
+            html.Div('Sample correlation'),
+            figure_generation.correlation_clustermap(data_table)
+        ]
+
+@callback(
+    Output('proteomics-full-clustermap-figure', 'children'),
+    Input('proteomics-correlation-clustermap-figure', 'children'),
+    State('processed-proteomics-data', 'data'),   
+)
+def proteomics_full_clustermap_figure(_, data_dictionary) -> list:
+    data_table = data_dictionary['final data table']
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [
+            html.Div('Sample clustering'),
+            figure_generation.full_clustermap(data_table)
+        ]
+
+@callback(
+    Output('proteomics-volcano-plots', 'children'),
+    Input('proteomics-full-clustermap-figure', 'children'),
+    Input('control-dropdown','value'),
+    State('processed-proteomics-data', 'data'),
+)
+def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
+    if control_group is None: return []
+    data_table = data_dictionary['final data table']
+    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
+    return [
+                html.Div(id='volcano-plot-label', children = 'Volcano plots'),
+                html.Div(id='volcano-plot-container', children = figure_generation.volcano_plots(
+                    data_table, 
+                    data_dictionary['sample groups'], 
+                    control_group
                     )
                 )
-            pre_imp.to_excel('preimp.xlsx')
-            data_table.to_excel('data_table.xlsx')
-            figures.append(figure_generation.imputation_histogram(
-                pre_imp,data_table))
-            figures.append(figure_generation.distribution_figure(
-                data_table, rep_colors, data_dictionary['rev sample groups'], log2_transform=False))
-            figures.extend(figure_generation.volcano_plots(
-                data_table, data_dictionary['sample groups'], control_group))
-            figures.append(figure_generation.coefficient_of_variation_plot(data_table))
-            figures.append(figure_generation.pca_plot(data_table,data_dictionary['rev sample groups']))
-            figures.append(figure_generation.t_sne_plot(data_table,data_dictionary['rev sample groups']))
-            figures.append(figure_generation.correlation_clustermap(data_table))
-            figures.append(figure_generation.full_clustermap(data_table))
-    return figures, analytical_figures
-
-
+            ]
 
 @callback(
     Output('analysis-tabs', 'children'),
-    Input('workflow-choice', 'data'),
+    Input('qc-plot-container','children'),
+    State('workflow-choice', 'data'),
     State('analysis-tabs', 'children'),
+    State('output-data-upload', 'data'),
+    prevent_initial_call=True,
 )
-def create_workflow_specific_tabs(workflow_choice_data, current_tabs) -> list:
+def create_workflow_specific_tabs(_,workflow_choice_data, current_tabs, data_dictionary) -> list:
     return_tabs: list = current_tabs
     if workflow_choice_data == 'proteomics':
         return_tabs = [current_tabs[0]]
-        return_tabs.append(
-            generate_proteomics_tab()
-        )
+        if 'table' in data_dictionary:
+            return_tabs.append(
+                generate_proteomics_tab()
+            )
     return return_tabs
 
 @callback(
     Output('control-dropdown','options'),
-    Input('output-data-upload', 'data')
+    Input('processed-proteomics-data', 'data')
 )
 def set_control_dropdown_values(data_dictionary) -> dict:
     sample_groups: list = ['temp']
@@ -343,10 +464,11 @@ def generate_proteomics_tab() -> dbc.Tab:
     proteomics_summary_tab: dbc.Card = dbc.Card(
         dbc.CardBody(
             children=[
+                dcc.Store(id='processed-proteomics-data'),
                 html.Div(
                     [
                         dbc.Label('Filter:'),
-                        dcc.Slider(0, 1, 0.1, value=0.6,
+                        dcc.Slider(0, 1, 0.1, value=0.7,
                                    id='filter-minimum-percentage'),
                         dbc.Select(
                             options=[
@@ -380,18 +502,7 @@ def generate_proteomics_tab() -> dbc.Tab:
                 ),
                 html.Div(
                     id='data-processing-figures',
-                ), html.Div(
-                    id='analytical-figures-container',
-                    children=[
-                        html.Div(
-                            id='analytical-figures', children=[
-
-                                # TODO: replace the button with figures when it is pressed
-                            ]
-                        )
-                    ]
                 )
-
             ],
             id='proteomics-summary-tab-contents'
         ),
@@ -499,13 +610,18 @@ upload_tab: dbc.Card = dbc.Card(
             dcc.Store(id='figure-template-choice'),
             dcc.Store(id='workflow-choice'),
             dcc.Store(id='rep-colors'),
-            dbc.Container(id='qc-plot-container', style={
-                'margin': '0px',
-                'float': 'center'
-            }
+            dcc.Loading(
+                id='qc-loading',
+                children = [
+                    html.Div(id='qc-plot-container',
+                    children = [
+                        html.Br(),
+                        html.Br(),
+                        html.Br()
+                    ])
+                ],
+                type='default'
             ),
-            html.Div(id='data-app-tabs'),
-            html.Div(id='button-area')
         ],
         className="mt-3"
     ),

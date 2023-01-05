@@ -230,16 +230,18 @@ def pca_plot(data_table: pd.DataFrame, rev_sample_groups: dict, n_components: in
     data_df: pd.DataFrame = data_table.T
     pca = decomposition.PCA(n_components=n_components)
     pca_result = pca.fit_transform(data_df)
+    print(data_df.head())
     data_df['PCA one'] = pca_result[:, 0]
     data_df['PCA two'] = pca_result[:, 1]
     data_df['Sample group'] = [rev_sample_groups[i] for i in data_df.index]
+    data_df['Sample name'] = data_df.index
     if figname is None:
         figname: str = ''
     else:
         figname = '-' + figname
     fig = px.scatter(
-        data_df, x='PCA one', y='PCA two', title=f'PCA{figname}',
-        text='Sample group')
+        data_df, x='PCA one', y='PCA two', title=f'PCA{figname}',color=data_df['Sample group'],
+        text='Sample name')
     fig.update_traces(marker_size=15)
     return dcc.Graph(figure=fig, id=f'pca-plot{figname}')
 
@@ -254,13 +256,14 @@ def t_sne_plot(data_table: pd.DataFrame, rev_sample_groups: dict, perplexity: in
     data_df['t-SNE one'] = tsne_results[:, 0]
     data_df['t-SNE two'] = tsne_results[:, 1]
     data_df['Sample group'] = [rev_sample_groups[i] for i in data_df.index]
+    data_df['Sample name'] = data_df.index
     if figname is None:
         figname: str = ''
     else:
         figname = '-' + figname
     fig = px.scatter(
-        data_df, x='t-SNE one', y='t-SNE two', title=f't-SNE{figname}',
-        text='Sample group')
+        data_df, x='t-SNE one', y='t-SNE two', title=f't-SNE{figname}',color=data_df['Sample group'],
+        text='Sample name')
     fig.update_traces(marker_size=15)
     return dcc.Graph(figure=fig, id=f'tsne-plot{figname}')
 
@@ -274,11 +277,11 @@ def df_coefficient_of_variation(data_table: pd.DataFrame) -> pd.DataFrame:
     new_df['mean intensity'] = data_table.mean(axis=1)
     return new_df
 
-def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coefficient-of-variation') -> dcc.Graph:
+def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coefficient-of-variation', title:str = None) -> dcc.Graph:
     data_table: pd.DataFrame = df_coefficient_of_variation(data_table)
     col1, col2 = data_table.columns[:2]
     data_table = data_table.sort_values(by=col2,ascending=True,inplace=False)
-    fig = px.scatter(data_table, x=col2, y=col1)
+    fig = px.scatter(data_table, x=col2, y=col1, title=title)
 
     plotx: pd.Series = data_table['mean intensity'].values[:,np.newaxis]
     modely: pd.Series = data_table['%CV']
@@ -287,7 +290,14 @@ def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coe
     y_plot: pd.Series = pd.Series(model.predict(plotx))
     plot_df: pd.DataFrame = pd.DataFrame({'x': plotx.flatten(),'y': y_plot})
     fig2 = px.line(plot_df, x='x', y='y')
+    if title is None:
+        title = ''
     fig = go.Figure(data=fig.data + fig2.data)
+    fig.update_layout(
+        title = 'Coefficients of variation',
+        xaxis_title = 'Log2 normalized imputed mean intensity',
+        yaxis_title = '%CV'
+    )
     return dcc.Graph(figure=fig, id=f'scatter-{plotname}')
 
 
@@ -302,17 +312,18 @@ def clustergram(plot_data:pd.DataFrame, **kwargs):
             [0.0, '#FFFFFF'],
             [1.0, '#EF553B']
         ],
+        link_method = 'average',
         **kwargs
     )
 
-def correlation_clustermap(data_table: pd.DataFrame, plotname= None) -> dcc.Graph:
+def correlation_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dcc.Graph:
     if plotname is None: 
         plotname: str = 'correlation-clustermap'
     corr_df: pd.DataFrame = data_table.corr()
     fig = clustergram(corr_df)
     return dcc.Graph(figure=fig,id=plotname)
 
-def full_clustermap(data_table:pd.DataFrame,plotname=None) -> dcc.Graph:
+def full_clustermap(data_table:pd.DataFrame,plotname:str = None) -> dcc.Graph:
     data_table.to_excel('debug.xlsx')
     if plotname is None: 
         plotname: str = 'full-clustermap'
@@ -320,7 +331,7 @@ def full_clustermap(data_table:pd.DataFrame,plotname=None) -> dcc.Graph:
         data_table,
         hidden_labels=['row'],
         #The cluster parameter should be "column", but that does not work. According to source code, "col" is the correct usage, but it might get changed to reflect documentation later.
-        cluster='col'
+        cluster='col',
         )
     return dcc.Graph(figure=fig,id=plotname)
 
