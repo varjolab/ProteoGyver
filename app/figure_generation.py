@@ -230,7 +230,6 @@ def pca_plot(data_table: pd.DataFrame, rev_sample_groups: dict, n_components: in
     data_df: pd.DataFrame = data_table.T
     pca = decomposition.PCA(n_components=n_components)
     pca_result = pca.fit_transform(data_df)
-    print(data_df.head())
     data_df['PCA one'] = pca_result[:, 0]
     data_df['PCA two'] = pca_result[:, 1]
     data_df['Sample group'] = [rev_sample_groups[i] for i in data_df.index]
