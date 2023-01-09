@@ -35,6 +35,7 @@ class DbEngine:
             parameters: dict = self.parse_parameters(parameters)
         self._parameters: dict = parameters
         self.data = self._parameters['Run data']
+        self.temp_dir = self._parameters['Temporary data directory']
         if not os.path.isdir(self.cache_dir):
             os.makedirs(self.cache_dir)
         if not os.path.isdir(self.temp_dir):
@@ -83,6 +84,15 @@ class DbEngine:
         self._upload_table_data_columns:list = upload_table_data_columns
 
     @property
+    def temp_dir(self) -> list:
+        return self._temp_dir
+    @temp_dir.setter
+    def temp_dir(self, temp_dir:list) -> None:
+        if not os.path.isdir(temp_dir):
+            os.makedirs(temp_dir)
+        self._temp_dir:list = temp_dir
+
+    @property
     def upload_table_data_dropdowns(self) -> dict:
         return self._upload_table_data_dropdowns
     @upload_table_data_dropdowns.setter
@@ -93,19 +103,21 @@ class DbEngine:
     def cache_dir(self) -> str:
         return self._parameters['cache dir']
 
+    def get_temp_file(self,filename) -> str:
+        return os.path.join(self.temp_dir, filename)
+
     def clear_session_data(self, uid) -> None:
         for filename in os.listdir(self.cache_dir):
             if filename.startswith(uid): 
                 os.remove(os.path.join(self.cache_dir, filename))
+    
+    def clear_cache_fully(self) -> None:
+        for filename in os.listdir(self.cache_dir):
+            os.remove(os.path.join(self.cache_dir,filename))
 
     def get_cache_file(self,filename) -> str:
         return os.path.join(self.cache_dir, filename)
 
-    @property
-    def temp_dir(self) -> str:
-        return self._parameters['temp dir']
-    def get_temp_file(self,filename) -> str:
-        return os.path.join(self.temp_dir, filename)
     def set_upload_columns(self) -> None:
         data: pd.DataFrame = self.data
         clist: list = []

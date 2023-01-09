@@ -16,5 +16,5 @@
         }
     },
     "cache dir": ".cache_data",
-    "temp dir": ".dash_tmp"
+    "Temporary data directory": ".dash_tmp"
 }

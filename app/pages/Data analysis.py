@@ -216,7 +216,7 @@ def impute(data_table, method='QRILC') -> pd.DataFrame:
     elif method == 'minValue':
         ret = dftools.impute_minval(data_table)
     elif method == 'QRILC':
-        ret = dftools.impute_qrilc(data_table)
+        ret = dftools.impute_qrilc(data_table, tempdir = db.temp_dir)
     return ret
 
 
