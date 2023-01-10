@@ -235,7 +235,6 @@ def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFra
     Input('imputation-radio-option', 'value'),
     Input('normalization-radio-option', 'value'),
     State('output-data-upload', 'data'),
-    
 )
 def make_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary) -> list:
     if isinstance(data_dictionary, dict):
