@@ -11,7 +11,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 import apitools
 
-def parse(xmlfile) -> list:
+def parse(xmlfile) -> pd.DataFrame:
     with open(xmlfile,encoding='utf-8') as fil:
        doc: dict = xmltodict.parse(fil.read())
     interactions: list = []
@@ -62,7 +62,7 @@ def parse(xmlfile) -> list:
                     interactions[-1].append(pdic['proteinInteractor']['xref']['primaryRef']['@id'])
                 except KeyError:
                     interactions[-1].append(None)
-    return interactions
+    return pd.DataFrame(data=interactions,columns=heads)
 
 def download_and_parse(outfile) -> None:
     """Will download MIPS interaction database from https://mips.helmholtz-muenchen.de/proj/ppi/ \
@@ -78,11 +78,10 @@ def download_and_parse(outfile) -> None:
             with open(xmlfile, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
     for _ in range(0,5):
-        interactions = parse(xmlfile)
-        df = pd.DataFrame(data=interactions,columns=heads)
-        if df.shape[0]>0:
+        dataframe: pd.DataFrame = parse(xmlfile)
+        if dataframe.shape[0]>0:
             break
-    df.to_csv(outfile.replace('.gz','_interactions.tsv'),sep='\t',index=False)
+    dataframe.to_csv(outfile.replace('.gz','_interactions.tsv'),sep='\t',index=False)
 
 def update() -> None:
     today: str = apitools.get_timestamp()
@@ -93,8 +92,8 @@ def update() -> None:
         outfile: str = os.path.join(outdir, f'{today}_mppi.gz')
         download_and_parse(outfile)
     
-def get_interactions(filter = None) -> dict:
-    df: pd.DataFrame = pd.read_csv(apitools.get_newest_file(namefilter = '_interactions.tsv'),sep='\t')
+def get_interactions() -> dict:
+    df: pd.DataFrame = pd.read_csv(apitools.get_newest_file(apitools.get_save_location('MIPS'),namefilter = '_interactions.tsv'),sep='\t')
     interactions: dict = {}
     for _,row in df[(df['Protein 1 xref ID']!='-') & (df['Protein 2 xref ID']!='-')].iterrows():
         int1, int2 = row[['Protein 1 xref ID', 'Protein 2 xref ID']]

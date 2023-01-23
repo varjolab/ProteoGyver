@@ -35,17 +35,34 @@ def add_replicate_colors(data_df, column_to_replicate):
         color_column.append(colors[column_to_replicate[sn]])
     data_df.loc[:, 'Color'] = color_column
 
+def protein_coverage(data_table) -> dcc.Graph:
+    df: pd.DataFrame = pd.DataFrame(data_table.notna().astype(int).sum(axis=1).value_counts(),columns=['Identified in # samples'])
+    return dcc.Graph(
+        id='protein-coverage-{title}',
+        figure=bar_plot(
+                pd.DataFrame(data_table.notna()\
+                .astype(int)\
+                .sum(axis=1)\
+                .value_counts(),columns=['Identified in # samples'])
+                ,'Protein coverage',color=False)
+            )
 
-def bar_plot(value_df, title, y=0) -> px.bar:
+def bar_plot(value_df, title, y=0,color:bool=True) -> px.bar:
+    if color:
+        colorval = 'Color'
+        cmapval = 'identity'
+    else:
+        colorval = None
+        cmapval = None
     figure: px.bar = px.bar(
         value_df,
         x=value_df.index,  # 'Sample name',
         y=value_df.columns[y],
-        height=500,
-        width=750,
+        #height=500,
+        #width=750,
         title=title,
-        color='Color',
-        color_discrete_map='identity'
+        color=colorval,
+        color_discrete_map=cmapval
     )
     figure.update_xaxes(type='category')
     return figure
@@ -80,7 +97,18 @@ def comparative_violin_plot(sets: list, names: list = None, id_name: str = None,
     )
     if title is None:
         title: str = ''
-    return dcc.Graph(id=id_name, figure=px.violin(plot_df, y='Values', x='Column', color='Name', box=True, title=title, color_discrete_sequence=colors))
+    return dcc.Graph(id=id_name, figure=px.violin(
+        plot_df, 
+        y='Values', 
+        x='Column', 
+        color='Name', 
+        box=True, 
+        title=title, 
+        color_discrete_sequence=colors,
+        #height=500,
+        #width=750,
+        )
+    )
 
 
 def distribution_figure(data_table, color_dict, sample_groups, title: str = 'Value distribution', log2_transform=True) -> dcc.Graph:
@@ -177,7 +205,7 @@ def volcano_plots(data_table, sample_groups, control_group) -> list:
     return volcanoes
 
 
-def volcano_plot(data_table, sample_name, control_name, sample_columns, control_columns, p_threshold: float = 0.05, fc_threshold: float = 1) -> dcc.Graph:
+def volcano_plot(data_table, sample_name, control_name, sample_columns, control_columns, p_threshold: float = 0.05, fc_threshold: float = 1, fc_axis_min_max:float=2) -> dcc.Graph:
 
     # Calculate log2 fold change for each protein between the two sample groups
     log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
@@ -208,7 +236,10 @@ def volcano_plot(data_table, sample_name, control_name, sample_columns, control_
     pmax: float = max(result['p_value_adj_neg_log10'].max(), p_thresh_val)+0.5
     fig.update_yaxes(title_text='-log10 (q-value)', range=[0, pmax])
     # Set the x-axis properties
-    fcrange: float = max(max(abs(result['fold_change'])), fc_threshold) + 0.1
+    fcrange: float = max(max(abs(result['fold_change'])), fc_threshold)
+    if fcrange < fc_axis_min_max:
+        fcrange = fc_axis_min_max
+    fcrange += 0.25
     fig.update_xaxes(title_text='Fold change', range=[-fcrange, fcrange])
 
     # Add vertical lines indicating the significance thresholds
@@ -300,17 +331,19 @@ def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coe
     return dcc.Graph(figure=fig, id=f'scatter-{plotname}')
 
 
-def clustergram(plot_data:pd.DataFrame, **kwargs):
+def clustergram(plot_data:pd.DataFrame, color_map: list = None, **kwargs):
+    if color_map is None:
+        color_map = [
+            [0.0, '#FFFFFF'],
+            [1.0, '#EF553B']
+        ]
     return dash_bio.Clustergram(
         data=plot_data,
         column_labels=list(plot_data.columns.values),
         row_labels=list(plot_data.index),
-        height=800,
-        width=750,
-        color_map= [
-            [0.0, '#FFFFFF'],
-            [1.0, '#EF553B']
-        ],
+        #height=800,
+       # width=750,
+        color_map= color_map,
         link_method = 'average',
         **kwargs
     )
@@ -319,7 +352,12 @@ def correlation_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dc
     if plotname is None: 
         plotname: str = 'correlation-clustermap'
     corr_df: pd.DataFrame = data_table.corr()
-    fig = clustergram(corr_df)
+    fig = clustergram(
+        corr_df,
+        )
+    #fig.update_zaxes(range=[0,1])
+    # kokeile vielä layoutin kautta zmin ja zmax parametrejä
+    # tai fig.update_layout(coloraxis=dict(cmax=6, cmin=3))
     return dcc.Graph(figure=fig,id=plotname)
 
 def full_clustermap(data_table:pd.DataFrame,plotname:str = None) -> dcc.Graph:
@@ -331,10 +369,29 @@ def full_clustermap(data_table:pd.DataFrame,plotname:str = None) -> dcc.Graph:
         hidden_labels=['row'],
         #The cluster parameter should be "column", but that does not work. According to source code, "col" is the correct usage, but it might get changed to reflect documentation later.
         cluster='col',
+        center_values=False
         )
     return dcc.Graph(figure=fig,id=plotname)
 
-
+def missing_clustermap(data_table,plotname:str = None) -> dcc.Graph:
+    if plotname is None:
+        plotname: str = 'missing-value-clustermap'
+    figure = clustergram(
+        data_table.notna().astype(int),
+        cluster='col',
+        hidden_labels=['row'],
+        color_map= [
+            [0.0, '#000000'],
+            [1.0, '#FFFFFF']
+        ],
+        center_values=False
+    )
+    figure.update_layout(title='Missing values')
+    return dcc.Graph(
+        figure = figure,
+        id=plotname
+    )
+    
 
 """ NEeds testing"""
 

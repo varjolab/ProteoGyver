@@ -5,6 +5,10 @@ import nbib
 def get_timestamp() -> str:
     return datetime.now().strftime('%Y-%m-%d')
 
+def parse_timestamp_from_str(stamp_text:str) -> str:
+    return datetime.strptime(stamp_text,'%Y-%m-%d')
+
+
 def is_newer(reference:str, new_date:str) -> bool:
     reference: datetime.date = datetime.strptime(reference, '%y-%m-%d').date()
     new_date: datetime.date = datetime.strptime(new_date, '%Y-%m-%d').date()

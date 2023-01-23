@@ -146,25 +146,31 @@ def quality_control_charts(_: str, data_dictionary: dict) -> list:
         for sname, sample_color_row in count_data[['Color']].iterrows():
             rep_colors[sname] = sample_color_row['Color']
         data_dictionary['Replicate colors'] = rep_colors
-        figures.append(figure_generation.protein_count_figure(count_data))
+        figures.append(dcc.Loading(type='circle',id='qc-protein-count-figure',children=[figure_generation.protein_count_figure(count_data)]))
+        data_table.to_csv('for testing.tsv',sep='\t')
+        figures.append(dcc.Loading(type='circle',id='qc-protein-coverage',children=[
+            figure_generation.protein_coverage(data_table)
+        ]))
 
         na_data: pd.DataFrame = data_functions.get_na_data(data_table)
         na_data['Color'] = [rep_colors[sample_name]
                             for sample_name in na_data.index.values]
-        figures.append(figure_generation.missing_figure(na_data))
-
+        figures.append(dcc.Loading(type='circle',id='qc-missing-figure',children=[figure_generation.missing_figure(na_data)]))
+        figures.append(dcc.Loading(type='circle',id='qc-missing-clustermap',children=[
+            figure_generation.missing_clustermap(data_table)
+        ]))
         sumdata: pd.DataFrame = data_functions.get_sum_data(data_table)
         sumdata['Color'] = [rep_colors[sample_name]
                             for sample_name in sumdata.index.values]
-        figures.append(figure_generation.sum_value_figure(sumdata))
+        figures.append(dcc.Loading(type='circle',id='qc-sum-value-figure',children=[figure_generation.sum_value_figure(sumdata)]))
 
         avgdata: pd.DataFrame = data_functions.get_avg_data(data_table)
         avgdata['Color'] = [rep_colors[sample_name]
                             for sample_name in avgdata.index.values]
-        figures.append(figure_generation.avg_value_figure(avgdata))
+        figures.append(dcc.Loading(type='circle',id='qc-avg-value-figure',children=[figure_generation.avg_value_figure(avgdata)]))
 
-        figures.append(figure_generation.distribution_figure(
-            data_table, rep_colors, data_dictionary['rev sample groups'], log2_transform=False))
+        figures.append(dcc.Loading(type='circle',id='qc-distribution-figure',children=[figure_generation.distribution_figure(
+            data_table, rep_colors, data_dictionary['rev sample groups'], log2_transform=False)]))
         # Long-term:
         # - protein counts compared to previous similar samples
         # - sum value compared to previous similar samples
@@ -236,7 +242,7 @@ def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFra
     Input('normalization-radio-option', 'value'),
     State('output-data-upload', 'data'),
 )
-def make_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary) -> list:
+def make_proteomics_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary) -> list:
     if isinstance(data_dictionary, dict):
         if 'table' in data_dictionary:
             # define the data:
@@ -271,7 +277,6 @@ def make_data_processing_figures(filter_threshold, imputation_method, normalizat
                     dcc.Loading(type='circle',id='proteomics-distribution-figure'),
                     dcc.Loading(type='circle',id='proteomics-cv-figure'),
                     dcc.Loading(type='circle',id='proteomics-pca-figure'),
-                    dcc.Loading(type='circle',id='proteomics-tsne-figure'),
                     dcc.Loading(type='circle',id='proteomics-correlation-clustermap-figure'),
                     dcc.Loading(type='circle',id='proteomics-full-clustermap-figure'),
                     dcc.Loading(type='circle',id='proteomics-volcano-plots'),
@@ -279,6 +284,7 @@ def make_data_processing_figures(filter_threshold, imputation_method, normalizat
                 data_dictionary
                 ]
     return []
+
 @callback(
     Output('proteomics-filtering-figure', 'children'),
     Input('data-processing-figures', 'children'),
@@ -370,20 +376,8 @@ def proteomics_pca_figure(_, data_dictionary) -> list:
     return [figure_generation.pca_plot(data_table,data_dictionary['rev sample groups'])]
 
 @callback(
-    Output('proteomics-tsne-figure', 'children'),
-    Input('proteomics-pca-figure', 'children'),
-    State('processed-proteomics-data', 'data'),
-    
-    
-)
-def proteomics_tsne_figure(_, data_dictionary) -> list:
-    data_table = data_dictionary['final data table']
-    data_table:pd.DataFrame = pd.read_json(data_table, orient='split')
-    return [figure_generation.t_sne_plot(data_table,data_dictionary['rev sample groups'])]
-
-@callback(
     Output('proteomics-correlation-clustermap-figure', 'children'),
-    Input('proteomics-tsne-figure', 'children'),
+    Input('proteomics-pca-figure', 'children'),
     State('processed-proteomics-data', 'data'),
     
     
@@ -445,6 +439,12 @@ def create_workflow_specific_tabs(_,workflow_choice_data, current_tabs, data_dic
             return_tabs.append(
                 generate_proteomics_tab()
             )
+    elif workflow_choice_data == 'interactomics':
+        return_tabs = [current_tabs[0]]
+        if 'table' in data_dictionary:
+            return_tabs.append(
+                generate_interactomics_tab()
+            )
     return return_tabs
 
 @callback(
@@ -460,7 +460,7 @@ def set_control_dropdown_values(data_dictionary) -> dict:
 
 
 def generate_proteomics_tab() -> dbc.Tab:
-    proteomics_summary_tab: dbc.Card = dbc.Card(
+    proteomics_tab: dbc.Card = dbc.Card(
         dbc.CardBody(
             children=[
                 dcc.Store(id='processed-proteomics-data'),
@@ -499,6 +499,7 @@ def generate_proteomics_tab() -> dbc.Tab:
                     value='Median',
                     id='normalization-radio-option'
                 ),
+                html.Hr(),
                 html.Div(
                     id='data-processing-figures',
                 )
@@ -507,8 +508,40 @@ def generate_proteomics_tab() -> dbc.Tab:
         ),
         className='mt-3'
     )
-    return dbc.Tab(proteomics_summary_tab, label='Proteomics', id='proteomics-tab')
+    return dbc.Tab(proteomics_tab, label='Proteomics', id='proteomics-tab')
 
+def generate_interactomics_tab() -> dbc.Tab:
+    gfplist: list = ['MYR','NLS','MAC-C','MAC-N']
+    interactomics_tab: dbc.Card = dbc.Card(
+        dbc.CardBody(
+            children=[
+                dcc.Store(id='processed-interactomics-data'),
+                html.Div(
+                    id='interactomics-options',
+                    children = [
+                        dbc.Label('SAINT BFDR filtering threshold:'),
+                        dcc.Slider(0, 0.05, 0.01, value=0.05,
+                                   id='saint-bfdr-filter-threshold:'),
+                        dbc.Label('Crapome filtering:'),
+                        dbc.Label('Crapome frequency'),
+                        dcc.Slider(0, 100, 10, value=20,
+                                   id='saint-bfdr-filter-threshold'),
+                        dbc.Label('Crapome rescue SPC fold change:'),
+                        dcc.Slider(0, 5, 1, value=3,
+                                   id='saint-bfdr-filter-threshold'),
+                        dbc.Label('GFP sets to use as control for SAINT:'),
+                        dbc.Checklist(
+                            options=[{'label': gfp, 'value': gfp, 'disabled': False} for gfp in gfplist],
+                            value=[],
+                            id="gfp-for-saint-choices",
+                            switch=True,
+                        ),
+                    ]
+                )
+            ]
+        )
+    )
+    return dbc.Tab(interactomics_tab, label='Interactomics', id='interactomics-tab')
 
 upload_row_1: list = [
     dbc.Col(
@@ -534,7 +567,7 @@ upload_row_2: list = [
     ),
     dbc.Col(
         dbc.Select(
-            value=figure_templates[2],
+            value=figure_templates[0],
             options=[
                 {'label': item, 'value': item} for item in figure_templates
             ],
@@ -605,6 +638,7 @@ upload_tab: dbc.Card = dbc.Card(
             dcc.Download(id='download-sample_table-template'),
             dcc.Download(id='download-datafile-example'),
             html.Div(id='placeholder'),
+            html.Hr(),
             dcc.Store(id='output-data-upload'),
             dcc.Store(id='figure-template-choice'),
             dcc.Store(id='workflow-choice'),

@@ -1,0 +1,118 @@
+PMID- 36548389
+OWN - NLM
+STAT- MEDLINE
+DCOM- 20230120
+LR  - 20230121
+IS  - 1367-4811 (Electronic)
+IS  - 1367-4803 (Print)
+IS  - 1367-4803 (Linking)
+VI  - 39
+IP  - 1
+DP  - 2023 Jan 1
+TI  - PTMint database of experimentally verified PTM regulation on protein-protein 
+      interaction.
+LID - 10.1093/bioinformatics/btac823 [doi]
+LID - btac823
+AB  - MOTIVATION: Post-translational modification (PTM) is an important biochemical 
+      process. which includes six most well-studied types: phosphorylation, 
+      acetylation, methylation, sumoylation, ubiquitylation and glycosylation. PTM is 
+      involved in various cell signaling pathways and biological processes. Abnormal 
+      PTM status is closely associated with severe diseases (such as cancer and 
+      neurologic diseases) by regulating protein functions, such as protein-protein 
+      interactions (PPIs). A set of databases was constructed separately for PTM sites 
+      and PPI; however, the resource of regulation for PTM on PPI is still unsolved. 
+      RESULTS: Here, we firstly constructed a public accessible database of PTMint 
+      (PTMs that are associated with PPIs) (https://ptmint.sjtu.edu.cn/) that contains 
+      manually curated complete experimental evidence of the PTM regulation on PPIs in 
+      multiple organisms, including Homo sapiens, Arabidopsis thaliana, Caenorhabditis 
+      elegans, Drosophila melanogaster, Saccharomyces cerevisiae and 
+      Schizosaccharomyces pombe. Currently, the first version of PTMint encompassed 
+      2477 non-redundant PTM sites in 1169 proteins affecting 2371 protein-protein 
+      pairs involving 357 diseases. Various annotations were systematically integrated, 
+      such as protein sequence, structure properties and protein complex analysis. 
+      PTMint database can help to insight into disease mechanism, disease diagnosis and 
+      drug discovery associated with PTM and PPI. AVAILABILITY AND IMPLEMENTATION: 
+      PTMint is freely available at: https://ptmint.sjtu.edu.cn/. SUPPLEMENTARY 
+      INFORMATION: Supplementary data are available at Bioinformatics online.
+CI  - © The Author(s) 2022. Published by Oxford University Press.
+FAU - Hong, Xiaokun
+AU  - Hong X
+AD  - State Key Laboratory of Microbial Metabolism, Joint International Research 
+      Laboratory of Metabolic & Developmental Sciences, Department of Bioinformatics 
+      and Biostatistics, National Experimental Teaching Center for Life Sciences and 
+      Biotechnology, School of Life Sciences and Biotechnology, Shanghai Center for 
+      Systems Biomedicine, Shanghai Jiao Tong University, Shanghai 200240, China.
+FAU - Li, Ningshan
+AU  - Li N
+AD  - Department of Bioinformatics and Biostatistics, SJTU-Yale Joint Center for 
+      Biostatistics and Data Science, School of Life Sciences and Biotechnology, 
+      Shanghai Jiao Tong University, Shanghai, 200240, China.
+FAU - Lv, Jiyang
+AU  - Lv J
+AD  - State Key Laboratory of Microbial Metabolism, Joint International Research 
+      Laboratory of Metabolic & Developmental Sciences, Department of Bioinformatics 
+      and Biostatistics, National Experimental Teaching Center for Life Sciences and 
+      Biotechnology, School of Life Sciences and Biotechnology, Shanghai Center for 
+      Systems Biomedicine, Shanghai Jiao Tong University, Shanghai 200240, China.
+FAU - Zhang, Yan
+AU  - Zhang Y
+AUID- ORCID: 0000-0002-4215-3684
+AD  - State Key Laboratory of Microbial Metabolism, Joint International Research 
+      Laboratory of Metabolic & Developmental Sciences, Department of Bioinformatics 
+      and Biostatistics, National Experimental Teaching Center for Life Sciences and 
+      Biotechnology, School of Life Sciences and Biotechnology, Shanghai Center for 
+      Systems Biomedicine, Shanghai Jiao Tong University, Shanghai 200240, China.
+FAU - Li, Jing
+AU  - Li J
+AUID- ORCID: 0000-0003-4602-3227
+AD  - State Key Laboratory of Microbial Metabolism, Joint International Research 
+      Laboratory of Metabolic & Developmental Sciences, Department of Bioinformatics 
+      and Biostatistics, National Experimental Teaching Center for Life Sciences and 
+      Biotechnology, School of Life Sciences and Biotechnology, Shanghai Center for 
+      Systems Biomedicine, Shanghai Jiao Tong University, Shanghai 200240, China.
+FAU - Zhang, Jian
+AU  - Zhang J
+AUID- ORCID: 0000-0002-6558-791X
+AD  - Key Laboratory of Cell Differentiation and Apoptosis of Chinese Ministry of 
+      Education, Department of Pathophysiology, Shanghai Jiao-Tong University School of 
+      Medicine (SJTU-SM), Shanghai 200025, China.
+FAU - Chen, Hai-Feng
+AU  - Chen HF
+AUID- ORCID: 0000-0002-7496-4182
+AD  - State Key Laboratory of Microbial Metabolism, Joint International Research 
+      Laboratory of Metabolic & Developmental Sciences, Department of Bioinformatics 
+      and Biostatistics, National Experimental Teaching Center for Life Sciences and 
+      Biotechnology, School of Life Sciences and Biotechnology, Shanghai Center for 
+      Systems Biomedicine, Shanghai Jiao Tong University, Shanghai 200240, China.
+LA  - eng
+GR  - 2020YFA0907700/National Key Research and Development Program of China/
+GR  - National Natural Science Foundation of China/
+PT  - Journal Article
+PL  - England
+TA  - Bioinformatics
+JT  - Bioinformatics (Oxford, England)
+JID - 9808944
+RN  - 0 (Proteins)
+SB  - IM
+MH  - Animals
+MH  - *Drosophila melanogaster/metabolism
+MH  - *Protein Processing, Post-Translational
+MH  - Phosphorylation
+MH  - Proteins/metabolism
+MH  - Glycosylation
+MH  - Databases, Protein
+PMC - PMC9848059
+EDAT- 2022/12/23 06:00
+MHDA- 2023/01/21 06:00
+CRDT- 2022/12/22 13:56
+PHST- 2022/05/25 00:00 [received]
+PHST- 2022/12/18 00:00 [revised]
+PHST- 2022/12/21 00:00 [accepted]
+PHST- 2022/12/23 06:00 [pubmed]
+PHST- 2023/01/21 06:00 [medline]
+PHST- 2022/12/22 13:56 [entrez]
+AID - 6957085 [pii]
+AID - btac823 [pii]
+AID - 10.1093/bioinformatics/btac823 [doi]
+PST - ppublish
+SO  - Bioinformatics. 2023 Jan 1;39(1):btac823. doi: 10.1093/bioinformatics/btac823.
