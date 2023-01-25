@@ -26,7 +26,7 @@ def get_version_info() -> str:
 def methods_text() -> str:
     short,long,pmid = apitools.get_pub_ref('qPTM')
     return '\n'.join([
-        f'Phosphosites were mapped from PTMint (ptmint.sjtu.edu.cn) {short}',
+        f'PTM sites were mapped from qPTM (http://qptm.omicsbio.info/) {short}',
         f'{get_version_info()}',
         pmid,
         long

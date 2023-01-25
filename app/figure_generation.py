@@ -1,3 +1,5 @@
+import base64
+import io
 from plotly import express as px
 import plotly.graph_objects as go
 import numpy as np
@@ -5,11 +7,9 @@ from utilitykit import plotting
 from dash import dcc
 import data_functions
 import pandas as pd
-import plotly.express as px
 from statsmodels.stats import multitest
 from scipy.stats import ttest_ind
 #import scipy.sparse as sp
-import plotly.express as px
 from sklearn import manifold, decomposition
 import plotly.graph_objs as go
 from sklearn.linear_model import Ridge
@@ -17,6 +17,9 @@ from sklearn.preprocessing import SplineTransformer
 from dash import html
 from sklearn.pipeline import make_pipeline
 import dash_bio
+from matplotlib import pyplot as plt
+import matplotlib as mpl
+from supervenn import supervenn as svenn
 
 def add_replicate_colors(data_df, column_to_replicate):
 
@@ -36,7 +39,6 @@ def add_replicate_colors(data_df, column_to_replicate):
     data_df.loc[:, 'Color'] = color_column
 
 def protein_coverage(data_table) -> dcc.Graph:
-    df: pd.DataFrame = pd.DataFrame(data_table.notna().astype(int).sum(axis=1).value_counts(),columns=['Identified in # samples'])
     return dcc.Graph(
         id='protein-coverage-{title}',
         figure=bar_plot(
@@ -361,7 +363,6 @@ def correlation_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dc
     return dcc.Graph(figure=fig,id=plotname)
 
 def full_clustermap(data_table:pd.DataFrame,plotname:str = None) -> dcc.Graph:
-    data_table.to_excel('debug.xlsx')
     if plotname is None: 
         plotname: str = 'full-clustermap'
     fig = clustergram(
@@ -372,6 +373,57 @@ def full_clustermap(data_table:pd.DataFrame,plotname:str = None) -> dcc.Graph:
         center_values=False
         )
     return dcc.Graph(figure=fig,id=plotname)
+
+def supervenn(data_table: pd.DataFrame, rev_sample_groups: dict) -> html.Img:
+    """Draws a super venn plot for the input data table.
+
+    See https://github.com/gecko984/supervenn for details of the plot.
+    Parameters:
+    sets: dictionary containing the data sets. {setname1: set1(), setname2: set2()}
+    figure_name: name for the figure title, as well as saved file
+    save_figure: whether the figure should be saved as pdf
+    out_dir: place the saved figure in this directory
+
+    Returns:
+    tuple of (fig, axes), or None if either too few or too many sets were given.
+    """    
+    group_sets: dict = {}
+    for column in data_table.columns:
+        col_proteins: set = set(data_table[[column]].dropna().index.values)
+        group_name: str = rev_sample_groups[column]
+        if group_name not in group_sets:
+            group_sets[group_name] = set()
+        group_sets[group_name] |= col_proteins
+
+    # Buffer for use
+    buffer: io.BytesIO = io.BytesIO()
+    fig: mpl.figure
+    axes: mpl.Axes
+    fig, axes = plt.subplots()
+    fig.set_figheight(8)
+    fig.set_figwidth(8)
+    
+    plot_sets: list = []
+    plot_setnames: list = []
+    for set_name, set_proteins in group_sets.items():
+        plot_sets.append(set(set_proteins))
+        plot_setnames.append(set_name)
+    svenn(
+        plot_sets,
+        plot_setnames,
+        ax=axes,
+        rotate_col_annotations=True,
+        col_annotations_area_height=1.2,
+        widths_minmax_ratio=0.1
+        )
+    plt.xlabel('Shared proteins')
+    plt.ylabel('Sample group')
+    plt.savefig(buffer, format = "png")
+    plt.close()
+    data: str = base64.b64encode(buffer.getbuffer()).decode("utf8") # encode to html elements
+    buffer.close()
+    return html.Img(id='supervennfigure',src=f'data:image/png;base64,{data}')
+
 
 def missing_clustermap(data_table,plotname:str = None) -> dcc.Graph:
     if plotname is None:

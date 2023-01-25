@@ -10,7 +10,13 @@ from DbEngine import DbEngine
 launch_uid: UUID = str(uuid4())
 db: DbEngine = DbEngine()
 
-app: Dash = Dash(__name__, use_pages=True, external_stylesheets = [dbc.themes.SANDSTONE], suppress_callback_exceptions=True) # dbc.styles.SOLAR; dbc.styles.DARKLY
+app: Dash = Dash(
+    __name__, 
+    use_pages=True, 
+    external_stylesheets = [
+        dbc.themes.SANDSTONE
+    ], 
+    suppress_callback_exceptions=True)
 app.title = 'Data analysis alpha version'
 print('Site pages:')
 for page in dash.page_registry.values():
@@ -43,8 +49,8 @@ app.layout = html.Div([
     html.Div(id='session-uid',children=launch_uid,hidden=True),
     navbar,
 	dash.page_container,
-    dbc.Button('Clear session data',\
-        id='button-clear-session-data'),
+#    dbc.Button('Clear session data',\
+#        id='button-clear-session-data'),
     html.Div(id='notused',hidden=True)
 
 ])
