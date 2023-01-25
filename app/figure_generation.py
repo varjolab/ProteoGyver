@@ -1,5 +1,6 @@
 import base64
 import io
+from typing import Any
 from plotly import express as px
 import plotly.graph_objects as go
 import numpy as np
@@ -21,7 +22,7 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 from supervenn import supervenn as svenn
 
-def add_replicate_colors(data_df, column_to_replicate):
+def add_replicate_colors(data_df, column_to_replicate) -> None:
 
     need_cols: int = list(
         {
@@ -51,8 +52,8 @@ def protein_coverage(data_table) -> dcc.Graph:
 
 def bar_plot(value_df, title, y=0,color:bool=True) -> px.bar:
     if color:
-        colorval = 'Color'
-        cmapval = 'identity'
+        colorval: str = 'Color'
+        cmapval: str = 'identity'
     else:
         colorval = None
         cmapval = None
@@ -218,6 +219,8 @@ def volcano_plot(data_table, sample_name, control_name, sample_columns, control_
         x[sample_columns], x[control_columns])[1], axis=1)
 
     # Adjust the p-values for multiple testing using the Benjamini-Hochberg correction method
+    _: Any
+    p_value_adj: np.ndarray
     _, p_value_adj, _, _ = multitest.multipletests(p_value, method='fdr_bh')
 
     # Create a new dataframe containing the fold change and adjusted p-value for each protein

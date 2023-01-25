@@ -5,16 +5,21 @@ import io
 import json
 from typing import Any, Union
 import dash
+from pyparsing import srange
 import dash_bootstrap_components as dbc
 import data_functions
 import figure_generation
+import tooltips
 import pandas as pd
 import plotly.io as pio
 from dash import callback, dcc, html
 from dash.dependencies import Input, Output, State
 from DbEngine import DbEngine
 from styles import Styles
-from utilitykit import dftools, plotting
+from utilitykit import plotting
+
+
+
 
 # db will house all data, keep track of next row ID, and validate any new data
 db: DbEngine = DbEngine()
@@ -34,6 +39,8 @@ figure_templates = [
 
 
 def read_df_from_content(content, filename) -> pd.DataFrame:
+    _:str
+    content_string:str
     _, content_string = content.split(',')
     decoded_content: bytes = base64.b64decode(content_string)
     f_end: str = filename.rsplit('.', maxsplit=1)[-1]
@@ -242,45 +249,6 @@ def sample_table_download(_) -> dict:
 def download_data_table(_) -> dict:
     return dcc.send_file(db.request_file('assets', 'example-data_file'))
 
-def filter_missing(data_table: pd.DataFrame, sample_groups: dict, threshold: int = 60) -> pd.DataFrame:
-    threshold: int = threshold/100
-    keeps: list = []
-    for _, row in data_table.iterrows():
-        keep: bool = False
-        for _, sample_columns in sample_groups.items():
-            keep = keep | (row[sample_columns].notna().sum()
-                           >= (threshold*len(sample_columns)))
-            if keep:
-                break
-        keeps.append(keep)
-    return data_table[keeps]
-
-def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Series:
-    index: list = list(rev_sample_groups.keys())
-    retser: pd.Series = pd.Series(
-        index=index,
-        data=[data_table[i].notna().sum() for i in index]
-    ).to_json()
-    return retser
-
-
-def impute(data_table, method='QRILC') -> pd.DataFrame:
-    ret: pd.DataFrame = data_table
-    if method == 'minProb':
-        ret = dftools.impute_minprob_df(data_table)
-    elif method == 'minValue':
-        ret = dftools.impute_minval(data_table)
-    elif method == 'QRILC':
-        ret = dftools.impute_qrilc(data_table, tempdir = db.temp_dir)
-    return ret
-
-
-def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFrame:
-    if normalization_method == 'Median':
-        data_table: pd.DataFrame = data_functions.median_normalize(data_table)
-    elif normalization_method == 'Quantile':
-        data_table = data_functions.quantile_normalize(data_table)
-    return data_table
 
 
 @callback(
@@ -303,21 +271,21 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             rev_sample_groups: dict = data_dictionary['rev sample groups']
 
             # Filter by missing value proportion
-            original_counts: pd.Series = count_per_sample(
+            original_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
-            data_table = filter_missing(
+            data_table = data_functions.filter_missing(
                 data_table, sample_groups, threshold=filter_threshold)
-            filtered_counts: pd.Series = count_per_sample(
+            filtered_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
             data_dictionary['filter data'] = [original_counts, filtered_counts]
 
             data_dictionary['normalization data'] = [data_table.to_json(orient='split')]
             # Normalization, if needed:
             if normalization_method:
-                data_table = normalize(data_table, normalization_method)
+                data_table = data_functions.normalize(data_table, normalization_method)
                 data_dictionary['normalization data'].append(data_table.to_json(orient='split'))
-            data_table = impute(
-                data_table, method=imputation_method)
+            data_table = data_functions.impute(
+                data_table, method=imputation_method, tempdir=db.temp_dir)
             data_dictionary['final data table'] = data_table.to_json(orient='split')
 
             return [
@@ -512,16 +480,6 @@ def set_control_dropdown_values(data_dictionary) -> dict:
     return [{'label': sample_group, 'value': sample_group} for sample_group in sample_groups]
 
 
-## TODO: move to help.py or something
-def na_tooltip() -> dbc.Tooltip:
-    return dbc.Tooltip(
-        children = [
-            'Discard proteins that are not present in at least N percent of at least one replicate group. E.g. drop proteins that were only seen in one replicate of one sample.'
-        ],
-        target='filtering-label',
-        placement='top',
-        style={'text-transform': 'none'}
-    )
 
 def generate_proteomics_tab() -> dbc.Tab:
     proteomics_tab: dbc.Card = dbc.Card(
@@ -533,7 +491,7 @@ def generate_proteomics_tab() -> dbc.Tab:
 
                         html.Div([
                             dbc.Label('NA Filtering:', id='filtering-label'),
-                            na_tooltip()
+                            tooltips.na_tooltip()
                         ]),
                         dcc.Slider(0, 100, 10, value=70,
                                    id='filter-minimum-percentage'),

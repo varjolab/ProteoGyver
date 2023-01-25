@@ -5,7 +5,7 @@ import io
 import numpy as np
 import base64
 from typing import Tuple
-
+from utilitykit import dftools
 
 def read_df_from_content(content, filename) -> pd.DataFrame:
     _, content_string = content.split(',')
@@ -62,6 +62,47 @@ def read_dia_nn(data_table: pd.DataFrame) -> pd.DataFrame:
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
     return [table, pd.DataFrame({'No data': ['No data']})]
+
+
+def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Series:
+    index: list = list(rev_sample_groups.keys())
+    retser: pd.Series = pd.Series(
+        index=index,
+        data=[data_table[i].notna().sum() for i in index]
+    ).to_json()
+    return retser
+
+def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFrame:
+    if normalization_method == 'Median':
+        data_table: pd.DataFrame = median_normalize(data_table)
+    elif normalization_method == 'Quantile':
+        data_table = quantile_normalize(data_table)
+    return data_table
+
+    
+def filter_missing(data_table: pd.DataFrame, sample_groups: dict, threshold: int = 60) -> pd.DataFrame:
+    threshold: int = threshold/100
+    keeps: list = []
+    for _, row in data_table.iterrows():
+        keep: bool = False
+        for _, sample_columns in sample_groups.items():
+            keep = keep | (row[sample_columns].notna().sum()
+                           >= (threshold*len(sample_columns)))
+            if keep:
+                break
+        keeps.append(keep)
+    return data_table[keeps]
+
+
+def impute(data_table:pd.DataFrame, method:str='QRILC', tempdir:str='.') -> pd.DataFrame:
+    ret: pd.DataFrame = data_table
+    if method == 'minProb':
+        ret = dftools.impute_minprob_df(data_table)
+    elif method == 'minValue':
+        ret = dftools.impute_minval(data_table)
+    elif method == 'QRILC':
+        ret = dftools.impute_qrilc(data_table, tempdir = tempdir)
+    return ret
 
 
 def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
