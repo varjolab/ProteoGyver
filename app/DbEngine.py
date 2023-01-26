@@ -1,8 +1,8 @@
-"""Quick module for database things
+"""Quick module for database things. Should be replaced by a real database.
 
 """
 import json
-from typing import Union
+from typing import Union, Tuple
 import os
 import pandas as pd
 
@@ -12,11 +12,15 @@ class DbEngine:
     # pylint: disable=too-many-instance-attributes
     # Temporary class until moving to real DB, not the time to worry about too many attributes
 
-    _parameters = {}
-    _data = pd.DataFrame()
-    _last_id = -1
-    _upload_table_data_columns = []
-    _upload_table_data_dropdowns = {}
+    _parameters: dict = {}
+    _data: pd.DataFrame = pd.DataFrame()
+    _last_id: int = -1
+    _upload_table_data_columns: list = []
+    _upload_table_data_dropdowns: dict = {}
+    _protein_lengths: dict = {}
+    _control_table: pd.DataFrame
+    _crapome: dict
+    _controls: dict
 
 
     @property
@@ -36,10 +40,56 @@ class DbEngine:
         self._parameters: dict = parameters
         self.data = self._parameters['Run data']
         self.temp_dir = self._parameters['Temporary data directory']
+        self.protein_lengths = self.request_asset_file('protein lengths file')
         if not os.path.isdir(self.cache_dir):
             os.makedirs(self.cache_dir)
         if not os.path.isdir(self.temp_dir):
             os.makedirs(self.temp_dir)
+
+        with open(parameters['files']['data']['control sets'], encoding='utf-8') as fil:
+            self._controls = json.load(fil)
+        self._control_table = pd.read_csv(parameters['files']['data']['control table'],sep='\t',index_col='Prey')
+
+        with open(parameters['files']['data']['crapome'], encoding='utf-8') as fil:
+            self._crapome = json.load(fil)
+
+
+
+
+
+    @property
+    def controlsets(self) -> dict:
+        return self._controls['sets']['all']
+    @property
+    def default_controlsets(self) -> dict:
+        return self._controls['sets']['default']
+    @property
+    def disabled_controlsets(self) -> int:
+        return self._controls['sets']['disabled']
+    @property
+    def full_control_table(self) -> pd.DataFrame:
+        return self._control_table
+    @property
+    def controls(self, control_list) -> pd.DataFrame:
+        these_columns: list = []
+        for control_group in control_list:
+            these_columns.extend(self._controls[control_group])
+        return self.full_control_table[these_columns]
+
+    @property
+    def crapomesets(self) -> dict:
+        return self._crapome['sets']['all']
+    @property
+    def default_crapomesets(self) -> dict:
+        return self._crapome['sets']['default']
+    @property
+    def disabled_crapomesets(self) -> int:
+        return self._crapome['sets']['disabled']
+    @property
+    def crapome(self, crapome_sets) -> dict:
+        return [[c_set, self._crapome[c_set]] for c_set in crapome_sets]
+
+
 
     @property
     def data(self) -> pd.DataFrame:
@@ -52,10 +102,62 @@ class DbEngine:
         self.last_id = self._data['id'].max()+1
         if len(self._upload_table_data_columns) == 0:
             self.set_upload_columns()
+    
+    def protein_lengths_from_fasta(self, fasta_file_name, uniprot=True) -> None:
+        lens: dict = {}
+        seqs: list = []
+        protein_id:str
+        with open(fasta_file_name) as fil:
+            for line in fil:
+                if line.startswith('>'):
+                    protein_id = line.strip().strip('>')
+                    if uniprot:
+                        protein_id = protein_id.split('|')[1]
+                    lens[protein_id] = ''
+                    seqs.append([protein_id, ''])
+                else:
+                    lens[protein_id]+=line.strip()
+                    seqs[-1][1]+=line.strip()
+        self.protein_lengths = lens 
+        
+        with open(self.protein_seq_file,'a') as fil:
+            for line in seqs:
+                fil.write('\t'.join(line)+'\n')
+
+    @property
+    def protein_lengths(self) -> dict:
+        return self._protein_lengths
+    @protein_lengths.setter
+    def protein_lengths(self, filename) -> None:
+        if isinstance(filename,dict):
+            with open(self._protein_lentgh_file, 'a') as fil:
+                current:int
+                for key, value in filename.items():
+                    try:
+                        current = self._protein_lengths[key]
+                    except KeyError:
+                        current = -1
+                    if current != value:
+                        if key not in self._protein_lengths:
+                            self._protein_lengths[key] = value
+                            fil.write(f'{key}\t{value}\n')
+        else:
+            with open(filename) as fil:
+                next(fil)
+                for line in fil:
+                    line: list = line.strip().split('\t')
+                    if len(line)<2:continue
+                    self._protein_lengths[line[0]] = int(line[1])
+
+
 
     @property
     def known_types(self) -> dict:
-        return self._parameters['Known types']
+        return self.parameters['Known types']
+    
+    @property
+    def max_theoretical_spc(self) -> int:
+        return self.parameters['Maximum psm ever theoretically encountered']
 
     @property
     def last_id(self) -> int:
@@ -65,16 +167,27 @@ class DbEngine:
         self._last_id:int = last_id
 
     @property
+    def protein_lentgh_file(self) -> str:
+        return self._protein_lentgh_file
+    @protein_lentgh_file.setter
+    def protein_lentgh_file(self, protein_lentgh_file_name:str) -> None:
+        self._protein_lentgh_file:str = protein_lentgh_file_name
+
+    @property
     def default_workflow(self) -> str:
-        return self.implemented_workflows[self._parameters['Default workflow']]
+        return self.implemented_workflows[self.parameters['Default workflow']]
     
     @property
     def implemented_workflows(self) -> list:
-        return self._parameters['Implemented workflows']
+        return self.parameters['Implemented workflows']
     
     @property
     def files(self) -> dict:
-        return self._parameters['files']
+        return self.parameters['files']
+
+    @property
+    def protein_seq_file(self) -> dict:
+        return  os.path.join(*(self.request_asset_file('Protein sequence file')))
 
     @property
     def upload_table_data_columns(self) -> list:
@@ -101,7 +214,7 @@ class DbEngine:
 
     @property
     def cache_dir(self) -> str:
-        return self._parameters['cache dir']
+        return self.parameters['cache dir']
 
     def get_temp_file(self,filename) -> str:
         return os.path.join(self.temp_dir, filename)
@@ -117,6 +230,13 @@ class DbEngine:
 
     def get_cache_file(self,filename) -> str:
         return os.path.join(self.cache_dir, filename)
+    
+    @property
+    def scripts(self, scriptname) -> Tuple[str,str]:
+        return (
+            self.parameters['script_dirs'][scriptname],
+            self.parameters['scripts'][scriptname]
+            )
 
     def set_upload_columns(self) -> None:
         data: pd.DataFrame = self.data
@@ -144,9 +264,18 @@ class DbEngine:
     def add_to_data(self,data_frame) -> None:
         pass #self.data
 
+    def get_protein_lengths(self, protein_ids) -> None:
+        plendic: dict = self.protein_lengths
+        protein_ids: list = [p for p in protein_ids if p in plendic]
+        return { protein_id: plendic[protein_id] for protein_id in protein_ids }
+
+
     def request_file(self, location, filename) -> str:
         file_location: list = self.files[location][filename]
         return os.path.join(*file_location)
+
+    def request_asset_file(self, filename) -> str:
+        return self.request_file('assets',filename)
 
 
     def __init__(self) -> None:

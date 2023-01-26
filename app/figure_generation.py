@@ -16,11 +16,12 @@ import plotly.graph_objs as go
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import SplineTransformer
 from dash import html
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import make_pipeline, Pipeline
 import dash_bio
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 from supervenn import supervenn as svenn
+
 
 def add_replicate_colors(data_df, column_to_replicate) -> None:
 
@@ -35,25 +36,31 @@ def add_replicate_colors(data_df, column_to_replicate) -> None:
     colors = plotting.cut_colors_to_hex(colors)
     colors = {sname: colors[i] for i, sname in enumerate(need_cols)}
     color_column: list = []
-    for sn in data_df.index.values:
-        color_column.append(colors[column_to_replicate[sn]])
+    for sample_name in data_df.index.values:
+        color_column.append(colors[column_to_replicate[sample_name]])
     data_df.loc[:, 'Color'] = color_column
+
 
 def protein_coverage(data_table) -> dcc.Graph:
     return dcc.Graph(
         id='protein-coverage-{title}',
         figure=bar_plot(
-                pd.DataFrame(data_table.notna()\
-                .astype(int)\
-                .sum(axis=1)\
-                .value_counts(),columns=['Identified in # samples'])
-                ,'Protein coverage',color=False)
-            )
+            pd.DataFrame(data_table.notna()
+                         .astype(int)
+                         .sum(axis=1)
+                         .value_counts(), columns=['Identified in # samples']), 'Protein coverage', color=False)
+    )
 
-def bar_plot(value_df, title, y=0,color:bool=True) -> px.bar:
-    if color:
-        colorval: str = 'Color'
-        cmapval: str = 'identity'
+
+def bar_plot(value_df, title, y=0, color: bool = True, color_col: str = None) -> px.bar:
+    colorval: str
+    cmapval: str
+    if color_col is not None:
+        colorval = color_col
+        cmapval = 'identity'
+    elif color:
+        colorval = 'Color'
+        cmapval = 'identity'
     else:
         colorval = None
         cmapval = None
@@ -61,8 +68,8 @@ def bar_plot(value_df, title, y=0,color:bool=True) -> px.bar:
         value_df,
         x=value_df.index,  # 'Sample name',
         y=value_df.columns[y],
-        #height=500,
-        #width=750,
+        # height=500,
+        # width=750,
         title=title,
         color=colorval,
         color_discrete_map=cmapval
@@ -101,16 +108,16 @@ def comparative_violin_plot(sets: list, names: list = None, id_name: str = None,
     if title is None:
         title: str = ''
     return dcc.Graph(id=id_name, figure=px.violin(
-        plot_df, 
-        y='Values', 
-        x='Column', 
-        color='Name', 
-        box=True, 
-        title=title, 
+        plot_df,
+        y='Values',
+        x='Column',
+        color='Name',
+        box=True,
+        title=title,
         color_discrete_sequence=colors,
-        #height=500,
-        #width=750,
-        )
+        # height=500,
+        # width=750,
+    )
     )
 
 
@@ -208,7 +215,7 @@ def volcano_plots(data_table, sample_groups, control_group) -> list:
     return volcanoes
 
 
-def volcano_plot(data_table, sample_name, control_name, sample_columns, control_columns, p_threshold: float = 0.05, fc_threshold: float = 1, fc_axis_min_max:float=2) -> dcc.Graph:
+def volcano_plot(data_table, sample_name, control_name, sample_columns, control_columns, p_threshold: float = 0.05, fc_threshold: float = 1, fc_axis_min_max: float = 2) -> dcc.Graph:
 
     # Calculate log2 fold change for each protein between the two sample groups
     log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
@@ -264,8 +271,8 @@ def pca_plot(data_table: pd.DataFrame, rev_sample_groups: dict, n_components: in
     """Untested code"""
     # Compute PCA of the data
     data_df: pd.DataFrame = data_table.T
-    pca = decomposition.PCA(n_components=n_components)
-    pca_result = pca.fit_transform(data_df)
+    pca: decomposition.PCA = decomposition.PCA(n_components=n_components)
+    pca_result: np.ndarray = pca.fit_transform(data_df)
     data_df['PCA one'] = pca_result[:, 0]
     data_df['PCA two'] = pca_result[:, 1]
     data_df['Sample group'] = [rev_sample_groups[i] for i in data_df.index]
@@ -274,8 +281,8 @@ def pca_plot(data_table: pd.DataFrame, rev_sample_groups: dict, n_components: in
         figname: str = ''
     else:
         figname = '-' + figname
-    fig = px.scatter(
-        data_df, x='PCA one', y='PCA two', title=f'PCA{figname}',color=data_df['Sample group'],
+    fig: go.Figure = px.scatter(
+        data_df, x='PCA one', y='PCA two', title=f'PCA{figname}', color=data_df['Sample group'],
         text='Sample name')
     fig.update_traces(marker_size=15)
     return dcc.Graph(figure=fig, id=f'pca-plot{figname}')
@@ -297,10 +304,11 @@ def t_sne_plot(data_table: pd.DataFrame, rev_sample_groups: dict, perplexity: in
     else:
         figname = '-' + figname
     fig = px.scatter(
-        data_df, x='t-SNE one', y='t-SNE two', title=f't-SNE{figname}',color=data_df['Sample group'],
+        data_df, x='t-SNE one', y='t-SNE two', title=f't-SNE{figname}', color=data_df['Sample group'],
         text='Sample name')
     fig.update_traces(marker_size=15)
     return dcc.Graph(figure=fig, id=f'tsne-plot{figname}')
+
 
 def coefficient_of_variation(row: pd.Series) -> float:
     return (row.std()/row.mean())*100
@@ -312,31 +320,33 @@ def df_coefficient_of_variation(data_table: pd.DataFrame) -> pd.DataFrame:
     new_df['mean intensity'] = data_table.mean(axis=1)
     return new_df
 
-def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coefficient-of-variation', title:str = None) -> dcc.Graph:
+
+def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coefficient-of-variation', title: str = None) -> dcc.Graph:
     data_table: pd.DataFrame = df_coefficient_of_variation(data_table)
     col1, col2 = data_table.columns[:2]
-    data_table = data_table.sort_values(by=col2,ascending=True,inplace=False)
+    data_table = data_table.sort_values(by=col2, ascending=True, inplace=False)
     fig = px.scatter(data_table, x=col2, y=col1, title=title)
 
-    plotx: pd.Series = data_table['mean intensity'].values[:,np.newaxis]
+    plotx: pd.Series = data_table['mean intensity'].values[:, np.newaxis]
     modely: pd.Series = data_table['%CV']
-    model = make_pipeline(SplineTransformer(n_knots=4, degree=2), Ridge(alpha=1e-3))
-    model.fit(plotx,modely)
+    model: Pipeline = make_pipeline(SplineTransformer(
+        n_knots=4, degree=2), Ridge(alpha=1e-3))
+    model.fit(plotx, modely)
     y_plot: pd.Series = pd.Series(model.predict(plotx))
-    plot_df: pd.DataFrame = pd.DataFrame({'x': plotx.flatten(),'y': y_plot})
-    fig2 = px.line(plot_df, x='x', y='y')
+    plot_df: pd.DataFrame = pd.DataFrame({'x': plotx.flatten(), 'y': y_plot})
+    fig2: go.Figure = px.line(plot_df, x='x', y='y')
     if title is None:
         title = ''
-    fig = go.Figure(data=fig.data + fig2.data)
+    fig: go.Figure = go.Figure(data=fig.data + fig2.data)
     fig.update_layout(
-        title = 'Coefficients of variation',
-        xaxis_title = 'Log2 normalized imputed mean intensity',
-        yaxis_title = '%CV'
+        title='Coefficients of variation',
+        xaxis_title='Log2 normalized imputed mean intensity',
+        yaxis_title='%CV'
     )
     return dcc.Graph(figure=fig, id=f'scatter-{plotname}')
 
 
-def clustergram(plot_data:pd.DataFrame, color_map: list = None, **kwargs):
+def clustergram(plot_data: pd.DataFrame, color_map: list = None, **kwargs):
     if color_map is None:
         color_map = [
             [0.0, '#FFFFFF'],
@@ -346,36 +356,39 @@ def clustergram(plot_data:pd.DataFrame, color_map: list = None, **kwargs):
         data=plot_data,
         column_labels=list(plot_data.columns.values),
         row_labels=list(plot_data.index),
-        #height=800,
-       # width=750,
-        color_map= color_map,
-        link_method = 'average',
+        # height=800,
+        # width=750,
+        color_map=color_map,
+        link_method='average',
         **kwargs
     )
 
+
 def correlation_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dcc.Graph:
-    if plotname is None: 
+    if plotname is None:
         plotname: str = 'correlation-clustermap'
     corr_df: pd.DataFrame = data_table.corr()
     fig = clustergram(
         corr_df,
-        )
-    #fig.update_zaxes(range=[0,1])
+    )
+    # fig.update_zaxes(range=[0,1])
     # kokeile vielä layoutin kautta zmin ja zmax parametrejä
     # tai fig.update_layout(coloraxis=dict(cmax=6, cmin=3))
-    return dcc.Graph(figure=fig,id=plotname)
+    return dcc.Graph(figure=fig, id=plotname)
 
-def full_clustermap(data_table:pd.DataFrame,plotname:str = None) -> dcc.Graph:
-    if plotname is None: 
+
+def full_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dcc.Graph:
+    if plotname is None:
         plotname: str = 'full-clustermap'
     fig = clustergram(
         data_table,
         hidden_labels=['row'],
-        #The cluster parameter should be "column", but that does not work. According to source code, "col" is the correct usage, but it might get changed to reflect documentation later.
+        # The cluster parameter should be "column", but that does not work. According to source code, "col" is the correct usage, but it might get changed to reflect documentation later.
         cluster='col',
         center_values=False
-        )
-    return dcc.Graph(figure=fig,id=plotname)
+    )
+    return dcc.Graph(figure=fig, id=plotname)
+
 
 def supervenn(data_table: pd.DataFrame, rev_sample_groups: dict) -> html.Img:
     """Draws a super venn plot for the input data table.
@@ -389,7 +402,7 @@ def supervenn(data_table: pd.DataFrame, rev_sample_groups: dict) -> html.Img:
 
     Returns:
     tuple of (fig, axes), or None if either too few or too many sets were given.
-    """    
+    """
     group_sets: dict = {}
     for column in data_table.columns:
         col_proteins: set = set(data_table[[column]].dropna().index.values)
@@ -405,7 +418,7 @@ def supervenn(data_table: pd.DataFrame, rev_sample_groups: dict) -> html.Img:
     fig, axes = plt.subplots()
     fig.set_figheight(8)
     fig.set_figwidth(8)
-    
+
     plot_sets: list = []
     plot_setnames: list = []
     for set_name, set_proteins in group_sets.items():
@@ -418,24 +431,25 @@ def supervenn(data_table: pd.DataFrame, rev_sample_groups: dict) -> html.Img:
         rotate_col_annotations=True,
         col_annotations_area_height=1.2,
         widths_minmax_ratio=0.1
-        )
+    )
     plt.xlabel('Shared proteins')
     plt.ylabel('Sample group')
-    plt.savefig(buffer, format = "png")
+    plt.savefig(buffer, format="png")
     plt.close()
-    data: str = base64.b64encode(buffer.getbuffer()).decode("utf8") # encode to html elements
+    data: str = base64.b64encode(buffer.getbuffer()).decode(
+        "utf8")  # encode to html elements
     buffer.close()
-    return html.Img(id='supervennfigure',src=f'data:image/png;base64,{data}')
+    return html.Img(id='supervennfigure', src=f'data:image/png;base64,{data}')
 
 
-def missing_clustermap(data_table,plotname:str = None) -> dcc.Graph:
+def missing_clustermap(data_table, plotname: str = None) -> dcc.Graph:
     if plotname is None:
         plotname: str = 'missing-value-clustermap'
     figure = clustergram(
         data_table.notna().astype(int),
         cluster='col',
         hidden_labels=['row'],
-        color_map= [
+        color_map=[
             [0.0, '#000000'],
             [1.0, '#FFFFFF']
         ],
@@ -443,16 +457,16 @@ def missing_clustermap(data_table,plotname:str = None) -> dcc.Graph:
     )
     figure.update_layout(title='Missing values')
     return dcc.Graph(
-        figure = figure,
+        figure=figure,
         id=plotname
     )
-    
+
 
 """ NEeds testing"""
 
 
 def get_volcano_df(data_table: pd.DataFrame, sample_columns, control_columns, p_th) -> pd.DataFrame:
-     # Calculate log2 fold change for each protein between the two sample groups
+    # Calculate log2 fold change for each protein between the two sample groups
     log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
         axis=1) / data_table[control_columns].mean(axis=1))
 
@@ -470,28 +484,30 @@ def get_volcano_df(data_table: pd.DataFrame, sample_columns, control_columns, p_
     #result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
     return result
 
-def volcano_plot2(data_table) -> html.Div: 
-    
+
+def volcano_plot2(data_table) -> html.Div:
+
     html.Div([
-    'log2FC:',
-    dcc.RangeSlider(
-        id='range-slider',
-        min=-3,
-        max=3,
-        step=0.05,
-        marks={i: {'label': str(i)} for i in range(-3, 3)},
-        value=[-0.5, 1]
-    ),
-    html.Br(),
-    html.Div(
-        dcc.Graph(
-            id='graph',
-            figure=dashbio.VolcanoPlot(
-                dataframe=df
+        'log2FC:',
+        dcc.RangeSlider(
+            id='range-slider',
+            min=-3,
+            max=3,
+            step=0.05,
+            marks={i: {'label': str(i)} for i in range(-3, 3)},
+            value=[-0.5, 1]
+        ),
+        html.Br(),
+        html.Div(
+            dcc.Graph(
+                id='graph',
+                figure=dash_bio.VolcanoPlot(
+                    dataframe=data_table
+                )
             )
         )
-    )
-])
+    ])
+
 
 def volcano_plots2(data_table, sample_groups, control_group) -> list:
     control_cols: list = sample_groups[control_group]

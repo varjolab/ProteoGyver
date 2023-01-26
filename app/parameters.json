@@ -12,10 +12,24 @@
     "files": {
         "assets": {
             "example-sample_table": ["assets", "example-sample_table.tsv"],
-            "example-data_file": ["assets", "example-data_file.tsv"]
+            "example-data_file": ["assets", "example-data_file.tsv"],
+            "protein lengths file": ["assets", "protein lengths.tsv"],
+            "Protein sequence file": ["assets", "Protein sequences.tsv"],
+            "Contaminant fastas": ["assets", "Contaminant datasets"],
+            "Contaminant list": ["assets", "Contaminants"]
+        },
+        "data": {
+            "crapome": ["assets", "combined crapome.json"],
+            "control table": ["assets", "control table.tsv"]
         }
     },
     "cache dir": ".cache_data",
     "Temporary data directory": ".dash_tmp",
-    "Maximum psm ever theoretically encountered": "10000"
+    "Maximum psm ever theoretically encountered": 10000,
+    "scripts": {
+        "SAINTexpress": "SAINTexpress-spc"
+    },
+    "script_dirs": {
+        "SAINTexpress": ["external", "SAINTexpress"]
+    }
 }

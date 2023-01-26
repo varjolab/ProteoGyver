@@ -1,16 +1,28 @@
-from http.client import UnknownTransferEncoding
+import os
 import qnorm
 import pandas as pd
 import io
+import time
 import numpy as np
 import base64
 from typing import Tuple
-from utilitykit import dftools
+import platform
+import uuid
+import subprocess
+import textwrap
 
 def read_df_from_content(content, filename) -> pd.DataFrame:
+    """Reads a dataframe from uploaded content.
+    
+    Filenames ending with ".csv" are read as comma separated, filenames ending with ".tsv", ".tab" or
+    ".txt" are read as tab-delimed files, and ".xlsx" and ".xls" are read as excel files.
+    Filename ending identification is case-insensitive.
+    """
+    _: str
+    content_string: str
     _, content_string = content.split(',')
     decoded_content: bytes = base64.b64decode(content_string)
-    f_end: str = filename.rsplit('.', maxsplit=1)[-1]
+    f_end: str = filename.rsplit('.', maxsplit=1)[-1].lower()
     data = None
     if f_end == 'csv':
         data: pd.DataFrame = pd.read_csv(io.StringIO(
@@ -57,14 +69,17 @@ def quantile_normalize(dataframe: pd.DataFrame) -> pd.DataFrame:
 
 
 def read_dia_nn(data_table: pd.DataFrame) -> pd.DataFrame:
+    """Reads dia-nn report file into an intensity matrix"""
     table: pd.DataFrame = pd.pivot_table(
         data=data_table, index='Protein.Group', columns='Run', values='PG.MaxLFQ')
+    table.index.name = 'Protein ID'
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
-    return [table, pd.DataFrame({'No data': ['No data']})]
+    return [table, pd.DataFrame({'No data': ['No data']}, None)]
 
 
 def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Series:
+    """Counts non-zero values per sample (sample names from rev_sample_groups.keys()) and returns a series with sample names in index and counts as values."""
     index: list = list(rev_sample_groups.keys())
     retser: pd.Series = pd.Series(
         index=index,
@@ -73,6 +88,7 @@ def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Se
     return retser
 
 def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFrame:
+    """Normalizes a given dataframe with the wanted method."""
     if normalization_method == 'Median':
         data_table: pd.DataFrame = median_normalize(data_table)
     elif normalization_method == 'Quantile':
@@ -81,6 +97,7 @@ def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFra
 
     
 def filter_missing(data_table: pd.DataFrame, sample_groups: dict, threshold: int = 60) -> pd.DataFrame:
+    """Discards rows with more than threshold percent of missing values in all sample groups"""
     threshold: int = threshold/100
     keeps: list = []
     for _, row in data_table.iterrows():
@@ -95,15 +112,232 @@ def filter_missing(data_table: pd.DataFrame, sample_groups: dict, threshold: int
 
 
 def impute(data_table:pd.DataFrame, method:str='QRILC', tempdir:str='.') -> pd.DataFrame:
+    """Imputes missing values into the dataframe with the specified method"""
     ret: pd.DataFrame = data_table
     if method == 'minProb':
-        ret = dftools.impute_minprob_df(data_table)
+        ret = impute_minprob_df(data_table)
     elif method == 'minValue':
-        ret = dftools.impute_minval(data_table)
+        ret = impute_minval(data_table)
     elif method == 'QRILC':
-        ret = dftools.impute_qrilc(data_table, tempdir = tempdir)
+        ret = impute_qrilc(data_table, tempdir = tempdir)
+    elif method == 'gaussian':
+        ret = impute_gaussian(data_table)
     return ret
 
+def impute_qrilc(dataframe: pd.DataFrame, rpath:str='C:\\Program Files\\R\\newest-r\\bin', tempdir:str=None) -> pd.DataFrame:
+    """Impute missing values in dataframe using QRILC method
+
+    Calls an R function to qrilc-impute missing values into the input dataframe.
+    Input dataframe should only have numerical data with missing values.
+
+    Parameters:
+    df: pandas dataframe with the missing values. Should not have any text columns
+    rpath: path to Rscript.exe
+    """
+    if not tempdir: 
+        tempdir: str = '.'
+    tempname: uuid.UUID = uuid.uuid4()
+    temp_r_file: str = os.path.join(tempdir,f'fromimpute_{tempname}.R')
+    tempdffile: str = os.path.join(tempdir,f'fromimpute_{tempname}_df.tsv')
+    tempdffile_dest: str = os.path.join(tempdir,f'fromimpute_{tempname}_dest_df.tsv')
+    dataframe.to_csv(tempdffile, sep='\t')
+
+    with open(temp_r_file, 'w', encoding='utf-8') as fil:
+        fil.write(textwrap.dedent(f"""
+                    library("imputeLCMD")
+                    df <- read.csv("{tempdffile}",sep="\\t",row.names=1)
+                    df2 = impute.QRILC(df, tune.sigma = 1)
+                    imputed = df2[1]
+                    df3 = data.frame(imputed)
+                    write.table(imputed,file="{tempdffile_dest}",sep="\\t")
+                    """))
+
+    process: subprocess.CompletedProcess = run_r_script(temp_r_file, rpath=rpath)
+    df2: pd.DataFrame = pd.DataFrame()
+    try:
+        df2 = pd.read_csv(tempdffile_dest, index_col=0, sep='\t')
+    except FileNotFoundError:
+        errormsg: str = '\n'.join([
+            'R script FAILED for QRILC imputation.',
+            'Some likely causes include: ',
+            '- Columns or rows with nothing but missing values in input',
+            '- Rscript.exe not in given path',
+            '-----------------------------------------------------------',
+            'Detailed error information:',
+            'Subprocess exit code:',
+            f'{process.returncode}',
+            '-----',
+            'Subprocess stderr:',
+            f'{process.stderr.decode()}',
+            '-----',
+            'Subprocess stdout:',
+            f'{process.stdout.decode()}'
+        ])
+
+        raise RuntimeError(errormsg) from None
+    finally:
+        for tempfile in [temp_r_file, tempdffile, tempdffile_dest]:
+            try:
+                os.remove(tempfile)
+            except PermissionError:
+                time.sleep(2)
+                os.remove(tempfile)
+            except FileNotFoundError:
+                continue
+
+    df2.index.name = dataframe.index.name
+
+    column_first_letter: list = list({x[0] for x in df2.columns})
+    if len(column_first_letter) == 1:
+        column_first_letter = column_first_letter[0]
+        if column_first_letter in ('X', 'Y'):
+            rename_dict: dict = {c: c[1:] for c in df2.columns}
+            df2 = df2.rename(columns=rename_dict)
+    df2.columns = dataframe.columns
+    return df2
+
+
+def get_newest_r(rpath) -> str:
+    """Returns rpath, where the string "newest-r" has been replaced by the newest R version found\
+        in the preceding directory"""
+    sort_list: list = []
+    rfolds: dict = {}
+    rbase: str
+    rend: str
+    rbase, rend = rpath.split(os.sep+'newest-r'+os.sep)
+    for filename in os.listdir(rbase):
+        if not os.path.isdir(os.path.join(rbase, filename)):
+            continue
+        folder_tuple: tuple = tuple(int(i) for i in filename.split('-')[1].split('.'))
+        sort_list.append(folder_tuple)
+        rfolds[folder_tuple] = filename
+    sort_list = sorted(sort_list, reverse=True)
+    return os.path.join(rbase, rfolds[sort_list[0]], rend)
+
+def run_r_script(scriptfilepath: str, rpath: str = 'C:\\Program Files\\R\\newest-r\\bin',
+                 output_file: str = None) -> subprocess.CompletedProcess:
+    """Runs an R script
+
+    Parameters:
+    script_file: path to script file.
+    rpath: Path to bin directory of R, where Rscript.exe is located. If you use 'newest-r' instead\
+        of the actual R directory (e.g. 'R-4.2.1'), program will default to newest R version\
+            identified.
+    output_file: filename where to save output, if desired
+    """
+    if platform.system() == 'Linux': ## Linux
+        rpath: str = 'Rscript'
+    elif 'newest-r' in rpath: ## Windows probably
+        rpath: str = get_newest_r(rpath)
+        rpath = os.path.join(rpath, 'Rscript.exe')
+    cmd: list = [rpath, scriptfilepath]
+    process: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, check=False)
+    if output_file:
+        output: list = process.args
+        output.extend([
+            '-------',
+            'STDOUT:',
+            process.stdout.decode("utf-8"),
+            '-------',
+            'STDERR:',
+            process.stderr.decode("utf-8"),
+        ])
+        with open(output_file, 'w', encoding='utf-8') as fil:
+            fil.write('\n'.join(output))
+    return process
+
+def impute_minval(dataframe: pd.DataFrame, impute_zero:bool=False) -> pd.DataFrame:
+    """Impute missing values in dataframe using minval method
+
+    Input dataframe should only have numerical data with missing values.
+    Missing values will be replaced by the minimum value of each column.
+
+    Parameters:
+    df: pandas dataframe with the missing values. Should not have any text columns
+    impute_zero: True, if zero should be considered a missing value
+    """
+    newdf: pd.DataFrame = pd.DataFrame(index=dataframe.index)
+    for column in dataframe.columns:
+        newcol: pd.Series = dataframe[column]
+        if impute_zero:
+            newcol = newcol.replace(0,np.nan)
+        newcol = newcol.fillna(newcol.min())
+        newdf.loc[:, column] = newcol
+    return newdf
+
+def impute_gaussian(data_table: pd.DataFrame, dist_width: float = 0.3, dist_down_shift: float = 1.8) -> pd.DataFrame:
+    """Impute missing values in dataframe using values from random numbers from normal distribution.
+
+    Based on the method used by Perseus (http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:imputation:replacemissingfromgaussian)
+
+    Parameters:
+    data_table: pandas dataframe with the missing values. Should not have any text columns
+    dist_width: Gaussian distribution relative to stdev of each column. 
+        Value of 0.5 means the width of the distribution is half the standard deviation of the sample column values.
+    dist_down_shift: How far downwards the distribution is shifted. By default, 1.8 standard deviations down.
+    """
+    newdf: pd.DataFrame = pd.DataFrame(index=data_table.index)
+    for column in data_table.columns:
+        newcol: pd.Series = data_table[column]
+        stdev: float = newcol.std()
+        distribution: np.ndarray = np.random.normal(
+                loc = newcol.mean - (dist_down_shift*stdev),
+                scale = dist_width*stdev,
+                size = column.shape[0]*100
+            )
+        replace_values: pd.Series = pd.Series(
+            index = data_table.index,
+            data = np.random.choice(a=distribution,size=column.shape[0],replace=False)
+        )
+        newcol = newcol.fillna(replace_values)
+        newdf.loc[:, column] = newcol
+    return newdf
+
+def impute_minprob(series_to_impute: pd.Series, scale: float = 1.0,
+                   tune_sigma: float = 0.01, impute_zero=True) -> pd.Series:
+    """Imputes missing values with randomly selected entries from a distribution \
+        centered around the lowest non-NA values of the series.
+
+    Arguments:
+    series_to_impute: pandas series with possible missing values
+
+    Keyword arguments:
+    scale: passed to numpy.random.normal
+    tune_sigma: fraction of values from the lowest end of the series to use for \
+        generating the distribution
+    impute_zero: treat 0 values as missing values and impute new values for them
+    """
+
+    ser: pd.Series = series_to_impute.sort_values(ascending=True)
+    ser = ser[ser > 0].dropna()
+    ser = ser[:int(len(ser)*tune_sigma)]
+
+    # implement q value
+    distribution: np.ndarray = np.random.normal(
+        loc=ser.median(), scale=scale, size=len(series_to_impute*100))
+
+    output_series: pd.Series = series_to_impute.copy()
+    for index, value in output_series.items():
+        impute_value: bool = False
+        if pd.isna(value):
+            impute_value = True
+        elif (value == 0) and impute_zero:
+            impute_value = True
+        if impute_value:
+            output_series[index] = np.random.choice(distribution)
+    return output_series
+
+def impute_minprob_df(dataframe: pd.DataFrame, **kwargs) -> pd.DataFrame:
+    """imputes whole dataframe with minprob imputation. Dataframe should only have numerical columns
+
+    Parameters:
+    df: dataframe to impute
+    kwargs: keyword args to pass on to impute_minprob
+    """
+    newdf: pd.DataFrame = pd.DataFrame(index=dataframe.index)
+    for column in dataframe.columns:
+        newdf.loc[:, column] = impute_minprob(dataframe[column], **kwargs)
+    return newdf
 
 def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
     intensity_cols: list = []
@@ -120,8 +354,14 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
         elif 'Spectral Count' in column:
             spc_cols.append(column)
     protein_col: str = 'Protein ID'
+    if 'Protein Length' in data_table.columns:
+        protein_lengths: dict = {}
+        for _,row in data_table[[protein_col,'Protein Length']].drop_duplicates():
+            protein_lengths[row[protein_col]] = row['Protein Length']
+    else:
+        protein_lengths = None
     table: pd.DataFrame = data_table
-    # Replace zeroes with missing values
+    # Replace zeroes with missing valuese
     table.replace(0, np.nan, inplace=True)
     table.index = table[protein_col]
     intensity_table: pd.DataFrame = table[intensity_cols]
@@ -137,15 +377,18 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
                  for ic in intensity_cols},
         inplace=True
         )        
-    return (intensity_table, spc_table)
-
-# TODO: for generic format, ask user whether it's SPC or intensity
+    return (intensity_table, spc_table, protein_lengths)
 
 
-def read_matrix(data_table: pd.DataFrame, is_spc_table=False) -> pd.DataFrame:
+def read_matrix(data_table: pd.DataFrame, is_spc_table:bool=False, max_spc_ever:int=0) -> pd.DataFrame:
+    """Reads a generic matrix into a data table. Either the returned SPC or intensity table is an empty dataframe.
+    
+    Matrix is assumed to be SPC matrix, if the maximum value is smaller than max_spc_ever.
+    """
     protein_id_column: str = 'Protein.Group'
     table: pd.DataFrame = data_table
     table.index = table[protein_id_column]
+    table.index.name = 'Protein ID'
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
     table.drop(columns=[protein_id_column],inplace=True)
@@ -154,9 +397,92 @@ def read_matrix(data_table: pd.DataFrame, is_spc_table=False) -> pd.DataFrame:
     if is_spc_table:
         spc_table = table
     else:
-        intensity_table = table
-    return (intensity_table, spc_table)
+        if table.select_dtypes(include=[np.number]).max().max() <= max_spc_ever:
+            print('spc_table')
+            spc_table = table
+        else:
+            intensity_table = table
+    return (intensity_table, spc_table, None)
 
+def run_saint(
+    data_table: pd.DataFrame,
+    rev_sample_groups: dict,
+    protein_lengths: dict,
+    saint_command: str,
+    control_table: pd.DataFrame = None,
+    control_groups:set = None,
+    output_directory:str = None) -> Tuple[pd.DataFrame,set]:
+    """This function will run SAINTexpress analysis on the given data table and control sets."""
+
+    if control_groups is None:
+        control_groups: set = set()
+    baitfile: list = []
+    for column in data_table:
+        groupname: str = rev_sample_groups[column]
+        if groupname in control_groups:
+            baitfile.append(f'{column}\t{groupname}\tC\n')
+        else:
+            baitfile.append(f'{column}\t{groupname}\tT\n')
+    if control_table is not None:
+        baitfile.extend([f'{col}\tChosen_control\tC\n' for col in list(control_table.columns)])
+    
+    preyfile: list = []
+    intfile: list = []
+    
+    discarded: set = set()
+    all_proteins: set = set(data_table.index.values)
+    if control_table is not None:
+        all_proteins |= set(control_table.index.values)
+    for prey_protein in all_proteins:
+        if prey_protein in protein_lengths:
+            preyfile.append(f'{prey_protein}\t{protein_lengths[prey_protein]}\t{prey_protein}\n')
+        else:
+            discarded.add(prey_protein)
+    intfile = data_table.reset_index().melt(id_vars='Protein ID').dropna()
+    if control_table is not None:
+        intfile = pd.concat(intfile, control_table.reset_index().melt(id_vars='Protein ID').dropna())
+    intfile.rename(columns={'variable': 'Bait', 'Protein ID': 'Prey', 'value': 'SPC'})
+    intfile = intfile[~intfile['Prey'].isin(discarded)]
+
+    saint_dir:str
+    saint_cmd:str
+    saint_dir,saint_cmd = saint_command
+    temp_dir: str = os.path.join(saint_dir, f'{uuid.uuid4()}')
+
+    saint_cmd = os.path.join('..',saint_cmd)
+
+    intfile_name: str = os.path.join(temp_dir,'int.txt')
+    baitfile_name: str = os.path.join(temp_dir,'bait.txt')
+    preyfile_name: str = os.path.join(temp_dir, 'prey.txt')
+    saint_output_file:str = os.path.join(temp_dir,'list.txt')
+
+
+    intfile[['Bait','Prey','SPC']].to_csv(intfile_name,index=False,header=False)
+    with open(baitfile_name,'w', encoding='utf-8') as fil:
+        fil.write(''.join(baitfile))
+    with open(preyfile_name,'w', encoding='utf-8') as fil:
+        fil.write(''.join(preyfile))
+
+    if not os.path.isdir(temp_dir):
+        os.makedirs(temp_dir)
+
+    cmd: list = [saint_cmd,intfile,preyfile,baitfile]
+
+    process: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, check=False,cwd=saint_dir)
+
+    output_dataframe: pd.DataFrame = pd.read_csv(saint_output_file,sep='\t')
+    if output_directory is not None:
+        os.rename(intfile_name, os.path.join(output_directory,'interaction.txt'))
+        os.rename(baitfile_name, os.path.join(output_directory,'bait.txt'))
+        os.rename(preyfile_name, os.path.join(output_directory,'prey.txt'))
+        os.rename(saint_output_file, os.path.join(output_directory,'saint_output_list.txt'))
+        output_report_file:str = os.path.join(output_directory, 'SAINT_output.txt')
+        with open(output_report_file,'w',encoding='utf-8') as fil:
+            fil.write(f'Subprocess exit code: {process.returncode}\n')
+            fil.write(f'----------\nSubprocess output:\n{process.stdout.decode()}\n')
+            fil.write(f'----------\nSubprocess errors:\n{process.stderr.decode()}\n')
+
+    return (output_dataframe, sorted(list(discarded)))
 
 def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
     expdesign['Sample name'] = [
@@ -217,7 +543,7 @@ def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
     return (sample_groups, rev_sample_groups)
 
 
-def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
+def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoretical_spc: int=0) -> list:
     table: pd.DataFrame = read_df_from_content(data_content, data_name)
     expdesign: pd.DataFrame = read_df_from_content(expdes_content, expdes_name)
     read_funcs: dict[tuple[str, str]] = {
@@ -238,7 +564,8 @@ def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
 
     intensity_table: pd.DataFrame
     spc_table: pd.DataFrame
-    intensity_table, spc_table = read_funcs[data_type](table)
+    protein_length_dict: dict
+    intensity_table, spc_table, protein_length_dict = read_funcs[data_type](table, max_spc_ever=max_theoretical_spc)
     sample_groups: dict
     rev_sample_groups: dict
     sample_groups, rev_sample_groups = rename_columns_and_update_expdesign(
@@ -248,15 +575,26 @@ def parse_data(data_content, data_name, expdes_content, expdes_name) -> list:
     if len(intensity_table.columns) > 1:
         untransformed_intensity_table: pd.DataFrame = intensity_table
         intensity_table = intensity_table.apply(np.log2)
+    else:
+        untransformed_intensity_table = intensity_table
     return [
         intensity_table,
         sample_groups,
         rev_sample_groups,
         spc_table,
         data_type,
-        untransformed_intensity_table
+        untransformed_intensity_table,
+        protein_length_dict
     ]
-
+def guess_controls(sample_groups: dict) -> Tuple[list,list]:
+    rl: list = []
+    rl_samples: list = []
+    for group_name, samples in sample_groups.items():
+        if 'gfp' in group_name.lower():
+            rl.append(group_name)
+            rl_samples.append(samples)
+        
+    return (rl, rl_samples)
 
 def get_count_data(data_table) -> pd.DataFrame:
     data: pd.DataFrame = data_table.\
