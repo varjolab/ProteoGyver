@@ -1,0 +1,13 @@
+{
+    "sets": {
+        "all": ["Mann Crapome", "VL timsTOF Crapome", "VL QE Crapome"],
+        "default": ["VL timsTOF Crapome", "Mann Crapome"],
+        "disabled": []
+    },
+    "Mann Crapome": {
+        "UPID": {
+            "frequency": 20,
+            "AvgSpc": 12
+        }
+    }
+}

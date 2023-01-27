@@ -11,6 +11,7 @@ class DbEngine:
 
     # pylint: disable=too-many-instance-attributes
     # Temporary class until moving to real DB, not the time to worry about too many attributes
+    # TODO: Move to PostgreSQL
 
     _parameters: dict = {}
     _data: pd.DataFrame = pd.DataFrame()
@@ -19,8 +20,10 @@ class DbEngine:
     _upload_table_data_dropdowns: dict = {}
     _protein_lengths: dict = {}
     _control_table: pd.DataFrame
-    _crapome: dict
     _controls: dict
+    _crapome_table: pd.DataFrame
+    _crapome_proteins: set
+    _crapome: dict
 
 
     @property
@@ -46,15 +49,18 @@ class DbEngine:
         if not os.path.isdir(self.temp_dir):
             os.makedirs(self.temp_dir)
 
-        with open(parameters['files']['data']['control sets'], encoding='utf-8') as fil:
+        with open(os.path.join(*parameters['files']['data']['control sets']), encoding='utf-8') as fil:
             self._controls = json.load(fil)
-        self._control_table = pd.read_csv(parameters['files']['data']['control table'],sep='\t',index_col='Prey')
+        self._control_table = pd.read_csv(
+            os.path.join(*parameters['files']['data']['control table']),
+            sep='\t',index_col='PROTID')
 
-        with open(parameters['files']['data']['crapome'], encoding='utf-8') as fil:
+        with open(os.path.join(*parameters['files']['data']['crapome']), encoding='utf-8') as fil:
             self._crapome = json.load(fil)
-
-
-
+        self._crapome_table = pd.read_csv(
+            os.path.join(*parameters['files']['data']['crapome table']),
+            sep='\t',index_col='PROTID')
+        self._crapome_proteins = set(self._crapome_table.index.values)
 
 
     @property
@@ -74,8 +80,10 @@ class DbEngine:
         these_columns: list = []
         for control_group in control_list:
             these_columns.extend(self._controls[control_group])
-        return self.full_control_table[these_columns]
+        return self.full_control_table[these_columns].dropna(how='all')
 
+
+# TODO: split crapome to multiple files, read requested files while saint is running?
     @property
     def crapomesets(self) -> dict:
         return self._crapome['sets']['all']
@@ -86,10 +94,22 @@ class DbEngine:
     def disabled_crapomesets(self) -> int:
         return self._crapome['sets']['disabled']
     @property
-    def crapome(self, crapome_sets) -> dict:
-        return [[c_set, self._crapome[c_set]] for c_set in crapome_sets]
-
-
+    def full_crapome_table(self) -> pd.DataFrame:
+        return self._crapome_table
+    @property
+    def crapome(self, crapome_list, proteins) -> Tuple[pd.DataFrame,list]:
+        these_columns: list = []
+        column_groups: list = []
+        for crapome_group in crapome_list:
+            these_columns.append(f'{crapome_group} AvgSpc')
+            these_columns.append(f'{crapome_group} Frequency')
+            column_groups.append([these_columns[-2], these_columns[-1]])
+        ret_table: pd.DataFrame = self.full_crapome_table.loc[set(proteins)&self._crapome_proteins]
+        ret_table = ret_table[these_columns].dropna(how='all')
+        return [
+            ret_table,
+            column_groups
+        ]
 
     @property
     def data(self) -> pd.DataFrame:

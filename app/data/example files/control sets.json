@@ -1,0 +1,9 @@
+{
+    "sets": {
+        "all": ["GFP-N", "GFP-C", "GFP-MYC"],
+        "default": ["GFP-C", "GFP-N"],
+        "disabled": []
+    },
+    "GFP-N": ["GFP-N1", "GFP-N2"],
+    "GFP-C": ["GFP-C1", "GFP-C2"]
+}

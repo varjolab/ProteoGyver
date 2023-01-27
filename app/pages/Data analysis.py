@@ -255,7 +255,7 @@ def quality_control_charts(_, data_dictionary) -> list:
     Input('button-download-sample_table-template', 'n_clicks'),
     prevent_initial_call=True,
 )
-def sample_table_download(_) -> dict:
+def sample_table_example_download(_) -> dict:
     return dcc.send_file(db.request_file('assets', 'example-sample_table'))
 
 
@@ -264,7 +264,7 @@ def sample_table_download(_) -> dict:
     Input('button-download-datafile-example', 'n_clicks'),
     prevent_initial_call=True,
 )
-def download_data_table(_) -> dict:
+def download_data_table_example(_) -> dict:
     return dcc.send_file(db.request_file('assets', 'example-data_file'))
 
 
@@ -644,21 +644,23 @@ def checklist(label: str, options: list, default_choice: list, disabled: list = 
 @callback(
     Output('interactomics-saint-container', 'children'),
     Output('raw-interactomics-data','data'),
+    Output('crapome-column-groups','data'),
     Input('button-run-saint-analysis','n_clicks'),
-    State('interactomics-choose-control-sets'),
-    State('interactomics-choose-crapome-sets'),
-    State('interactomics-choose-uploaded-controls'),
+    State('interactomics-choose-control-sets', 'value'),
+    State('interactomics-choose-crapome-sets','value'),
+    State('interactomics-choose-uploaded-controls','value'),
     State('output-data-upload', 'data')
 )
 def generate_saint_container(_,data_dictionary, inbuilt_controls,crapome_controls,control_sample_groups) -> html.Div:
     if data_dictionary['spc table'].columns[0] == 'No data':
-        return html.Div['No spectral count data in input, cannot run SAINT.']
+        return html.Div(['No spectral count data in input, cannot run SAINT.'])
     
-    spc_table: pd.DataFrame = data_dictionary['spc table']
+    spc_table: pd.DataFrame = pd.read_json(data_dictionary['spc table'],orient='split')
     inbuilt_control_table: pd.DataFrame = db.controls(inbuilt_controls)
-    crapomes: dict = db.crapome(crapome_controls)
-
-
+    crapome_table: pd.DataFrame
+    crapome_column_groups: list
+    crapome_table, crapome_column_groups = db.crapome(crapome_controls)
+    
 
 # check control samples from container -> add to control groups list
 # get chosen GFP sets as control_table
@@ -674,17 +676,27 @@ def generate_saint_container(_,data_dictionary, inbuilt_controls,crapome_control
         control_table = inbuilt_control_table,
         control_groups = control_sample_groups
     )
-    crapome_freq_cols: list = []
-    crapome_fc_cols: list = []
-    for crapome_name, crapome in crapomes:
-        saint_output.loc[:,f'{crapome_name} frequency'] = saint_output.apply(
-            lambda x: crapome[x['Prey']]['frequency'], axis=1
-        )
-        saint_output.loc[:,f'FC vs {crapome_name}'] = saint_output.apply(
-            lambda x: x['AvgSpec']/crapome[x['Prey']]['AvgSpc'], axis=1
-        )
-        crapome_freq_cols.append(f'{crapome_name} frequency')
-        crapome_fc_cols.append(f'FC vs {crapome_name}')
+
+
+
+    saint_output = pd.merge(
+        left=saint_output,
+        right = crapome_table,
+        how='left',
+        left_on='Prey',
+        right_index = True)
+
+    
+    new_crapome_column_groups: list = []
+    drop_cols:list = []
+    for cr_avgspec, cr_freq in crapome_column_groups:
+        cr_group: str = cr_avgspec.replace(' AvgSpec','')
+        cr_fccol: str = f'{cr_group} FC'
+        saint_output[cr_fccol] = saint_output['AvgSpec']/saint_output[cr_avgspec].fillna(0)
+        drop_cols.append(cr_avgspec)
+        new_crapome_column_groups.append([cr_fccol, cr_freq])
+    crapome_column_groups = new_crapome_column_groups
+    saint_output = saint_output.drop(columns=drop_cols)
 
     container_contents: list = []
     if len(discarded_proteins) > 0:
@@ -702,7 +714,7 @@ def generate_saint_container(_,data_dictionary, inbuilt_controls,crapome_control
     container_contents.append(
         html.Div([
             dcc.Graph(id='interactomics-saint-graph'),
-            dcc.Label('Saint BFDR threshold:'),
+            dbc.Label('Saint BFDR threshold:'),
             dcc.Slider(0, 1.0, 0.01, value=0.05,
                         id='saint-bfdr-filter-threshold'),
             dbc.Label('Crapome filtering:'),
@@ -715,7 +727,7 @@ def generate_saint_container(_,data_dictionary, inbuilt_controls,crapome_control
         ])
     )
 
-    return container_contents, saint_output.to_json(orient='split')
+    return container_contents, saint_output.to_json(orient='split'), crapome_column_groups
 
 @callback(
     [
@@ -725,9 +737,10 @@ def generate_saint_container(_,data_dictionary, inbuilt_controls,crapome_control
     Input('saint-bfdr-filter-threshold','value'),
     Input('crapome-frequency-threshold','value'),
     Input('crapome-rescue-threshold','value'),
-    State('raw-interactomics-data','data')
+    State('raw-interactomics-data','data'),
+    State('crapome-column-groups','data')
 )
-def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc, raw_data) -> tuple:
+def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc, raw_data, crapome_column_groups) -> tuple:
     filtered_saint: pd.DataFrame = pd.read_json(raw_data,orient='split')
     filtered_saint = filtered_saint[
         (filtered_saint['BFDR']<bfdr_threshold) & 
@@ -737,11 +750,17 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
         )
     ]
 
+    for crapome_fc_column, crapome_freq_column in crapome_column_groups:
+        filtered_saint = filtered_saint[
+            (filtered_saint[crapome_freq_column] < crapome_freq) | 
+            (filtered_saint[crapome_fc_column] > crapome_fc)
+        ]
+
     figure: Any = figure_generation.bar_plot(
         pd.DataFrame(
             filtered_saint.value_counts(subset=['Bait']),columns=['Prey count']
             ).reset_index(),
-        'Protein counts after filtering'
+        'Protein counts after filtering',
         y='Prey count',
         color_col='Bait'
         )    
@@ -759,6 +778,7 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
             children=[
                 dcc.Store(id='processed-interactomics-data'),
                 dcc.Store(id='raw-interactomics-data'),
+                dcc.Store(id='crapome-column-groups'),
                 html.Div(
                     id='interactomics-options',
                     children=[
@@ -768,7 +788,7 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
                                     [
                                         dbc.Col(
                                             checklist(
-                                                'Choose control sets:',
+                                                'Choose additional control sets:',
                                                 db.controlsets,
                                                 db.default_controlsets,
                                                 disabled=db.disabled_controlsets,

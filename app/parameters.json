@@ -19,8 +19,10 @@
             "Contaminant list": ["assets", "Contaminants"]
         },
         "data": {
-            "crapome": ["assets", "combined crapome.json"],
-            "control table": ["assets", "control table.tsv"]
+            "crapome": ["data", "crapome sets.json"],
+            "crapome table": ["data", "crapome table.tsv"],
+            "control sets": ["data", "control sets.json"],
+            "control table": ["data", "control table.tsv"]
         }
     },
     "cache dir": ".cache_data",
