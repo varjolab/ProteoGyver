@@ -24,6 +24,7 @@ class DbEngine:
     _crapome_table: pd.DataFrame
     _crapome_proteins: set
     _crapome: dict
+    _override_keys: dict
 
 
     @property
@@ -40,6 +41,8 @@ class DbEngine:
         """
         if isinstance(parameters,str):
             parameters: dict = self.parse_parameters(parameters)
+        for key, value in self._override_keys.items():
+            parameters[key] = value
         self._parameters: dict = parameters
         self.data = self._parameters['Run data']
         self.temp_dir = self._parameters['Temporary data directory']
@@ -54,6 +57,7 @@ class DbEngine:
         self._control_table = pd.read_csv(
             os.path.join(*parameters['files']['data']['control table']),
             sep='\t',index_col='PROTID')
+        self._control_table.index.name = 'index'
 
         with open(os.path.join(*parameters['files']['data']['crapome']), encoding='utf-8') as fil:
             self._crapome = json.load(fil)
@@ -75,7 +79,7 @@ class DbEngine:
     @property
     def full_control_table(self) -> pd.DataFrame:
         return self._control_table
-    @property
+
     def controls(self, control_list) -> pd.DataFrame:
         these_columns: list = []
         for control_group in control_list:
@@ -96,7 +100,7 @@ class DbEngine:
     @property
     def full_crapome_table(self) -> pd.DataFrame:
         return self._crapome_table
-    @property
+        
     def crapome(self, crapome_list, proteins) -> Tuple[pd.DataFrame,list]:
         these_columns: list = []
         column_groups: list = []
@@ -104,7 +108,7 @@ class DbEngine:
             these_columns.append(f'{crapome_group} AvgSpc')
             these_columns.append(f'{crapome_group} Frequency')
             column_groups.append([these_columns[-2], these_columns[-1]])
-        ret_table: pd.DataFrame = self.full_crapome_table.loc[set(proteins)&self._crapome_proteins]
+        ret_table: pd.DataFrame = self.full_crapome_table.loc[list(set(proteins)&self._crapome_proteins)]
         ret_table = ret_table[these_columns].dropna(how='all')
         return [
             ret_table,
@@ -251,10 +255,10 @@ class DbEngine:
     def get_cache_file(self,filename) -> str:
         return os.path.join(self.cache_dir, filename)
     
-    @property
+    
     def scripts(self, scriptname) -> Tuple[str,str]:
         return (
-            self.parameters['script_dirs'][scriptname],
+            os.path.join(*self.parameters['script_dirs'][scriptname]),
             self.parameters['scripts'][scriptname]
             )
 
@@ -298,6 +302,9 @@ class DbEngine:
         return self.request_file('assets',filename)
 
 
-    def __init__(self) -> None:
+    def __init__(self, override_keys=None) -> None:
         parameter_file: str = 'parameters.json'
+        if override_keys is None:
+            override_keys = {}
+        self._override_keys = override_keys
         self.parameters = parameter_file

@@ -72,7 +72,6 @@ def read_dia_nn(data_table: pd.DataFrame) -> pd.DataFrame:
     """Reads dia-nn report file into an intensity matrix"""
     table: pd.DataFrame = pd.pivot_table(
         data=data_table, index='Protein.Group', columns='Run', values='PG.MaxLFQ')
-    table.index.name = 'Protein ID'
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
     return [table, pd.DataFrame({'No data': ['No data']}, None)]
@@ -192,7 +191,7 @@ def impute_qrilc(dataframe: pd.DataFrame, rpath:str='C:\\Program Files\\R\\newes
         column_first_letter = column_first_letter[0]
         if column_first_letter in ('X', 'Y'):
             rename_dict: dict = {c: c[1:] for c in df2.columns}
-            df2 = df2.rename(columns=rename_dict)
+            df2.rename(columns=rename_dict, inplace=True)
     df2.columns = dataframe.columns
     return df2
 
@@ -356,7 +355,7 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
     protein_col: str = 'Protein ID'
     if 'Protein Length' in data_table.columns:
         protein_lengths: dict = {}
-        for _,row in data_table[[protein_col,'Protein Length']].drop_duplicates():
+        for _,row in data_table[[protein_col,'Protein Length']].drop_duplicates().iterrows():
             protein_lengths[row[protein_col]] = row['Protein Length']
     else:
         protein_lengths = None
@@ -388,7 +387,6 @@ def read_matrix(data_table: pd.DataFrame, is_spc_table:bool=False, max_spc_ever:
     protein_id_column: str = 'Protein.Group'
     table: pd.DataFrame = data_table
     table.index = table[protein_id_column]
-    table.index.name = 'Protein ID'
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
     table.drop(columns=[protein_id_column],inplace=True)
@@ -398,7 +396,6 @@ def read_matrix(data_table: pd.DataFrame, is_spc_table:bool=False, max_spc_ever:
         spc_table = table
     else:
         if table.select_dtypes(include=[np.number]).max().max() <= max_spc_ever:
-            print('spc_table')
             spc_table = table
         else:
             intensity_table = table
@@ -424,11 +421,11 @@ def run_saint(
         else:
             baitfile.append(f'{column}\t{groupname}\tT\n')
     if control_table is not None:
-        baitfile.extend([f'{col}\tChosen_control\tC\n' for col in list(control_table.columns)])
+        for col in control_table.columns:
+            baitfile.append(f'{col}\tChosen_control\tC\n')
+            rev_sample_groups[col] = 'Chosen_control'
     
     preyfile: list = []
-    intfile: list = []
-    
     discarded: set = set()
     all_proteins: set = set(data_table.index.values)
     if control_table is not None:
@@ -438,16 +435,21 @@ def run_saint(
             preyfile.append(f'{prey_protein}\t{protein_lengths[prey_protein]}\t{prey_protein}\n')
         else:
             discarded.add(prey_protein)
-    intfile = data_table.reset_index().melt(id_vars='Protein ID').dropna()
+    
+    intfile: pd.DataFrame
+    intfile = data_table.reset_index().melt(id_vars='index').dropna()
     if control_table is not None:
-        intfile = pd.concat(intfile, control_table.reset_index().melt(id_vars='Protein ID').dropna())
-    intfile.rename(columns={'variable': 'Bait', 'Protein ID': 'Prey', 'value': 'SPC'})
+        intfile = pd.concat([intfile, control_table.reset_index().melt(id_vars='index').dropna()])
+    intfile.rename(columns={'variable': 'Bait', 'index': 'Prey', 'value': 'SPC'},inplace=True)
     intfile = intfile[~intfile['Prey'].isin(discarded)]
+    intfile.loc[:,'BaitGroup'] = intfile.apply(lambda x: rev_sample_groups[x['Bait']],axis=1)
 
     saint_dir:str
     saint_cmd:str
     saint_dir,saint_cmd = saint_command
     temp_dir: str = os.path.join(saint_dir, f'{uuid.uuid4()}')
+    if not os.path.isdir(temp_dir): 
+        os.makedirs(temp_dir)
 
     saint_cmd = os.path.join('..',saint_cmd)
 
@@ -456,31 +458,26 @@ def run_saint(
     preyfile_name: str = os.path.join(temp_dir, 'prey.txt')
     saint_output_file:str = os.path.join(temp_dir,'list.txt')
 
-
-    intfile[['Bait','Prey','SPC']].to_csv(intfile_name,index=False,header=False)
+    intfile[['Bait','BaitGroup','Prey','SPC']].to_csv(intfile_name,index=False,header=False,sep='\t')
     with open(baitfile_name,'w', encoding='utf-8') as fil:
         fil.write(''.join(baitfile))
     with open(preyfile_name,'w', encoding='utf-8') as fil:
         fil.write(''.join(preyfile))
+    cmd: list = [saint_cmd,'int.txt','prey.txt','bait.txt']
 
-    if not os.path.isdir(temp_dir):
-        os.makedirs(temp_dir)
-
-    cmd: list = [saint_cmd,intfile,preyfile,baitfile]
-
-    process: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, check=False,cwd=saint_dir)
+    process: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, check=False,cwd=temp_dir)
 
     output_dataframe: pd.DataFrame = pd.read_csv(saint_output_file,sep='\t')
     if output_directory is not None:
-        os.rename(intfile_name, os.path.join(output_directory,'interaction.txt'))
-        os.rename(baitfile_name, os.path.join(output_directory,'bait.txt'))
-        os.rename(preyfile_name, os.path.join(output_directory,'prey.txt'))
-        os.rename(saint_output_file, os.path.join(output_directory,'saint_output_list.txt'))
         output_report_file:str = os.path.join(output_directory, 'SAINT_output.txt')
         with open(output_report_file,'w',encoding='utf-8') as fil:
             fil.write(f'Subprocess exit code: {process.returncode}\n')
             fil.write(f'----------\nSubprocess output:\n{process.stdout.decode()}\n')
             fil.write(f'----------\nSubprocess errors:\n{process.stderr.decode()}\n')
+        os.rename(intfile_name, os.path.join(output_directory,'interaction.txt'))
+        os.rename(baitfile_name, os.path.join(output_directory,'bait.txt'))
+        os.rename(preyfile_name, os.path.join(output_directory,'prey.txt'))
+        os.rename(saint_output_file, os.path.join(output_directory,'saint_output_list.txt'))
 
     return (output_dataframe, sorted(list(discarded)))
 
@@ -553,6 +550,7 @@ def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoret
     }
 
     data_type: tuple = None
+    keyword_args: dict = {}
     if 'Fragment.Quant.Raw' in table.columns:
         if 'Decoy.CScore' in table.columns:
             data_type = ('DIA', 'DIA-NN')
@@ -561,11 +559,12 @@ def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoret
             data_type = ('DDA', 'FragPipe')
     if data_type is None:
         data_type = ('DDA', 'Unknown')
+        keyword_args['max_spc_ever'] = max_theoretical_spc
 
     intensity_table: pd.DataFrame
     spc_table: pd.DataFrame
     protein_length_dict: dict
-    intensity_table, spc_table, protein_length_dict = read_funcs[data_type](table, max_spc_ever=max_theoretical_spc)
+    intensity_table, spc_table, protein_length_dict = read_funcs[data_type](table, **keyword_args)
     sample_groups: dict
     rev_sample_groups: dict
     sample_groups, rev_sample_groups = rename_columns_and_update_expdesign(

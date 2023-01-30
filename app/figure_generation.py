@@ -52,7 +52,7 @@ def protein_coverage(data_table) -> dcc.Graph:
     )
 
 
-def bar_plot(value_df, title, y=0, color: bool = True, color_col: str = None) -> px.bar:
+def bar_plot(value_df, title, x_name:str = None, y_name:str = None, y_idx:int=0, color: bool = True, color_col: str = None) -> px.bar:
     colorval: str
     cmapval: str
     if color_col is not None:
@@ -64,15 +64,20 @@ def bar_plot(value_df, title, y=0, color: bool = True, color_col: str = None) ->
     else:
         colorval = None
         cmapval = None
+
+    if y_name is None:
+        y_name: str = value_df.columns[y_idx]
+    if x_name is None:
+        x_name = value_df.index
     figure: px.bar = px.bar(
         value_df,
-        x=value_df.index,  # 'Sample name',
-        y=value_df.columns[y],
+        x=x_name,  # 'Sample name',
+        y=y_name,
         # height=500,
         # width=750,
         title=title,
         color=colorval,
-        color_discrete_map=cmapval
+        #color_discrete_map=cmapval
     )
     figure.update_xaxes(type='category')
     return figure
@@ -158,6 +163,12 @@ def before_after_plot(before: pd.Series, after: pd.Series, rev_sample_groups: di
                       title=title)
     )
 
+def histogram(data_table: pd.DataFrame, x_column: str, title:str) -> dcc.Graph:
+    figure = px.histogram(data_table, x=x_column, title=title)
+    return dcc.Graph(
+        id = title.lower().replace('.','-').replace('_','-').replace(' ','-'),
+        figure = figure
+    )
 
 def imputation_histogram(non_imputed, imputed, title: str = None) -> dcc.Graph:
     #x,y = sp.coo_matrix(non_imputed.isnull()).nonzero()
