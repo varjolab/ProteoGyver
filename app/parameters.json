@@ -9,6 +9,19 @@
     },
     "Implemented workflows": ["proteomics", "phosphoproteomics", "interactomics"],
     "Default workflow": 0,
+    "Imputation methods": {
+        "QRILC": "QRILC",
+        "minProb": "minProb",
+        "gaussian": "gaussian",
+        "minValue": "minValue"
+    },
+    "Default imputation method": "QRILC",
+    "Normalization methods": {
+        "Median": "Median",
+        "Quantile": "Quantile",
+        "No normalization": "gausnullsian"
+    },
+    "Default normalization method": "Median",
     "files": {
         "assets": {
             "example-sample_table": ["assets", "example-sample_table.tsv"],

@@ -134,14 +134,15 @@ def process_input_tables(
             data_file_name,
             sample_table_file_contents,
             sample_table_file_name,
-            max_theoretical_spc = db.max_theoretical_spc
+            max_theoretical_spc=db.max_theoretical_spc
         )
         return_dict['sample groups'] = sample_groups
         return_dict['rev sample groups'] = rev_sample_groups
         return_dict['raw intensity table'] = raw_intensity_table.to_json(
             orient='split')
         return_dict['spc table'] = spc_table.to_json(orient='split')
-        return_dict['intensity table'] = intensity_table.to_json(orient='split')
+        return_dict['intensity table'] = intensity_table.to_json(
+            orient='split')
         return_dict['data type'] = data_type
         return_dict['protein lengths'] = protein_lengths
         return_dict['guessed control samples'] = data_functions.guess_controls(
@@ -295,14 +296,16 @@ def download_data_table(_, data_dictionary) -> dict:
     if not os.path.isdir(tmpdir):
         os.makedirs(tmpdir)
     for key in export_csvs:
-        pd.read_json(data_dictionary[key], orient='split').to_csv(os.path.join(tmpdir,key + '.tsv'),sep='\t')
+        pd.read_json(data_dictionary[key], orient='split').to_csv(
+            os.path.join(tmpdir, key + '.tsv'), sep='\t')
     for jsonkey in export_jsons:
-        with open(os.path.join(tmpdir,key + '.json'),'w') as fil:
-            json.dump(data_dictionary[jsonkey],fil)
-    with open(os.path.join(tmpdir,'Info.txt'),'w') as fil:
+        with open(os.path.join(tmpdir, key + '.json'), 'w') as fil:
+            json.dump(data_dictionary[jsonkey], fil)
+    with open(os.path.join(tmpdir, 'Info.txt'), 'w') as fil:
         fil.write('\n'.join(export_fileinfo))
 
     return dcc.send_file(db.request_file('assets', 'example-data_file'))
+
 
 @callback(
     Output('data-processing-figures', 'children'),
@@ -583,22 +586,19 @@ def generate_proteomics_tab() -> dbc.Tab:
                 dbc.Label('Imputation:'),
                 dbc.RadioItems(
                     options=[
-                        {'label': 'QRILC', 'value': 'QRILC'},
-                        {'label': 'minProb', 'value': 'minProb'},
-                        {'label': 'minValue', 'value': 'minValue'},
-                        {'label': 'No imputation', 'value': None},
+                        {'label': i_opt, 'value': i_opt_val}
+                            for i_opt, i_opt_val in db.imputation_options.items()
                     ],
-                    value='QRILC',
+                    value=db.default_imputation_method,
                     id='imputation-radio-option'
                 ),
                 dbc.Label('Normalization:'),
                 dbc.RadioItems(
                     options=[
-                        {'label': 'Median', 'value': 'Median'},
-                        {'label': 'Quantile', 'value': 'Quantile'},
-                        {'label': 'No normalization', 'value': None}
+                        {'label': n_opt, 'value': n_opt_val}
+                            for n_opt, n_opt_val in db.normalization_options.items()
                     ],
-                    value='Median',
+                    value=db.default_normalization_method,
                     id='normalization-radio-option'
                 ),
                 html.Hr(),
@@ -613,7 +613,7 @@ def generate_proteomics_tab() -> dbc.Tab:
     return dbc.Tab(proteomics_tab, label='Proteomics', id='proteomics-tab')
 
 
-def checklist(label: str, options: list, default_choice: list, disabled: list = None, id_prefix: str = None, simple_text_clean:bool=False) -> dbc.Checklist:
+def checklist(label: str, options: list, default_choice: list, disabled: list = None, id_prefix: str = None, simple_text_clean: bool = False) -> dbc.Checklist:
     if disabled is None:
         disabled: set = set()
     else:
@@ -637,26 +637,29 @@ def checklist(label: str, options: list, default_choice: list, disabled: list = 
         )
     ]
 
+
 @callback(
     Output('interactomics-saint-container', 'children'),
-    Output('raw-interactomics-data','data'),
-    Output('crapome-column-groups','data'),
-    Input('button-run-saint-analysis','n_clicks'),
+    Output('raw-interactomics-data', 'data'),
+    Output('crapome-column-groups', 'data'),
+    Input('button-run-saint-analysis', 'n_clicks'),
     State('interactomics-choose-additional-control-sets', 'value'),
-    State('interactomics-choose-crapome-sets','value'),
-    State('interactomics-choose-uploaded-controls','value'),
+    State('interactomics-choose-crapome-sets', 'value'),
+    State('interactomics-choose-uploaded-controls', 'value'),
     State('output-data-upload', 'data'),
     prevent_initial_call=True
 )
-def generate_saint_container(_,inbuilt_controls,crapome_controls,control_sample_groups,data_dictionary) -> html.Div:
-    spc_table: pd.DataFrame = pd.read_json(data_dictionary['spc table'],orient='split')
+def generate_saint_container(_, inbuilt_controls, crapome_controls, control_sample_groups, data_dictionary) -> html.Div:
+    spc_table: pd.DataFrame = pd.read_json(
+        data_dictionary['spc table'], orient='split')
     if spc_table.columns[0] == 'No data':
         return html.Div(['No spectral count data in input, cannot run SAINT.'])
     inbuilt_control_table: pd.DataFrame = db.controls(inbuilt_controls)
     crapome_table: pd.DataFrame
     crapome_column_groups: list
-    crapome_table, crapome_column_groups = db.crapome(crapome_controls, list(spc_table.index))
-    
+    crapome_table, crapome_column_groups = db.crapome(
+        crapome_controls, list(spc_table.index))
+
 
 # check control samples from container -> add to control groups list
 # get chosen GFP sets as control_table
@@ -669,24 +672,26 @@ def generate_saint_container(_,inbuilt_controls,crapome_controls,control_sample_
         data_dictionary['rev sample groups'],
         data_dictionary['protein lengths'],
         db.scripts('SAINTexpress'),
-        control_table = inbuilt_control_table,
-        control_groups = control_sample_groups,
+        control_table=inbuilt_control_table,
+        control_groups=control_sample_groups,
     )
     saint_output = pd.merge(
         left=saint_output,
-        right = crapome_table,
+        right=crapome_table,
         how='left',
         left_on='Prey',
-        right_index = True)
+        right_index=True)
 
-    discarded_proteins = sorted(list((set(discarded_proteins)&set(spc_table.index))))
+    discarded_proteins = sorted(
+        list((set(discarded_proteins) & set(spc_table.index))))
 
     new_crapome_column_groups: list = []
-    drop_cols:list = []
+    drop_cols: list = []
     for cr_avgspec, cr_freq in crapome_column_groups:
-        cr_group: str = cr_avgspec.replace(' AvgSpec','')
+        cr_group: str = cr_avgspec.replace(' AvgSpec', '')
         cr_fccol: str = f'{cr_group} FC'
-        saint_output[cr_fccol] = saint_output['AvgSpec']/saint_output[cr_avgspec].fillna(0)
+        saint_output[cr_fccol] = saint_output['AvgSpec'] / \
+            saint_output[cr_avgspec].fillna(0)
         drop_cols.append(cr_avgspec)
         new_crapome_column_groups.append([cr_fccol, cr_freq])
     crapome_column_groups = new_crapome_column_groups
@@ -707,38 +712,40 @@ def generate_saint_container(_,inbuilt_controls,crapome_controls,control_sample_
 
     container_contents.append(
         html.Div([
-            figure_generation.histogram(saint_output, x_column='BFDR', title='Saint BFDR distribution'),
+            figure_generation.histogram(
+                saint_output, x_column='BFDR', title='Saint BFDR distribution'),
             dcc.Graph(id='interactomics-saint-graph'),
             dbc.Label('Saint BFDR threshold:'),
             dcc.Slider(0, 0.1, 0.01, value=0.05,
-                        id='saint-bfdr-filter-threshold'),
+                       id='saint-bfdr-filter-threshold'),
             dbc.Label('Crapome filtering:'),
             dbc.Label('Crapome frequency'),
             dcc.Slider(1, 100, 10, value=20,
-                        id='crapome-frequency-threshold'),
+                       id='crapome-frequency-threshold'),
             dbc.Label('SPC fold change vs crapome threshold for rescue'),
             dcc.Slider(0, 10, 1, value=3,
-                        id='crapome-rescue-threshold'),
+                       id='crapome-rescue-threshold'),
         ])
     )
 
     return container_contents, saint_output.to_json(orient='split'), crapome_column_groups
 
+
 @callback(
     [
-        Output('interactomics-saint-graph', 'figure'), 
-        Output('processed-interactomics-data','data')
+        Output('interactomics-saint-graph', 'figure'),
+        Output('processed-interactomics-data', 'data')
     ],
-    Input('saint-bfdr-filter-threshold','value'),
-    Input('crapome-frequency-threshold','value'),
-    Input('crapome-rescue-threshold','value'),
-    State('raw-interactomics-data','data'),
-    State('crapome-column-groups','data')
+    Input('saint-bfdr-filter-threshold', 'value'),
+    Input('crapome-frequency-threshold', 'value'),
+    Input('crapome-rescue-threshold', 'value'),
+    State('raw-interactomics-data', 'data'),
+    State('crapome-column-groups', 'data')
 )
 def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc, raw_data, crapome_column_groups) -> tuple:
-    filtered_saint: pd.DataFrame = pd.read_json(raw_data,orient='split')
-    filtered_saint = filtered_saint[filtered_saint['BFDR']<bfdr_threshold]
-    
+    filtered_saint: pd.DataFrame = pd.read_json(raw_data, orient='split')
+    filtered_saint = filtered_saint[filtered_saint['BFDR'] < bfdr_threshold]
+
     for crapome_fc_column, crapome_freq_column in crapome_column_groups:
         filtered_saint = filtered_saint[
             (filtered_saint[crapome_freq_column] < crapome_freq) |
@@ -746,15 +753,16 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
         ]
 
     bar_plot_df: pd.DataFrame = pd.DataFrame(
-            filtered_saint.value_counts(subset=['Bait']),columns=['Prey count']
-            ).reset_index()
+        filtered_saint.value_counts(subset=['Bait']), columns=['Prey count']
+    ).reset_index()
     figure: Any = figure_generation.bar_plot(
         bar_plot_df,
         'Protein counts after filtering',
         y_name='Prey count',
         color_col='Bait'
-        )    
+    )
     return (figure, filtered_saint.to_json(orient='split'))
+
 
 def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> dbc.Tab:
     all_sample_groups: list = []
@@ -810,7 +818,7 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
                                 dbc.Row(
                                     [
                                         dbc.Button('Run SAINT analysis',
-                                            id='button-run-saint-analysis'),
+                                                   id='button-run-saint-analysis'),
                                     ]
                                 )
                             ]
@@ -844,7 +852,7 @@ upload_row_1: list = [
 upload_row_2: list = [
     dbc.Col(
         dbc.Select(
-            #value=db.default_workflow,
+            # value=db.default_workflow,
             options=[
                 {'label': item, 'value': item} for item in db.implemented_workflows
             ],
@@ -904,8 +912,8 @@ upload_tab: dbc.Card = dbc.Card(
     dbc.CardBody(
         [
             dbc.Button(
-            'Export all data',
-            id='button-export-all-data'
+                'Export all data',
+                id='button-export-all-data'
             ),
             html.Div(
                 [

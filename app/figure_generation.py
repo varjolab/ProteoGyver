@@ -48,38 +48,38 @@ def protein_coverage(data_table) -> dcc.Graph:
             pd.DataFrame(data_table.notna()
                          .astype(int)
                          .sum(axis=1)
-                         .value_counts(), columns=['Identified in # samples']), 'Protein coverage', color=False)
+                         .value_counts(), columns=['Identified in # samples']), 'Protein coverage', color=False),
+            
     )
 
 
-def bar_plot(value_df, title, x_name:str = None, y_name:str = None, y_idx:int=0, color: bool = True, color_col: str = None) -> px.bar:
+def bar_plot(value_df, title, x_name:str = None, y_name:str = None, y_idx:int=0, color: bool = True, color_col: str = None, hide_legend=False, color_discrete_map=False) -> px.bar:
     colorval: str
-    cmapval: str
     if color_col is not None:
         colorval = color_col
-        cmapval = 'identity'
     elif color:
         colorval = 'Color'
-        cmapval = 'identity'
     else:
         colorval = None
-        cmapval = None
 
+    cdm_val: dict = None
+    if color_discrete_map: 
+        cdm_val = 'identity'
     if y_name is None:
         y_name: str = value_df.columns[y_idx]
     if x_name is None:
-        x_name = value_df.index
+        x_name: str = value_df.index
     figure: px.bar = px.bar(
         value_df,
         x=x_name,  # 'Sample name',
         y=y_name,
-        # height=500,
-        # width=750,
         title=title,
         color=colorval,
-        #color_discrete_map=cmapval
+        color_discrete_map = cdm_val
     )
     figure.update_xaxes(type='category')
+    if hide_legend:
+        figure.update_layout(showlegend=False)
     return figure
 
 
@@ -186,28 +186,28 @@ def imputation_histogram(non_imputed, imputed, title: str = None) -> dcc.Graph:
 
 
 def sum_value_figure(sum_data) -> dcc.Graph:
-    sum_figure = bar_plot(sum_data, title='Value sum per sample')
+    sum_figure = bar_plot(sum_data, title='Value sum per sample',color_discrete_map=True)
     return dcc.Graph(id='value-sum-figure', figure=sum_figure)
 
 
 def avg_value_figure(avg_data) -> dcc.Graph:
-    avg_figure = bar_plot(avg_data, title='Value mean per sample')
+    avg_figure = bar_plot(avg_data, title='Value mean per sample',color_discrete_map=True)
     return dcc.Graph(id='value-sum-figure', figure=avg_figure)
 
 
 def missing_figure(na_data) -> dcc.Graph:
-    na_figure: px.bar = bar_plot(na_data, title='Missing values per sample')
+    na_figure: px.bar = bar_plot(na_data, title='Missing values per sample',color_discrete_map=True)
     return dcc.Graph(id='protein-count-figure', figure=na_figure)
 
 
 def protein_count_figure(count_data) -> dcc.Graph:
-    count_figure: px.bar = bar_plot(count_data, title='Proteins per sample')
+    count_figure: px.bar = bar_plot(count_data, title='Proteins per sample',color_discrete_map=True)
     return dcc.Graph(id='protein-count-figure', figure=count_figure)
 
 
 def volcano_plots(data_table, sample_groups, control_group) -> list:
     control_cols: list = sample_groups[control_group]
-    volcanoes = []
+    volcanoes: list = []
     for group_name, group_cols in sample_groups.items():
         if group_name == control_group:
             continue
@@ -314,26 +314,24 @@ def t_sne_plot(data_table: pd.DataFrame, rev_sample_groups: dict, perplexity: in
         figname: str = ''
     else:
         figname = '-' + figname
-    fig = px.scatter(
+    fig: go.Figure = px.scatter(
         data_df, x='t-SNE one', y='t-SNE two', title=f't-SNE{figname}', color=data_df['Sample group'],
         text='Sample name')
     fig.update_traces(marker_size=15)
     return dcc.Graph(figure=fig, id=f'tsne-plot{figname}')
 
-
-def coefficient_of_variation(row: pd.Series) -> float:
-    return (row.std()/row.mean())*100
-
-
 def df_coefficient_of_variation(data_table: pd.DataFrame) -> pd.DataFrame:
     new_df: pd.DataFrame = pd.DataFrame(index=data_table.index)
-    new_df['%CV'] = data_table.apply(coefficient_of_variation, axis=1)
-    new_df['mean intensity'] = data_table.mean(axis=1)
+    new_df['mean intensity'] = new_df.mean(axis=1)
+    new_df['CV'] = new_df.std(axis=1)/new_df['mean intensity']
+    new_df['%CV'] = new_df['CV']*100
     return new_df
 
 
 def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coefficient-of-variation', title: str = None) -> dcc.Graph:
     data_table: pd.DataFrame = df_coefficient_of_variation(data_table)
+    col1:str
+    col2:str
     col1, col2 = data_table.columns[:2]
     data_table = data_table.sort_values(by=col2, ascending=True, inplace=False)
     fig = px.scatter(data_table, x=col2, y=col1, title=title)
@@ -347,19 +345,20 @@ def coefficient_of_variation_plot(data_table: pd.DataFrame, plotname: str = 'coe
     plot_df: pd.DataFrame = pd.DataFrame({'x': plotx.flatten(), 'y': y_plot})
     fig2: go.Figure = px.line(plot_df, x='x', y='y')
     if title is None:
-        title = ''
+        title:str = ''
     fig: go.Figure = go.Figure(data=fig.data + fig2.data)
+    CVstr: str = f'Median CV: {data_table["CV"].median()}, '
     fig.update_layout(
-        title='Coefficients of variation',
+        title=f'Coefficients of variation {CVstr}',
         xaxis_title='Log2 normalized imputed mean intensity',
-        yaxis_title='%CV'
+        yaxis_title='% CV'
     )
     return dcc.Graph(figure=fig, id=f'scatter-{plotname}')
 
 
 def clustergram(plot_data: pd.DataFrame, color_map: list = None, **kwargs):
     if color_map is None:
-        color_map = [
+        color_map: list = [
             [0.0, '#FFFFFF'],
             [1.0, '#EF553B']
         ]
@@ -379,7 +378,7 @@ def correlation_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dc
     if plotname is None:
         plotname: str = 'correlation-clustermap'
     corr_df: pd.DataFrame = data_table.corr()
-    fig = clustergram(
+    fig: go.Figure = clustergram(
         corr_df,
     )
     # fig.update_zaxes(range=[0,1])
@@ -391,7 +390,7 @@ def correlation_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dc
 def full_clustermap(data_table: pd.DataFrame, plotname: str = None) -> dcc.Graph:
     if plotname is None:
         plotname: str = 'full-clustermap'
-    fig = clustergram(
+    fig: go.Figure = clustergram(
         data_table,
         hidden_labels=['row'],
         # The cluster parameter should be "column", but that does not work. According to source code, "col" is the correct usage, but it might get changed to reflect documentation later.

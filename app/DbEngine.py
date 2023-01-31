@@ -66,7 +66,6 @@ class DbEngine:
             sep='\t',index_col='PROTID')
         self._crapome_proteins = set(self._crapome_table.index.values)
 
-
     @property
     def controlsets(self) -> dict:
         return self._controls['sets']['all']
@@ -200,11 +199,21 @@ class DbEngine:
     @property
     def default_workflow(self) -> str:
         return self.implemented_workflows[self.parameters['Default workflow']]
-    
     @property
     def implemented_workflows(self) -> list:
         return self.parameters['Implemented workflows']
-    
+    @property
+    def imputation_options(self) -> dict:
+        return self.parameters['Imputation methods']
+    @property
+    def default_imputation_method(self) -> dict:
+        return self.parameters['Default imputation method']
+    @property
+    def normalization_options(self) -> dict:
+        return self.parameters['Normalization methods']
+    @property
+    def default_normalization_method(self) -> dict:
+        return self.parameters['Default normalization method']
     @property
     def files(self) -> dict:
         return self.parameters['files']
