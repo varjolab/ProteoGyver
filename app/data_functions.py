@@ -74,7 +74,7 @@ def read_dia_nn(data_table: pd.DataFrame) -> pd.DataFrame:
         data=data_table, index='Protein.Group', columns='Run', values='PG.MaxLFQ')
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
-    return [table, pd.DataFrame({'No data': ['No data']}, None)]
+    return [table, pd.DataFrame({'No data': ['No data']}), None]
 
 
 def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Series:
@@ -83,7 +83,7 @@ def count_per_sample(data_table: pd.DataFrame, rev_sample_groups: dict) -> pd.Se
     retser: pd.Series = pd.Series(
         index=index,
         data=[data_table[i].notna().sum() for i in index]
-    ).to_json()
+    )
     return retser
 
 def normalize(data_table: pd.DataFrame, normalization_method: str) -> pd.DataFrame:
@@ -378,7 +378,6 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
         )        
     return (intensity_table, spc_table, protein_lengths)
 
-
 def read_matrix(data_table: pd.DataFrame, is_spc_table:bool=False, max_spc_ever:int=0) -> pd.DataFrame:
     """Reads a generic matrix into a data table. Either the returned SPC or intensity table is an empty dataframe.
     
@@ -482,11 +481,15 @@ def run_saint(
     return (output_dataframe, sorted(list(discarded)))
 
 def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
+
+
+    # Get rid of file paths and timstof .d -file extension, if present:
     expdesign['Sample name'] = [
         oldvalue.rsplit('\\', maxsplit=1)[-1]\
             .rsplit('/', maxsplit=1)[-1]\
             .rstrip('.d') for oldvalue in expdesign['Sample name'].values
     ]
+    discarded_columns:list = []
     sample_groups: dict = {}
     for table in tables:
         if len(table.columns) < 2:
@@ -502,6 +505,7 @@ def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
                     '\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
                 if col not in expdesign['Sample name'].values:
                     # Discard column if not found
+                    discarded_columns.append(col)
                     continue
             sample_group: str = expdesign[expdesign['Sample name']
                                           == col].iloc[0]['Sample group']
@@ -537,8 +541,17 @@ def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
     for group, samples in sample_groups.items():
         for sample in samples:
             rev_sample_groups[sample] = group
-    return (sample_groups, rev_sample_groups)
+    return (sample_groups, rev_sample_groups, discarded_columns)
 
+def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
+    aggfuncs: dict = {}
+    numerical_columns: set = set(data_table.select_dtypes(include=np.number).columns)
+    for column in data_table.columns:
+        if column in numerical_columns:
+            aggfuncs[column] = sum
+        else:
+            aggfuncs[column] = 'first'
+    return data_table.groupby(data_table.index).agg(aggfuncs)
 
 def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoretical_spc: int=0) -> list:
     table: pd.DataFrame = read_df_from_content(data_content, data_name)
@@ -565,9 +578,13 @@ def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoret
     spc_table: pd.DataFrame
     protein_length_dict: dict
     intensity_table, spc_table, protein_length_dict = read_funcs[data_type](table, **keyword_args)
+    intensity_table = remove_duplicate_protein_groups(intensity_table)
+    spc_table = remove_duplicate_protein_groups(spc_table)
+
     sample_groups: dict
     rev_sample_groups: dict
-    sample_groups, rev_sample_groups = rename_columns_and_update_expdesign(
+    discarded_columns: list
+    sample_groups, rev_sample_groups, discarded_columns = rename_columns_and_update_expdesign(
         expdesign,
         [intensity_table, spc_table]
     )
@@ -583,7 +600,8 @@ def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoret
         spc_table,
         data_type,
         untransformed_intensity_table,
-        protein_length_dict
+        protein_length_dict,
+        discarded_columns
     ]
 def guess_controls(sample_groups: dict) -> Tuple[list,list]:
     rl: list = []

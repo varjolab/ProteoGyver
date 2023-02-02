@@ -25,7 +25,8 @@ class DbEngine:
     _crapome_proteins: set
     _crapome: dict
     _override_keys: dict
-
+    _contaminant_table: pd.DataFrame
+    _contaminant_list: list
 
     @property
     def parameters(self) -> dict:
@@ -46,7 +47,7 @@ class DbEngine:
         self._parameters: dict = parameters
         self.data = self._parameters['Run data']
         self.temp_dir = self._parameters['Temporary data directory']
-        self.protein_lengths = self.request_asset_file('protein lengths file')
+        self.protein_lengths = os.path.join(*self.parameters['files']['data']['protein lengths file'])
         if not os.path.isdir(self.cache_dir):
             os.makedirs(self.cache_dir)
         if not os.path.isdir(self.temp_dir):
@@ -65,6 +66,7 @@ class DbEngine:
             os.path.join(*parameters['files']['data']['crapome table']),
             sep='\t',index_col='PROTID')
         self._crapome_proteins = set(self._crapome_table.index.values)
+        self.contaminant_table = os.path.join(*parameters['files']['data']['Contaminant list'])
 
     @property
     def controlsets(self) -> dict:
@@ -220,7 +222,7 @@ class DbEngine:
 
     @property
     def protein_seq_file(self) -> dict:
-        return  os.path.join(*(self.request_asset_file('Protein sequence file')))
+        return  os.path.join(*self.parameters['files']['data']['Protein sequence file'])
 
     @property
     def upload_table_data_columns(self) -> list:
@@ -228,6 +230,17 @@ class DbEngine:
     @upload_table_data_columns.setter
     def upload_table_data_columns(self, upload_table_data_columns:list) -> None:
         self._upload_table_data_columns:list = upload_table_data_columns
+
+    @property
+    def contaminant_table(self) -> list:
+        return self._contaminant_table
+    @contaminant_table.setter
+    def contaminant_table(self, contaminant_file:str) -> None:
+        self._contaminant_table: pd.DataFrame = pd.read_csv(contaminant_file,sep='\t')
+        self._contaminant_list = list(self._contaminant_table['Uniprot ID'].values)
+    @property
+    def contaminant_list(self) -> list:
+        return self._contaminant_list
 
     @property
     def temp_dir(self) -> list:
@@ -261,8 +274,11 @@ class DbEngine:
         for filename in os.listdir(self.cache_dir):
             os.remove(os.path.join(self.cache_dir,filename))
 
-    def get_cache_file(self,filename) -> str:
-        return os.path.join(self.cache_dir, filename)
+    def get_cache_file(self,session_folder_name, filename) -> str:
+        cache_dir_for_session: str = os.path.join(self.cache_dir, session_folder_name)
+        if not os.path.isdir(cache_dir_for_session):
+            os.makedirs(cache_dir_for_session)
+        return os.path.join(cache_dir_for_session, filename)
     
     
     def scripts(self, scriptname) -> Tuple[str,str]:
@@ -306,10 +322,6 @@ class DbEngine:
     def request_file(self, location, filename) -> str:
         file_location: list = self.files[location][filename]
         return os.path.join(*file_location)
-
-    def request_asset_file(self, filename) -> str:
-        return self.request_file('assets',filename)
-
 
     def __init__(self, override_keys=None) -> None:
         parameter_file: str = 'parameters.json'

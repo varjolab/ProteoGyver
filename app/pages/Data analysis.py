@@ -4,9 +4,8 @@ import base64
 import io
 import json
 import os
-from typing import Any, Union
+from typing import Any
 import dash
-from pyparsing import srange
 import dash_bootstrap_components as dbc
 import data_functions
 import figure_generation
@@ -28,7 +27,7 @@ db: DbEngine = DbEngine()
 #server: app.server = app.server
 dash.register_page(__name__, path='/')
 styles: Styles = Styles()
-figure_templates = [
+figure_templates: list = [
     'plotly',
     'plotly_white',
     'plotly_dark',
@@ -84,7 +83,7 @@ def add_replicate_colors(data_df, column_to_replicate) -> None:
 def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
     if workflow_setting_value is None:
         return dash.no_update
-    with open(db.get_cache_file(session_uid + '_workflow-choice.txt'), 'w', encoding='utf-8') as fil:
+    with open(db.get_cache_file(session_uid,'workflow-choice.txt'), 'w', encoding='utf-8') as fil:
         fil.write(workflow_setting_value)
     return str(workflow_setting_value)
 
@@ -111,7 +110,7 @@ def process_input_tables(
     session_uid,
 ) -> tuple:
     if figure_template_dropdown_value:
-        with open(db.get_cache_file(session_uid + '_figure-template-choice.txt'), 'w', encoding='utf-8') as fil:
+        with open(db.get_cache_file(session_uid, 'figure-template-choice.txt'), 'w', encoding='utf-8') as fil:
             fil.write(figure_template_dropdown_value)
         pio.templates.default = figure_template_dropdown_value
     return_message: list = []
@@ -121,7 +120,6 @@ def process_input_tables(
     if sample_table_file_contents is None:
         return_message.append('Missing sample_table')
     if len(return_message) == 0:
-        # TODO: SPC table not used for anything yet
         intensity_table: pd.DataFrame
         sample_groups: dict
         rev_sample_groups: dict
@@ -129,7 +127,8 @@ def process_input_tables(
         data_type: tuple
         raw_intensity_table: pd.DataFrame
         protein_lengths: dict
-        intensity_table, sample_groups, rev_sample_groups, spc_table, data_type, raw_intensity_table, protein_lengths = data_functions.parse_data(
+        discarded_columns: list
+        intensity_table, sample_groups, rev_sample_groups, spc_table, data_type, raw_intensity_table, protein_lengths, discarded_columns = data_functions.parse_data(
             data_file_contents,
             data_file_name,
             sample_table_file_contents,
@@ -137,6 +136,7 @@ def process_input_tables(
             max_theoretical_spc=db.max_theoretical_spc
         )
         return_dict['sample groups'] = sample_groups
+        return_dict['discarded columns'] = discarded_columns
         return_dict['rev sample groups'] = rev_sample_groups
         return_dict['raw intensity table'] = raw_intensity_table.to_json(
             orient='split')
@@ -153,9 +153,23 @@ def process_input_tables(
         else:
             return_dict['table'] = return_dict['intensity table']
             return_dict['values'] = 'intensity'
-        with open(db.get_cache_file(session_uid + '_data_dict.json'), 'w', encoding='utf-8') as fil:
+        with open(db.get_cache_file(session_uid, 'data_dict.json'), 'w', encoding='utf-8') as fil:
             json.dump(return_dict, fil)
-        return_message = 'Succesful Upload'
+        with open(db.get_cache_file(session_uid, 'sample groups.json'),'w', encoding='utf-8') as fil:
+            json.dump(sample_groups, fil)
+        with open(db.get_cache_file(session_uid, 'rev sample groups.json'),'w', encoding='utf-8') as fil:
+            json.dump(rev_sample_groups, fil)
+        with open(db.get_cache_file(session_uid, 'protein lengths.json'),'w', encoding='utf-8') as fil:
+            json.dump(protein_lengths, fil)
+        with open(db.get_cache_file(session_uid, 'info.txt'),'w', encoding='utf-8') as fil:
+            fil.write(f'Data type: {return_dict["values"]}')
+            discarded_str:str = '\t'.join(discarded_columns)
+            fil.write(f'Discarded columns:\n{discarded_str}')
+            fil.write(f'Data type: {data_type}')
+        spc_table.to_csv(db.get_cache_file(session_uid, 'SPC table.tsv'),sep='\t')
+        intensity_table.to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv'),sep='\t')
+        raw_intensity_table.to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv'),sep='\t')
+        return_message = 'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
     return return_dict, return_message, figure_template_dropdown_value, ''
@@ -165,9 +179,10 @@ def process_input_tables(
     Output('qc-plot-container', 'children'),
     Output('rep-colors', 'data'),
     Input('placeholder', 'children'),
-    State('output-data-upload', 'data')
+    State('output-data-upload', 'data'),
+    State('session-uid', 'children')
 )
-def quality_control_charts(_, data_dictionary) -> list:
+def quality_control_charts(_, data_dictionary,session_uid) -> list:
     figures: list = []
     rep_colors = {}
     if data_dictionary is not None:
@@ -187,9 +202,20 @@ def quality_control_charts(_, data_dictionary) -> list:
             data_dictionary['Replicate colors'] = rep_colors
             figures.append(dcc.Loading(type='circle', id='qc-protein-count-figure',
                            children=[figure_generation.protein_count_figure(count_data)]))
+            figures.append(dcc.Loading(type='circle', id='contaminant-figure',
+                           children=[figure_generation.contaminant_figure(data_table, db.contaminant_list)]))
             figures.append(dcc.Loading(type='circle', id='qc-protein-coverage', children=[
                 figure_generation.protein_coverage(data_table)
             ]))
+
+            figures.append(dcc.Loading(type='circle',id='qc-replicate-reproducibility-figure',
+                            children= [
+                                figure_generation.reproducibility_figure(
+                                                    data_table,
+                                                    data_dictionary['sample groups']
+                                                )
+                                ]
+                            ))
 
             na_data: pd.DataFrame = data_functions.get_na_data(data_table)
             na_data['Color'] = [rep_colors[sample_name]
@@ -220,7 +246,6 @@ def quality_control_charts(_, data_dictionary) -> list:
                             raw_intensity_table,
                             rep_colors,
                             data_dictionary['rev sample groups'],
-                            log2_transform=False,
                             title='Raw value distribution'
                         )
                     ]
@@ -233,7 +258,6 @@ def quality_control_charts(_, data_dictionary) -> list:
                         data_table,
                         rep_colors,
                         data_dictionary['rev sample groups'],
-                        log2_transform=False,
                         title=dist_title
                     )
                 ]
@@ -242,6 +266,19 @@ def quality_control_charts(_, data_dictionary) -> list:
             figures.append(dcc.Loading(type='circle', id='qc-supervenn', children=[figure_generation.supervenn(
                 data_table, data_dictionary['rev sample groups']
             )]))
+            print('11')
+
+            count_data.to_csv(db.get_cache_file(session_uid, 'Count data.tsv'),sep='\t')
+            sumdata.to_csv(db.get_cache_file(session_uid, 'Sum data.tsv'),sep='\t')
+            na_data.to_csv(db.get_cache_file(session_uid, 'NA data.tsv'),sep='\t')
+            avgdata.to_csv(db.get_cache_file(session_uid, 'AVG data.tsv'),sep='\t')
+            with open(db.get_cache_file(session_uid, 'rep colors.json'),'w',encoding='utf-8') as fil:
+                json.dump(rep_colors,fil)
+            
+            with open(db.get_cache_file(session_uid, 'rep colors.json'),'w',encoding='utf-8') as fil:
+                json.dump(rep_colors,fil)
+            print('12')
+
             # Long-term:
             # - protein counts compared to previous similar samples
             # - sum value compared to previous similar samples
@@ -257,7 +294,7 @@ def quality_control_charts(_, data_dictionary) -> list:
     prevent_initial_call=True,
 )
 def sample_table_example_download(_) -> dict:
-    return dcc.send_file(db.request_file('assets', 'example-sample_table'))
+    return dcc.send_file(db.request_file('example data', 'example-sample_table'))
 
 
 @callback(
@@ -266,7 +303,7 @@ def sample_table_example_download(_) -> dict:
     prevent_initial_call=True,
 )
 def download_data_table_example(_) -> dict:
-    return dcc.send_file(db.request_file('assets', 'example-data_file'))
+    return dcc.send_file(db.request_file('example data', 'example-data_file'))
 
 
 @callback(
@@ -299,12 +336,12 @@ def download_data_table(_, data_dictionary) -> dict:
         pd.read_json(data_dictionary[key], orient='split').to_csv(
             os.path.join(tmpdir, key + '.tsv'), sep='\t')
     for jsonkey in export_jsons:
-        with open(os.path.join(tmpdir, key + '.json'), 'w') as fil:
+        with open(os.path.join(tmpdir, key + '.json'), 'w',encoding='utf-8') as fil:
             json.dump(data_dictionary[jsonkey], fil)
-    with open(os.path.join(tmpdir, 'Info.txt'), 'w') as fil:
+    with open(os.path.join(tmpdir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
 
-    return dcc.send_file(db.request_file('assets', 'example-data_file'))
+    return dcc.send_file(db.request_file('example data', 'example-data_file'))
 
 
 @callback(
@@ -314,8 +351,9 @@ def download_data_table(_, data_dictionary) -> dict:
     Input('imputation-radio-option', 'value'),
     Input('normalization-radio-option', 'value'),
     State('output-data-upload', 'data'),
+    State('session-uid', 'children')
 )
-def make_proteomics_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary) -> list:
+def make_proteomics_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary, session_uid) -> list:
     if data_dictionary is not None:
         if 'table' in data_dictionary:
             if data_dictionary['values'] == 'SPC':
@@ -329,11 +367,15 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             # Filter by missing value proportion
             original_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
+            original_counts.to_csv(db.get_cache_file(session_uid, 'Original counts.tsv'),sep='\t')
             data_table = data_functions.filter_missing(
                 data_table, sample_groups, threshold=filter_threshold)
+            data_table = data_table.loc[~data_table.index.isin(db.contaminant_list)]
+            data_table.to_csv(db.get_cache_file(session_uid, 'NA and contaminant filtereddata table.tsv'),sep='\t')
             filtered_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
-            data_dictionary['filter data'] = [original_counts, filtered_counts]
+            filtered_counts.to_csv(db.get_cache_file(session_uid, 'Filtered counts.tsv'),sep='\t')
+            data_dictionary['filter data'] = [original_counts.to_json(), filtered_counts.to_json()]
 
             data_dictionary['normalization data'] = [
                 data_table.to_json(orient='split')]
@@ -341,15 +383,20 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             if normalization_method:
                 data_table = data_functions.normalize(
                     data_table, normalization_method)
+                data_table.to_csv(db.get_cache_file(session_uid, 'NA Filtered and normalized data table.tsv'),sep='\t')
                 data_dictionary['normalization data'].append(
                     data_table.to_json(orient='split'))
             data_table = data_functions.impute(
                 data_table, method=imputation_method, tempdir=db.temp_dir)
+            data_table.to_csv(db.get_cache_file(session_uid, 'NA filtered, normalized and imputed data table.tsv'),sep='\t')
             data_dictionary['final data table'] = data_table.to_json(
                 orient='split')
             if data_dictionary['protein lengths'] is None:
                 data_dictionary['protein lengths'] = db.get_protein_lengths(
                     data_table.index)
+            
+            with open(db.get_cache_file(session_uid, 'protein lengths.json'),'w',encoding='utf-8') as fil:
+                json.dump(data_dictionary['protein lengths'] ,fil)
 
             return [
                 [
@@ -389,7 +436,6 @@ def proteomics_filter_figure(figure_loadings, data_dictionary) -> list:
         figure_generation.before_after_plot(
             pd.read_json(original_counts, typ='series'),
             pd.read_json(filtered_counts, typ='series'),
-            data_dictionary['rev sample groups'],
             title='NA Filtering'
         )
     ]
@@ -440,8 +486,7 @@ def proteomics_distribution_figure(_, data_dictionary, rep_colors) -> list:
     return [figure_generation.distribution_figure(
         data_table,
         rep_colors,
-        data_dictionary['rev sample groups'],
-        log2_transform=False
+        data_dictionary['rev sample groups']
     )]
 
 
@@ -647,9 +692,10 @@ def checklist(label: str, options: list, default_choice: list, disabled: list = 
     State('interactomics-choose-crapome-sets', 'value'),
     State('interactomics-choose-uploaded-controls', 'value'),
     State('output-data-upload', 'data'),
+    State('session-uid', 'children'),
     prevent_initial_call=True
 )
-def generate_saint_container(_, inbuilt_controls, crapome_controls, control_sample_groups, data_dictionary) -> html.Div:
+def generate_saint_container(_, inbuilt_controls, crapome_controls, control_sample_groups, data_dictionary, session_uid) -> html.Div:
     spc_table: pd.DataFrame = pd.read_json(
         data_dictionary['spc table'], orient='split')
     if spc_table.columns[0] == 'No data':
@@ -675,6 +721,7 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
         control_table=inbuilt_control_table,
         control_groups=control_sample_groups,
     )
+    saint_output.loc['Is contaminant'] = saint_output['Prey'].isin(db.contaminant_list)
     saint_output = pd.merge(
         left=saint_output,
         right=crapome_table,
@@ -710,6 +757,21 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
             ])
         )
 
+    before_contaminants: int = saint_output.shape[0]
+    removed_contaminants: list = list(saint_output[saint_output['Is contaminant']]['Prey'].values)
+    saint_output = saint_output[~saint_output['Is contaminant']]
+    after_contaminants: int = saint_output.shape[0]
+    if after_contaminants == before_contaminants:
+        saint_output = saint_output.drop(columns=['Is contaminant'])
+    else:
+        container_contents.append(
+            html.Div([
+                f'Removed {before_contaminants-after_contaminants} common contaminants from the output dataset.',
+                html.Br(),
+                f'Removed contaminants: {", ".join(removed_contaminants)}'
+            ])
+        )
+
     container_contents.append(
         html.Div([
             figure_generation.histogram(
@@ -727,7 +789,14 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
                        id='crapome-rescue-threshold'),
         ])
     )
+    
 
+    with open(db.get_cache_file(session_uid, 'SAINT info.txt'),'w',encoding='utf-8') as fil:
+        discarded_str: str = '\t'.join(discarded_proteins)
+        fil.write(f'Discarded proteins:\n{discarded_str}')
+    saint_output.to_csv(db.get_cache_file(session_uid, 'Saint output.tsv'),sep='\t')
+    inbuilt_control_table.to_csv(db.get_cache_file(session_uid, 'Inbuilt controls.tsv'),sep='\t')
+    crapome_table.to_csv(db.get_cache_file(session_uid, 'Crapome table.tsv'),sep='\t')
     return container_contents, saint_output.to_json(orient='split'), crapome_column_groups
 
 
@@ -740,9 +809,10 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
     Input('crapome-frequency-threshold', 'value'),
     Input('crapome-rescue-threshold', 'value'),
     State('raw-interactomics-data', 'data'),
-    State('crapome-column-groups', 'data')
+    State('crapome-column-groups', 'data'),
+    State('session-uid', 'children')
 )
-def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc, raw_data, crapome_column_groups) -> tuple:
+def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc, raw_data, crapome_column_groups, session_uid) -> tuple:
     filtered_saint: pd.DataFrame = pd.read_json(raw_data, orient='split')
     filtered_saint = filtered_saint[filtered_saint['BFDR'] < bfdr_threshold]
 
@@ -761,6 +831,7 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
         y_name='Prey count',
         color_col='Bait'
     )
+    filtered_saint.to_csv(db.get_cache_file(session_uid, 'Saint output filtered.tsv'),sep='\t')
     return (figure, filtered_saint.to_json(orient='split'))
 
 

@@ -23,19 +23,18 @@
     },
     "Default normalization method": "Median",
     "files": {
-        "assets": {
+        "example files": {
             "example-sample_table": ["assets", "example-sample_table.tsv"],
-            "example-data_file": ["assets", "example-data_file.tsv"],
-            "protein lengths file": ["assets", "protein lengths.tsv"],
-            "Protein sequence file": ["assets", "Protein sequences.tsv"],
-            "Contaminant fastas": ["assets", "Contaminant datasets"],
-            "Contaminant list": ["assets", "Contaminants"]
+            "example-data_file": ["assets", "example-data_file.tsv"]
         },
         "data": {
             "crapome": ["data", "crapome sets.json"],
             "crapome table": ["data", "crapome table.tsv"],
             "control sets": ["data", "control sets.json"],
-            "control table": ["data", "control table.tsv"]
+            "control table": ["data", "control table.tsv"],
+            "protein lengths file": ["data", "protein lengths.tsv"],
+            "Protein sequence file": ["data", "Protein sequences.tsv"],
+            "Contaminant list": ["data", "contaminant_list.tsv"]
         }
     },
     "cache dir": ".cache_data",
