@@ -362,7 +362,7 @@ def download_data_table(_, data_dictionary,session_uid) -> dict:
             json.dump(data_dictionary[jsonkey], fil)
     with open(os.path.join(export_dir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
-    shutil.make_archive(export_dir.rstrip(os.sep) + '.zip', 'zip', export_dir)
+    shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
     return dcc.send_file(export_dir.rstrip(os.sep) + '.zip')
 
 
