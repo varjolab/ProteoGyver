@@ -481,8 +481,6 @@ def run_saint(
     return (output_dataframe, sorted(list(discarded)))
 
 def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
-
-
     # Get rid of file paths and timstof .d -file extension, if present:
     expdesign['Sample name'] = [
         oldvalue.rsplit('\\', maxsplit=1)[-1]\

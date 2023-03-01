@@ -8,21 +8,24 @@ from typing import Any
 import dash
 import dash_bootstrap_components as dbc
 import data_functions
-import figure_generation
 import tooltips
 import pandas as pd
 import plotly.io as pio
 from dash import callback, dcc, html
 from dash.dependencies import Input, Output, State
 from DbEngine import DbEngine
+from FigureGeneration import FigureGeneration
 from styles import Styles
 from utilitykit import plotting
+import shutil
 
 import text_functions
 
 
 # db will house all data, keep track of next row ID, and validate any new data
 db: DbEngine = DbEngine()
+figure_generation: FigureGeneration = FigureGeneration()
+
 #app: Dash = Dash(__name__)
 #server: app.server = app.server
 dash.register_page(__name__, path='/')
@@ -169,21 +172,36 @@ def process_input_tables(
         spc_table.to_csv(db.get_cache_file(session_uid, 'SPC table.tsv'),sep='\t')
         intensity_table.to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv'),sep='\t')
         raw_intensity_table.to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv'),sep='\t')
-        return_message = 'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
+        return_message = f'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
     return return_dict, return_message, figure_template_dropdown_value, ''
 
 
 @callback(
+    Output('void','children'),
+    Input('figures-to-save','data'),
+    State('session-uid', 'children')
+)
+def save_figures(save_data, session_uid) -> None:
+    figure_generation.save_figures(
+        save_data,
+        os.path.join(db.get_cache_dir(session_uid), 'Figures')
+    )
+
+
+@callback(
     Output('qc-plot-container', 'children'),
     Output('rep-colors', 'data'),
+    Output('figures-to-save','data'),
     Input('placeholder', 'children'),
     State('output-data-upload', 'data'),
     State('session-uid', 'children')
 )
 def quality_control_charts(_, data_dictionary,session_uid) -> list:
     figures: list = []
+    to_save: list = []
+    figure_names_and_legends: list = []
     rep_colors = {}
     if data_dictionary is not None:
         if 'table' in data_dictionary:
@@ -200,92 +218,95 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             for sname, sample_color_row in count_data[['Color']].iterrows():
                 rep_colors[sname] = sample_color_row['Color']
             data_dictionary['Replicate colors'] = rep_colors
-            figures.append(dcc.Loading(type='circle', id='qc-protein-count-figure',
-                           children=[figure_generation.protein_count_figure(count_data)]))
-            figures.append(dcc.Loading(type='circle', id='contaminant-figure',
-                           children=[figure_generation.contaminant_figure(data_table, db.contaminant_list)]))
-            figures.append(dcc.Loading(type='circle', id='qc-protein-coverage', children=[
-                figure_generation.protein_coverage(data_table)
-            ]))
+            figures.append(figure_generation.protein_count_figure(count_data))
+            figure_names_and_legends.append(['Protein count in samples',''])
+            figures.append(figure_generation.contaminant_figure(data_table, db.contaminant_list))
+            figure_names_and_legends.append(['Contaminants in samples',''])
+            figures.append(figure_generation.protein_coverage(data_table))
+            figure_names_and_legends.append(['Protein coverage',''])
 
-            figures.append(dcc.Loading(type='circle',id='qc-replicate-reproducibility-figure',
-                            children= [
-                                figure_generation.reproducibility_figure(
-                                                    data_table,
-                                                    data_dictionary['sample groups']
-                                                )
-                                ]
-                            ))
+            figures.append(figure_generation.reproducibility_figure(
+                                data_table,
+                                data_dictionary['sample groups']
+                            )
+                        )
+            figure_names_and_legends.append(['Reproducibility',''])
 
             na_data: pd.DataFrame = data_functions.get_na_data(data_table)
             na_data['Color'] = [rep_colors[sample_name]
                                 for sample_name in na_data.index.values]
-            figures.append(dcc.Loading(type='circle', id='qc-missing-figure',
-                           children=[figure_generation.missing_figure(na_data)]))
-            figures.append(dcc.Loading(type='circle', id='qc-missing-clustermap', children=[
-                figure_generation.missing_clustermap(data_table)
-            ]))
+            figures.append(figure_generation.missing_figure(na_data))
+            figure_names_and_legends.append(['Missing values in samples',''])
+            figures.append(figure_generation.missing_clustermap(data_table))
+            figure_names_and_legends.append(['Missing value clustermap',''])
             sumdata: pd.DataFrame = data_functions.get_sum_data(
                 data_table)
             sumdata['Color'] = [rep_colors[sample_name]
                                 for sample_name in sumdata.index.values]
-            figures.append(dcc.Loading(type='circle', id='qc-sum-value-figure',
-                           children=[figure_generation.sum_value_figure(sumdata)]))
+            figures.append(figure_generation.sum_value_figure(sumdata))
+            figure_names_and_legends.append(['Sum of values in samples',''])
 
             avgdata: pd.DataFrame = data_functions.get_avg_data(
                 data_table)
             avgdata['Color'] = [rep_colors[sample_name]
                                 for sample_name in avgdata.index.values]
-            figures.append(dcc.Loading(type='circle', id='qc-avg-value-figure',
-                           children=[figure_generation.avg_value_figure(avgdata)]))
+            figures.append(figure_generation.avg_value_figure(avgdata))
+            figure_names_and_legends.append(['Sample averages',''])
             dist_title: str = 'Value distribution'
             if data_dictionary['values'] == 'intensity':
-                figures.append(dcc.Loading(
-                    type='circle', id='qc-distribution-figure', children=[
-                        figure_generation.distribution_figure(
-                            raw_intensity_table,
-                            rep_colors,
-                            data_dictionary['rev sample groups'],
-                            title='Raw value distribution'
-                        )
-                    ]
-                )
-                )
-                dist_title = 'Log2 transformed value distribution'
-            figures.append(dcc.Loading(
-                type='circle', id='qc-distribution-figure', children=[
+                figures.append(
                     figure_generation.distribution_figure(
-                        data_table,
+                        raw_intensity_table,
                         rep_colors,
                         data_dictionary['rev sample groups'],
-                        title=dist_title
+                        title='Raw value distribution'
                     )
-                ]
+                )
+                figure_names_and_legends.append(['Raw value distribution',''])
+                dist_title = 'Log2 transformed value distribution'
+            figures.append(
+                figure_generation.distribution_figure(
+                    data_table,
+                    rep_colors,
+                    data_dictionary['rev sample groups'],
+                    title=dist_title
+                )
             )
-            )
-            figures.append(dcc.Loading(type='circle', id='qc-supervenn', children=[figure_generation.supervenn(
-                data_table, data_dictionary['rev sample groups']
-            )]))
-            print('11')
+            figure_names_and_legends.append(['Processed value distribution', 'This plot describes the value distribution in each of the samples after possible log transformation (used for intensity data)'])
 
-            count_data.to_csv(db.get_cache_file(session_uid, 'Count data.tsv'),sep='\t')
-            sumdata.to_csv(db.get_cache_file(session_uid, 'Sum data.tsv'),sep='\t')
-            na_data.to_csv(db.get_cache_file(session_uid, 'NA data.tsv'),sep='\t')
-            avgdata.to_csv(db.get_cache_file(session_uid, 'AVG data.tsv'),sep='\t')
-            with open(db.get_cache_file(session_uid, 'rep colors.json'),'w',encoding='utf-8') as fil:
+            figure_dir:str = os.path.join(db.get_cache_dir(session_uid), 'Figures')
+            figure_data_dir: str = os.path.join(figure_dir, 'data')
+            if not os.path.isdir(figure_data_dir):
+                os.makedirs(figure_data_dir)
+            figures.append(
+                figure_generation.supervenn(
+                    data_table,
+                    data_dictionary['rev sample groups'],
+                    save_figure = os.path.join(figure_dir, 'Supervenn'),
+                    save_format = 'pdf'
+                )
+            )
+            count_data.to_csv(os.path.join(figure_data_dir, 'Count data.tsv'),sep='\t')
+            sumdata.to_csv(os.path.join(figure_data_dir, 'Sum data.tsv'),sep='\t')
+            na_data.to_csv(os.path.join(figure_data_dir, 'NA data.tsv'),sep='\t')
+            avgdata.to_csv(os.path.join(figure_data_dir, 'AVG data.tsv'),sep='\t')
+            with open(os.path.join(figure_data_dir, 'rep colors.json'),'w',encoding='utf-8') as fil:
                 json.dump(rep_colors,fil)
             
-            with open(db.get_cache_file(session_uid, 'rep colors.json'),'w',encoding='utf-8') as fil:
+            with open(os.path.join(figure_data_dir, 'rep colors.json'),'w',encoding='utf-8') as fil:
                 json.dump(rep_colors,fil)
-            print('12')
 
             # Long-term:
             # - protein counts compared to previous similar samples
             # - sum value compared to previous similar samples
             # - Person-to-person comparisons: protein counts, intensity/psm totals
-        return (figures, rep_colors)
+            to_save = [
+                f[0] for f in figures if f[0] is not None
+                ]
+            figures = [f[1] for f in figures]
+        return (figures, rep_colors, [to_save, figure_names_and_legends])
     else:
-        return (dash.no_update, dash.no_update)
+        return (dash.no_update, dash.no_update, dash.no_update)
 
 
 @callback(
@@ -310,9 +331,10 @@ def download_data_table_example(_) -> dict:
     Output('download-all-data', 'data'),
     Input('button-export-all-data', 'n_clicks'),
     State('output-data-upload', 'data'),
-    prevent_initial_call=True,
+    State('session-uid', 'children'),
+    prevent_initial_call=True
 )
-def download_data_table(_, data_dictionary) -> dict:
+def download_data_table(_, data_dictionary,session_uid) -> dict:
     export_csvs: list = [
         'spc table',
         'intensity table',
@@ -329,19 +351,19 @@ def download_data_table(_, data_dictionary) -> dict:
     ]
     export_fileinfo.extend(data_dictionary['guessed control samples'][0])
 
-    tmpdir: str = 'exported data'
-    if not os.path.isdir(tmpdir):
-        os.makedirs(tmpdir)
+    export_dir: str = db.get_cache_dir(session_uid)
+    if not os.path.isdir(export_dir):
+        os.makedirs(export_dir)
     for key in export_csvs:
         pd.read_json(data_dictionary[key], orient='split').to_csv(
-            os.path.join(tmpdir, key + '.tsv'), sep='\t')
+            os.path.join(export_dir, key + '.tsv'), sep='\t')
     for jsonkey in export_jsons:
-        with open(os.path.join(tmpdir, key + '.json'), 'w',encoding='utf-8') as fil:
+        with open(os.path.join(export_dir, key + '.json'), 'w',encoding='utf-8') as fil:
             json.dump(data_dictionary[jsonkey], fil)
-    with open(os.path.join(tmpdir, 'Info.txt'), 'w',encoding='utf-8') as fil:
+    with open(os.path.join(export_dir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
-
-    return dcc.send_file(db.request_file('example data', 'example-data_file'))
+    shutil.make_archive(export_dir.rstrip(os.sep) + '.zip', 'zip', export_dir)
+    return dcc.send_file(export_dir.rstrip(os.sep) + '.zip')
 
 
 @callback(
@@ -1040,5 +1062,7 @@ tabs = dbc.Tabs(
 layout = html.Div([
     # dbc.Button('Save session as project',
     #            id='session-save-button', color='success'),
+    html.Div(id='void',hidden=True),
+    dcc.Store(id='figures-to-save'),
     tabs
 ])
