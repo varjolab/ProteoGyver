@@ -372,7 +372,7 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
         print('no intensities')
         intensity_table = pd.DataFrame({'No data': ['No data']})
     else:
-        intensity_table.rename(
+        intensity_table.rename
         columns={ic: ic.replace('Intensity', '').strip()
                  for ic in intensity_cols},
         inplace=True

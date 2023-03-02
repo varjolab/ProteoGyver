@@ -137,7 +137,6 @@ class FigureGeneration:
 
 
     def distribution_figure(self, data_table, color_dict, sample_groups, title: str = 'Value distribution') -> dcc.Graph:
-
         rev_sample_groups: dict = {}
         for k, v in sample_groups.items():
             if v not in rev_sample_groups:
