@@ -369,6 +369,7 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
                  for ic in spc_cols}
     )
     if intensity_table[intensity_cols[0:2]].sum().sum() == 0:
+        print('no intensities')
         intensity_table = pd.DataFrame({'No data': ['No data']})
     else:
         intensity_table.rename(
@@ -549,7 +550,7 @@ def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
             aggfuncs[column] = sum
         else:
             aggfuncs[column] = 'first'
-    return data_table.groupby(data_table.index).agg(aggfuncs)
+    return data_table.groupby(data_table.index).agg(aggfuncs).replace(0,np.nan)
 
 def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoretical_spc: int=0) -> list:
     table: pd.DataFrame = read_df_from_content(data_content, data_name)

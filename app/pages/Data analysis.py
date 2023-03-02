@@ -231,7 +231,6 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                             )
                         )
             figure_names_and_legends.append(['Reproducibility',''])
-
             na_data: pd.DataFrame = data_functions.get_na_data(data_table)
             na_data['Color'] = [rep_colors[sample_name]
                                 for sample_name in na_data.index.values]

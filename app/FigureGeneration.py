@@ -16,7 +16,6 @@ from sklearn import manifold, decomposition
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from supervenn import supervenn as svenn
-import json
 
 class FigureGeneration:
 
