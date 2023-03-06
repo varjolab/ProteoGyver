@@ -52,6 +52,7 @@ def get_newest_file(directory, namefilter:str = None) -> str:
     # Initialize variables to store the name and modification time of the newest file
     newest_file: str = ''
     newest_time = datetime.min
+    directory: str = os.path.join(__file__.rsplit(os.sep)[0],'Datafiles',directory)
     for filename in os.listdir(directory):
         # Check if the file should be checked, if namefilter is set:
         if namefilter:

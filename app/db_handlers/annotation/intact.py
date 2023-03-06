@@ -66,7 +66,7 @@ def parse(xmlfile) -> list:
     return interactions
     
 def get_interactions() -> dict:
-    df: pd.DataFrame = pd.read_csv(apitools.get_newest_file(namefilter = '_interactions.tsv'),sep='\t')
+    df: pd.DataFrame = pd.read_csv(apitools.get_newest_file('IntAct', namefilter = '_interactions.tsv'),sep='\t')
     interactions: dict = {}
     for _,row in df[(df['Protein 1 xref ID']!='-') & (df['Protein 2 xref ID']!='-')].iterrows():
         int1, int2 = row[['Protein 1 xref ID', 'Protein 2 xref ID']]

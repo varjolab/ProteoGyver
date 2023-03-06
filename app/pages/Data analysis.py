@@ -8,6 +8,7 @@ from typing import Any
 import dash
 import dash_bootstrap_components as dbc
 import data_functions
+import plotly.graph_objects as go
 import tooltips
 import pandas as pd
 import plotly.io as pio
@@ -165,10 +166,10 @@ def process_input_tables(
         with open(db.get_cache_file(session_uid, 'protein lengths.json'),'w', encoding='utf-8') as fil:
             json.dump(protein_lengths, fil)
         with open(db.get_cache_file(session_uid, 'info.txt'),'w', encoding='utf-8') as fil:
-            fil.write(f'Data type: {return_dict["values"]}')
+            fil.write(f'Data type: {return_dict["values"]}\n')
+            fil.write(f'Data type: {data_type}\n')
             discarded_str:str = '\t'.join(discarded_columns)
-            fil.write(f'Discarded columns:\n{discarded_str}')
-            fil.write(f'Data type: {data_type}')
+            fil.write(f'Discarded columns:\n{discarded_str}\n')
         spc_table.to_csv(db.get_cache_file(session_uid, 'SPC table.tsv'),sep='\t')
         intensity_table.to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv'),sep='\t')
         raw_intensity_table.to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv'),sep='\t')
@@ -453,14 +454,13 @@ def proteomics_filter_figure(figure_loadings, data_dictionary) -> list:
     original_counts: pd.Series
     filtered_counts: pd.Series
     original_counts, filtered_counts = data_dictionary['filter data']
-    return [
-        figure_generation.before_after_plot(
+    graph: dcc.Graph = figure_generation.before_after_plot(
             pd.read_json(original_counts, typ='series'),
             pd.read_json(filtered_counts, typ='series'),
-            title='NA Filtering'
+            title='NA Filtering',
+            name_legend = db.figure_data['Proteomics filter figure']
         )
-    ]
-
+    return [graph]
 
 @callback(
     Output('proteomics-normalization-figure', 'children'),
@@ -742,13 +742,15 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
         control_table=inbuilt_control_table,
         control_groups=control_sample_groups,
     )
-    saint_output.loc['Is contaminant'] = saint_output['Prey'].isin(db.contaminant_list)
+    saint_output.to_csv('DAdebug_saintoutput.tsv',sep='\t')
+    saint_output.loc[:,'Is contaminant'] = saint_output['Prey'].isin(db.contaminant_list)
     saint_output = pd.merge(
         left=saint_output,
         right=crapome_table,
         how='left',
         left_on='Prey',
         right_index=True)
+    saint_output.to_csv('DAdebug_saintoutput_after.tsv',sep='\t')
 
     discarded_proteins = sorted(
         list((set(discarded_proteins) & set(spc_table.index))))
@@ -780,6 +782,7 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
 
     before_contaminants: int = saint_output.shape[0]
     removed_contaminants: list = list(saint_output[saint_output['Is contaminant']]['Prey'].values)
+    saint_output.to_csv('DAdebug_saintoutput_removedcont.tsv',sep='\t')
     saint_output = saint_output[~saint_output['Is contaminant']]
     after_contaminants: int = saint_output.shape[0]
     if after_contaminants == before_contaminants:
@@ -792,17 +795,17 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
                 f'Removed contaminants: {", ".join(removed_contaminants)}'
             ])
         )
+    saint_output.to_csv('DAdebug_saintoutput_final.tsv',sep='\t')
 
     container_contents.append(
         html.Div([
             figure_generation.histogram(
-                saint_output, x_column='BFDR', title='Saint BFDR distribution'),
+                saint_output, x_column='BFDR', title='Saint BFDR distribution',height = 400)[1],
             dcc.Graph(id='interactomics-saint-graph'),
             dbc.Label('Saint BFDR threshold:'),
             dcc.Slider(0, 0.1, 0.01, value=0.05,
                        id='saint-bfdr-filter-threshold'),
-            dbc.Label('Crapome filtering:'),
-            dbc.Label('Crapome frequency'),
+            dbc.Label('Crapome filtering percentage:'),
             dcc.Slider(1, 100, 10, value=20,
                        id='crapome-frequency-threshold'),
             dbc.Label('SPC fold change vs crapome threshold for rescue'),
@@ -846,11 +849,13 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
     bar_plot_df: pd.DataFrame = pd.DataFrame(
         filtered_saint.value_counts(subset=['Bait']), columns=['Prey count']
     ).reset_index()
-    figure: Any = figure_generation.bar_plot(
+    figure: go.Figure
+    figure = figure_generation.bar_plot(
         bar_plot_df,
         'Protein counts after filtering',
         y_name='Prey count',
-        color_col='Bait'
+        color_col='Bait',
+        height = 400
     )
     filtered_saint.to_csv(db.get_cache_file(session_uid, 'Saint output filtered.tsv'),sep='\t')
     return (figure, filtered_saint.to_json(orient='split'))
@@ -878,6 +883,15 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
                                     [
                                         dbc.Col(
                                             checklist(
+                                                'Choose uploaded controls:',
+                                                all_sample_groups,
+                                                chosen,
+                                                id_prefix='interactomics',
+                                                simple_text_clean=True
+                                            )
+                                        ),
+                                        dbc.Col(
+                                            checklist(
                                                 'Choose additional control sets:',
                                                 db.controlsets,
                                                 db.default_controlsets,
@@ -892,15 +906,6 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
                                                 db.crapomesets,
                                                 db.default_crapomesets,
                                                 disabled=db.disabled_crapomesets,
-                                                id_prefix='interactomics',
-                                                simple_text_clean=True
-                                            )
-                                        ),
-                                        dbc.Col(
-                                            checklist(
-                                                'Choose uploaded controls:',
-                                                all_sample_groups,
-                                                chosen,
                                                 id_prefix='interactomics',
                                                 simple_text_clean=True
                                             )
@@ -1052,13 +1057,13 @@ upload_tab: dbc.Card = dbc.Card(
 )
 
 
-tabs = dbc.Tabs(
+tabs: dbc.Tabs = dbc.Tabs(
     id='analysis-tabs',
     children=[
         dbc.Tab(upload_tab, label='Data upload and quick QC'),
     ]
 )
-layout = html.Div([
+layout: html.Div = html.Div([
     # dbc.Button('Save session as project',
     #            id='session-save-button', color='success'),
     html.Div(id='void',hidden=True),

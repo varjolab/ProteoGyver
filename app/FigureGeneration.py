@@ -29,13 +29,21 @@ class FigureGeneration:
     @defaults.setter
     def defaults(self, default_dict: dict) -> None:
         self._defaults: dict = default_dict
+    
+    @property
+    def save_dir(self) -> str: 
+        return self._defaults['save dir']
+    @save_dir.setter
+    def save_dir(self, save_dir:str) -> None: 
+        self._defaults['save dir'] = save_dir
 
     def change_imagebutton_format(self,format:str) -> None:
         format: str = format.lower()
         assert format in 'svg png jpegt webp'.split()
         self.defaults['config']['toImageButton']['format'] = format
 
-    def __init__(self) -> None:
+    def __init__(self, config_keys: dict = None) -> None:
+        # Move these defaults to the parameters.json
         self.defaults = {
             'config': {
                 'toImageButtonOptions': {
@@ -45,6 +53,9 @@ class FigureGeneration:
             'width': 1200,
             'height': 700
         }
+        if config_keys is not None:
+            for key, value in config_keys.items():
+                self._defaults[key] = value
 
     def save_figures(self, save_data, figure_dir) -> None:
         if save_data is not None:
@@ -151,7 +162,7 @@ class FigureGeneration:
         return self.comparative_violin_plot(data_frames, names=names, title=title, id_name=id_str, colors=colors)
 
 
-    def before_after_plot(self, before: pd.Series, after: pd.Series, title: str = None) -> dcc.Graph:
+    def before_after_plot(self, before: pd.Series, after: pd.Series, title: str = None, name_legend:list = None) -> dcc.Graph:
         data: list = [['Before or after', 'Count', 'Sample']]
         for i in before.index:
             if i in after.index:
@@ -172,22 +183,29 @@ class FigureGeneration:
                 height=self.defaults['height'],
                 width=self.defaults['width']
             )
-        return (
-            figure,
-            dcc.Graph(config=self.defaults['config'], 
-            id='before-and-after-na-filter-figure',
-            figure=figure
+        if name_legend is None:
+            return (
+                figure,
+                dcc.Graph(config=self.defaults['config'], 
+                id='before-and-after-na-filter-figure',
+                figure=figure
+                )
             )
-        )
+        else:
+
+            return dcc.Graph()
 
 
-    def histogram(self, data_table: pd.DataFrame, x_column: str, title: str) -> dcc.Graph:
+    def histogram(self, data_table: pd.DataFrame, x_column: str, title: str, **kwargs) -> dcc.Graph:
+        if 'height' not in kwargs:
+            kwargs: dict = dict(kwargs,height=self.defaults['height'])
+        if 'width' not in kwargs:
+            kwargs = dict(kwargs,width=self.defaults['width'])
         figure: go.Figure = px.histogram(
             data_table,
             x=x_column,
             title=title,
-            height=self.defaults['height'],
-            width=self.defaults['width']
+            **kwargs
         )
         return (
             figure,
@@ -198,7 +216,7 @@ class FigureGeneration:
         )
 
 
-    def imputation_histogram(self, non_imputed, imputed, title: str = None) -> dcc.Graph:
+    def imputation_histogram(self, non_imputed, imputed, title: str = None,**kwargs) -> dcc.Graph:
         #x,y = sp.coo_matrix(non_imputed.isnull()).nonzero()
         non_imputed: pd.DataFrame = non_imputed.melt(ignore_index=False).rename(
             columns={'variable': 'Sample'})
@@ -207,14 +225,18 @@ class FigureGeneration:
         imputed['Imputed'] = non_imputed['value'].isna()
         if title is None:
             title: str = 'Imputation'
+        if 'height' not in kwargs:
+            kwargs: dict = dict(kwargs,height=self.defaults['height'])
+        if 'width' not in kwargs:
+            kwargs = dict(kwargs,width=self.defaults['width'])
+            
         figure: go.Figure = px.histogram(
             imputed,
             x='log2 value',
             marginal='violin',
             color='Imputed',
             title=title,
-            height=self.defaults['height'],
-            width=self.defaults['width']
+            **kwargs
         )
         return (
             figure,
@@ -222,7 +244,19 @@ class FigureGeneration:
         )
 
 
-    def bar_plot(self, value_df: pd.DataFrame, title: str, x_name: str = None, y_name: str = None, y_idx: int = 0, barmode:str = 'relative', color: bool = True, color_col: str = None, hide_legend=False, color_discrete_map=False, color_discrete_map_dict:dict=None) -> px.bar:
+    def bar_plot(self, value_df: pd.DataFrame, 
+                 title: str, 
+                 x_name: str = None, 
+                 y_name: str = None, 
+                 y_idx: int = 0, 
+                 barmode:str = 'relative', 
+                 color: bool = True, 
+                 color_col: str = None, 
+                 hide_legend=False, 
+                 color_discrete_map=False, 
+                 color_discrete_map_dict:dict=None,
+                 width: int = None,
+                 height: int = None) -> px.bar:
         """Draws a bar plot from the given input.
         
         Parameters:
@@ -255,6 +289,10 @@ class FigureGeneration:
             y_name: str = value_df.columns[y_idx]
         if x_name is None:
             x_name: str = value_df.index
+        if height is None:
+            height: int = self.defaults['height']
+        if width is None:
+            width: int = self.defaults['width']
         figure: px.bar = px.bar(
             value_df,
             x=x_name,  # 'Sample name',
@@ -263,8 +301,8 @@ class FigureGeneration:
             color=colorval,
             barmode=barmode,
             color_discrete_map=cdm_val,
-            height=self.defaults['height'],
-            width=self.defaults['width']
+            height=height,
+            width=width
         )
         figure.update_xaxes(type='category')
         if hide_legend:

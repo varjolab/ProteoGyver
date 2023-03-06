@@ -369,14 +369,12 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
                  for ic in spc_cols}
     )
     if intensity_table[intensity_cols[0:2]].sum().sum() == 0:
-        print('no intensities')
         intensity_table = pd.DataFrame({'No data': ['No data']})
     else:
-        intensity_table.rename
+        intensity_table.rename(
         columns={ic: ic.replace('Intensity', '').strip()
                  for ic in intensity_cols},
-        inplace=True
-        )        
+        inplace=True)
     return (intensity_table, spc_table, protein_lengths)
 
 def read_matrix(data_table: pd.DataFrame, is_spc_table:bool=False, max_spc_ever:int=0) -> pd.DataFrame:
@@ -493,7 +491,6 @@ def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
     for table in tables:
         if len(table.columns) < 2:
             continue
-
         rename_columns: dict = {}
         for column_name in table.columns:
             # Discard samples that are not named
@@ -530,6 +527,7 @@ def rename_columns_and_update_expdesign(expdesign, tables) -> Tuple[dict, dict]:
         # Reverse the rename dict to be able to use it for renaming the dataframe columns
         rename_columns = {v: k for k, v in rename_columns.items()}
         # Discard unneeded columns
+        
         table.drop(
             columns= [c for c in table.columns if c not in rename_columns],
             inplace=True
@@ -558,7 +556,8 @@ def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoret
     read_funcs: dict[tuple[str, str]] = {
         ('DIA', 'DIA-NN'): read_dia_nn,
         ('DDA', 'FragPipe'): read_fragpipe,
-        ('DDA', 'Unknown'): read_matrix
+        ('DDA/DIA', 'Unknown'): read_matrix,
+
     }
 
     data_type: tuple = None
@@ -570,7 +569,7 @@ def parse_data(data_content, data_name, expdes_content, expdes_name, max_theoret
         if 'Protein Existence' in table.columns:
             data_type = ('DDA', 'FragPipe')
     if data_type is None:
-        data_type = ('DDA', 'Unknown')
+        data_type = ('DDA/DIA', 'Unknown')
         keyword_args['max_spc_ever'] = max_theoretical_spc
 
     intensity_table: pd.DataFrame

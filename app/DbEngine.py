@@ -28,6 +28,7 @@ class DbEngine:
     _override_keys: dict
     _contaminant_table: pd.DataFrame
     _contaminant_list: list
+    _figure_names_and_legends = {}
 
     @property
     def parameters(self) -> dict:
@@ -71,10 +72,20 @@ class DbEngine:
         self._crapome_proteins = set(self._crapome_table.index.values)
         self.contaminant_table = os.path.join(
             *parameters['files']['data']['Contaminant list'])
+        parameters['Figure legend dir'] = os.path.join(*parameters['Figure legend dir'])
+        if os.path.isdir(parameters['Figure legend dir']):
+            for root, _, files in os.walk(parameters['Figure legend dir']):
+                for file in files:
+                    with open(os.path.join(root,file),encoding='utf-8') as fil:
+                        self._figure_names_and_legends[file] = fil.read()
 
     @property
     def controlsets(self) -> dict:
         return self._controls['sets']['all']
+    
+    @property
+    def figure_data(self) -> dict:
+        return self._figure_names_and_legends
 
     @property
     def default_controlsets(self) -> dict:

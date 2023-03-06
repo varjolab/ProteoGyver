@@ -50,7 +50,7 @@ def retrieve_reactome_data(reactome_ids: list) -> tuple:
         datarows.append(newrow)
     return pd.DataFrame(data=datarows, columns=columns, index=pd.Series(data=index, name='stId'))
 
-def get_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders: list = None):
+def save_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders: list = None):
     """Retrieves a single tab delimed (e.g. reactome) file and saves it to file according to \
         specified output filename and output file headers. Output will be tab delimed.
     """
@@ -61,7 +61,7 @@ def get_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders:
     if not output_fileheaders:
         output_fileheaders = filelines[0]
         filelines = filelines[1:]
-    pd.DataFrame(data=filelines, columns=output_fileheaders).to_csv(output_filename,
+    pd.DataFrame(data=filelines, columns=output_fileheaders).to_csv(output_filename + '.tsv',
                                                                     sep='\t', index=False)
 
 def get_default_reactome_dict():
@@ -126,7 +126,7 @@ def retrieve_reactome(reactome_folder: str = 'Reactome_Data', reactome_dict: dic
     for out_file, (r_url, headers) in reactome_dict.items():
         out_file = f'{current_version}_{current_date}_{out_file}'
         out_file:str = os.path.join(reactome_folder, out_file)
-        get_tab_delimed_file(r_url, out_file, headers)
+        save_tab_delimed_file(r_url, out_file, headers)
 
 def current_reactome_version() -> str:
     for _ in range(0, 20):

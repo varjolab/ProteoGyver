@@ -7,6 +7,7 @@
         "Sample type": ["same as above", "total proteome", "phosphoproteome", "strep apms", "ha apms", "flag apms", "bioid", "ultraid", "turboid", "bioid2", "unknown apms"],
         "Project": ["same as above", "QE Controls", "TIMS Controls", "Elite Controls"]
     },
+    "Figure legend dir": ["data","figure legends"],
     "Implemented workflows": ["proteomics", "phosphoproteomics", "interactomics"],
     "Default workflow": 0,
     "Imputation methods": {
@@ -39,7 +40,7 @@
     },
     "cache dir": ".cache_data",
     "Temporary data directory": ".dash_tmp",
-    "Maximum psm ever theoretically encountered": 10000,
+    "Maximum psm ever theoretically encountered": 5000,
     "scripts": {
         "SAINTexpress": "SAINTexpress-spc"
     },
