@@ -46,5 +46,6 @@
     },
     "script_dirs": {
         "SAINTexpress": ["external", "SAINTexpress"]
-    }
+    },
+    "data functions": ["db_handlers", "enrichment"]
 }

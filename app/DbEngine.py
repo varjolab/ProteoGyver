@@ -152,6 +152,22 @@ class DbEngine:
         if len(self._upload_table_data_columns) == 0:
             self.set_upload_columns()
 
+    def get_known(self, which_proteins) -> tuple:
+        knowns: dict = {}
+        for bait in which_proteins:
+            if pd.isna(bait):
+                continue
+            if bait == 'No bait uniprot':
+                continue
+            with open(os.path.join('data','known interactions','per bait',f'{bait}.json'), encoding = 'utf-8') as fil:
+                knowns[bait] = json.load(fil)
+        known_cols: set = set()
+        for _,interactor_dict in knowns.items():
+            for _, col_value_dict in interactor_dict.items():
+                known_cols |= set(col_value_dict.keys())
+        known_cols: list = sorted(list(known_cols))
+        return (knowns, known_cols)
+    
     def protein_lengths_from_fasta(self, fasta_file_name, uniprot=True) -> None:
         lens: dict = {}
         seqs: list = []

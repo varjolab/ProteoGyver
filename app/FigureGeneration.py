@@ -21,6 +21,7 @@ class FigureGeneration:
 
     _defaults: dict
     _save_dir: str
+    _generated_figures = []
 
     @property
     def defaults(self) -> dict:
@@ -30,6 +31,14 @@ class FigureGeneration:
     def defaults(self, default_dict: dict) -> None:
         self._defaults: dict = default_dict
     
+
+    @property
+    def generated_figures(self) -> list:
+        return self._generated_figures
+
+    def add_figure(self, figure, title, legend) -> None:
+        self._generated_figures.append([figure,title,legend])
+
     @property
     def save_dir(self) -> str: 
         return self._defaults['save dir']
@@ -241,6 +250,15 @@ class FigureGeneration:
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], id='missing-value-histogram', figure=figure)
+        )
+    def bar_graph(self, graph_id:str,*args,**kwargs) -> None:
+        return dcc.Graph(
+            id=graph_id,
+            config=self.defaults['config'],
+            figure=self.bar_plot(
+                *args,
+                **kwargs
+            )
         )
 
 

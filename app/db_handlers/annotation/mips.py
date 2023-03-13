@@ -69,6 +69,7 @@ def download_and_parse(outfile) -> None:
         and parse it into a file
     """
     xmlfile: str = outfile.replace('gz','xml')
+    # If already downloaded - no need to download and can move on to parsing right away.
     if not os.path.isfile(xmlfile):
         url: str = "http://mips.helmholtz-muenchen.de/proj/ppi/data/mppi.gz"
         if not os.path.isfile(outfile):
@@ -88,6 +89,7 @@ def update() -> None:
     outdir: str = apitools.get_save_location('MIPS')
     if len([f for f in os.listdir(outdir) if 'gz' in f])<1:
     # no need to check dates - mips does not have updates.
+    # added 2023.03.10: MIPS is offline - no updates ever.
     #if len(apitools.get_files_newer_than(outdir, today, 30, namefilter='mppi.gz'))<1:
         outfile: str = os.path.join(outdir, f'{today}_mppi.gz')
         download_and_parse(outfile)
@@ -96,6 +98,8 @@ def get_interactions() -> dict:
     df: pd.DataFrame = pd.read_csv(apitools.get_newest_file(apitools.get_save_location('MIPS'),namefilter = '_interactions.tsv'),sep='\t')
     interactions: dict = {}
     for _,row in df[(df['Protein 1 xref ID']!='-') & (df['Protein 2 xref ID']!='-')].iterrows():
+        int1: str
+        int2: str
         int1, int2 = row[['Protein 1 xref ID', 'Protein 2 xref ID']]
         for i in [int1,int2]:
             if i not in interactions:
@@ -111,6 +115,9 @@ def get_version_info() -> str:
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def methods_text() -> str:
+    short: str
+    long: str
+    pmid: str
     short,long,pmid = apitools.get_pub_ref('MIPS')
     return '\n'.join([
         f'Interactions were mapped with MIPS (https://mips.helmholtz-muenchen.de/proj/ppi/) {short}',
