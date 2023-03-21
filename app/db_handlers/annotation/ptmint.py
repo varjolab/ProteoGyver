@@ -17,7 +17,7 @@ def download_and_parse(outfile) -> None:
         url: str = 'https://ptmint.sjtu.edu.cn/data/PTM%20experimental%20evidence.csv'
         if not os.path.isfile(outfile):
             urllib.request.urlretrieve(url, outfile)
-    pd.read_csv(outfile).to_csv(outfile.replace('.csv','.tsv'),sep='\t',index=False)
+    pd.read_csv(outfile).to_csv(outfile.replace('.csv','.tsv'),sep='\t',index=False,encoding = 'utf-8')
 
 def update() -> None:
     today: str = apitools.get_timestamp()

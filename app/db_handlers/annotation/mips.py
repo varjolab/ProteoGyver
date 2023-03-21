@@ -82,7 +82,7 @@ def download_and_parse(outfile) -> None:
         dataframe: pd.DataFrame = parse(xmlfile)
         if dataframe.shape[0]>0:
             break
-    dataframe.to_csv(outfile.replace('.gz','_interactions.tsv'),sep='\t',index=False)
+    dataframe.to_csv(outfile.replace('.gz','_interactions.tsv'),sep='\t',index=False,encoding = 'utf-8')
 
 def update() -> None:
     today: str = apitools.get_timestamp()

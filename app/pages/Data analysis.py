@@ -149,9 +149,9 @@ def process_input_tables(
             fil.write(f'Data type: {return_dict["info"]["data type"]}\n')
             discarded_str:str = '\t'.join(return_dict['info']['discarded columns'])
             fil.write(f'Discarded columns:\n{discarded_str}\n')
-        pd.read_json(return_dict['data tables']['spc'],orient='split').to_csv(db.get_cache_file(session_uid, 'SPC table.tsv'),sep='\t')
-        pd.read_json(return_dict['data tables']['intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv'),sep='\t')
-        pd.read_json(return_dict['data tables']['raw intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv'),sep='\t')
+        pd.read_json(return_dict['data tables']['spc'],orient='split').to_csv(db.get_cache_file(session_uid, 'SPC table.tsv',encoding = 'utf-8'),sep='\t')
+        pd.read_json(return_dict['data tables']['intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv',encoding = 'utf-8'),sep='\t')
+        pd.read_json(return_dict['data tables']['raw intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv',encoding = 'utf-8'),sep='\t')
         return_message = f'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
@@ -265,10 +265,10 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                     save_format = 'pdf'
                 )
             )
-            count_data.to_csv(os.path.join(figure_data_dir, 'Count data.tsv'),sep='\t')
-            sumdata.to_csv(os.path.join(figure_data_dir, 'Sum data.tsv'),sep='\t')
-            na_data.to_csv(os.path.join(figure_data_dir, 'NA data.tsv'),sep='\t')
-            avgdata.to_csv(os.path.join(figure_data_dir, 'AVG data.tsv'),sep='\t')
+            count_data.to_csv(os.path.join(figure_data_dir, 'Count data.tsv',encoding = 'utf-8'),sep='\t')
+            sumdata.to_csv(os.path.join(figure_data_dir, 'Sum data.tsv',encoding = 'utf-8'),sep='\t')
+            na_data.to_csv(os.path.join(figure_data_dir, 'NA data.tsv',encoding = 'utf-8'),sep='\t')
+            avgdata.to_csv(os.path.join(figure_data_dir, 'AVG data.tsv',encoding = 'utf-8'),sep='\t')
             with open(os.path.join(figure_data_dir, 'rep colors.json'),'w',encoding='utf-8') as fil:
                 json.dump(rep_colors,fil)
             
@@ -335,7 +335,7 @@ def download_data_table(_, data_dictionary,session_uid) -> dict:
         os.makedirs(export_dir)
     for key in export_csvs:
         pd.read_json(data_dictionary[key], orient='split').to_csv(
-            os.path.join(export_dir, key + '.tsv'), sep='\t')
+            os.path.join(export_dir, key + '.tsv'), sep='\t',encoding = 'utf-8')
     for jsonkey in export_jsons:
         with open(os.path.join(export_dir, key + '.json'), 'w',encoding='utf-8') as fil:
             json.dump(data_dictionary[jsonkey], fil)
@@ -368,14 +368,14 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             # Filter by missing value proportion
             original_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
-            original_counts.to_csv(db.get_cache_file(session_uid, 'Original counts.tsv'),sep='\t')
+            original_counts.to_csv(db.get_cache_file(session_uid, 'Original counts.tsv'),sep='\t',encoding = 'utf-8')
             data_table = data_functions.filter_missing(
                 data_table, sample_groups, threshold=filter_threshold)
             data_table = data_table.loc[~data_table.index.isin(db.contaminant_list)]
-            data_table.to_csv(db.get_cache_file(session_uid, 'NA and contaminant filtereddata table.tsv'),sep='\t')
+            data_table.to_csv(db.get_cache_file(session_uid, 'NA and contaminant filtereddata table.tsv'),sep='\t',encoding = 'utf-8')
             filtered_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
-            filtered_counts.to_csv(db.get_cache_file(session_uid, 'Filtered counts.tsv'),sep='\t')
+            filtered_counts.to_csv(db.get_cache_file(session_uid, 'Filtered counts.tsv'),sep='\t',encoding = 'utf-8')
             data_dictionary['filter data'] = [original_counts.to_json(), filtered_counts.to_json()]
 
             data_dictionary['normalization data'] = [
@@ -384,12 +384,12 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             if normalization_method:
                 data_table = data_functions.normalize(
                     data_table, normalization_method)
-                data_table.to_csv(db.get_cache_file(session_uid, 'NA Filtered and normalized data table.tsv'),sep='\t')
+                data_table.to_csv(db.get_cache_file(session_uid, 'NA Filtered and normalized data table.tsv'),sep='\t',encoding = 'utf-8')
                 data_dictionary['normalization data'].append(
                     data_table.to_json(orient='split'))
             data_table = data_functions.impute(
                 data_table, method=imputation_method, tempdir=db.temp_dir)
-            data_table.to_csv(db.get_cache_file(session_uid, 'NA filtered, normalized and imputed data table.tsv'),sep='\t')
+            data_table.to_csv(db.get_cache_file(session_uid, 'NA filtered, normalized and imputed data table.tsv'),sep='\t',encoding = 'utf-8')
             data_dictionary['final data table'] = data_table.to_json(
                 orient='split')
             if data_dictionary['other']['protein lengths'] is None:
@@ -798,9 +798,9 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
     with open(db.get_cache_file(session_uid, 'SAINT info.txt'),'w',encoding='utf-8') as fil:
         discarded_str: str = '\t'.join(discarded_proteins)
         fil.write(f'Discarded proteins:\n{discarded_str}')
-    saint_output.to_csv(db.get_cache_file(session_uid, 'Saint output.tsv'),sep='\t',index = False)
-    inbuilt_control_table.to_csv(db.get_cache_file(session_uid, 'Inbuilt controls.tsv'),sep='\t',index = False)
-    crapome_table.to_csv(db.get_cache_file(session_uid, 'Crapome table.tsv'),sep='\t',index = False)
+    saint_output.to_csv(db.get_cache_file(session_uid, 'Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
+    inbuilt_control_table.to_csv(db.get_cache_file(session_uid, 'Inbuilt controls.tsv'),sep='\t',index = False,encoding = 'utf-8')
+    crapome_table.to_csv(db.get_cache_file(session_uid, 'Crapome table.tsv'),sep='\t',index = False,encoding = 'utf-8')
     return container_contents, saint_output.to_json(orient='split'), crapome_column_groups
 
 def filter_saint(saint_output, saint_bfdr: float, crapome_freq: float, crapome_rescue: int)-> pd.DataFrame:
@@ -860,7 +860,7 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     # Commented out because bait uniprot has already been mapped directly after SAINT analysis
     #saint_output['Bait uniprot'] = saint_output.apply(lambda x: data_dictionary['other']['bait uniprots'][x['Bait']],axis=1)
     data_functions.map_known(saint_output,db.get_known(saint_output['Bait uniprot'].unique()))
-    saint_output.to_csv(db.get_cache_file(session_uid, 'Filtered Saint output.tsv'),sep='\t',index = False)
+    saint_output.to_csv(db.get_cache_file(session_uid, 'Filtered Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
 
     figures: list = []
     pdf_data: list  =[]
@@ -1050,7 +1050,7 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
         color_col='Bait',
         height = 400
     )
-    filtered_saint.to_csv(db.get_cache_file(session_uid, 'Saint output filtered.tsv'),sep='\t',index = False)
+    filtered_saint.to_csv(db.get_cache_file(session_uid, 'Saint output filtered.tsv'),sep='\t',index = False,encoding = 'utf-8')
     return (figure, filtered_saint.to_json(orient='split'))
 
 

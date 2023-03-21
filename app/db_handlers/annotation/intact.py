@@ -134,7 +134,7 @@ def split_file(file_path:str) -> None:
                 filename.replace('.txt','') + 
                 f'-{org_type}-{organism}.tsv'
             )
-            org_df.to_csv(new_filename,sep='\t')
+            org_df.to_csv(new_filename,sep='\t',encoding = 'utf-8')
     with open(os.path.join(filepath, filename.replace('.txt','_organism-names.tsv')),'w', encoding='utf-8') as fil:
         fil.write('Organism ID\tOrganism names\n')
         for key, values in org_names.items():

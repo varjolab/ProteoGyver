@@ -466,7 +466,7 @@ def retrieve_uniprot(uniprotfile: str = 'Full human uniprot.tsv', **kwargs) -> p
         updf:pd.DataFrame = pd.read_csv(uniprotfile, sep='\t')
     else:
         updf = download_full_uniprot_for_organism(**kwargs)
-        updf.to_csv(uniprotfile, sep='\t')
+        updf.to_csv(uniprotfile, sep='\t',encoding = 'utf-8')
     updf.index = updf['Entry']
     updf = updf.drop(columns=['Entry'])
     return updf
@@ -510,7 +510,7 @@ def update(organism = 9606,progress=False) -> None:
         today: str = apitools.get_timestamp()
         df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism,progress=progress,overall_progress=progress)
         outfile: str = os.path.join(outdir, f'{today}_Uniprot_{organism}.tsv')
-        df.to_csv(outfile)
+        df.to_csv(outfile,encoding = 'utf-8')
 
 def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
     uniprot_url: str = f"https://rest.uniprot.org/uniprotkb/search?\

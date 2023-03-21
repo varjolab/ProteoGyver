@@ -537,7 +537,7 @@ class DataFunctions:
         preyfile_name: str = os.path.join(temp_dir, 'prey.txt')
         saint_output_file:str = os.path.join(temp_dir,'list.txt')
 
-        intfile[['Bait','BaitGroup','Prey','SPC']].to_csv(intfile_name,index=False,header=False,sep='\t')
+        intfile[['Bait','BaitGroup','Prey','SPC']].to_csv(intfile_name,index=False,header=False,sep='\t',encoding = 'utf-8')
         with open(baitfile_name,'w', encoding='utf-8') as fil:
             fil.write(''.join(baitfile))
         with open(preyfile_name,'w', encoding='utf-8') as fil:

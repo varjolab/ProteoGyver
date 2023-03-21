@@ -17,7 +17,7 @@ def parse() -> None:
         datafile: str = os.path.join(outdir, f'{today}_qPTM.tsv')
         with zipfile.ZipFile('qPTM_all_data.zip', 'r') as zip_ref:
             zip_ref.extractall(outdir)
-        pd.read_csv('qPTM_all_data.txt',sep='\t').to_csv(datafile,sep='\t')
+        pd.read_csv('qPTM_all_data.txt',sep='\t').to_csv(datafile,sep='\t',encoding = 'utf-8')
 
 def get_version_info() -> str:
     nfile: str = apitools.get_newest_file(apitools.get_save_location('qPTM'), namefilter='.tsv')

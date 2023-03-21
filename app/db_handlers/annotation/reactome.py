@@ -62,7 +62,7 @@ def save_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders
         output_fileheaders = filelines[0]
         filelines = filelines[1:]
     pd.DataFrame(data=filelines, columns=output_fileheaders).to_csv(output_filename + '.tsv',
-                                                                    sep='\t', index=False)
+                                                                    sep='\t', index=False,encoding = 'utf-8')
 
 def get_default_reactome_dict():
     """Returns default dict of reactome urls and their column names.
