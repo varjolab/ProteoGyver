@@ -1,5 +1,7 @@
 """Dash app for data upload"""
 
+__version__:str = '0.1a1'
+
 import base64
 import io
 import json
@@ -19,6 +21,7 @@ from FigureGeneration import FigureGeneration
 from styles import Styles
 from utilitykit import plotting
 import shutil
+import dash_cytoscape as cyto
 
 import text_functions
 
@@ -85,6 +88,7 @@ def add_replicate_colors(data_df, column_to_replicate) -> None:
     State('session-uid', 'children')
 )
 def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
+    db.clear_session_data(session_uid)
     if workflow_setting_value is None:
         return dash.no_update
     with open(db.get_cache_file(session_uid,'workflow-choice.txt'), 'w', encoding='utf-8') as fil:
@@ -769,6 +773,10 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
             ])
         )
 
+    intensity_table: pd.DataFrame = pd.read_json(
+        data_dictionary['data tables']['intensity'], orient='split')
+    #if len(intensity_table.columns)>2:
+    #    saint_output['Intensity'] = map_intensity(saint_output, intensity_table, )
     container_contents.append(
         html.Div([
             figure_generation.histogram(
@@ -795,10 +803,31 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
     crapome_table.to_csv(db.get_cache_file(session_uid, 'Crapome table.tsv'),sep='\t',index = False)
     return container_contents, saint_output.to_json(orient='split'), crapome_column_groups
 
-
+def filter_saint(saint_output, saint_bfdr: float, crapome_freq: float, crapome_rescue: int)-> pd.DataFrame:
+    crapome_columns: list = []
+    for column in saint_output.columns:
+        if ' Frequency' in column:
+            crapome_columns.append((column, column.replace(' Frequency',' AvgSpc FC')))
+    keep_col: list = []
+    for _, row in saint_output.iterrows():
+        keep: bool = True
+        if row['BFDR']>= saint_bfdr:
+            keep = False
+        else:
+            for freq_col, fc_col in crapome_columns:
+                if row[freq_col] >= crapome_freq:
+                    if row[fc_col] <= crapome_rescue:
+                        keep = False
+                        break
+        keep_col.append(keep)
+    saint_output: pd.DataFrame = saint_output[keep_col]
+    if 'Bait uniprot' in saint_output.columns:
+        saint_output = saint_output[saint_output['Prey'] != saint_output['Bait uniprot']]
+    return saint_output
 
 @callback (
     Output('interactomics-post-saint-analysis-graphs','children'),
+    Output('interactomics-fully-filtered-saint-data','data'),
 #    Input({'type': 'dynamic-button', 'index': ALL}, 'n_clicks'),
     Input('button-done-filtering', 'n_clicks'),
     State('saint-bfdr-filter-threshold', 'value'),
@@ -806,19 +835,22 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
     State('crapome-rescue-threshold', 'value'),
     State('raw-interactomics-data', 'data'),
     State('session-uid', 'children'),
-    State('output-data-upload', 'data'),
     prevent_initial_call=True,
 )
-def post_saint_analysis(a,saint_bfdr,crapome_freq,crapome_rescue, saint_data,session_uid, data_dictionary) -> list:
-    if a is None:
+def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_data,session_uid) -> list:
+    if n_clicks is None:
         return dash.no_update
-    intensity_table: pd.DataFrame = pd.read_json(
-        data_dictionary['data tables']['intensity'], orient='split')
-    can_do_volcano: bool = False
-    if len(intensity_table.columns) > 2:
-        can_do_volcano = True
-    saint_output: pd.DataFrame = pd.read_json(
-        saint_data, orient='split').reset_index().drop(columns=['index'])
+    saint_output: pd.DataFrame = filter_saint(
+        pd.read_json(saint_data, orient='split').reset_index().drop(columns=['index']),
+        saint_bfdr,
+        crapome_freq,
+        crapome_rescue
+    )
+
+    # Filter based on saint BFDR and Crapome sets:
+    # Each crapome set is considered by itself
+    # TODO: Add combination crapome sets for the VL crapomes
+
     with open(db.get_cache_file(session_uid, 'Filtering info.txt'),'w',encoding='utf-8') as fil:
         fil.write(f'Saint BFDR filter: {saint_bfdr}\n')
         fil.write(f'Crapome frequency threshold filter: {crapome_freq}\n')
@@ -828,6 +860,7 @@ def post_saint_analysis(a,saint_bfdr,crapome_freq,crapome_rescue, saint_data,ses
     # Commented out because bait uniprot has already been mapped directly after SAINT analysis
     #saint_output['Bait uniprot'] = saint_output.apply(lambda x: data_dictionary['other']['bait uniprots'][x['Bait']],axis=1)
     data_functions.map_known(saint_output,db.get_known(saint_output['Bait uniprot'].unique()))
+    saint_output.to_csv(db.get_cache_file(session_uid, 'Filtered Saint output.tsv'),sep='\t',index = False)
 
     figures: list = []
     pdf_data: list  =[]
@@ -860,8 +893,93 @@ def post_saint_analysis(a,saint_bfdr,crapome_freq,crapome_rescue, saint_data,ses
             children=make_enrichment_tabs(enrichment_names, enrichment_results)
         )
     )
+    pca_figure: go.Figure
+    pca_graph: dcc.Graph
+    pca_figure, pca_graph = figure_generation.pca_plot(
+        saint_output.pivot_table(index='Prey', columns='Bait',values='AvgSpec'),
+        {bait: bait for bait in saint_output['Bait'].unique()},
+        plot_name = 'interactomics'
+    )
+    figures.append(pca_graph)
+    
+    network_elements: list = create_network(saint_output)
+    figures.append(
+        html.Div([
+            cyto.Cytoscape(
+                id='cytoscape-layout-9',
+                elements=network_elements,
+                style={'width': '100%', 'height': '800px'},
+                layout={
+                    'name': 'cose'
+                }
+            )
+        ])
+    )
 
-    return figures
+    if 'Intensity' in saint_output.columns:
+        figures.append(
+            html.Div(
+                id='volcano-plot-label',
+                children=[
+                    'Volcano plots',
+                dbc.Select(
+                    options=[
+                        {'label': bait, 'value': bait}
+                        for bait in saint_output['Bait']
+                    ],
+                    required=True,
+                    id='interactomics-control-dropdown',
+                ),
+                html.Div(id='interactomics-volcano-plot-container')
+                ]
+            )
+        )
+    return (figures, saint_output.to_json(orient='split'))
+
+
+@callback(
+    Output('interactomics-volcano-plot-container', 'children'),
+    Input('control-dropdown', 'value'),
+    State('interactomics-fully-filtered-saint-data', 'data'),
+)
+def proteomics_volcano_plots(control_group, saint_output) -> list:
+    if control_group is None:
+        return dash.no_update
+    saint_output: pd.DataFrame = pd.read_json(saint_output, orient='split').reset_index().drop(columns=['index'])
+    sample_groups: dict = {bait: bait for bait in saint_output['Bait'].unique()}
+    
+    return [
+        html.Div(
+            id='volcano-plot-container', 
+            children=figure_generation.volcano_plots(
+                saint_output.pivot_table(index='Prey', columns='Bait',values='Intensity'),
+                sample_groups,
+                control_group
+            )
+        )
+    ]
+
+def create_network( saint_data) -> list:
+    nodes: list = [
+        {'data': {'id': row['Prey'], 'label': row['PreyGene']}}
+        for _,row in saint_data[['Prey','PreyGene']].drop_duplicates()
+    ]
+    nodes.extend(
+        [
+            {'data': {'id': bait, 'label': bait}}
+            for bait in saint_data['Bait'].unique()
+        ]
+    )
+    edges: list = [
+        {'data': {'source': row['Bait'], 'target': row['Prey']},}
+        for _, row in saint_data.iterrows()
+    ]
+
+    return (nodes + edges)
+
+
+
+
 
 def make_enrichment_tabs(names, results) -> list:
     tablist: list = []
@@ -898,12 +1016,6 @@ def make_enrichment_tabs(names, results) -> list:
             )
         )
     return tablist
-    # TODO: 
-    # - BP/MF/CC/Reactome/pfam enrichment omilla tabeillaan
-    # - PCA
-    #if can_do_volcano:
-        #volcano_plot
-    # - Network
 
 @callback(
     [
@@ -954,6 +1066,7 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
             children=[
                 dcc.Store(id='processed-interactomics-data'),
                 dcc.Store(id='raw-interactomics-data'),
+                dcc.Store(id='interactomics-fully-filtered-saint-data'),
                 dcc.Store(id='crapome-column-groups'),
                 html.Div(
                     id='interactomics-options',

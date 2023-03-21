@@ -313,6 +313,11 @@ class DbEngine:
     def upload_table_data_dropdowns(self, upload_table_data_dropdowns: dict) -> None:
         self._upload_table_data_dropdowns: list = upload_table_data_dropdowns
 
+    def delete_empty_directories(self, basedir) -> None:
+        for path, _, _ in os.walk(basedir, topdown=False):
+            if len(os.listdir(path)) == 0:
+                os.rmdir(path)
+
     @property
     def cache_dir(self) -> str:
         return self.parameters['cache dir']
@@ -321,17 +326,23 @@ class DbEngine:
         return os.path.join(self.temp_dir, filename)
 
     def clear_session_data(self, uid) -> None:
-        for filename in os.listdir(self.cache_dir):
-            if filename.startswith(uid):
-                os.remove(os.path.join(self.cache_dir, filename))
+        for root, _, files in os.walk(self.get_cache_dir(uid)):
+            for filename in files:
+                os.remove(os.path.join(root, filename))
+        self.delete_empty_directories(self.get_cache_dir(uid))
 
+    ## TODO: this does not work with current cache layout. Need to recursively delete directories.
     def clear_cache_fully(self) -> None:
-        for filename in os.listdir(self.cache_dir):
-            os.remove(os.path.join(self.cache_dir, filename))
+        for root, _, files in os.walk(self.cache_dir):
+            for filename in files:
+                os.remove(os.path.join(root, filename))
+        self.delete_empty_directories(self.cache_dir)
+
+    def get_cache_dir(self, session_folder_name) -> str:
+        return os.path.join(self.cache_dir, session_folder_name)
 
     def get_cache_file(self, session_folder_name, filename) -> str:
-        cache_dir_for_session: str = os.path.join(
-            self.cache_dir, session_folder_name)
+        cache_dir_for_session: str = self.get_cache_dir(session_folder_name)
         if not os.path.isdir(cache_dir_for_session):
             os.makedirs(cache_dir_for_session)
         return os.path.join(cache_dir_for_session, filename)

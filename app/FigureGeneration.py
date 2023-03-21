@@ -536,7 +536,7 @@ class FigureGeneration:
         data_table: table of samples (columns) and measurements(rows)
         rev_sample_groups: dictionary of {sample_column_name: sample_group_name} containing all sample columns.
         n_components: how many components the PCA should have. Only first two will be used for the plot.
-        plot_name: name for the plot. The id of the returned dcc.Graph will be f"pca-plot{plot_name}"
+        plot_name: name for the plot. The id of the returned dcc.Graph will be f"pca-plot-{plot_name}"
         
         Returns: 
         dcc.Graph containing a go.Figure of the PCA plot.
