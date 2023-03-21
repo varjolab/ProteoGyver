@@ -185,7 +185,7 @@ class DbEngine:
                     seqs[-1][1] += line.strip()
         self.protein_lengths = lens
 
-        with open(self.protein_seq_file, 'a') as fil:
+        with open(self.protein_seq_file, 'a', encoding='utf-8') as fil:
             for line in seqs:
                 fil.write('\t'.join(line)+'\n')
 
@@ -196,7 +196,7 @@ class DbEngine:
     @protein_lengths.setter
     def protein_lengths(self, filename) -> None:
         if isinstance(filename, dict):
-            with open(self._protein_lentgh_file, 'a') as fil:
+            with open(self._protein_lentgh_file, 'a', encoding='utf-8') as fil:
                 current: int
                 for key, value in filename.items():
                     try:

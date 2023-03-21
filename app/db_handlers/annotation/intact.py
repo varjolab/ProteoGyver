@@ -89,7 +89,7 @@ def do_update(save_file) -> None:
     ftp: ftplib.FTP = ftplib.FTP(ftpurl)
     ftp.login()
     ftp.cwd(ftpdir)
-    with open(save_file,'wb') as fil:
+    with open(save_file,'wb',encoding = 'utf-8') as fil:
         ftp.retrbinary(f'RETR {ftpfilename}',fil.write)
     ftp.quit()
     split_file(save_file)
