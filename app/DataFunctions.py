@@ -1,4 +1,5 @@
 import os
+from re import L
 import qnorm
 import pandas as pd
 import io
@@ -25,7 +26,7 @@ class DataFunctions:
     def enrich_per_bait(self, data_table: pd.DataFrame, api: str, options: str) -> list:
         enrich_lists: list = []
         for bait in data_table['Bait'].unique():
-            enrich_lists.append([bait, data_table[data_table['Bait']==bait]])
+            enrich_lists.append([bait, list(data_table[data_table['Bait']==bait]['Prey'])])
         handler = self.handlers[api]['handler']
         result_names, return_dataframes, done_information = handler.enrich(enrich_lists, options)
         if not 'Enrichment' in self._done_operations:
@@ -414,6 +415,7 @@ class DataFunctions:
     def read_fragpipe(self, data_table: pd.DataFrame) -> pd.DataFrame:
         intensity_cols: list = []
         spc_cols: list = []
+        has_maxlfq: bool = False
         for column in data_table.columns:
             if 'Total' in column:
                 continue
@@ -422,9 +424,13 @@ class DataFunctions:
             if 'Combined' in column:
                 continue
             if 'Intensity' in column:
+                if 'maxlfq' in column.lower():
+                    has_maxlfq = True
                 intensity_cols.append(column)
             elif 'Spectral Count' in column:
                 spc_cols.append(column)
+        if has_maxlfq:
+            intensity_cols = [i for i in intensity_cols if 'maxlfq' in i.lower()]
         protein_col: str = 'Protein ID'
         if 'Protein Length' in data_table.columns:
             protein_lengths: dict = {}
@@ -441,11 +447,12 @@ class DataFunctions:
             columns={ic: ic.replace('Spectral Count', '').strip()
                     for ic in spc_cols}
         )
+        print(intensity_table[intensity_cols[0:2]].head(2))
         if intensity_table[intensity_cols[0:2]].sum().sum() == 0:
             intensity_table = pd.DataFrame({'No data': ['No data']})
         else:
             intensity_table.rename(
-            columns={ic: ic.replace('Intensity', '').strip()
+            columns={ic: ic.replace('Intensity', '').replace('MaxLFQ', '').strip()
                     for ic in intensity_cols},
             inplace=True)
         return (intensity_table, spc_table, protein_lengths)
@@ -484,6 +491,7 @@ class DataFunctions:
         data_table: pd.DataFrame,
         rev_sample_groups: dict,
         protein_lengths: dict,
+        protein_names: dict,
         saint_command: str,
         control_table: pd.DataFrame = None,
         control_groups:set = None,
@@ -547,6 +555,12 @@ class DataFunctions:
         process: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, check=False,cwd=temp_dir)
 
         output_dataframe: pd.DataFrame = pd.read_csv(saint_output_file,sep='\t')
+        gene_names: list = []
+        for _,row in output_dataframe.iterrows():
+            name: str =row['PreyGene']
+            if name in protein_names: name = protein_names[name]
+            gene_names.append(name)
+        output_dataframe['PreyGene'] = gene_names
         if output_directory is not None:
             output_report_file:str = os.path.join(output_directory, 'SAINT_output.txt')
             with open(output_report_file,'w',encoding='utf-8') as fil:
@@ -568,8 +582,10 @@ class DataFunctions:
                 .rstrip('.d') for oldvalue in expdesign['Sample name'].values
         ]
         discarded_columns:list = []
+        used_columns:list = []
         sample_groups: dict = {}
-        for table in tables:
+        sample_group_columns: dict = {}
+        for table_ind, table in enumerate(tables):
             if len(table.columns) < 2:
                 continue
             rename_columns: dict = {}
@@ -584,6 +600,10 @@ class DataFunctions:
                         # Discard column if not found
                         discarded_columns.append(col)
                         continue
+                    else:
+                        used_columns.append(col)
+                else:
+                    used_columns.append(col)
                 sample_group: str = expdesign[expdesign['Sample name']
                                             == col].iloc[0]['Sample group']
                 # If no value is available for sample in the expdesign
@@ -594,21 +614,33 @@ class DataFunctions:
                 # We expect replicates to not be specifically named; they will be named here.
                 if newname[0].isdigit():
                     newname = f'Sample_{newname}'
-                if newname not in sample_groups:
-                    newname_to_use = f'{newname}_Rep_1'
-                    sample_groups[newname] = [newname_to_use]
-                    rename_columns[newname_to_use] = col
+                if newname not in sample_group_columns:
+                    sample_group_columns[newname] = [[] for _ in range(len(tables))]
+                sample_group_columns[newname][table_ind].append(col)
+        
+        column_renames: list = [{} for _ in range(len(tables))]
+        for nname, list_of_all_table_columns in sample_group_columns.items():
+            first_len: int = 0
+            for table_index, table_columns in enumerate(list_of_all_table_columns):
+                if len(table_columns) == 0:
+                    continue
+                if first_len == 0:
+                    first_len = len(table_columns)
                 else:
-                    i: int = 2
-                    while f'{newname}_Rep_{i}' in rename_columns:
+                    # Should have same number of columns/replicates for SPC and intensity tables
+                    assert len(table_columns) == first_len
+                for column_name in table_columns:
+                    i: int = 1
+                    while f'{nname}_Rep_{i}' in column_renames[table_index]:
                         i += 1
-                    newname_to_use: str = f'{newname}_Rep_{i}'
-                    sample_groups[newname].append(newname_to_use)
-                    rename_columns[newname_to_use] = col
-            # Reverse the rename dict to be able to use it for renaming the dataframe columns
-            rename_columns = {v: k for k, v in rename_columns.items()}
-            # Discard unneeded columns
-            
+                    newname_to_use: str = f'{nname}_Rep_{i}'
+                    if nname not in sample_groups:
+                        sample_groups[nname] = set()
+                    sample_groups[nname].add(newname_to_use)
+                    column_renames[table_index][newname_to_use] = column_name
+        sample_groups = {k: sorted(list(v)) for k, v in sample_groups.items()}        
+        for table_index, table in enumerate(tables):
+            rename_columns = {value: key for key, value in column_renames[table_index].items()}
             table.drop(
                 columns= [c for c in table.columns if c not in rename_columns],
                 inplace=True
@@ -619,7 +651,7 @@ class DataFunctions:
         for group, samples in sample_groups.items():
             for sample in samples:
                 rev_sample_groups[sample] = group
-        return (sample_groups, rev_sample_groups, discarded_columns)
+        return (sample_groups, rev_sample_groups, discarded_columns, used_columns)
 
     def remove_duplicate_protein_groups(self, data_table: pd.DataFrame) -> pd.DataFrame:
         aggfuncs: dict = {}
@@ -663,7 +695,8 @@ class DataFunctions:
         sample_groups: dict
         rev_sample_groups: dict
         discarded_columns: list
-        sample_groups, rev_sample_groups, discarded_columns = self.rename_columns_and_update_expdesign(
+        used_columns: list
+        sample_groups, rev_sample_groups, discarded_columns, used_columns = self.rename_columns_and_update_expdesign(
             expdesign,
             [intensity_table, spc_table]
         )
@@ -694,19 +727,23 @@ class DataFunctions:
             }, 
             'info': {
                 'discarded columns': discarded_columns,
+                'used columns': used_columns,
                 'data type': data_type
             },
             'other': {
                 'protein lengths': protein_length_dict,
-                'bait uniprots': bait_uniprots
+                'bait uniprots': bait_uniprots,
             }
         }
         if len(intensity_table.columns) < 2:
             return_dict['data tables']['main table'] = return_dict['data tables']['spc']
             return_dict['info']['values'] = 'SPC'
+            return_dict['other']['all proteins'] =  list(spc_table.index)
         else:
             return_dict['data tables']['main table'] = return_dict['data tables']['intensity']
             return_dict['info']['values'] = 'intensity'
+            return_dict['other']['all proteins'] =  list(intensity_table.index)
+        
         
         return_dict['sample groups']['guessed control samples'] = self.guess_controls(sample_groups)
 

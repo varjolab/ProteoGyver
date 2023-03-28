@@ -7,6 +7,7 @@ from typing import Union
 import requests
 import pandas as pd
 from requests.adapters import HTTPAdapter, Retry
+import json
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -314,6 +315,7 @@ def get_default_uniprot_column_map() -> dict:
             'Organism': 'organism_name',
             'Modified residue': 'ft_mod_res',
             'Gene names': 'gene_names',
+            'Gene names (primary)': 'gene_primary',
             'Gene ontology (cellular component)': 'go_c',
             'Gene ontology (molecular function)': 'go_f',
             'Gene ontology (biological process)': 'go_p',
@@ -355,7 +357,7 @@ def __get_uniprot_batch(batch_url: str, session: requests.Session) -> tuple:
     """Retrieves batches from UniProt, results response, and total number of results.
 
     Yields:
-    a tuple of (sequests.models.Response, total:str)
+    a tuple of (requests.models.Response, total:str)
     """
     while batch_url:
         response = session.get(batch_url)
@@ -509,8 +511,18 @@ def update(organism = 9606,progress=False) -> None:
     if is_newer_available(apitools.get_newest_file(outdir, namefilter=str(organism))):
         today: str = apitools.get_timestamp()
         df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism,progress=progress,overall_progress=progress)
-        outfile: str = os.path.join(outdir, f'{today}_Uniprot_{organism}.tsv')
-        df.to_csv(outfile,encoding = 'utf-8')
+        outfile: str = os.path.join(outdir, f'{today}_Uniprot_{organism}')
+        df.to_csv(f'{outfile}.tsv',encoding = 'utf-8',sep='\t')
+        name_dict:dict = {}
+        length_dict:dict = {}
+        for _,row in df.iterrows():
+            name_dict[row['Entry']] = row['Gene names (primary)']
+            length_dict[row['Entry']] = row['Length']
+        with open(f'{outfile}_protein_names.json','w',encoding='utf-8') as fil:
+            json.dump(name_dict,fil)
+        with open(f'{outfile}_protein_lengths.json','w',encoding='utf-8') as fil:
+            json.dump(length_dict,fil)
+
 
 def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
     uniprot_url: str = f"https://rest.uniprot.org/uniprotkb/search?\
@@ -538,6 +550,9 @@ def get_version_info(organism:int=9606) -> str:
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def methods_text(organism=9606) -> str:
+    short:str
+    long: str
+    pmid: str
     short,long,pmid = apitools.get_pub_ref('uniprot')
     return '\n'.join([
         f'Protein annotations were mapped from UniProt (https://uniprot.org) {short}',

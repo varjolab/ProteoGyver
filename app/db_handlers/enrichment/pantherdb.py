@@ -10,7 +10,7 @@ from datetime import datetime
 class handler():
 
     _defaults: list = [
-            'Reactome pathways',
+#            'Reactome pathways',
             'Panther GOBP slim',
 #            'Panther GOMF slim',
 #            'Panther GOCC slim'
@@ -31,10 +31,18 @@ class handler():
 
     _names_rev: dict
 
-    def __init__(self) -> None:
+    def __init__(self, datasetfile:str = 'panther_datasets.json') -> None:
         self._available['enrichment'] = sorted(list(self._names.keys()))
         self._names_rev = {v: k for k,v in self._names.items()}
-        for annotation, name, description in self.get_pantherdb_datasets():
+        if datasetfile:
+            if os.path.isfile(datasetfile):
+                with open(datasetfile) as fil:
+                    datasets: dict = json.load(fil)
+            else:
+                datasets = self.get_pantherdb_datasets()
+                with open(datasetfile,'w',encoding='utf-8') as fil:
+                    json.dump(datasets,fil)
+        for annotation, (name, description) in datasets.items():
             realname: str = self._names_rev[annotation]
             self._datasets[realname] = [annotation, name, description]
 
@@ -48,15 +56,28 @@ class handler():
     def get_pantherdb_datasets(self, ) -> list:
         """Retrieves all available pantherDB datasets and returns them in a list of [annotation, \
             annotation_name, annotation_description]"""
-        types = requests.get(
-            'http://pantherdb.org/services/oai/pantherdb/supportedannotdatasets', timeout=20)
-        types: dict = json.loads(types.text)
-        datasets: list = []
+        success:bool = False
+        for i in range(20, 100, 20):
+            try:
+                request:requests.Response = requests.get(
+                    'http://pantherdb.org/services/oai/pantherdb/supportedannotdatasets',
+                    timeout=i
+                )
+                types: dict = json.loads(request.text)
+                success=True
+                break
+            except requests.exceptions.ReadTimeout:
+                continue
+            except requests.exceptions.ConnectionError:
+                continue
+        if not success:
+            return {}
+        datasets: dict = {}
         for entry in types['search']['annotation_data_sets']['annotation_data_type']:
             annotation: str = entry['id']
             name: str = entry['label']
             description: str = entry['description']
-            datasets.append([annotation, name, description])
+            datasets[annotation] = (name, description)
         return datasets
 
 
@@ -135,7 +156,7 @@ class handler():
                 results_df: pd.DataFrame = result['Results']
                 results_df.insert(1, 'Bait', bait)
                 results[data_type_key].append(results_df)
-                legends[data_type_key].append((results[k] for k in results.keys() if k != 'Results'))
+                legends[data_type_key].append(tuple(result[k] for k in result.keys() if k != 'Results'))
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
@@ -191,9 +212,23 @@ class handler():
             for key, value in data.items():
                 final_url += f'{key}={value}&'
             final_url = final_url.strip('&')
-            request:requests.Response = requests.post(final_url, timeout=20)
-            req_json: dict = json.loads(request.text)
-
+            success: bool = False
+            for i in range(20, 100, 20):
+                try:
+                    request:requests.Response = requests.post(final_url, timeout=i)
+                    req_json: dict = json.loads(request.text)
+                    with open('test.json','w') as fil:
+                        json.dump(req_json,fil)
+                    success = True
+                    break
+                except requests.exceptions.ReadTimeout:
+                    continue
+                except requests.exceptions.ConnectionError:
+                    continue
+            if not success:
+                ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': pd.DataFrame(),
+                            'Reference information': reference_string}
+                continue
             try:
                 reference_string: str = f'PANTHERDB reference information:\nTool release date: \
                     {req_json["results"]["tool_release_date"]}\nAnalysis run: {datetime.now()}\n'
@@ -224,10 +259,11 @@ class handler():
                 if key not in {'mapped_id', 'unmapped_id'}:
                     reference_string += f'{key}: {value}\n'
             reference_string += '-----\n'
-            reference_string += (
-                f'Unmapped IDs: '
-                f'{", ".join(req_json["results"]["input_list"]["unmapped_id"])}\n'
-            )
+            if 'unmapped_id' in req_json['results']['input_list']:
+                reference_string += (
+                    f'Unmapped IDs: '
+                    f'{", ".join(req_json["results"]["input_list"]["unmapped_id"])}\n'
+                )
             reference_string += '-----\n'
             reference_string += (
                 f'Mapped IDs: '

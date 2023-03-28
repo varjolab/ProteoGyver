@@ -28,7 +28,8 @@ class DbEngine:
     _override_keys: dict
     _contaminant_table: pd.DataFrame
     _contaminant_list: list
-    _figure_names_and_legends = {}
+    _figure_names_and_legends: dict = {}
+    _protein_names: dict
 
     @property
     def parameters(self) -> dict:
@@ -52,6 +53,8 @@ class DbEngine:
         self.temp_dir = self._parameters['Temporary data directory']
         self.protein_lengths = os.path.join(
             *self.parameters['files']['data']['protein lengths file'])
+        self.protein_names = os.path.join(
+            *self.parameters['files']['data']['protein names file'])
         if not os.path.isdir(self.cache_dir):
             os.makedirs(self.cache_dir)
         if not os.path.isdir(self.temp_dir):
@@ -82,6 +85,7 @@ class DbEngine:
     @property
     def controlsets(self) -> dict:
         return self._controls['sets']['all']
+    
     
     @property
     def figure_data(self) -> dict:
@@ -172,7 +176,7 @@ class DbEngine:
         lens: dict = {}
         seqs: list = []
         protein_id: str
-        with open(fasta_file_name) as fil:
+        with open(fasta_file_name, encoding='utf-8') as fil:
             for line in fil:
                 if line.startswith('>'):
                     protein_id = line.strip().strip('>')
@@ -188,6 +192,15 @@ class DbEngine:
         with open(self.protein_seq_file, 'a', encoding='utf-8') as fil:
             for line in seqs:
                 fil.write('\t'.join(line)+'\n')
+
+    @property
+    def protein_names(self) -> dict:
+        return self._protein_names
+    
+    @protein_names.setter
+    def protein_names(self, filename) -> None:
+        with open(filename, encoding='utf-8') as fil:
+            self._protein_names = json.load(fil)
 
     @property
     def protein_lengths(self) -> dict:
@@ -208,7 +221,7 @@ class DbEngine:
                             self._protein_lengths[key] = value
                             fil.write(f'{key}\t{value}\n')
         else:
-            with open(filename) as fil:
+            with open(filename, encoding='utf-8') as fil:
                 next(fil)
                 for line in fil:
                     line: list = line.strip().split('\t')
@@ -338,13 +351,8 @@ class DbEngine:
                 os.remove(os.path.join(root, filename))
         self.delete_empty_directories(self.cache_dir)
 
-    def get_cache_dir(self, session_folder_name) -> str:
-        return os.path.join(self.cache_dir, session_folder_name)
-
     def get_cache_file(self, session_folder_name, filename) -> str:
         cache_dir_for_session: str = self.get_cache_dir(session_folder_name)
-        if not os.path.isdir(cache_dir_for_session):
-            os.makedirs(cache_dir_for_session)
         return os.path.join(cache_dir_for_session, filename)
     
     def get_cache_dir(self, session_folder_name) -> str:
@@ -386,10 +394,15 @@ class DbEngine:
     def add_to_data(self, data_frame) -> None:
         pass  # self.data
 
-    def get_protein_lengths(self, protein_ids) -> None:
+    def get_protein_lengths(self, protein_ids) -> dict:
         plendic: dict = self.protein_lengths
         protein_ids: list = [p for p in protein_ids if p in plendic]
         return {protein_id: plendic[protein_id] for protein_id in protein_ids}
+    def get_name(self, protein_id) -> str:
+        try:
+            return self.protein_names[protein_id]
+        except KeyError:
+            return protein_id
 
     def request_file(self, location, filename) -> str:
         file_location: list = self.files[location][filename]

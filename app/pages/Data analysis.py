@@ -22,7 +22,7 @@ from styles import Styles
 from utilitykit import plotting
 import shutil
 import dash_cytoscape as cyto
-
+from dash import dash_table
 import text_functions
 
 
@@ -88,7 +88,6 @@ def add_replicate_colors(data_df, column_to_replicate) -> None:
     State('session-uid', 'children')
 )
 def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
-    db.clear_session_data(session_uid)
     if workflow_setting_value is None:
         return dash.no_update
     with open(db.get_cache_file(session_uid,'workflow-choice.txt'), 'w', encoding='utf-8') as fil:
@@ -137,26 +136,42 @@ def process_input_tables(
         )
         #TODO: Move writing these to a subprocess?
         with open(db.get_cache_file(session_uid, 'data_dict.json'), 'w', encoding='utf-8') as fil:
-            json.dump(return_dict, fil)
+            json.dump(return_dict, fil, indent = 4)
         with open(db.get_cache_file(session_uid, 'sample groups.json'),'w', encoding='utf-8') as fil:
-            json.dump(return_dict['sample groups']['norm'], fil)
+            json.dump(return_dict['sample groups']['norm'], fil, indent = 4)
         with open(db.get_cache_file(session_uid, 'rev sample groups.json'),'w', encoding='utf-8') as fil:
-            json.dump(return_dict['sample groups']['rev'], fil)
+            json.dump(return_dict['sample groups']['rev'], fil, indent = 4)
         with open(db.get_cache_file(session_uid, 'protein lengths.json'),'w', encoding='utf-8') as fil:
-            json.dump(return_dict['other']['protein lengths'], fil)
+            json.dump(return_dict['other']['protein lengths'], fil, indent = 4)
         with open(db.get_cache_file(session_uid, 'info.txt'),'w', encoding='utf-8') as fil:
             fil.write(f'Data type: {return_dict["info"]["values"]}\n')
             fil.write(f'Data type: {return_dict["info"]["data type"]}\n')
-            discarded_str:str = '\t'.join(return_dict['info']['discarded columns'])
-            fil.write(f'Discarded columns:\n{discarded_str}\n')
-        pd.read_json(return_dict['data tables']['spc'],orient='split').to_csv(db.get_cache_file(session_uid, 'SPC table.tsv',encoding = 'utf-8'),sep='\t')
-        pd.read_json(return_dict['data tables']['intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv',encoding = 'utf-8'),sep='\t')
-        pd.read_json(return_dict['data tables']['raw intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv',encoding = 'utf-8'),sep='\t')
+            fil.write('Discarded columns:\n')
+            for chunk in list_to_chunks(list(return_dict['info']['discarded columns']), 5):
+                chunkstr: str = '\t'.join(chunk)
+                fil.write(f'{chunkstr}\n')
+            fil.write('Used columns:\n')
+            for chunk in list_to_chunks(list(return_dict['info']['used columns']), 5):
+                chunkstr: str = '\t'.join(chunk)
+                fil.write(f'{chunkstr}\n')
+        name_dict: dict = {}
+        for protein_id in return_dict['other']['all proteins']:
+             name_dict[protein_id] =  db.get_name(protein_id)
+        return_dict['other']['protein names'] = name_dict
+        if return_dict['other']['protein lengths'] is None:
+            return_dict['other']['protein lengths'] = db.get_protein_lengths(return_dict['other']['all proteins'])
+        pd.read_json(return_dict['data tables']['spc'],orient='split').to_csv(db.get_cache_file(session_uid, 'SPC table.tsv'),sep='\t',encoding = 'utf-8')
+        pd.read_json(return_dict['data tables']['intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv'),sep='\t',encoding = 'utf-8')
+        pd.read_json(return_dict['data tables']['raw intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv'),sep='\t',encoding = 'utf-8')
         return_message = f'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
     return return_dict, return_message, figure_template_dropdown_value, ''
 
+def list_to_chunks(original_list, chunk_size):
+    # looping till length l
+    for i in range(0, len(original_list), chunk_size):
+        yield original_list[i:i + chunk_size]
 
 @callback(
     Output('void','children'),
@@ -265,15 +280,15 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                     save_format = 'pdf'
                 )
             )
-            count_data.to_csv(os.path.join(figure_data_dir, 'Count data.tsv',encoding = 'utf-8'),sep='\t')
-            sumdata.to_csv(os.path.join(figure_data_dir, 'Sum data.tsv',encoding = 'utf-8'),sep='\t')
-            na_data.to_csv(os.path.join(figure_data_dir, 'NA data.tsv',encoding = 'utf-8'),sep='\t')
-            avgdata.to_csv(os.path.join(figure_data_dir, 'AVG data.tsv',encoding = 'utf-8'),sep='\t')
+            count_data.to_csv(os.path.join(figure_data_dir, 'Count data.tsv'),sep='\t',encoding = 'utf-8')
+            sumdata.to_csv(os.path.join(figure_data_dir, 'Sum data.tsv'),sep='\t',encoding = 'utf-8')
+            na_data.to_csv(os.path.join(figure_data_dir, 'NA data.tsv'),sep='\t',encoding = 'utf-8')
+            avgdata.to_csv(os.path.join(figure_data_dir, 'AVG data.tsv'),sep='\t',encoding = 'utf-8')
             with open(os.path.join(figure_data_dir, 'rep colors.json'),'w',encoding='utf-8') as fil:
-                json.dump(rep_colors,fil)
+                json.dump(rep_colors,fil, indent = 4)
             
             with open(os.path.join(figure_data_dir, 'rep colors.json'),'w',encoding='utf-8') as fil:
-                json.dump(rep_colors,fil)
+                json.dump(rep_colors,fil, indent = 4)
 
             # Long-term:
             # - protein counts compared to previous similar samples
@@ -338,7 +353,7 @@ def download_data_table(_, data_dictionary,session_uid) -> dict:
             os.path.join(export_dir, key + '.tsv'), sep='\t',encoding = 'utf-8')
     for jsonkey in export_jsons:
         with open(os.path.join(export_dir, key + '.json'), 'w',encoding='utf-8') as fil:
-            json.dump(data_dictionary[jsonkey], fil)
+            json.dump(data_dictionary[jsonkey], fil, indent = 4)
     with open(os.path.join(export_dir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
@@ -392,12 +407,9 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             data_table.to_csv(db.get_cache_file(session_uid, 'NA filtered, normalized and imputed data table.tsv'),sep='\t',encoding = 'utf-8')
             data_dictionary['final data table'] = data_table.to_json(
                 orient='split')
-            if data_dictionary['other']['protein lengths'] is None:
-                data_dictionary['other']['protein lengths'] = db.get_protein_lengths(
-                    data_table.index)
             
             with open(db.get_cache_file(session_uid, 'protein lengths.json'),'w',encoding='utf-8') as fil:
-                json.dump(data_dictionary['other']['protein lengths'] ,fil)
+                json.dump(data_dictionary['other']['protein lengths'] ,fil, indent = 4)
 
             return [
                 [
@@ -682,6 +694,16 @@ def checklist(label: str, options: list, default_choice: list, disabled: list = 
         )
     ]
 
+def map_intensity(saint_output, intensity_table, sample_groups) -> list:
+    intensity_column: list = []
+    import numpy as np        
+    for _, row in saint_output.iterrows():
+        try:
+            intensity_column.append(intensity_table[sample_groups[row['Bait']]].loc[row['Prey']].mean())
+        except KeyError:
+            intensity_column.append(np.nan)
+    return intensity_column
+
 
 @callback(
     Output('interactomics-saint-container', 'children'),
@@ -717,6 +739,7 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
         spc_table,
         data_dictionary['sample groups']['rev'],
         data_dictionary['other']['protein lengths'],
+        data_dictionary['other']['protein names'],
         db.scripts('SAINTexpress'),
         control_table=inbuilt_control_table,
         control_groups=control_sample_groups,
@@ -759,7 +782,7 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
         )
 
     before_contaminants: int = saint_output.shape[0]
-    removed_contaminants: list = list(saint_output[saint_output['Is contaminant']]['Prey'].values)
+    removed_contaminants: list = sorted(list(set(saint_output[saint_output['Is contaminant']]['PreyGene'].values)))
     saint_output = saint_output[~saint_output['Is contaminant']]
     after_contaminants: int = saint_output.shape[0]
     if after_contaminants == before_contaminants:
@@ -767,7 +790,7 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
     else:
         container_contents.append(
             html.Div([
-                f'Removed {before_contaminants-after_contaminants} common contaminants from the output dataset.',
+                f'Removed {before_contaminants-after_contaminants} "interactions" with common contaminants from the output dataset.',
                 html.Br(),
                 f'Removed contaminants: {", ".join(removed_contaminants)}'
             ])
@@ -775,12 +798,12 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
 
     intensity_table: pd.DataFrame = pd.read_json(
         data_dictionary['data tables']['intensity'], orient='split')
-    #if len(intensity_table.columns)>2:
-    #    saint_output['Intensity'] = map_intensity(saint_output, intensity_table, )
+    if len(intensity_table.columns)>2:
+        saint_output['Intensity'] = map_intensity(saint_output, intensity_table, data_dictionary['sample groups']['norm'])
     container_contents.append(
         html.Div([
             figure_generation.histogram(
-                saint_output, x_column='BFDR', title='Saint BFDR distribution',height = 400)[1],
+                saint_output, x_column='BFDR', title='Saint BFDR distribution',height = 400, nbins = 100)[1],
             dcc.Graph(id='interactomics-saint-graph'),
             dbc.Label('Saint BFDR threshold:'),
             dcc.Slider(0, 0.1, 0.01, value=0.05,
@@ -823,7 +846,7 @@ def filter_saint(saint_output, saint_bfdr: float, crapome_freq: float, crapome_r
     saint_output: pd.DataFrame = saint_output[keep_col]
     if 'Bait uniprot' in saint_output.columns:
         saint_output = saint_output[saint_output['Prey'] != saint_output['Bait uniprot']]
-    return saint_output
+    return saint_output.reset_index().drop(columns=['index'])
 
 @callback (
     Output('interactomics-post-saint-analysis-graphs','children'),
@@ -886,7 +909,6 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     enrichment_names: list
     enrichment_results: pd.DataFrame
     enrichment_names, enrichment_results = data_functions.enrich_per_bait(saint_output, 'pantherdb', 'defaults')
-
     figures.append(
         dbc.Tabs(
             id='interactomics-enrichment-tabs',
@@ -896,13 +918,15 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     pca_figure: go.Figure
     pca_graph: dcc.Graph
     pca_figure, pca_graph = figure_generation.pca_plot(
-        saint_output.pivot_table(index='Prey', columns='Bait',values='AvgSpec'),
+        saint_output.pivot_table(index='Prey', columns='Bait',values='AvgSpec').fillna(0),
         {bait: bait for bait in saint_output['Bait'].unique()},
-        plot_name = 'interactomics'
+        plot_name = 'interactomics',
+        plot_title = 'AvgSpec-based PCA'
     )
     figures.append(pca_graph)
     
     network_elements: list = create_network(saint_output)
+    
     figures.append(
         html.Div([
             cyto.Cytoscape(
@@ -910,10 +934,17 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
                 elements=network_elements,
                 style={'width': '100%', 'height': '800px'},
                 layout={
-                    'name': 'cose'
+                    'name': 'cose',
+                    #'EdgeLength': 50,
+                    #'componentSpacing': 100,
+                    #'nodeRepulsion': 400000,
+                    'edgeElasticity': 100000,
+                    'nodeSep': 80,
+                    'spacingFactor': 0.8,
+                    'animate': True
                 }
             )
-        ])
+        ],style={"width": "75%", "border":"2px black solid"})
     )
 
     if 'Intensity' in saint_output.columns:
@@ -922,47 +953,50 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
                 id='volcano-plot-label',
                 children=[
                     'Volcano plots',
-                dbc.Select(
-                    options=[
-                        {'label': bait, 'value': bait}
-                        for bait in saint_output['Bait']
-                    ],
-                    required=True,
-                    id='interactomics-control-dropdown',
-                ),
-                html.Div(id='interactomics-volcano-plot-container')
+                    html.Br(),
+                    'Choose control sample:',
+                    dbc.Select(
+                        options=[
+                            {'label': bait, 'value': bait}
+                            for bait in sorted(list(saint_output['Bait'].unique()))
+                        ],
+                        required=True,
+                        id='interactomics-control-dropdown',
+                    ),
+                    html.Div(id='interactomics-volcano-plot-container')
                 ]
             )
         )
-    return (figures, saint_output.to_json(orient='split'))
+    return figures, saint_output.to_json(orient='split')
 
 
 @callback(
     Output('interactomics-volcano-plot-container', 'children'),
-    Input('control-dropdown', 'value'),
+    Input('interactomics-control-dropdown', 'value'),
     State('interactomics-fully-filtered-saint-data', 'data'),
+    State('output-data-upload', 'data'),
 )
-def proteomics_volcano_plots(control_group, saint_output) -> list:
+def interactomics_volcano_plots(control_group, saint_output, data_dictionary) -> list:
     if control_group is None:
         return dash.no_update
     saint_output: pd.DataFrame = pd.read_json(saint_output, orient='split').reset_index().drop(columns=['index'])
-    sample_groups: dict = {bait: bait for bait in saint_output['Bait'].unique()}
-    
-    return [
-        html.Div(
-            id='volcano-plot-container', 
-            children=figure_generation.volcano_plots(
-                saint_output.pivot_table(index='Prey', columns='Bait',values='Intensity'),
+    sample_groups: dict = data_dictionary['sample groups']['norm']
+    intensity_table: pd.DataFrame = pd.read_json(
+        data_dictionary['data tables']['intensity'], orient='split')
+    non_hci_preys: list = [i for i in intensity_table.index if i not in saint_output['Prey'].values]
+    intensity_table = intensity_table.drop(
+        index=non_hci_preys
+    )
+    return figure_generation.volcano_plots(
+                intensity_table,
                 sample_groups,
                 control_group
-            )
-        )
-    ]
+            )[1]
 
 def create_network( saint_data) -> list:
     nodes: list = [
         {'data': {'id': row['Prey'], 'label': row['PreyGene']}}
-        for _,row in saint_data[['Prey','PreyGene']].drop_duplicates()
+        for _,row in saint_data[['Prey','PreyGene']].drop_duplicates().iterrows()
     ]
     nodes.extend(
         [
@@ -986,25 +1020,44 @@ def make_enrichment_tabs(names, results) -> list:
     for i, result in enumerate(results):
         keep_these: set = set(result[result['log2_fold_enrichment']>=2]['label'].values)
         keep_these = keep_these & set(result[result['fdr']<0.01]['label'].values)
+        filtered_result: pd.DataFrame = result[result['label'].isin(keep_these)]
         matrix: pd.DataFrame = pd.pivot_table(
-            result[result['label'].isin(keep_these)],
+            filtered_result,
             index='label',
             columns='Bait',
             values='log2_fold_enrichment'
             )
-        try:
-            graph: dbc.Graph = figure_generation.full_clustermap(
-                        matrix,
-                        names[i].lower().replace(' ','-')
-                        )
-        except ValueError:
+        graph:dcc.Graph
+        if filtered_result.shape[0] == 0:
             graph = 'Nothing enriched.'
+        else:
+            graph = figure_generation.heatmap(
+                matrix,
+                plot_name = f'interactomics-enrichment-{names[i]}',
+                value_name = 'log2 Fold Change')
 
-        tabcontent: dbc.Card = dbc.Card(
+        table_label: str = f'{names[i]} data table'
+        table: dash_table.DataTable = dash_table.DataTable(
+                data = filtered_result.to_dict('records'),
+                columns = [{"name": i, "id": i} for i in filtered_result.columns],
+                style_table={
+                    'maxHeight': 600
+                },
+                style_data={
+                    'width': '100px', 'minWidth': '25px', 'maxWidth': '250px',
+                    'overflow': 'hidden',
+                    'textOverflow': 'ellipsis',
+                },
+                filter_action = 'native',
+                id = f'interactomics-enrichment-{table_label.replace(" ","-")}',
+            )
+        enrichment_tab: dbc.Card = dbc.Card(
             dbc.CardBody(
                 [
-                    html.P(names[i]),
-                    graph
+                    html.P(f'{names[i]} heatmap'),
+                    graph,
+                    html.P(f'{names[i]} data table'),
+                    table
                 ]
             ),
             className="mt-3",
@@ -1012,7 +1065,7 @@ def make_enrichment_tabs(names, results) -> list:
 
         tablist.append(
             dbc.Tab(
-                tabcontent,label=names[i]
+                enrichment_tab,label=names[i]
             )
         )
     return tablist
@@ -1047,10 +1100,11 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
         bar_plot_df,
         'Protein counts after filtering',
         y_name='Prey count',
+        x_name='Bait',
         color_col='Bait',
-        height = 400
+        height = 400,
+        hide_legend = True
     )
-    filtered_saint.to_csv(db.get_cache_file(session_uid, 'Saint output filtered.tsv'),sep='\t',index = False,encoding = 'utf-8')
     return (figure, filtered_saint.to_json(orient='split'))
 
 
@@ -1114,11 +1168,8 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
                                 )
                             ]
                         ),
-                        html.Div(id='interactomics-saint-container'),
-                        html.Div(id='interactomics-post-saint-analysis-graphs'),
-                        html.Div(id='interactomics-overall-container'),
-                        html.Div(id='interactomics-pca-container'),
-                        html.Div(id='interactomics-network-container'),
+                        dcc.Loading(id='interactomics-saint-container',),
+                        dcc.Loading(id='interactomics-post-saint-analysis-graphs'),
                     ]
                 )
             ]

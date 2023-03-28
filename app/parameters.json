@@ -8,7 +8,7 @@
         "Project": ["same as above", "QE Controls", "TIMS Controls", "Elite Controls"]
     },
     "Figure legend dir": ["data","figure legends"],
-    "Implemented workflows": ["proteomics", "phosphoproteomics", "interactomics"],
+    "Implemented workflows": ["proteomics", "interactomics"],
     "Default workflow": 0,
     "Imputation methods": {
         "QRILC": "QRILC",
@@ -34,6 +34,7 @@
             "control sets": ["data", "control sets.json"],
             "control table": ["data", "control table.tsv"],
             "protein lengths file": ["data", "protein lengths.tsv"],
+            "protein names file": ["data", "protein names.json"],
             "Protein sequence file": ["data", "Protein sequences.tsv"],
             "Contaminant list": ["data", "contaminant_list.tsv"]
         }

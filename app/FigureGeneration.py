@@ -442,7 +442,7 @@ class FigureGeneration:
                     )
             figures.append(figure)
             volcanoes.append(
-                dcc.Graph(config=self.defaults['config'], 
+                dcc.Graph(config=self.defaults['config'],
                     id=f'volcano-{group_name}-vs-{control_group}',
                     figure=figure
                 )
@@ -502,10 +502,10 @@ class FigureGeneration:
 
         # Set yaxis properties
         p_thresh_val: float = -np.log10(adj_p_threshold)
-        pmax: float = max(result['p_value_adj_neg_log10'], p_thresh_val)+0.5
+        pmax: float = max(result['p_value_adj_neg_log10'].max(), p_thresh_val)+0.5
         fig.update_yaxes(title_text='-log10 (q-value)', range=[0, pmax])
         # Set the x-axis properties
-        fcrange: float = max(abs(result['fold_change']), fc_threshold)
+        fcrange: float = max(abs(result['fold_change']).max(), fc_threshold)
         if fcrange < fc_axis_min_max:
             fcrange = fc_axis_min_max
         fcrange += 0.25
@@ -529,7 +529,7 @@ class FigureGeneration:
         positions: list = ['top left','top right','top center','middle left','middle right','middle center','bottom left','bottom right','bottom center']
         return [positions[i % len(positions)] for i in range(data_frame.shape[0])]
 
-    def pca_plot(self, data_table: pd.DataFrame, rev_sample_groups: dict, n_components: int = 2, plot_name: str = None) -> dcc.Graph:
+    def pca_plot(self, data_table: pd.DataFrame, rev_sample_groups: dict, n_components: int = 2, plot_name: str = None, plot_title: str = None) -> dcc.Graph:
         """Draws a PCA plot of the given data_table
 
         Parameters:
@@ -553,12 +553,14 @@ class FigureGeneration:
             plot_name: str = ''
         else:
             plot_name = '-' + plot_name
+        if plot_title is None:
+            plot_title:str = f'PCA {plot_name.strip("-")}'
         data_df.sort_values(by='PCA one',ascending=True,inplace=True)
         figure: go.Figure = px.scatter(
             data_df,
             x='PCA one',
             y='PCA two',
-            title=f'PCA{plot_name}',
+            title=plot_title,
             color=data_df['Sample group'],
             height=self.defaults['height'],
             width=self.defaults['width']
@@ -645,6 +647,14 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], figure=figure, id=f'scatter-{plot_name}')
         )
 
+    def heatmap(self,matrix_df: pd.DataFrame, plot_name:str, value_name:str) -> dcc.Graph:
+        figure: go.Figure = px.imshow(matrix_df,
+                                      aspect='auto',
+                                      labels=dict(
+                                        x=matrix_df.columns.name,
+                                        y=matrix_df.index.name,
+                                        color=value_name))
+        return dcc.Graph(config=self.defaults['config'], figure=figure, id=f'heatmap-{plot_name}')
 
     def clustergram(self, plot_data: pd.DataFrame, color_map: list = None, **kwargs) -> dash_bio.Clustergram:
         """Draws a clustergram figure from the given plot_data data table.
@@ -699,7 +709,7 @@ class FigureGeneration:
         )
 
 
-    def full_clustermap(self, data_table: pd.DataFrame, plot_name: str = None) -> dcc.Graph:
+    def full_clustermap(self, data_table: pd.DataFrame, plot_name: str = None,hiderows:bool = True, hidecols:bool=False) -> dcc.Graph:
         """Draws a clustermap figure from the given data_table.
 
         Parameters:
@@ -708,12 +718,18 @@ class FigureGeneration:
 
         Returns:
         dcc.Graph containing a dash_bio.Clustergram.
-        """
+        """ 
+        hidden_labels: list = []
+        if hiderows:
+            hidden_labels.append('row')
+        if hidecols:
+            hidden_labels.append('col')
+
         if plot_name is None:
             plot_name: str = 'full-clustermap'
         figure: dash_bio.Clustergram = self.clustergram(
             data_table,
-            hidden_labels=['row'],
+            hidden_labels=hidden_labels,
             # The cluster parameter should be "column", but that does not work. According to source code, "col" is the correct usage, but it might get changed to reflect documentation later.
             cluster='col',
             center_values=False
