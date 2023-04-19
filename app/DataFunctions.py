@@ -1,5 +1,4 @@
 import os
-from re import L
 import qnorm
 import pandas as pd
 import io
@@ -10,7 +9,7 @@ from typing import Tuple
 import platform
 import uuid
 import subprocess
-import importlib.util
+from importlib import util as import_util
 import textwrap
 
 class DataFunctions:
@@ -18,10 +17,56 @@ class DataFunctions:
     _api_handlers: dict = {}
     _handler_types: dict = {}
     _done_operations: dict = {}
+    _default_enrichments: list = None
+    _available_enrichments: list = None
 
     @property
     def handlers(self) -> dict:
         return self._api_handlers
+    
+    @property
+    def available_enrichments(self) -> list:
+        if self._available_enrichments is None:
+            available: list = []
+            for handlername, handlerdict in self.handlers.items():
+                for enrichment in handlerdict['available']['enrichment']:
+                    available.append(': '.join([handlerdict['name'], enrichment]))
+            self._available_enrichments = available
+        return self._available_enrichments
+
+    @property
+    def default_enrichments(self, apis:list=None) -> list:
+        if self._default_enrichments is None:
+            defaults: list = []
+            for name, handlerdict in self.handlers.items():
+                if apis is not None:
+                    if (name not in apis) and (handlerdict['name'] not in apis):
+                        continue
+                for enrichment in handlerdict['defaults']:
+                    defaults.append(': '.join([handlerdict['name'], enrichment]))
+            self._default_enrichments = defaults
+        return self._default_enrichments
+
+    def enrich_all_per_bait(self, data_table: pd.DataFrame,enrichment_strings: list) -> list:
+        enrichments_to_do: dict = {}
+        for e_str in enrichment_strings:
+            apiname:str
+            enrichment_name:str
+            apiname, enrichment_name = e_str.split(': ',maxsplit=1)
+            apiname = apiname.lower()
+            if apiname not in enrichments_to_do:
+                enrichments_to_do[apiname] = []
+            enrichments_to_do[apiname].append(enrichment_name)
+        enrichment_results: list = []
+        enrichment_names: list = []
+        for api, enrichmentlist in enrichments_to_do.items():
+            enrichment_str: str = ';'.join(enrichmentlist)
+            names: list
+            result_dataframes: list
+            names, result_dataframes = self.enrich_per_bait(data_table, api, enrichment_str)
+            enrichment_names.extend(names)
+            enrichment_results.extend(result_dataframes)
+        return (enrichment_names, enrichment_results)
     
     def enrich_per_bait(self, data_table: pd.DataFrame, api: str, options: str) -> list:
         enrich_lists: list = []
@@ -32,21 +77,23 @@ class DataFunctions:
         if not 'Enrichment' in self._done_operations:
             self._done_operations['Enrichment'] = {}
         self._done_operations['Enrichment'][api] = done_information
-        return result_names, return_dataframes
+        return (result_names, return_dataframes)
 
     def __init__(self, module_base_dir: str) -> None:
         self.import_handlers(module_base_dir)
 	
     def register_handler(self, module_name: str, filepath: str) -> None:
         module_name: str = module_name.replace('.py','')
-        spec = importlib.util.spec_from_file_location(
+        spec = import_util.spec_from_file_location(
             'module.name', filepath)
-        api_module = importlib.util.module_from_spec(spec)
+        api_module = import_util.module_from_spec(spec)
         spec.loader.exec_module(api_module)
         handler = api_module.handler()
         self._api_handlers[module_name] = {
             'handler': handler,
-            'available': handler.get_available()
+            'available': handler.get_available(),
+            'name': handler.nice_name,
+            'defaults': handler.get_default_panel()
         }
         for htype in handler.handler_types:
             if htype not in self._handler_types:
@@ -447,7 +494,6 @@ class DataFunctions:
             columns={ic: ic.replace('Spectral Count', '').strip()
                     for ic in spc_cols}
         )
-        print(intensity_table[intensity_cols[0:2]].head(2))
         if intensity_table[intensity_cols[0:2]].sum().sum() == 0:
             intensity_table = pd.DataFrame({'No data': ['No data']})
         else:

@@ -10,10 +10,10 @@ from datetime import datetime
 class handler():
 
     _defaults: list = [
-#            'Reactome pathways',
+            'Reactome pathways',
             'Panther GOBP slim',
-#            'Panther GOMF slim',
-#            'Panther GOCC slim'
+            'Panther GOMF slim',
+            'Panther GOCC slim'
         ]
     _available:dict = {}
     _names:dict =  {
@@ -28,8 +28,12 @@ class handler():
         'Reactome pathways': 'ANNOT_TYPE_ID_REACTOME_PATHWAY'
     }
     _datasets: dict = {}
-
+    _nice_name: str = 'PantherDB'
     _names_rev: dict
+
+    @property
+    def nice_name(self) -> str:
+        return self._nice_name
 
     def __init__(self, datasetfile:str = 'panther_datasets.json') -> None:
         self._available['enrichment'] = sorted(list(self._names.keys()))
@@ -225,10 +229,6 @@ class handler():
                     continue
                 except requests.exceptions.ConnectionError:
                     continue
-            if not success:
-                ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': pd.DataFrame(),
-                            'Reference information': reference_string}
-                continue
             try:
                 reference_string: str = f'PANTHERDB reference information:\nTool release date: \
                     {req_json["results"]["tool_release_date"]}\nAnalysis run: {datetime.now()}\n'
@@ -270,6 +270,10 @@ class handler():
                 f'{", ".join(req_json["results"]["input_list"]["mapped_id"])}\n'
             )
             reference_string += '-----\n'
+            if not success:
+                ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': pd.DataFrame(),
+                            'Reference information': reference_string}
+                continue
             results: pd.DataFrame = pd.DataFrame(req_json['results']['result'])  # .keys()
             results = results.join(pd.DataFrame(list(results['term'].values))).\
                 drop(columns=['term'])

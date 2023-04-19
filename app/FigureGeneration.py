@@ -202,7 +202,7 @@ class FigureGeneration:
             )
         else:
 
-            return dcc.Graph()
+            return ('',dcc.Graph())
 
 
     def histogram(self, data_table: pd.DataFrame, x_column: str, title: str, **kwargs) -> dcc.Graph:
@@ -265,7 +265,9 @@ class FigureGeneration:
     def bar_plot(self, value_df: pd.DataFrame, 
                  title: str, 
                  x_name: str = None, 
-                 y_name: str = None, 
+                 x_label:str = None,
+                 y_name: str = None,
+                 y_label:str = None, 
                  y_idx: int = 0, 
                  barmode:str = 'relative', 
                  color: bool = True, 
@@ -322,6 +324,14 @@ class FigureGeneration:
             height=height,
             width=width
         )
+        if x_label is not None:
+            figure.update_layout(
+                xaxis_title=x_label
+            )
+        if y_label is not None:
+            figure.update_layout(
+                yaxis_title=y_label
+            )
         figure.update_xaxes(type='category')
         if hide_legend:
             figure.update_layout(showlegend=False)
@@ -351,6 +361,7 @@ class FigureGeneration:
                     index=plot_index,
                     columns=['Sum value','Contaminant'],
                 ),
+                x_label='Sample',
                 title='Contaminants',
                 color_col='Contaminant',
                 color_discrete_map_dict = {'Contaminants': 'Red','Non-contaminants': 'Blue'}
@@ -364,17 +375,17 @@ class FigureGeneration:
         )
 
     # TODO: Merge these six functions into one. Or rather, delete them and just call bar_plot from data analysis.py
-    def sum_value_figure(self, sum_data) -> dcc.Graph:
+    def sum_value_figure(self, sum_data,valname:str='Value') -> dcc.Graph:
         figure: go.Figure = self.bar_plot(
-            sum_data, title='Value sum per sample', color_discrete_map=True)
+            sum_data, title=f'{valname} sum per sample', color_discrete_map=True)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], id='value-sum-figure', figure=figure)
         )
 
-    def avg_value_figure(self, avg_data) -> dcc.Graph:
+    def avg_value_figure(self, avg_data,valname:str='Value') -> dcc.Graph:
         figure: go.Figure = self.bar_plot(
-            avg_data, title='Value mean per sample', color_discrete_map=True)
+            avg_data, title=f'{valname} mean per sample', color_discrete_map=True)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], id='value-sum-figure', figure=figure)
@@ -405,6 +416,7 @@ class FigureGeneration:
                     .sum(axis=1)
                     .value_counts(), columns=['Identified in # samples']),
                 'Protein coverage',
+                y_label = 'Protein count',
                 color=False
                 )
         return (
@@ -416,7 +428,7 @@ class FigureGeneration:
         )
 
 
-    def volcano_plots(self, data_table, sample_groups, control_group) -> list:
+    def volcano_plots(self, data_table, sample_groups, control_group, data_is_log2_transformed:bool = True) -> list:
         """Generates volcano plots of all sample groups vs given control group in data_table.
 
         Parameters:
@@ -438,7 +450,8 @@ class FigureGeneration:
                         group_name,
                         control_group,
                         group_cols,
-                        control_cols
+                        control_cols,
+                        data_is_log2_transformed = data_is_log2_transformed
                     )
             figures.append(figure)
             volcanoes.append(
@@ -449,7 +462,11 @@ class FigureGeneration:
             )
         return (figures, volcanoes)
 
-    def volcano_plot(self, data_table, sample_name, control_name, sample_columns, control_columns, adj_p_threshold: float = 0.05, fc_threshold: float = 1, fc_axis_min_max: float = 2) -> dcc.Graph:
+    def volcano_plot(
+            self, data_table, sample_name, control_name, sample_columns, control_columns,
+            data_is_log2_transformed:bool = True, adj_p_threshold: float = 0.05,
+            fc_threshold: float = 1, fc_axis_min_max: float = 2
+        ) -> dcc.Graph:
         """Draws a Volcano plot of the given data_table
 
         Parameters:
@@ -467,8 +484,12 @@ class FigureGeneration:
         """
 
         # Calculate log2 fold change for each protein between the two sample groups
-        log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
-            axis=1) / data_table[control_columns].mean(axis=1))
+        if data_is_log2_transformed:
+            log2_fold_change: pd.Series = data_table[sample_columns].mean(
+                axis=1) / data_table[control_columns].mean(axis=1)
+        else:
+            log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
+                axis=1)) / np.log2(data_table[control_columns].mean(axis=1))
 
         # Calculate the p-value for each protein using a two-sample t-test
         p_value: float = data_table.apply(lambda x: ttest_ind(
@@ -738,26 +759,11 @@ class FigureGeneration:
             figure,
             dcc.Graph(config=self.defaults['config'], figure=figure, id=plot_name)
         )
-
-
-    def reproducibility_figure(self, data_table: pd.DataFrame, sample_groups: dict, title='Reproducibility plot') -> dcc.Graph:
-        """Produces a graph describing reproducibility within sammple groups
-
-        Parameters:
-        data_table: table of samples (columns) and measurements(rows)
-        sample_groups: dictionary of {sample_group_name: [sample_columns]}
-        title: title for the figure
-
-        Returns:
-        dcc.Graph containing a go.Figure describing the reproducibility of the samples within sample groups.
-        """
-        less_than_two_samples:list = []
+    
+    def violin_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict) -> go.Figure:
         distances_to_average_point_per_sample_group: pd.DataFrame = pd.DataFrame(index=data_table.index)
         drop_columns: list = []
         for sample_group, sample_columns in sample_groups.items():
-            if len(sample_columns)<2:
-                less_than_two_samples.append(sample_group)
-                continue
             sample_group_mean: pd.Series = data_table[sample_columns].mean(axis=1)
             for column in sample_columns:
                 column_distances:pd.Series = abs(data_table[column] - sample_group_mean)
@@ -777,6 +783,45 @@ class FigureGeneration:
             xaxis_title='Sample group',
             yaxis_title='Mean distance from average per protein'
         )
+
+    def scatter_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict) -> go.Figure:
+        figure_datapoints:list = []
+        for sample_group, sample_columns in sample_groups.items():
+            for i, column in enumerate(sample_columns):
+                if i == (len(sample_columns)-1):
+                    break
+                for column2 in sample_columns[i+1:]:
+                    figure_datapoints.extend([[r[column], r[column2], sample_group] for _,r in data_table.iterrows()])
+        plot_dataframe: pd.DataFrame = pd.DataFrame(data=figure_datapoints, columns = ['Sample A','Sample B', 'Sample group'])
+        plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
+        figure: go.Figure = px.scatter(
+            plot_dataframe, 
+            title='Sample reproducibility (missing values ignored)',
+            x=plot_dataframe['Sample A'],
+            y=plot_dataframe['Sample B'],
+            color = 'Sample group',
+            height=self.defaults['height'],
+            width=self.defaults['width'],
+            opacity=0.5)
+        
+        return figure
+
+    def reproducibility_figure(self, data_table: pd.DataFrame, sample_groups: dict, title='Reproducibility plot', violin_style=False) -> dcc.Graph:
+        """Produces a graph describing reproducibility within sammple groups
+
+        Parameters:
+        data_table: table of samples (columns) and measurements(rows)
+        sample_groups: dictionary of {sample_group_name: [sample_columns]}
+        title: title for the figure
+        violin_style: True, if the resulting plot should be violin style, or scatter style (default)
+
+        Returns:
+        dcc.Graph containing a go.Figure describing the reproducibility of the samples within sample groups.
+        """
+        if violin_style:
+            figure: go.Figure = self.violin_reproducibility(data_table, sample_groups)
+        else:
+            figure: go.Figure = self.scatter_reproducibility(data_table, sample_groups)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], figure=figure, id=f'{title.lower().replace(" ","-")}')
@@ -1046,10 +1091,14 @@ class FigureGeneration:
 
 
     # TODO: NEeds testing, and should figure out if these are even necessary.
-    def get_volcano_df(self, data_table: pd.DataFrame, sample_columns, control_columns) -> pd.DataFrame:
+    def get_volcano_df(self, data_table: pd.DataFrame, sample_columns, control_columns, data_is_log2_transformed:bool = True) -> pd.DataFrame:
         # Calculate log2 fold change for each protein between the two sample groups
-        log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
-            axis=1) / data_table[control_columns].mean(axis=1))
+        if data_is_log2_transformed:
+            log2_fold_change: pd.Series = data_table[sample_columns].mean(
+                axis=1) / data_table[control_columns].mean(axis=1)
+        else:
+            log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
+                axis=1)) / np.log2(data_table[control_columns].mean(axis=1))
 
         # Calculate the p-value for each protein using a two-sample t-test
         p_value: float = data_table.apply(lambda x: ttest_ind(
@@ -1069,7 +1118,6 @@ class FigureGeneration:
 
 
     def volcano_plot2(self, data_table) -> html.Div:
-
         html.Div([
             'log2FC:',
             dcc.RangeSlider(

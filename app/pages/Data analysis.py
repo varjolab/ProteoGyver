@@ -1,6 +1,6 @@
 """Dash app for data upload"""
 
-__version__:str = '0.1a1'
+__version__:str = '0.1a3'
 
 import base64
 import io
@@ -237,14 +237,14 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                 data_table)
             sumdata['Color'] = [rep_colors[sample_name]
                                 for sample_name in sumdata.index.values]
-            figures.append(figure_generation.sum_value_figure(sumdata))
+            figures.append(figure_generation.sum_value_figure(sumdata, valname = data_dictionary['info']['values'].capitalize()))
             figure_names_and_legends.append(['Sum of values in samples',''])
 
             avgdata: pd.DataFrame = data_functions.get_avg_data(
                 data_table)
             avgdata['Color'] = [rep_colors[sample_name]
                                 for sample_name in avgdata.index.values]
-            figures.append(figure_generation.avg_value_figure(avgdata))
+            figures.append(figure_generation.avg_value_figure(avgdata, valname = data_dictionary['info']['values'].capitalize()))
             figure_names_and_legends.append(['Sample averages',''])
             dist_title: str = 'Value distribution'
             if data_dictionary['info']['values'] == 'intensity':
@@ -411,7 +411,7 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             with open(db.get_cache_file(session_uid, 'protein lengths.json'),'w',encoding='utf-8') as fil:
                 json.dump(data_dictionary['other']['protein lengths'] ,fil, indent = 4)
 
-            return [
+            return (
                 [
                     dcc.Loading(type='circle',
                                 id='proteomics-filtering-figure'),
@@ -430,8 +430,8 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
                     dcc.Loading(type='circle', id='proteomics-volcano-plots'),
                 ],
                 data_dictionary
-            ]
-    return dash.no_update
+            )
+    return (dash.no_update, dash.no_update)
 
 
 @callback(
@@ -449,8 +449,8 @@ def proteomics_filter_figure(figure_loadings, data_dictionary) -> list:
             pd.read_json(original_counts, typ='series'),
             pd.read_json(filtered_counts, typ='series'),
             title='NA Filtering',
-            name_legend = db.figure_data['Proteomics filter figure']
-        )
+            name_legend = db.figure_data['Proteomics NA filtering figure']
+        )[1]
     return [graph]
 
 @callback(
@@ -470,7 +470,7 @@ def proteomics_normalization_figure(_, data_dictionary,) -> list:
         [pre_norm, data_table],
         names=['Before normalization', 'After normalization'],
         id_name='normalization-plot', title='Normalization'
-    )]
+    )[1]]
 
 
 @callback(
@@ -483,7 +483,7 @@ def proteomics_imputation_figure(_, data_dictionary) -> list:
     data_table = data_dictionary['final data table']
     pre_imp: pd.DataFrame = pd.read_json(pre_imp, orient='split')
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
-    return [figure_generation.imputation_histogram(pre_imp, data_table)]
+    return [figure_generation.imputation_histogram(pre_imp, data_table)[1]]
 
 
 @callback(
@@ -499,7 +499,7 @@ def proteomics_distribution_figure(_, data_dictionary, rep_colors) -> list:
         data_table,
         rep_colors,
         data_dictionary['sample groups']['rev']
-    )]
+    )[1]]
 
 
 @callback(
@@ -510,7 +510,7 @@ def proteomics_distribution_figure(_, data_dictionary, rep_colors) -> list:
 def proteomics_cv_figure(_, data_dictionary) -> list:
     data_table = data_dictionary['final data table']
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
-    return [figure_generation.coefficient_of_variation_plot(data_table, title='%CV')]
+    return [figure_generation.coefficient_of_variation_plot(data_table, title='%CV')[1]]
 
 
 @callback(
@@ -521,7 +521,7 @@ def proteomics_cv_figure(_, data_dictionary) -> list:
 def proteomics_pca_figure(_, data_dictionary) -> list:
     data_table = data_dictionary['final data table']
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
-    return [figure_generation.pca_plot(data_table, data_dictionary['sample groups']['rev'])]
+    return [figure_generation.pca_plot(data_table, data_dictionary['sample groups']['rev'])[1]]
 
 
 @callback(
@@ -534,7 +534,7 @@ def proteomics_correlation_clustermap_figure(_, data_dictionary) -> list:
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
     return [
         html.Div('Sample correlation'),
-        figure_generation.correlation_clustermap(data_table)
+        figure_generation.correlation_clustermap(data_table)[1]
     ]
 
 
@@ -548,7 +548,7 @@ def proteomics_full_clustermap_figure(_, data_dictionary) -> list:
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
     return [
         html.Div('Sample clustering'),
-        figure_generation.full_clustermap(data_table)
+        figure_generation.full_clustermap(data_table)[1]
     ]
 
 
@@ -569,7 +569,7 @@ def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
                     data_table,
                     data_dictionary['sample groups']['norm'],
                     control_group
-        )
+        )[1]
         )
     ]
 
@@ -633,7 +633,7 @@ def generate_proteomics_tab() -> dbc.Tab:
                                    id='filter-minimum-percentage'),
                         dbc.Select(
                             options=[
-                                {'label': 'upload-complete-indicator', 'value': 'upload-complete-indicator'}
+                                {'label': 'wait', 'value': 'wait'}
                             ],
                             required=True,
                             id='control-dropdown',
@@ -670,7 +670,7 @@ def generate_proteomics_tab() -> dbc.Tab:
     return dbc.Tab(proteomics_tab, label='Proteomics', id='proteomics-tab')
 
 
-def checklist(label: str, options: list, default_choice: list, disabled: list = None, id_prefix: str = None, simple_text_clean: bool = False) -> dbc.Checklist:
+def checklist(label: str, options: list, default_choice: list, disabled: list = None, id_prefix: str = None, simple_text_clean: bool = False, id_only:bool=False) -> dbc.Checklist:
     if disabled is None:
         disabled: set = set()
     else:
@@ -680,6 +680,8 @@ def checklist(label: str, options: list, default_choice: list, disabled: list = 
         checklist_id = f'{id_prefix}-{label.strip(":").strip().replace(" ","-").lower()}'
     else:
         checklist_id = f'{id_prefix}-{text_functions.clean_text(label.lower())}'
+    if id_only:
+        label = ''
     return [
         label,
         dbc.Checklist(
@@ -713,11 +715,12 @@ def map_intensity(saint_output, intensity_table, sample_groups) -> list:
     State('interactomics-choose-additional-control-sets', 'value'),
     State('interactomics-choose-crapome-sets', 'value'),
     State('interactomics-choose-uploaded-controls', 'value'),
+    State('interactomics-additional-steps','value'),
     State('output-data-upload', 'data'),
     State('session-uid', 'children'),
     prevent_initial_call=True
 )
-def generate_saint_container(_, inbuilt_controls, crapome_controls, control_sample_groups, data_dictionary, session_uid) -> html.Div:
+def generate_saint_container(_, inbuilt_controls, crapome_controls, control_sample_groups, additional_options, data_dictionary, session_uid) -> html.Div:
     spc_table: pd.DataFrame = pd.read_json(
         data_dictionary['data tables']['spc'], orient='split')
     if spc_table.columns[0] == 'No data':
@@ -780,21 +783,21 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
                 f'Found in samples: {", ".join(sorted(list(discarded_specsum.index.values)))}'
             ])
         )
-
-    before_contaminants: int = saint_output.shape[0]
-    removed_contaminants: list = sorted(list(set(saint_output[saint_output['Is contaminant']]['PreyGene'].values)))
-    saint_output = saint_output[~saint_output['Is contaminant']]
-    after_contaminants: int = saint_output.shape[0]
-    if after_contaminants == before_contaminants:
-        saint_output = saint_output.drop(columns=['Is contaminant'])
-    else:
-        container_contents.append(
-            html.Div([
-                f'Removed {before_contaminants-after_contaminants} "interactions" with common contaminants from the output dataset.',
-                html.Br(),
-                f'Removed contaminants: {", ".join(removed_contaminants)}'
-            ])
-        )
+    if 'Remove contaminants' in additional_options:
+        before_contaminants: int = saint_output.shape[0]
+        removed_contaminants: list = sorted(list(set(saint_output[saint_output['Is contaminant']]['PreyGene'].values)))
+        saint_output = saint_output[~saint_output['Is contaminant']]
+        after_contaminants: int = saint_output.shape[0]
+        if after_contaminants == before_contaminants:
+            saint_output = saint_output.drop(columns=['Is contaminant'])
+        else:
+            container_contents.append(
+                html.Div([
+                    f'Removed {before_contaminants-after_contaminants} "interactions" with common contaminants from the output dataset.',
+                    html.Br(),
+                    f'Removed contaminants: {", ".join(removed_contaminants)}'
+                ])
+            )
 
     intensity_table: pd.DataFrame = pd.read_json(
         data_dictionary['data tables']['intensity'], orient='split')
@@ -858,9 +861,10 @@ def filter_saint(saint_output, saint_bfdr: float, crapome_freq: float, crapome_r
     State('crapome-rescue-threshold', 'value'),
     State('raw-interactomics-data', 'data'),
     State('session-uid', 'children'),
+    State('interactomics-choose-enrichments', 'value'),
     prevent_initial_call=True,
 )
-def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_data,session_uid) -> list:
+def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_data,session_uid, enrichments_to_do) -> list:
     if n_clicks is None:
         return dash.no_update
     saint_output: pd.DataFrame = filter_saint(
@@ -908,7 +912,10 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     figures.append(figure)
     enrichment_names: list
     enrichment_results: pd.DataFrame
-    enrichment_names, enrichment_results = data_functions.enrich_per_bait(saint_output, 'pantherdb', 'defaults')
+    with open('sebugging','w') as fil:
+        fil.write(str(enrichments_to_do))
+    enrichment_names, enrichment_results = data_functions.enrich_all_per_bait(saint_output, enrichments_to_do)#'pantherdb', 'defaults')
+    
     figures.append(
         dbc.Tabs(
             id='interactomics-enrichment-tabs',
@@ -1040,6 +1047,7 @@ def make_enrichment_tabs(names, results) -> list:
         table: dash_table.DataTable = dash_table.DataTable(
                 data = filtered_result.to_dict('records'),
                 columns = [{"name": i, "id": i} for i in filtered_result.columns],
+                page_size = 15,
                 style_table={
                     'maxHeight': 600
                 },
@@ -1107,6 +1115,149 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
     )
     return (figure, filtered_saint.to_json(orient='split'))
 
+@callback(
+    Output('interactomics-choose-uploaded-controls','value'),
+    [Input('interactomics-select-all-uploaded', 'value')],
+    [State('interactomics-choose-uploaded-controls', 'options')],
+    prevent_initial_call=True
+)
+def select_all_none_controls(all_selected, options) -> list:
+    all_or_none: list = [option['value'] for option in options if all_selected]
+    return all_or_none
+
+@callback(
+    Output('interactomics-choose-additional-control-sets','value'),
+    [Input('interactomics-select-all-inbuilt-controls', 'value')],
+    [State('interactomics-choose-additional-control-sets', 'options')],
+    prevent_initial_call=True
+)
+def select_all_none_inbuilt_controls(all_selected, options) -> list:
+    all_or_none: list = [option['value'] for option in options if all_selected]
+    return all_or_none
+
+@callback(
+    Output('interactomics-choose-crapome-sets','value'),
+    [Input('interactomics-select-all-crapomes', 'value')],
+    [State('interactomics-choose-crapome-sets', 'options')],
+    prevent_initial_call=True
+)
+def select_all_none_crapomes(all_selected, options) -> list:
+    all_or_none: list = [option['value'] for option in options if all_selected]
+    return all_or_none
+
+@callback(
+    Output('interactomics-choose-enrichments','value'),
+    [Input('interactomics-select-all-enrichments', 'value')],
+    [State('interactomics-choose-enrichments', 'options')],
+    prevent_initial_call=True
+)
+def select_all_none_enrichments(all_selected, options) -> list:
+    all_or_none: list = [option['value'] for option in options if all_selected]
+    return all_or_none
+
+def interactomics_control_col(all_sample_groups, chosen) -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all uploaded',
+                ['Select all uploaded'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+                simple_text_clean = True
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose uploaded controls:',
+                all_sample_groups,
+                chosen,
+                id_prefix='interactomics',
+                simple_text_clean=True
+            )
+        ),
+        html.Br(),
+        html.Div(
+            checklist(
+                'Additional steps:',
+                ['Remove contaminants'],
+                ['Remove contaminants'],
+                id_prefix='interactomics',
+                simple_text_clean=True
+            )
+        )
+    ])
+
+def interactomics_inbuilt_control_col() -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all inbuilt controls',
+                ['Select all inbuilt controls'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+                simple_text_clean = True
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose additional control sets:',
+                db.controlsets,
+                db.default_controlsets,
+                disabled=db.disabled_controlsets,
+                id_prefix='interactomics',
+                simple_text_clean=True
+            )
+        )
+    ])
+
+def interactomics_crapome_col() -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all crapomes',
+                ['Select all crapomes'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+                simple_text_clean = True
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose Crapome sets:',
+                db.crapomesets,
+                db.default_crapomesets,
+                disabled=db.disabled_crapomesets,
+                id_prefix='interactomics',
+                simple_text_clean=True
+            )
+        )
+    ])
+
+def interactomics_enrichment_col() -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all enrichments',
+                ['Select all enrichments'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+                simple_text_clean = True
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose enrichments:',
+                data_functions.available_enrichments,
+                data_functions.default_enrichments,
+                id_prefix='interactomics',
+                simple_text_clean=True
+            )
+        )
+    ])
 
 def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> dbc.Tab:
     all_sample_groups: list = []
@@ -1129,50 +1280,22 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
                             children=[
                                 dbc.Row(
                                     [
-                                        dbc.Col(
-                                            checklist(
-                                                'Choose uploaded controls:',
-                                                all_sample_groups,
-                                                chosen,
-                                                id_prefix='interactomics',
-                                                simple_text_clean=True
-                                            )
-                                        ),
-                                        dbc.Col(
-                                            checklist(
-                                                'Choose additional control sets:',
-                                                db.controlsets,
-                                                db.default_controlsets,
-                                                disabled=db.disabled_controlsets,
-                                                id_prefix='interactomics',
-                                                simple_text_clean=True
-                                            )
-                                        ),
-                                        dbc.Col(
-                                            checklist(
-                                                'Choose Crapome sets:',
-                                                db.crapomesets,
-                                                db.default_crapomesets,
-                                                disabled=db.disabled_crapomesets,
-                                                id_prefix='interactomics',
-                                                simple_text_clean=True
-                                            )
-                                        )
-                                    ]
-                                ),
+                                        interactomics_control_col(all_sample_groups, chosen),
+                                        interactomics_inbuilt_control_col(),
+                                        interactomics_crapome_col(),
+                                        interactomics_enrichment_col()
+                                    ]),
                                 dbc.Row(
                                     [
                                         dbc.Button('Run SAINT analysis',
                                                    id='button-run-saint-analysis'),
-                                    ]
-                                )
+                                    ])
+                                ])
                             ]
-                        ),
-                        dcc.Loading(id='interactomics-saint-container',),
-                        dcc.Loading(id='interactomics-post-saint-analysis-graphs'),
-                    ]
-                )
-            ]
+                ),
+                dcc.Loading(id='interactomics-saint-container',),
+                dcc.Loading(id='interactomics-post-saint-analysis-graphs'),
+            ]   
         )
     )
     return dbc.Tab(interactomics_tab, label='Interactomics', id='interactomics-tab')
