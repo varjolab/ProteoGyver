@@ -1,5 +1,5 @@
 {
-    "Run data": ["assets", "resources", "Combined runlist.tsv"],
+    "Run data": ["assets", "Combined runlist.tsv"],
     "Known types": {
         "Who": ["Iftekhar", "Kari"],
         "Cell line / material": ["HEK293 Flp-In T-ReX"],
