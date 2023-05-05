@@ -30,8 +30,6 @@ db: DbEngine = DbEngine()
 figure_generation: FigureGeneration = FigureGeneration()
 data_functions: DataFunctions = DataFunctions(os.path.join(*db.parameters['data functions']))
 
-#app: Dash = Dash(__name__)
-#server: app.server = app.server
 dash.register_page(__name__, path='/')
 styles: Styles = Styles()
 figure_templates: list = [
@@ -42,7 +40,6 @@ figure_templates: list = [
     'seaborn',
     'simple_white'
 ]
-# dash.register_page(__name__)
 
 
 def read_df_from_content(content, filename) -> pd.DataFrame:
@@ -273,7 +270,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             if not os.path.isdir(figure_data_dir):
                 os.makedirs(figure_data_dir)
             figures.append(
-                figure_generation.supervenn(
+                figure_generation.sample_commonality_plot(
                     data_table,
                     data_dictionary['sample groups']['rev'],
                     save_figure = os.path.join(figure_dir, 'Supervenn'),
@@ -994,6 +991,9 @@ def interactomics_volcano_plots(control_group, saint_output, data_dictionary) ->
     intensity_table = intensity_table.drop(
         index=non_hci_preys
     )
+    print(sample_groups)
+    print(control_group)
+    print(intensity_table.head())
     return figure_generation.volcano_plots(
                 intensity_table,
                 sample_groups,

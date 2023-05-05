@@ -407,6 +407,8 @@ class FigureGeneration:
             figure,
             dcc.Graph(config=self.defaults['config'], id='protein-count-figure', figure=figure)
         )
+    
+
 
     def protein_coverage(self, data_table) -> dcc.Graph:
         figure: go.Figure = self.bar_plot(
@@ -993,8 +995,45 @@ class FigureGeneration:
             figure,
             dcc.Graph(config=self.defaults['config'], figure=figure, id=f'{title.lower().replace(" ","-")}')
         )
+    
+    def sample_commonality_plot(self, data_table, rev_sample_groups,save_figure, save_format) -> go.Figure:
+        
+        group_sets: dict = {}
+        for column in data_table.columns:
+            col_proteins: set = set(data_table[[column]].dropna().index.values)
+            group_name: str = rev_sample_groups[column]
+            if group_name not in group_sets:
+                group_sets[group_name] = set()
+            group_sets[group_name] |= col_proteins
 
-    def supervenn(self, data_table: pd.DataFrame, rev_sample_groups: dict, save_figure:str=None, save_format:str='svg') -> html.Img:
+        if len(group_sets.keys()) <= 6:
+            return self.supervenn(group_sets, save_figure, save_format)
+        else:
+            return self.common_heatmap(group_sets)
+
+    def common_heatmap(group_sets: dict) -> dcc.Graph:
+        hmdata: list = []
+        index: list = list(group_sets.keys())
+        done = set()
+        for gname in index:
+            hmdata.append([])
+            for gname2 in index:
+                val: float
+                if gname == gname2:
+                    val = np.nan
+                nstr: str = ''.join(sorted([gname,gname2]))
+                if nstr in done:
+                    val = np.nan
+                else:
+                    val = len(group_sets[gname] & group_sets[gname2])
+                hmdata[-1].append(val)
+        return dcc.Graph(
+            fig = px.imshow(pd.DataFrame(data=hmdata,index=index,columns=index))
+            )
+
+
+
+    def supervenn(self, group_sets: dict, save_figure:str=None, save_format:str='svg') -> html.Img:
         """Draws a super venn plot for the input data table.
 
         See https://github.com/gecko984/supervenn for details of the plot.
@@ -1008,13 +1047,6 @@ class FigureGeneration:
         Returns:
         returns html.Img object containing the figure data in png form.
         """
-        group_sets: dict = {}
-        for column in data_table.columns:
-            col_proteins: set = set(data_table[[column]].dropna().index.values)
-            group_name: str = rev_sample_groups[column]
-            if group_name not in group_sets:
-                group_sets[group_name] = set()
-            group_sets[group_name] |= col_proteins
 
         # Buffer for use
         buffer: io.BytesIO = io.BytesIO()
