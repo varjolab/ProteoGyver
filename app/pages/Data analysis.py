@@ -19,7 +19,6 @@ from dash.dependencies import Input, Output, State
 from DbEngine import DbEngine
 from FigureGeneration import FigureGeneration
 from styles import Styles
-from utilitykit import plotting
 import shutil
 import dash_cytoscape as cyto
 from dash import dash_table
@@ -58,24 +57,6 @@ def read_df_from_content(content, filename) -> pd.DataFrame:
     elif f_end in ['xlsx', 'xls']:
         data: pd.DataFrame = pd.read_excel(io.StringIO(decoded_content))
     return data
-
-
-def add_replicate_colors(data_df, column_to_replicate) -> None:
-    need_cols: int = list(
-        {
-            column_to_replicate[sname] for sname in
-            data_df.index.unique()
-            if sname in column_to_replicate
-        }
-    )
-    colors: list = plotting.get_cut_colors(number_of_colors=len(need_cols))
-    colors = plotting.cut_colors_to_hex(colors)
-    colors = {sname: colors[i] for i, sname in enumerate(need_cols)}
-    color_column: list = []
-    for sample_name in data_df.index.values:
-        color_column.append(colors[column_to_replicate[sample_name]])
-    data_df.loc[:, 'Color'] = color_column
-
 
 @callback(
     Output('workflow-choice', 'data'),
@@ -204,7 +185,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             )
             count_data: pd.DataFrame = data_functions.get_count_data(
                 data_table)
-            add_replicate_colors(
+            figure_generation.add_replicate_colors(
                 count_data, data_dictionary['sample groups']['rev'])
             rep_colors: dict = {}
             for sname, sample_color_row in count_data[['Color']].iterrows():

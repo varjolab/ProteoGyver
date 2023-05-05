@@ -9,7 +9,6 @@ from plotly import io as pio
 import plotly.graph_objects as go
 from dash import html, dcc
 import dash_bio
-from utilitykit import plotting
 from statsmodels.stats import multitest
 from scipy.stats import ttest_ind
 from sklearn import manifold, decomposition
@@ -80,6 +79,21 @@ class FigureGeneration:
                     fil.write(figure_legend)
                 figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
 
+    def get_cut_colors(self, colormapname: str = 'gist_ncar', number_of_colors: int = 15,
+                    cut: float = 0.4) -> list:
+        """Returns cut colors from the given colormapname
+
+        Parameters:
+        - colormap: which matplotlib colormap to use
+        - number_of_colors: how many colors to return. Colors will be equally spaced in the map
+        - cut: how much to cut the colors.
+        """
+        number_of_colors += 1
+        colors = (1. - cut) * (plt.get_cmap(colormapname)(np.linspace(0., 1., number_of_colors))) + \
+            cut * np.ones((number_of_colors, 4))
+        colors = colors[:-1]
+        return colors
+
     def add_replicate_colors(self, data_df: pd.DataFrame, group_dict: dict) -> None:
         """Adds "Color" column to long-format data_df based on group_dict dictionary.
         Each group will get its own color, and data_df.index should correspond to sample_names, which are found in group_dict as keys.
@@ -95,8 +109,7 @@ class FigureGeneration:
                 if sname in group_dict
             }
         )
-        colors: list = plotting.get_cut_colors(number_of_colors=len(need_cols))
-        colors = plotting.cut_colors_to_hex(colors)
+        colors: list = self.get_cut_colors(number_of_colors=len(need_cols))
         colors = {sname: colors[i] for i, sname in enumerate(need_cols)}
         color_column: list = []
         for sample_name in data_df.index.values:
