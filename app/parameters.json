@@ -1,5 +1,5 @@
 {
-    "Run data": "/mnt/c/DATA/Varjosalo lab Dropbox/Kari S/WIP_inprogress/2022 Analyysialusta/Combined runlist.tsv",
+    "Run data": ["assets", "resources", "Combined runlist.tsv"],
     "Known types": {
         "Who": ["Iftekhar", "Kari"],
         "Cell line / material": ["HEK293 Flp-In T-ReX"],

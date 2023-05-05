@@ -149,7 +149,8 @@ class DbEngine:
 
     @data.setter
     def data(self, data_frame: Union[pd.DataFrame, str]) -> None:
-        if isinstance(data_frame, str):
+        if isinstance(data_frame, list):
+            data_frame = os.sep.join(data_frame)
             data_frame: pd.DataFrame = pd.read_csv(data_frame, sep='\t')
         self._data: pd.DataFrame = data_frame
         self.last_id = self._data['id'].max()+1
