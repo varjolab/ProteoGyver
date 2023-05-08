@@ -70,14 +70,12 @@ class FigureGeneration:
             for i, figure in enumerate(save_data[0]):
                 figure_name:str = save_data[1][i][0]
                 figure_legend:str = save_data[1][i][1]
+                if isinstance(figure, str):
+                    os.rename(figure, os.path.join(figure_dir,figure_name+'.pdf'))
                 figure: go.Figure = go.Figure(figure)
-                #TODO: enable this after testing on an actual server.
-                #figure.write_image(
-                #    os.path.join(figure_dir, figure_name+'.png')
-                #)
                 with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
                     fil.write(figure_legend)
-                figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
+                    figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
 
     def get_cut_colors(self, colormapname: str = 'gist_ncar', number_of_colors: int = 15,
                     cut: float = 0.4) -> list:
@@ -114,7 +112,11 @@ class FigureGeneration:
         color_column: list = []
         for sample_name in data_df.index.values:
             color_column.append(colors[group_dict[sample_name]])
-        data_df.loc[:, 'Color'] = color_column
+            
+        colors: list = []
+        for c1,c2,c3,c4 in color_column:
+            colors.append(f'rgba({c1},{c2},{c3},{c4})')
+        data_df.loc[:, 'Color'] = colors
 
 
     def comparative_violin_plot(self, sets: list, names: list = None, id_name: str = None, title: str = None, colors: list = None) -> dcc.Graph:
@@ -205,17 +207,13 @@ class FigureGeneration:
                 height=self.defaults['height'],
                 width=self.defaults['width']
             )
-        if name_legend is None:
-            return (
-                figure,
-                dcc.Graph(config=self.defaults['config'], 
-                id='before-and-after-na-filter-figure',
-                figure=figure
-                )
+        return (
+            figure,
+            dcc.Graph(config=self.defaults['config'], 
+            id='before-and-after-na-filter-figure',
+            figure=figure
             )
-        else:
-
-            return ('',dcc.Graph())
+        )
 
 
     def histogram(self, data_table: pd.DataFrame, x_column: str, title: str, **kwargs) -> dcc.Graph:
@@ -304,6 +302,7 @@ class FigureGeneration:
         hide_legend: True, if legend should be hidden
         color_discrete_map: if True, color_discrete_map='identity' will be used with the plotly function.
         """
+        value_df.to_csv('testdf.csv')
         colorval: str
         if color_col is not None:
             colorval = color_col
@@ -409,7 +408,7 @@ class FigureGeneration:
             na_data, title='Missing values per sample', color_discrete_map=True)
         return (
             figure,
-            dcc.Graph(config=self.defaults['config'], id='protein-count-figure', figure=figure)
+            dcc.Graph(config=self.defaults['config'], id='missing-count-figure', figure=figure)
         )
 
     def protein_count_figure(self, count_data) -> dcc.Graph:
@@ -420,8 +419,6 @@ class FigureGeneration:
             figure,
             dcc.Graph(config=self.defaults['config'], id='protein-count-figure', figure=figure)
         )
-    
-
 
     def protein_coverage(self, data_table) -> dcc.Graph:
         figure: go.Figure = self.bar_plot(
@@ -501,10 +498,10 @@ class FigureGeneration:
         # Calculate log2 fold change for each protein between the two sample groups
         if data_is_log2_transformed:
             log2_fold_change: pd.Series = data_table[sample_columns].mean(
-                axis=1) / data_table[control_columns].mean(axis=1)
+                axis=1) - data_table[control_columns].mean(axis=1)
         else:
             log2_fold_change: pd.Series = np.log2(data_table[sample_columns].mean(
-                axis=1)) / np.log2(data_table[control_columns].mean(axis=1))
+                axis=1)) - np.log2(data_table[control_columns].mean(axis=1))
 
         # Calculate the p-value for each protein using a two-sample t-test
         p_value: float = data_table.apply(lambda x: ttest_ind(
@@ -524,6 +521,7 @@ class FigureGeneration:
         result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
         result['Highlight'] = [row['Name'] if row['significant']
                             else '' for _, row in result.iterrows()]
+        result.sort_values(by='significant',ascending=True,inplace=True)
         # Draw the volcano plot using plotly express
         fig: go.Figure = px.scatter(
             result,
@@ -1024,7 +1022,7 @@ class FigureGeneration:
         else:
             return self.common_heatmap(group_sets)
 
-    def common_heatmap(group_sets: dict) -> dcc.Graph:
+    def common_heatmap(self,group_sets: dict) -> dcc.Graph:
         hmdata: list = []
         index: list = list(group_sets.keys())
         done = set()
@@ -1040,9 +1038,12 @@ class FigureGeneration:
                 else:
                     val = len(group_sets[gname] & group_sets[gname2])
                 hmdata[-1].append(val)
-        return dcc.Graph(
-            fig = px.imshow(pd.DataFrame(data=hmdata,index=index,columns=index))
-            )
+        figure = px.imshow(pd.DataFrame(data=hmdata,index=index,columns=index))
+        return [
+            figure, 
+            dcc.Graph(
+            figure = figure
+            )]
 
 
 
@@ -1054,7 +1055,7 @@ class FigureGeneration:
         data_table: table of samples (columns) and measurements(rows)
         rev_sample_groups: dictionary of {sample_column_name: sample_group_name} containing all sample columns.
         figure_name: name for the figure title, as well as saved file
-        save_figure: directory to save the generated figure into. if None (default), figure will not be saved.
+        save_figure: Path to save the generated figure. if None (default), figure will not be saved.
         save_format: format for the saved figure. default is svg.
 
         Returns:
@@ -1085,18 +1086,20 @@ class FigureGeneration:
         plt.xlabel('Shared proteins')
         plt.ylabel('Sample group')
         plt.savefig(buffer, format="png")
+        ret_figure: str = None
         if save_figure:
             plt.savefig(f'{save_figure}.{save_format}', format=save_format)
             with open(os.path.join(save_figure + '.txt'),'w',encoding='utf-8') as fil:
                 fil.write(
                     'Supervenn describes how many proteins each sample group has in common, and how many proteins are in each of the groups (e.g. how many proteins samples 1 and 2 have in common etc.)'
                 )
+            ret_figure = f'{save_figure}.{save_format}'
         plt.close()
         data: str = base64.b64encode(buffer.getbuffer()).decode(
             "utf8")  # encode to html elements
         buffer.close()
         return (
-            None,
+            ret_figure,
             html.Img(id='supervennfigure', src=f'data:image/png;base64,{data}')
         )
 

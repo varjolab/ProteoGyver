@@ -61,5 +61,5 @@ app.layout = html.Div([
 ])
 
 if __name__ == '__main__':
-    app.run_server()#debug=True)
+    app.run_server(debug=True)
 # <iframe src="https://www.chat.openai.com/chat" title="ChatGPT Embed"></iframe>

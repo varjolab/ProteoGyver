@@ -258,6 +258,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                     save_format = 'pdf'
                 )
             )
+            figure_names_and_legends.append(['Shared proteins', 'This plot describes number of shared proteins between different sample groups.'])
             count_data.to_csv(os.path.join(figure_data_dir, 'Count data.tsv'),sep='\t',encoding = 'utf-8')
             sumdata.to_csv(os.path.join(figure_data_dir, 'Sum data.tsv'),sep='\t',encoding = 'utf-8')
             na_data.to_csv(os.path.join(figure_data_dir, 'NA data.tsv'),sep='\t',encoding = 'utf-8')
