@@ -1,7 +1,6 @@
 
 from uuid import uuid4, UUID
-from dash.dependencies import Input, Output, State
-from dash import Dash, html, callback  # dcc,DiskcacheManager, CeleryManager
+from dash import Dash, html, callback, Input, Output, State  # dcc,DiskcacheManager, CeleryManager
 import dash_bootstrap_components as dbc
 import dash
 from DbEngine import DbEngine
@@ -18,6 +17,10 @@ app: Dash = Dash(
     ],
     suppress_callback_exceptions=True)
 app.title = 'Data analysis alpha version'
+app.enable_dev_tools(debug=True)
+#app.config.from_pyfile('app_config.py')
+#app.enable_devtools
+server = app.server
 print('Site pages:')
 for page in dash.page_registry.values():
     print(page['name'])
@@ -58,5 +61,5 @@ app.layout = html.Div([
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()#debug=True)
 # <iframe src="https://www.chat.openai.com/chat" title="ChatGPT Embed"></iframe>
