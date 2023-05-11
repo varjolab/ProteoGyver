@@ -8,6 +8,7 @@ import json
 import os
 from typing import Any
 import dash
+from matplotlib.pyplot import isinteractive
 import dash_bootstrap_components as dbc
 from DataFunctions import DataFunctions
 import plotly.graph_objects as go
@@ -308,36 +309,29 @@ def download_data_table_example(_) -> dict:
     prevent_initial_call=True
 )
 def download_data_table(_, data_dictionary,session_uid) -> dict:
-    export_csvs: list = [
-        'spc table',
-        'intensity table',
-        'raw intensity table'
-    ]
-    export_jsons: list = [
-        'sample groups',
-        'rev sample groups'
-    ]
-    export_fileinfo: list = [
-        f'Values: {data_dictionary["values"]}',
-        f'Data type: {data_dictionary["data type"]}',
-        'Guessed controls:'
-    ]
-    export_fileinfo.extend(data_dictionary['sample groups']['guessed control samples'] [0])
-
-    export_dir: str = db.get_cache_dir(session_uid)
+    export_dir: str = os.path.join(db.get_cache_dir(session_uid),'export')
     if not os.path.isdir(export_dir):
-        os.makedirs(export_dir)
-    for key in export_csvs:
-        pd.read_json(data_dictionary[key], orient='split').to_csv(
-            os.path.join(export_dir, key + '.tsv'), sep='\t',encoding = 'utf-8')
-    for jsonkey in export_jsons:
-        with open(os.path.join(export_dir, key + '.json'), 'w',encoding='utf-8') as fil:
-            json.dump(data_dictionary[jsonkey], fil, indent = 4)
+        os.makedirs(os.path.join(export_dir, 'Figures', 'data'))
+    shutil.copytree(
+        os.path.join(db.get_cache_dir(session_uid),'Figures'),
+        os.path.join(export_dir, 'Figures')
+    )
+    export_fileinfo: list = []
+    for key, value in data_dictionary['info'].items():
+        export_fileinfo.append(key)
+        if isinstance(value,list) or isinstance(value,set):
+            export_fileinfo.append('\n'.join(value))
+        else:
+            export_fileinfo.append(f'{value}')
+        export_fileinfo.append('')
+    for key, table in data_dictionary['data tables'].items():
+        pd.read_json(table, orient='split').to_excel(os.path.join(export_dir, f'{key}.xlsx'))
     with open(os.path.join(export_dir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
+    with open(os.path.join(export_dir, 'full data for debugging.json'),'w',encoding='utf-8') as fil:
+        json.dump(data_dictionary,fil)
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
     return dcc.send_file(export_dir.rstrip(os.sep) + '.zip')
-
 
 @callback(
     Output('data-processing-figures', 'children'),
@@ -542,13 +536,19 @@ def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
         return dash.no_update
     data_table = data_dictionary['final data table']
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
-    return [
-        html.Div(id='volcano-plot-label', children='Volcano plots'),
-        html.Div(id='volcano-plot-container', children=figure_generation.volcano_plots(
+
+    significants: pd.DataFrame
+    figures: list
+    volcano_graphs: list
+    significants, figures, volcano_graphs = figure_generation.volcano_plots(
                     data_table,
                     data_dictionary['sample groups']['norm'],
                     control_group
-        )[1]
+        )
+    data_dictionary['data tables'][f'Comparisons vs {control_group}'] = significants.to_json(orient='split')
+    return [
+        html.Div(id='volcano-plot-label', children='Volcano plots'),
+        html.Div(id='volcano-plot-container', children=volcano_graphs
         )
     ]
 
@@ -1357,10 +1357,6 @@ upload_row_3: list = [
 upload_tab: dbc.Card = dbc.Card(
     dbc.CardBody(
         [
-            dbc.Button(
-                'Export all data',
-                id='button-export-all-data'
-            ),
             html.Div(
                 [
                     dbc.Row(
@@ -1406,12 +1402,18 @@ upload_tab: dbc.Card = dbc.Card(
 )
 
 
-tabs: dbc.Tabs = dbc.Tabs(
-    id='analysis-tabs',
-    children=[
-        dbc.Tab(upload_tab, label='Data upload and quick QC'),
-    ]
-)
+tabs: html.Div = html.Div([
+    dbc.Tabs(
+        id='analysis-tabs',
+        children=[
+            dbc.Tab(upload_tab, label='Data upload and quick QC'),
+        ]
+    ),
+    dbc.Button(
+        'Export all data',
+        id='button-export-all-data'
+    )
+    ])
 layout: html.Div = html.Div([
     # dbc.Button('Save session as project',
     #            id='session-save-button', color='success'),

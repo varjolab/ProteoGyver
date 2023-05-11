@@ -72,10 +72,11 @@ class FigureGeneration:
                 figure_legend:str = save_data[1][i][1]
                 if isinstance(figure, str):
                     os.rename(figure, os.path.join(figure_dir,figure_name+'.pdf'))
-                figure: go.Figure = go.Figure(figure)
-                with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
-                    fil.write(figure_legend)
-                    figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
+                else:
+                    figure: go.Figure = go.Figure(figure)
+                    with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
+                        fil.write(figure_legend)
+                        figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
 
     def get_cut_colors(self, colormapname: str = 'gist_ncar', number_of_colors: int = 15,
                     cut: float = 0.4) -> list:
@@ -454,10 +455,13 @@ class FigureGeneration:
         control_cols: list = sample_groups[control_group]
         volcanoes: list = []
         figures: list = []
+        significants: list = []
         for group_name, group_cols in sample_groups.items():
             if group_name == control_group:
                 continue
-            figure: go.Figure = self.volcano_plot(
+            sig_df: pd.DataFrame
+            figure: go.Figure
+            sig_df, figure = self.volcano_plot(
                         data_table,
                         group_name,
                         control_group,
@@ -465,6 +469,7 @@ class FigureGeneration:
                         control_cols,
                         data_is_log2_transformed = data_is_log2_transformed
                     )
+            significants.append(sig_df)
             figures.append(figure)
             volcanoes.append(
                 dcc.Graph(config=self.defaults['config'],
@@ -472,7 +477,7 @@ class FigureGeneration:
                     figure=figure
                 )
             )
-        return (figures, volcanoes)
+        return (pd.concat(significants), figures, volcanoes)
 
     def volcano_plot(
             self, data_table, sample_name, control_name, sample_columns, control_columns,
@@ -555,7 +560,7 @@ class FigureGeneration:
                     x1=fcrange, y1=p_thresh_val, line=dict(width=2, dash='dot'))
 
         # Show the plot
-        return fig
+        return result, fig
 
     def improve_text_position(self, data_frame: pd.DataFrame) -> list:
         """Returns a list of text positions in alternating pattern."""
