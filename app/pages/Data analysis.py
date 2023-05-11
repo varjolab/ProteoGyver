@@ -311,7 +311,7 @@ def download_data_table_example(_) -> dict:
 def download_data_table(_, data_dictionary,session_uid) -> dict:
     export_dir: str = os.path.join(db.get_cache_dir(session_uid),'export')
     if not os.path.isdir(export_dir):
-        os.makedirs(os.path.join(export_dir, 'Figures', 'data'))
+        os.makedirs(export_dir)
     shutil.copytree(
         os.path.join(db.get_cache_dir(session_uid),'Figures'),
         os.path.join(export_dir, 'Figures')
