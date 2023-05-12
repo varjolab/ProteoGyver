@@ -886,7 +886,7 @@ class FigureGeneration:
             y=plot_dataframe['Sample B'],
             height=self.defaults['height']*(len(plot_dataframe['Sample group'].unique())/2),
             width=self.defaults['width'],
-            color_continuous_scale='blues'
+            color_continuous_scale='blues',
             #marginal_x = 'histogram',
             #marginal_y = 'histogram',
             facet_col= 'Sample group',
