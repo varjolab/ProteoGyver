@@ -159,8 +159,8 @@ def list_to_chunks(original_list, chunk_size):
 )
 def save_figures(save_data, session_uid) -> None:
     figure_generation.save_figures(
-        save_data,
-        os.path.join(db.get_cache_dir(session_uid), 'Figures')
+        os.path.join(db.get_cache_dir(session_uid), 'Figures'),
+        save_data
     )
 
 
@@ -308,10 +308,12 @@ def download_data_table_example(_) -> dict:
     State('session-uid', 'children'),
     prevent_initial_call=True
 )
-def download_data_table(_, data_dictionary,session_uid) -> dict:
+def download_all_data(_, data_dictionary,session_uid) -> dict:
     export_dir: str = os.path.join(db.get_cache_dir(session_uid),'export')
-    if not os.path.isdir(export_dir):
-        os.makedirs(export_dir)
+    figure_generation.save_figures(os.path.join(db.get_cache_dir(session_uid),'Figures'), None)
+    if os.path.isdir(export_dir):
+        shutil.rmtree(export_dir)
+    os.makedirs(export_dir)
     shutil.copytree(
         os.path.join(db.get_cache_dir(session_uid),'Figures'),
         os.path.join(export_dir, 'Figures')

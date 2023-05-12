@@ -24,14 +24,20 @@ server = app.server
 print('Site pages:')
 for page in dash.page_registry.values():
     print(page['name'])
-navbar: dbc.NavbarSimple = dbc.NavbarSimple(
-    id='main-navbar',
-    children=[
+navbar_items = [
         dbc.NavItem(
             dbc.NavLink(page['name'], href=page['relative_path'])
         )
         for page in dash.page_registry.values()
-    ],
+    ]
+navbar_items.append(
+    dbc.NavItem(
+        dbc.NavLink('JupyterHub',href='pg-23.biocenter.helsinki.fi:8090/')
+    )
+)
+navbar: dbc.NavbarSimple = dbc.NavbarSimple(
+    id='main-navbar',
+    children=navbar_items,
     brand='Quick analysis',
     color='primary',
 

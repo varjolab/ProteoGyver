@@ -18,10 +18,6 @@ from supervenn import supervenn as svenn
 
 class FigureGeneration:
 
-    _defaults: dict
-    _save_dir: str
-    _generated_figures = []
-
     @property
     def defaults(self) -> dict:
         return self._defaults
@@ -30,13 +26,12 @@ class FigureGeneration:
     def defaults(self, default_dict: dict) -> None:
         self._defaults: dict = default_dict
     
-
     @property
     def generated_figures(self) -> list:
         return self._generated_figures
 
     def add_figure(self, figure, title, legend) -> None:
-        self._generated_figures.append([figure,title,legend])
+        self._generated_figures[title] = [legend,figure]
 
     @property
     def save_dir(self) -> str: 
@@ -64,19 +59,35 @@ class FigureGeneration:
         if config_keys is not None:
             for key, value in config_keys.items():
                 self._defaults[key] = value
+        self._defaults: dict
+        self._save_dir: str
+        self._generated_figures: dict = {}
 
-    def save_figures(self, save_data, figure_dir) -> None:
+    def save_figures(self, figure_dir: str, save_data: list) -> None:
+        for figure_name, (figure_legend, figure) in self.generated_figures.items():
+            if isinstance(figure, str):
+                os.rename(figure, os.path.join(figure_dir,figure_name+'testing.pdf'))
+            else:
+                figure: go.Figure = go.Figure(figure)
+                if figure_legend is None:
+                    figure_legend = ''
+                elif isinstance(figure_legend,list):
+                    figure_legend = '\n'.join(figure_legend)
+                with open(os.path.join(figure_dir, figure_name + 'testing.txt'),'w',encoding='utf-8') as fil:
+                    fil.write(figure_legend)
+                figure.write_html(os.path.join(figure_dir,figure_name+'testing.html'),config=self.defaults['config'])
+
         if save_data is not None:
             for i, figure in enumerate(save_data[0]):
                 figure_name:str = save_data[1][i][0]
                 figure_legend:str = save_data[1][i][1]
                 if isinstance(figure, str):
-                    os.rename(figure, os.path.join(figure_dir,figure_name+'.pdf'))
+                    os.rename(figure, os.path.join(figure_dir,figure_name+'testing2.pdf'))
                 else:
                     figure: go.Figure = go.Figure(figure)
-                    with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
+                    with open(os.path.join(figure_dir, figure_name + 'testing2.txt'),'w',encoding='utf-8') as fil:
                         fil.write(figure_legend)
-                        figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
+                        figure.write_html(os.path.join(figure_dir,figure_name+'testing2.html'),config=self.defaults['config'])
 
     def get_cut_colors(self, colormapname: str = 'gist_ncar', number_of_colors: int = 15,
                     cut: float = 0.4) -> list:
@@ -120,7 +131,7 @@ class FigureGeneration:
         data_df.loc[:, 'Color'] = colors
 
 
-    def comparative_violin_plot(self, sets: list, names: list = None, id_name: str = None, title: str = None, colors: list = None) -> dcc.Graph:
+    def comparative_violin_plot(self, sets: list, names: list = None, id_name: str = None, title: str = None, legend: str = None, colors: list = None) -> dcc.Graph:
         if id_name is None:
             id_name: str = 'comparative-violin-plot'
         if isinstance(colors, list):
@@ -161,9 +172,10 @@ class FigureGeneration:
                 height=self.defaults['height'],
                 width=self.defaults['width'],
                 )
-        
+
+        self.add_figure(figure, title, legend)
         return (
-            figure, 
+            figure,
             dcc.Graph(
                 config=self.defaults['config'],
                 id=id_name,
@@ -172,7 +184,7 @@ class FigureGeneration:
         )
 
 
-    def distribution_figure(self, data_table, color_dict, sample_groups, title: str = 'Value distribution') -> dcc.Graph:
+    def distribution_figure(self, data_table, color_dict, sample_groups, title: str = 'Value distribution', legend:str = None, ) -> dcc.Graph:
         rev_sample_groups: dict = {}
         for k, v in sample_groups.items():
             if v not in rev_sample_groups:
@@ -184,10 +196,10 @@ class FigureGeneration:
         for sample_group in names:
             data_frames.append(data_table[rev_sample_groups[sample_group]])
         id_str: str = 'value-distribution-figure'
-        return self.comparative_violin_plot(data_frames, names=names, title=title, id_name=id_str, colors=colors)
+        return self.comparative_violin_plot(data_frames, names=names, title=title, id_name=id_str, colors=colors, legend=legend)
 
 
-    def before_after_plot(self, before: pd.Series, after: pd.Series, title: str = None, name_legend:list = None) -> dcc.Graph:
+    def before_after_plot(self, before: pd.Series, after: pd.Series, title: str = None, name_legend:list = None, legend:str = None, ) -> dcc.Graph:
         data: list = [['Before or after', 'Count', 'Sample']]
         for i in before.index:
             if i in after.index:
@@ -217,7 +229,7 @@ class FigureGeneration:
         )
 
 
-    def histogram(self, data_table: pd.DataFrame, x_column: str, title: str, **kwargs) -> dcc.Graph:
+    def histogram(self, data_table: pd.DataFrame, x_column: str, title: str, legend:str = None, **kwargs) -> dcc.Graph:
         if 'height' not in kwargs:
             kwargs: dict = dict(kwargs,height=self.defaults['height'])
         if 'width' not in kwargs:
@@ -228,6 +240,7 @@ class FigureGeneration:
             title=title,
             **kwargs
         )
+        self.add_figure(figure, title, legend)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], 
@@ -237,7 +250,7 @@ class FigureGeneration:
         )
 
 
-    def imputation_histogram(self, non_imputed, imputed, title: str = None,**kwargs) -> dcc.Graph:
+    def imputation_histogram(self, non_imputed, imputed, title: str = None, legend:str = None, **kwargs) -> dcc.Graph:
         #x,y = sp.coo_matrix(non_imputed.isnull()).nonzero()
         non_imputed: pd.DataFrame = non_imputed.melt(ignore_index=False).rename(
             columns={'variable': 'Sample'})
@@ -259,6 +272,7 @@ class FigureGeneration:
             title=title,
             **kwargs
         )
+        self.add_figure(figure, title, legend)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], id='missing-value-histogram', figure=figure)
@@ -276,6 +290,7 @@ class FigureGeneration:
 
     def bar_plot(self, value_df: pd.DataFrame, 
                  title: str, 
+                 legend:str = None, 
                  x_name: str = None, 
                  x_label:str = None,
                  y_name: str = None,
@@ -348,11 +363,15 @@ class FigureGeneration:
         figure.update_xaxes(type='category')
         if hide_legend:
             figure.update_layout(showlegend=False)
+        
+        self.add_figure(figure, title, legend)
         return figure
 
 
-    def contaminant_figure(self, data_table: pd.DataFrame, contaminant_list: list) -> dcc.Graph:
+    def contaminant_figure(self, data_table: pd.DataFrame, contaminant_list: list, title:str = None, legend:str = None, ) -> dcc.Graph:
 
+        if title is None:
+            title = 'Contaminants'
         contaminant_list: list = list(set(contaminant_list) & set(data_table.index.values))
         plot_data: list = []
         plot_index: list = []
@@ -367,7 +386,6 @@ class FigureGeneration:
             sample_name: str = plot_index[i]
             plot_data.append([contaminants[sample_name].sum(), 'Contaminants'])
             plot_data.append([non_contaminants[sample_name].sum(), 'Non-contaminants'])
-
         figure: go.Figure = self.bar_plot(
                 pd.DataFrame(
                     data=plot_data,
@@ -375,10 +393,12 @@ class FigureGeneration:
                     columns=['Sum value','Contaminant'],
                 ),
                 x_label='Sample',
-                title='Contaminants',
+                title=title,
                 color_col='Contaminant',
                 color_discrete_map_dict = {'Contaminants': 'Red','Non-contaminants': 'Blue'}
             )
+
+        self.add_figure(figure, title, legend)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], 
@@ -388,7 +408,7 @@ class FigureGeneration:
         )
 
     # TODO: Merge these six functions into one. Or rather, delete them and just call bar_plot from data analysis.py
-    def sum_value_figure(self, sum_data,valname:str='Value') -> dcc.Graph:
+    def sum_value_figure(self, sum_data,valname:str='Value', legend:str = None, ) -> dcc.Graph:
         figure: go.Figure = self.bar_plot(
             sum_data, title=f'{valname} sum per sample', color_discrete_map=True)
         return (
@@ -396,7 +416,7 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], id='value-sum-figure', figure=figure)
         )
 
-    def avg_value_figure(self, avg_data,valname:str='Value') -> dcc.Graph:
+    def avg_value_figure(self, avg_data,valname:str='Value', legend:str = None, ) -> dcc.Graph:
         figure: go.Figure = self.bar_plot(
             avg_data, title=f'{valname} mean per sample', color_discrete_map=True)
         return (
@@ -404,7 +424,7 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], id='value-sum-figure', figure=figure)
         )
 
-    def missing_figure(self, na_data) -> dcc.Graph:
+    def missing_figure(self, na_data, legend:str = None, ) -> dcc.Graph:
         figure: px.bar = self.bar_plot(
             na_data, title='Missing values per sample', color_discrete_map=True)
         return (
@@ -412,7 +432,7 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], id='missing-count-figure', figure=figure)
         )
 
-    def protein_count_figure(self, count_data) -> dcc.Graph:
+    def protein_count_figure(self, count_data, legend:str = None, ) -> dcc.Graph:
         """Generates a bar plot of given data"""
         figure: px.bar = self.bar_plot(
             count_data, title='Proteins per sample', color_discrete_map=True)
@@ -421,17 +441,25 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], id='protein-count-figure', figure=figure)
         )
 
-    def protein_coverage(self, data_table) -> dcc.Graph:
+    def protein_coverage(self, data_table, title:str = None, legend:str = None, ) -> dcc.Graph:
+        if title is None:
+            title = 'Protein coverage'
+        if legend is None:
+            legend = [
+                'Protein coverage in the analyzed samples.',
+                'The plot shows how many proteins were shared by how many samples.'
+            ]
         figure: go.Figure = self.bar_plot(
                 pd.DataFrame(
                     data_table.notna()
                     .astype(int)
                     .sum(axis=1)
                     .value_counts(), columns=['Identified in # samples']),
-                'Protein coverage',
+                title,
                 y_label = 'Protein count',
                 color=False
                 )
+        self.add_figure(figure, title, legend)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], 
@@ -441,7 +469,7 @@ class FigureGeneration:
         )
 
 
-    def volcano_plots(self, data_table, sample_groups, control_group, data_is_log2_transformed:bool = True) -> list:
+    def volcano_plots(self, data_table, sample_groups, control_group, legend_for_all:str = None, data_is_log2_transformed:bool = True) -> list:
         """Generates volcano plots of all sample groups vs given control group in data_table.
 
         Parameters:
@@ -452,6 +480,8 @@ class FigureGeneration:
         Returns: 
         a list of [dcc.Graph] volcano plots.
         """
+        if legend_for_all is None:
+            legend_for_all = 'Changes are considered significant, if the associated FDR-corrected p-value is under 0.05, and the associated log2 fold change either over 1 or under -1.'
         control_cols: list = sample_groups[control_group]
         volcanoes: list = []
         figures: list = []
@@ -471,6 +501,12 @@ class FigureGeneration:
                     )
             significants.append(sig_df)
             figures.append(figure)
+            title: str = f'Volcano plot {group_name} vs {control_group}'
+            legend: list = [
+                    f'Volcano plot of {group_name} vs {control_group}.',
+                    legend_for_all
+                ]
+            self.add_figure(figure, title, legend)
             volcanoes.append(
                 dcc.Graph(config=self.defaults['config'],
                     id=f'volcano-{group_name}-vs-{control_group}',
@@ -568,7 +604,7 @@ class FigureGeneration:
         positions: list = ['top left','top right','top center','middle left','middle right','middle center','bottom left','bottom right','bottom center']
         return [positions[i % len(positions)] for i in range(data_frame.shape[0])]
 
-    def pca_plot(self, data_table: pd.DataFrame, rev_sample_groups: dict, n_components: int = 2, plot_name: str = None, plot_title: str = None) -> dcc.Graph:
+    def pca_plot(self, data_table: pd.DataFrame, rev_sample_groups: dict, n_components: int = 2, plot_name: str = None, legend:str = None, plot_title: str = None) -> dcc.Graph:
         """Draws a PCA plot of the given data_table
 
         Parameters:
@@ -584,8 +620,17 @@ class FigureGeneration:
         data_df: pd.DataFrame = data_table.T
         pca: decomposition.PCA = decomposition.PCA(n_components=n_components)
         pca_result: np.ndarray = pca.fit_transform(data_df)
-        data_df['PCA one'] = pca_result[:, 0]
-        data_df['PCA two'] = pca_result[:, 1]
+        
+        pc1: float
+        pc2: float
+        pc1,pc2 = pca.explained_variance_ratio_
+        pc1 = int(pc1*100)
+        pc2 = int(pc2*100)
+        pc1 = f'PC1 ({pc1}%)'
+        pc2 = f'PC1 ({pc2}%)'
+
+        data_df[pc1] = pca_result[:, 0]
+        data_df[pc2] = pca_result[:, 1]
         data_df['Sample group'] = [rev_sample_groups[i] for i in data_df.index]
         data_df['Sample name'] = data_df.index
         if plot_name is None:
@@ -594,11 +639,11 @@ class FigureGeneration:
             plot_name = '-' + plot_name
         if plot_title is None:
             plot_title:str = f'PCA {plot_name.strip("-")}'
-        data_df.sort_values(by='PCA one',ascending=True,inplace=True)
+        data_df.sort_values(by=pc1,ascending=True,inplace=True)
         figure: go.Figure = px.scatter(
             data_df,
-            x='PCA one',
-            y='PCA two',
+            x=pc1,
+            y=pc2,
             title=plot_title,
             color=data_df['Sample group'],
             height=self.defaults['height'],
@@ -606,7 +651,7 @@ class FigureGeneration:
         )
         figure.update_traces(
             marker_size=15,
-            #textposition=improve_text_position(data_df)
+            textposition=self.improve_text_position(data_df)
         )
         return (
             figure,
@@ -633,7 +678,7 @@ class FigureGeneration:
         return new_df
 
 
-    def coefficient_of_variation_plot(self, data_table: pd.DataFrame, plot_name: str = None, title: str = None,draw_trendline:bool=True,trendline:str=None,trendline_options:dict=None) -> dcc.Graph:
+    def coefficient_of_variation_plot(self, data_table: pd.DataFrame, plot_name: str = None, title: str = None,legend:str = None, draw_trendline:bool=True,trendline:str=None,trendline_options:dict=None) -> dcc.Graph:
         """Draws a CV plot of the given data_table with a trendline
 
         Parameters:
@@ -686,7 +731,7 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], figure=figure, id=f'scatter-{plot_name}')
         )
 
-    def heatmap(self,matrix_df: pd.DataFrame, plot_name:str, value_name:str) -> dcc.Graph:
+    def heatmap(self,matrix_df: pd.DataFrame, plot_name:str, value_name:str,legend:str = None) -> dcc.Graph:
         figure: go.Figure = px.imshow(matrix_df,
                                       aspect='auto',
                                       labels=dict(
@@ -723,7 +768,7 @@ class FigureGeneration:
         )
 
 
-    def correlation_clustermap(self, data_table: pd.DataFrame, plot_name: str = None) -> dcc.Graph:
+    def correlation_clustermap(self, data_table: pd.DataFrame, plot_name: str = None, legend:str = None) -> dcc.Graph:
         """Draws a correltion clustergram figure from the given data_table.
 
         Parameters:
@@ -748,7 +793,7 @@ class FigureGeneration:
         )
 
 
-    def full_clustermap(self, data_table: pd.DataFrame, plot_name: str = None,hiderows:bool = True, hidecols:bool=False) -> dcc.Graph:
+    def full_clustermap(self, data_table: pd.DataFrame, plot_name: str = None,hiderows:bool = True, hidecols:bool=False, legend:str = None, ) -> dcc.Graph:
         """Draws a clustermap figure from the given data_table.
 
         Parameters:
@@ -824,22 +869,50 @@ class FigureGeneration:
         
         return figure
 
-    def reproducibility_figure(self, data_table: pd.DataFrame, sample_groups: dict, title='Reproducibility plot', violin_style=False) -> dcc.Graph:
+    def heatmap_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict) -> go.Figure:
+        figure_datapoints:list = []
+        for sample_group, sample_columns in sample_groups.items():
+            for i, column in enumerate(sample_columns):
+                if i == (len(sample_columns)-1):
+                    break
+                for column2 in sample_columns[i+1:]:
+                    figure_datapoints.extend([[r[column], r[column2], sample_group] for _,r in data_table.iterrows()])
+        plot_dataframe: pd.DataFrame = pd.DataFrame(data=figure_datapoints, columns = ['Sample A','Sample B', 'Sample group'])
+        plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
+        figure: go.Figure = px.density_heatmap(
+            plot_dataframe,
+            title='Sample reproducibility (missing values ignored)',
+            x=plot_dataframe['Sample A'],
+            y=plot_dataframe['Sample B'],
+            height=self.defaults['height']*(len(plot_dataframe['Sample group'].unique())/2),
+            width=self.defaults['width'],
+            #marginal_x = 'histogram',
+            #marginal_y = 'histogram',
+            facet_col= 'Sample group',
+            facet_col_wrap=2,
+            nbinsx=50,
+            nbinsy=50,
+        )
+        return figure
+
+    def reproducibility_figure(self, data_table: pd.DataFrame, sample_groups: dict, title='Reproducibility plot', style='heatmap', legend:str = None) -> dcc.Graph:
         """Produces a graph describing reproducibility within sammple groups
 
         Parameters:
         data_table: table of samples (columns) and measurements(rows)
         sample_groups: dictionary of {sample_group_name: [sample_columns]}
         title: title for the figure
-        violin_style: True, if the resulting plot should be violin style, or scatter style (default)
+        style: style of plot. Default is heatmap. Other valid entries are violin and scatter(computationally intensive).
 
         Returns:
         dcc.Graph containing a go.Figure describing the reproducibility of the samples within sample groups.
         """
-        if violin_style:
+        if style == 'violin':
             figure: go.Figure = self.violin_reproducibility(data_table, sample_groups)
-        else:
+        elif style == 'scatter':
             figure: go.Figure = self.scatter_reproducibility(data_table, sample_groups)
+        else:
+            figure: go.Figure = self.heatmap_reproducibility(data_table, sample_groups)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], figure=figure, id=f'{title.lower().replace(" ","-")}')
@@ -1012,7 +1085,7 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], figure=figure, id=f'{title.lower().replace(" ","-")}')
         )
     
-    def sample_commonality_plot(self, data_table, rev_sample_groups,save_figure, save_format) -> go.Figure:
+    def sample_commonality_plot(self, data_table, rev_sample_groups,save_figure, save_format, legend:str = None) -> go.Figure:
         
         group_sets: dict = {}
         for column in data_table.columns:
@@ -1108,7 +1181,7 @@ class FigureGeneration:
             html.Img(id='supervennfigure', src=f'data:image/png;base64,{data}')
         )
 
-    def missing_clustermap(self, data_table: pd.DataFrame, plot_name: str = None, title: str = None) -> dcc.Graph:
+    def missing_clustermap(self, data_table: pd.DataFrame, plot_name: str = None, title: str = None, legend:str = None) -> dcc.Graph:
         """Generates a clustergram of missing values in a data_table.
         
         Parameters:
