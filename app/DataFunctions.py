@@ -140,11 +140,10 @@ class DataFunctions:
                 values: list = [np.nan for _ in new_columns]
                 for i, k in enumerate(new_columns):
                     try:
-                        if k in known_ints[row['Bait uniprot']][row['Prey']]:
-                            values[i] = known_ints[row['Bait uniprot']][row['Prey']][k]
+                        values[i] = known_ints[row['Bait uniprot']][row['Prey']][k]
                     except KeyError:
-                        # Bait, prey or key not known
-                        continue
+                        # Bait, prey, or key not known
+                        values[i] = np.nan
                 for i, value in enumerate(values):
                     known_col_values[i].append(value)
             data_table['Known interaction'] = pd.Series(known_col_values[1]).notna()

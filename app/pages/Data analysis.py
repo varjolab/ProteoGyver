@@ -318,7 +318,7 @@ def download_all_data(_, data_dictionary,session_uid) -> dict:
         os.path.join(db.get_cache_dir(session_uid),'Figures'),
         os.path.join(export_dir, 'Figures')
     )
-    export_fileinfo: list = []
+    export_fileinfo: list = [f'Session UID:{session_uid}']
     for key, value in data_dictionary['info'].items():
         export_fileinfo.append(key)
         if isinstance(value,list) or isinstance(value,set):

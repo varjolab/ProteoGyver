@@ -160,12 +160,13 @@ class DbEngine:
     def get_known(self, which_proteins) -> tuple:
         knowns: dict = {}
         for bait in which_proteins:
-            if pd.isna(bait):
-                continue
-            if bait == 'No bait uniprot':
-                continue
-            with open(os.path.join('data','known interactions','per bait',f'{bait}.json'), encoding = 'utf-8') as fil:
-                knowns[bait] = json.load(fil)
+            kdict: dict = {}
+            try:
+                with open(os.path.join('data','known interactions','per bait',f'{bait}.json'), encoding = 'utf-8') as fil:
+                    kdict= json.load(fil)
+            except FileNotFoundError:
+                pass
+            knowns[bait] = kdict
         known_cols: set = set()
         for _,interactor_dict in knowns.items():
             for _, col_value_dict in interactor_dict.items():
