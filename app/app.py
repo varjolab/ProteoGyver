@@ -6,7 +6,6 @@ import dash
 from DbEngine import DbEngine
 
 
-launch_uid: UUID = str(uuid4())
 db: DbEngine = DbEngine()
 
 app: Dash = Dash(
@@ -57,7 +56,7 @@ def clear_session_data(_, uid) -> str:
 
 
 app.layout = html.Div([
-    html.Div(id='session-uid', children=launch_uid, hidden=True),
+    html.Div(id='session-uid', children=str(uuid4()), hidden=True),
     navbar,
     dash.page_container,
     #    dbc.Button('Clear session data',\
