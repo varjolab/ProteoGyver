@@ -135,21 +135,26 @@ class DataFunctions:
             known_ints:dict
             new_columns:list
             known_ints, new_columns = known_data
+
             known_col_values: dict = {c: [] for c in new_columns}
+            any_known_col:list = []
             for _,row in data_table.iterrows():
                 #values: list = [np.nan for _ in new_columns]
+                any_known: bool = False
                 for k in new_columns:
                     try:
                         val: str = known_ints[row['Bait uniprot']][row['Prey']][k]
+                        any_known = True
                        # values[i] = known_ints[row['Bait uniprot']][row['Prey']][k]
                     except KeyError:
                         # Bait, prey, or key not known
                         val = np.nan
                         #continue
                     known_col_values[k].append(val)
-                
+                any_known_col.append(any_known)
                 #for i, value in enumerate(values):
                  #   known_col_values[i].append(value)
+            data_table['Known interaction'] = any_known_col
             for column_name, column_data in known_col_values.items():
                 data_table['Known ' + column_name] = column_data
             #data_table['Known interaction'] = pd.Series(known_col_values[1]).notna()
