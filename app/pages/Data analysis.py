@@ -24,6 +24,7 @@ import shutil
 import dash_cytoscape as cyto
 from dash import dash_table
 import text_functions
+import plotly.io as pio
 
 
 db: DbEngine = DbEngine()
@@ -40,6 +41,10 @@ figure_templates: list = [
     'seaborn',
     'simple_white'
 ]
+
+figure_template_colors: dict = {}
+for t in figure_templates:
+    figure_template_colors[t] = pio.templates[t].layout['colorway']
 
 
 def read_df_from_content(content, filename) -> pd.DataFrame:
@@ -147,6 +152,80 @@ def process_input_tables(
         return_message = ' ; '.join(return_message)
     return return_dict, return_message, figure_template_dropdown_value, ''
 
+@callback(
+    Output('interval-component','disabled'),
+    Output('tic-traces','data'),
+    Output('tic-info','data'),
+    Output('auc-traces','data'),
+    Input('output-data-upload','data'),
+    Input('figure-template-choice', 'data')
+)
+def generate_tic_graph_data(data_dictionary, figure_template) -> tuple:
+    start:bool = True
+    if data_dictionary is None:
+        start = False
+    elif not 'data tables' in data_dictionary:
+        start = False
+    if not start:
+        return [
+            dash.no_update,
+            dash.no_update,
+            dash.no_update,
+            dash.no_update
+        ]
+    info_df: pd.DataFrame
+    tics_found: dict
+    info_df, tics_found = db.get_tic_dfs_from_expdesign(
+                        pd.read_json(data_dictionary['data tables']['experimental design'], orient='split')
+                    )
+    num_of_traces_visible: int = 7
+    
+    max_auc: float = info_df['AUC'].max()
+    max_auc += (max_auc*0.15)
+    max_tic_int: float = info_df['max_intensity']
+    max_tic_int += (max_tic_int*0.15)
+    tic_info: dict = {
+        'tic_graph_max_x': info_df['max_time'].max(),
+        'tic_graph_max_y': max_tic_int,
+        'auc_graph_max_x': info_df.shape[0],
+        'auc_graph_max_y': max_auc,
+        'num_of_traces_visible': num_of_traces_visible
+    }
+
+    tic_traces: list = []
+    auc_traces: list = []
+
+    color_to_use: str = figure_template_colors[figure_template][0]
+
+    for index, row in info_df.iterrows():
+        run_id: str = row['run_id']
+        run_label: str = row['run_name']
+        ticdf: pd.DataFrame = tics_found[run_id]
+        tic_traces.append({})
+        for color_i in range(num_of_traces_visible):
+            tic_traces[-1][color_i] = go.Scatter(
+                x=ticdf['Time'],
+                y=ticdf['SumIntensity'],
+                mode = 'lines',
+                opacity=(1/num_of_traces_visible)*(num_of_traces_visible - color_i),
+                line = {'color' : color_to_use, 'width': 1},
+                name = run_label,
+            )
+        auc_up_to_index: pd.DataFrame = info_df[:index]
+        auc_traces.append(
+            go.Scatter(
+                x = list(range(index)),
+                y = auc_up_to_index['AUC'],
+                mode = 'lines',
+                opacity = 1,
+                line={'width': 1, 'color': color_to_use},
+                showlegend=False
+            )
+        )
+    print(f'returning: True\n{len(tic_traces)}\n{len(auc_traces)}\n{tic_info}')
+    return True, tic_traces, tic_info, auc_traces
+
+
 def list_to_chunks(original_list, chunk_size):
     # looping till length l
     for i in range(0, len(original_list), chunk_size):
@@ -163,6 +242,65 @@ def save_figures(save_data, session_uid) -> None:
         save_data
     )
 
+@callback(
+    Output('tic-graph', 'children'),
+    Output('current-tic-index','children'),
+    Input('interval-component', 'n_intervals'),
+    State('tic-traces','data'),
+    State('tic-info','data'),
+    State('auc-traces','data'),
+    State('current-tic-idx','children'),
+    State('figure-template-choice', 'data'),
+    prevent_initial_call=True,
+)
+def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, current_tic_idx: int, figure_template_name:str) -> tuple:
+    print(current_tic_idx)
+    if tic_info is None:
+        return 'NONE',current_tic_idx
+    num_of_traces_visible: int = tic_info['num_of_traces_visible']
+
+    return_tic_index: int = current_tic_idx + 1
+    if return_tic_index >= len(tic_traces):
+        return_tic_index = 0
+
+    tic_figure: go.Figure = go.Figure()
+    tic_traces = tic_traces[:current_tic_idx+1]
+    these_tics: list = tic_traces[:num_of_traces_visible]
+    for i, trace_dict in enumerate(these_tics[::-1]):
+        tic_figure.add_traces(trace_dict[i])
+
+    tic_figure.update_layout(
+        title = 'TIC',
+        height=400,
+        xaxis_range=[0,tic_info['tic_graph_max_x']],
+        yaxis_range=[0,tic_info['tic_graph_max_y']],
+        template=figure_template_name,
+        #plot_bgcolor= 'rgba(0, 0, 0, 0)',
+        #paper_bgcolor= 'rgba(0, 0, 0, 0)',
+        margin=dict(l=5, r=5, t=20, b=5)
+    )
+
+    auc_figure: go.Figure = go.Figure()
+    auc_figure.add_traces(auc_traces[current_tic_idx])
+    auc_figure.update_layout(
+        ticle = 'AUC',
+        height=150,
+        xaxis_range=[0,tic_info['auc_graph_max_x']],
+        yaxis_range=[0,tic_info['auc_graph_max_y']],
+        template=figure_template_name,
+        #plot_bgcolor= 'rgba(0, 0, 0, 0)',
+        #paper_bgcolor= 'rgba(0, 0, 0, 0)',
+        margin=dict(l=5, r=5, t=20, b=5)
+    )
+
+    tic_graph = dbc.Graph(tic_figure)
+    auc_graph = dbc.Graph(auc_figure)
+    tic_div = html.Div([
+        dbc.Row([tic_graph]),
+        dbc.Row([auc_graph])
+    ])
+
+    return tic_div, return_tic_index
 
 @callback(
     Output('qc-plot-container', 'children'),
@@ -210,8 +348,8 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                                 for sample_name in na_data.index.values]
             figures.append(figure_generation.missing_figure(na_data))
             figure_names_and_legends.append(['Missing values in samples',''])
-            figures.append(figure_generation.missing_clustermap(data_table))
-            figure_names_and_legends.append(['Missing value clustermap',''])
+            # figures.append(figure_generation.missing_clustermap(data_table))
+            # figure_names_and_legends.append(['Missing value clustermap',''])
             sumdata: pd.DataFrame = data_functions.get_sum_data(
                 data_table)
             sumdata['Color'] = [rep_colors[sample_name]
@@ -227,15 +365,15 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             figure_names_and_legends.append(['Sample averages',''])
             dist_title: str = 'Value distribution'
             if data_dictionary['info']['values'] == 'intensity':
-                figures.append(
-                    figure_generation.distribution_figure(
-                        raw_intensity_table,
-                        rep_colors,
-                        data_dictionary['sample groups']['rev'],
-                        title='Raw value distribution'
-                    )
-                )
-                figure_names_and_legends.append(['Raw value distribution',''])
+                # figures.append(
+                #     figure_generation.distribution_figure(
+                #         raw_intensity_table,
+                #         rep_colors,
+                #         data_dictionary['sample groups']['rev'],
+                #         title='Raw value distribution'
+                #     )
+                # )
+                # figure_names_and_legends.append(['Raw value distribution',''])
                 dist_title = 'Log2 transformed value distribution'
             figures.append(
                 figure_generation.distribution_figure(
@@ -274,9 +412,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             # - protein counts compared to previous similar samples
             # - sum value compared to previous similar samples
             # - Person-to-person comparisons: protein counts, intensity/psm totals
-            to_save = [
-                f[0] for f in figures if f[0] is not None
-                ]
+            to_save = [f[0] for f in figures if f[0] is not None]
             figures = [f[1] for f in figures]
         return (figures, rep_colors, [to_save, figure_names_and_legends])
     else:
@@ -331,7 +467,7 @@ def download_all_data(_, data_dictionary,session_uid) -> dict:
     with open(os.path.join(export_dir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
     with open(os.path.join(export_dir, 'full data for debugging.json'),'w',encoding='utf-8') as fil:
-        json.dump(data_dictionary,fil)
+        json.dump(data_dictionary,fil, indent = 4)
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
     return dcc.send_file(export_dir.rstrip(os.sep) + '.zip')
 
@@ -975,14 +1111,26 @@ def interactomics_volcano_plots(control_group, saint_output, data_dictionary) ->
     intensity_table = intensity_table.drop(
         index=non_hci_preys
     )
-    print(sample_groups)
-    print(control_group)
-    print(intensity_table.head())
-    return figure_generation.volcano_plots(
+
+
+    significants: pd.DataFrame
+    figures: list
+    volcano_graphs: list
+    significants, figures, volcano_graphs = figure_generation.volcano_plots(
                 intensity_table,
                 sample_groups,
                 control_group
-            )[1]
+            )
+    significants.to_csv('SIGS.tsv',sep='\t')
+    intensity_table.to_csv('INTS.tsv',sep='\t')
+    data_dictionary['data tables'][f'Comparisons vs {control_group}'] = significants.to_json(orient='split')
+    data_dictionary['data tables'][f'HCI intensity'] = intensity_table.to_json(orient='split')
+
+    return [
+        html.Div(id='volcano-plot-label', children='Volcano plots'),
+        html.Div(id='volcano-plot-container', children=volcano_graphs
+        )
+    ]
 
 def create_network( saint_data) -> list:
     nodes: list = [
@@ -1386,14 +1534,25 @@ upload_tab: dbc.Card = dbc.Card(
             dcc.Store(id='figure-template-choice'),
             dcc.Store(id='workflow-choice'),
             dcc.Store(id='rep-colors'),
+            dcc.Store(id='tic-traces'),
+            dcc.Store(id='tic-info'),
+            dcc.Store(id='auc-traces'),
+            dcc.Interval(
+                id='interval-component',
+                interval=2*1000, # in milliseconds
+                n_intervals=0,
+                disabled=True
+            ),
+            html.Div(id='current-tic-idx', children = 0,hidden=True),
+            html.Hr(),
+            html.Div('TIC GRAPHS BELOW'),
+            html.Div(id='tic-graph'),
+            html.Hr(),
             dcc.Loading(
                 id='qc-loading',
                 children=[
                     html.Div(id='qc-plot-container',
                              children=[
-                                 html.Br(),
-                                 html.Br(),
-                                 html.Br()
                              ])
                 ],
                 type='default'
@@ -1402,7 +1561,6 @@ upload_tab: dbc.Card = dbc.Card(
         className="mt-3"
     ),
 )
-
 
 tabs: html.Div = html.Div([
     dbc.Tabs(

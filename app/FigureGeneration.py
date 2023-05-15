@@ -515,6 +515,10 @@ class FigureGeneration:
             )
         return (pd.concat(significants), figures, volcanoes)
 
+    def tic_summary_graphs(info_df, tics_found) -> html.Div:
+        #tics_found[run_id] = ticdf
+        return [html.Div('figure Not implemented'), html.Div('graph Not implemented')]
+
     def volcano_plot(
             self, data_table, sample_name, control_name, sample_columns, control_columns,
             data_is_log2_transformed:bool = True, adj_p_threshold: float = 0.05,

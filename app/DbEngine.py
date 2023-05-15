@@ -5,7 +5,8 @@ import json
 from typing import Union, Tuple
 import os
 import pandas as pd
-
+from datetime import datetime, timedelta
+from typing import Any
 
 class DbEngine:
     """dbengine class"""
@@ -13,23 +14,6 @@ class DbEngine:
     # pylint: disable=too-many-instance-attributes
     # Temporary class until moving to real DB, not the time to worry about too many attributes
     # TODO: Move to PostgreSQL
-
-    _parameters: dict = {}
-    _data: pd.DataFrame = pd.DataFrame()
-    _last_id: int = -1
-    _upload_table_data_columns: list = []
-    _upload_table_data_dropdowns: dict = {}
-    _protein_lengths: dict = {}
-    _control_table: pd.DataFrame
-    _controls: dict
-    _crapome_table: pd.DataFrame
-    _crapome_proteins: set
-    _crapome: dict
-    _override_keys: dict
-    _contaminant_table: pd.DataFrame
-    _contaminant_list: list
-    _figure_names_and_legends: dict = {}
-    _protein_names: dict
 
     @property
     def parameters(self) -> dict:
@@ -44,11 +28,37 @@ class DbEngine:
             parameters: A dictionary of the new parameters, or a filename pointing to a json file
                 of parameters. 
         """
+
+        self._parameters: dict = {}
+        self._data: pd.DataFrame = pd.DataFrame()
+        self._last_id: int = -1
+        self._upload_table_data_columns: list = []
+        self._upload_table_data_dropdowns: dict = {}
+        self._protein_lengths: dict = {}
+        self._control_table: pd.DataFrame
+        self._controls: dict
+        self._crapome_table: pd.DataFrame
+        self._crapome_proteins: set
+        self._crapome: dict
+        self._override_keys: dict
+        self._contaminant_table: pd.DataFrame
+        self._contaminant_list: list
+        self._figure_names_and_legends: dict = {}
+        self._protein_names: dict
+        self._tic_dict: dict = {}
+        self._tic_information: dict
+        self._tic_data_reloaded: datetime
+
         if isinstance(parameters, str):
             parameters: dict = self.parse_parameters(parameters)
         for key, value in self._override_keys.items():
             parameters[key] = value
         self._parameters: dict = parameters
+
+        # Ensure that the tic information will be refreshed on startup
+        self._tic_data_reloaded = datetime.now() - timedelta(seconds=self.parameters['Config']['TIC information refresh interval in seconds']*2)
+        with open(os.path.join(*self.parameters['files']['data']['TIC information'], 'info.json'),encoding='utf-8') as fil:
+            self._tic_information = json.load(fil)
         self.data = self._parameters['Run data']
         self.temp_dir = self._parameters['Temporary data directory']
         self.protein_lengths = os.path.join(
@@ -60,6 +70,7 @@ class DbEngine:
         if not os.path.isdir(self.temp_dir):
             os.makedirs(self.temp_dir)
 
+        self.refresh_tic_information()
         with open(os.path.join(*parameters['files']['data']['control sets']), encoding='utf-8') as fil:
             self._controls = json.load(fil)
         self._control_table = pd.read_csv(
@@ -194,6 +205,90 @@ class DbEngine:
         with open(self.protein_seq_file, 'a', encoding='utf-8') as fil:
             for line in seqs:
                 fil.write('\t'.join(line)+'\n')
+    
+    @property
+    def tic_information(self) -> dict:
+        return self._tic_dict
+
+    @tic_information.setter
+    def tic_information(self, dirpath) -> None:
+
+        tic_dir: str = os.path.join(dirpath,'TIC_files')
+        info_dir: str = os.path.join(dirpath,'info_files')
+
+        runs_in_dir: set = set([
+            f.replace('.json','').lower() for f in os.listdir(info_dir)
+        ])
+        if 'Run data' in self._tic_dict:
+            missing_runs: list = (runs_in_dir - set(self.tic_information['Run data'].keys()))
+        else:
+            self._tic_dict['Run data'] = {}
+            self._tic_dict['TIC data'] = {}
+            self._tic_dict['Map'] = {}
+            missing_runs: list = runs_in_dir
+                
+        for run_id in missing_runs:
+            with open(os.path.join(dirpath,f'{run_id}.json'),'r',encoding='utf-8') as fil:
+                run_dict: dict = json.load(fil)
+                self._tic_dict['Run data'][run_id] = run_dict
+                self._tic_dict['Map'][run_id] = run_id
+                self._tic_dict['Map'][run_dict['run_name'].lower()] = run_id
+                self._tic_dict['TIC data'][run_id] = pd.read_csv(
+                    os.path.join(tic_dir, f'{run_id}.tsv',sep='\t')
+                )
+    
+    def refresh_tic_information(self, override=False) -> None:
+        time_since_last_refresh: int = (self._tic_data_reloaded - datetime.now()).total_seconds()
+        if not override:
+            if time_since_last_refresh < self.parameters['Config']['TIC information refresh interval in seconds']:
+                return
+        self.tic_information = os.path.join(*self.parameters['files']['data']['TIC information'])
+        
+
+    def get_tic_dfs_from_expdesign(self, expdesign: pd.DataFrame) -> list:
+        self.refresh_tic_information()
+        info_found: list = []
+        tics_found: dict = {}
+        for _,row in expdesign.iterrows():
+            info_found_for_row: list = []
+            tics_found_for_row: list = []
+            possible_run_identifiers: list = []
+            for column in self.parameters['Config']['ID columns in sample table']:
+                if column not in expdesign.columns:
+                    continue
+                value: Any = row[column]
+                possible_run_identifiers.append(value)
+                possible_run_identifiers.append(value.replace('.d',''))
+                possible_run_identifiers.append(value.split('.')[0])
+            for runid in possible_run_identifiers:
+                runid = runid.lower()
+                try:
+                    info_found_for_row.append(
+                        self.tic_information['Run data'][
+                            self.tic_information['Map'][runid]
+                        ]
+                    )
+                    tics_found_for_row.append([runid, self.tic_information['TIC data'][
+                            self.tic_information['Map'][runid]
+                        ]])
+                except KeyError:
+                    continue
+            if len(info_found_for_row) > 0:
+                info_found.append(info_found_for_row[0])
+                tics_found[tics_found_for_row[0][0]] = tics_found_for_row[0][1]
+                
+        columns: list = self._tic_information['Information fields']
+        data: list = []
+        for tic_dict in info_found:
+            data.append([])
+            for column in columns:
+                data[-1].append(tic_dict[column])
+        info_df: pd.DataFrame = pd.DataFrame(data=data,columns=columns)
+        info_df['run_time'] = info_df['run_time'].apply(
+            lambda x: datetime.strptime(x,'%Y-%m-%d_%H-%M-%S_%z')
+        )
+        info_df.sort_values(by='run_time',ascending=True,inplace=True)
+        return info_df, tics_found
 
     @property
     def protein_names(self) -> dict:

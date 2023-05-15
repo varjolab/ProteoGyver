@@ -780,6 +780,7 @@ class DataFunctions:
                 'raw intensity': untransformed_intensity_table.to_json(orient='split'),
                 'spc': spc_table.to_json(orient='split'),
                 'intensity': intensity_table.to_json(orient='split'),
+                'experimental design': expdesign.to_json(orient='split')
             }, 
             'info': {
                 'discarded columns': discarded_columns,
