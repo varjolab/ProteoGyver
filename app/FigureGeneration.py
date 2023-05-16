@@ -131,7 +131,7 @@ class FigureGeneration:
         data_df.loc[:, 'Color'] = colors
 
 
-    def comparative_violin_plot(self, sets: list, names: list = None, id_name: str = None, title: str = None, legend: str = None, colors: list = None) -> dcc.Graph:
+    def comparative_violin_plot(self, sets: list, names: list = None, id_name: str = None, title: str = None, legend: str = None, colors: list = None, showbox:bool = False) -> dcc.Graph:
         if id_name is None:
             id_name: str = 'comparative-violin-plot'
         if isinstance(colors, list):
@@ -166,7 +166,7 @@ class FigureGeneration:
                 y='Values',
                 x='Column',
                 color='Name',
-                box=True,
+                box=showbox,
                 title=title,
                 color_discrete_sequence=colors,
                 height=self.defaults['height'],

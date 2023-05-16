@@ -57,8 +57,6 @@ class DbEngine:
 
         # Ensure that the tic information will be refreshed on startup
         self._tic_data_reloaded = datetime.now() - timedelta(seconds=self.parameters['Config']['TIC information refresh interval in seconds']*2)
-        with open(os.path.join(*self.parameters['files']['data']['TIC information'], 'info.json'),encoding='utf-8') as fil:
-            self._tic_information = json.load(fil)
         self.data = self._parameters['Run data']
         self.temp_dir = self._parameters['Temporary data directory']
         self.protein_lengths = os.path.join(
@@ -216,29 +214,47 @@ class DbEngine:
         tic_dir: str = os.path.join(dirpath,'TIC_files')
         info_dir: str = os.path.join(dirpath,'info_files')
 
+
+
         runs_in_dir: set = set([
             f.replace('.json','').lower() for f in os.listdir(info_dir)
         ])
         if 'Run data' in self._tic_dict:
-            missing_runs: list = (runs_in_dir - set(self.tic_information['Run data'].keys()))
+            missing_runs: list = (runs_in_dir - set(self._tic_dict['Run data'].keys()))
         else:
             self._tic_dict['Run data'] = {}
             self._tic_dict['TIC data'] = {}
             self._tic_dict['Map'] = {}
+            self._tic_dict['prefix'] = set()
+            self._tic_dict['postfix'] = set()
+            with open(os.path.join(dirpath, 'info.json'),encoding='utf-8') as fil:
+                self._tic_dict['Info'] = json.load(fil)
             missing_runs: list = runs_in_dir
-                
         for run_id in missing_runs:
-            with open(os.path.join(dirpath,f'{run_id}.json'),'r',encoding='utf-8') as fil:
+            with open(os.path.join(info_dir,f'{run_id}.json'),encoding='utf-8') as fil:
                 run_dict: dict = json.load(fil)
                 self._tic_dict['Run data'][run_id] = run_dict
                 self._tic_dict['Map'][run_id] = run_id
                 self._tic_dict['Map'][run_dict['run_name'].lower()] = run_id
+                if run_dict['runid_prefixed']:
+                    self._tic_dict['prefix'].add(run_id)
+                else:
+                    self._tic_dict['postfix'].add(run_id)
                 self._tic_dict['TIC data'][run_id] = pd.read_csv(
-                    os.path.join(tic_dir, f'{run_id}.tsv',sep='\t')
+                    os.path.join(tic_dir, f'{run_id}.tsv'),sep='\t'
                 )
+        with open('full info.json','w') as fil:
+            temp_dict = {'Run data': {},'Map':{},'TIC data':{}}
+            for key, value in self._tic_dict['Run data'].items():
+                temp_dict['Run data'][key] = value
+            for key, value in self._tic_dict['Map'].items():
+                temp_dict['Map'][key] = value
+            for i, df in self._tic_dict['TIC data'].items():
+                temp_dict['TIC data'][i]= df.to_json(orient='split')
+            json.dump(temp_dict,fil,indent=4)
     
     def refresh_tic_information(self, override=False) -> None:
-        time_since_last_refresh: int = (self._tic_data_reloaded - datetime.now()).total_seconds()
+        time_since_last_refresh: int = (datetime.now() - self._tic_data_reloaded).total_seconds()
         if not override:
             if time_since_last_refresh < self.parameters['Config']['TIC information refresh interval in seconds']:
                 return
@@ -253,15 +269,27 @@ class DbEngine:
             info_found_for_row: list = []
             tics_found_for_row: list = []
             possible_run_identifiers: list = []
-            for column in self.parameters['Config']['ID columns in sample table']:
+            for column in ['Sample name','sample name']:
                 if column not in expdesign.columns:
                     continue
                 value: Any = row[column]
-                possible_run_identifiers.append(value)
-                possible_run_identifiers.append(value.replace('.d',''))
-                possible_run_identifiers.append(value.split('.')[0])
+                possible_run_identifiers.extend(list(set([
+                    value,
+                    value.replace('.d',''),
+                    value.split('.')[0],
+                ])))
             for runid in possible_run_identifiers:
                 runid = runid.lower()
+                found = False
+                for candidate in self.tic_information['prefix']:
+                    if candidate == runid.split('_')[0]:
+                        runid = candidate
+                        found = True
+                if not found:
+                    for candidate in self.tic_information['postfix']:
+                        if candidate == runid.split('_')[-1]:
+                            runid = candidate
+                            found = True
                 try:
                     info_found_for_row.append(
                         self.tic_information['Run data'][
@@ -276,8 +304,8 @@ class DbEngine:
             if len(info_found_for_row) > 0:
                 info_found.append(info_found_for_row[0])
                 tics_found[tics_found_for_row[0][0]] = tics_found_for_row[0][1]
-                
-        columns: list = self._tic_information['Information fields']
+
+        columns: list = self.tic_information['Info']['Information fields']
         data: list = []
         for tic_dict in info_found:
             data.append([])
@@ -289,6 +317,7 @@ class DbEngine:
         )
         info_df.sort_values(by='run_time',ascending=True,inplace=True)
         return info_df, tics_found
+
 
     @property
     def protein_names(self) -> dict:

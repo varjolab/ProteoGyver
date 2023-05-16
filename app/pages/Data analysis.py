@@ -144,9 +144,8 @@ def process_input_tables(
         return_dict['other']['protein names'] = name_dict
         if return_dict['other']['protein lengths'] is None:
             return_dict['other']['protein lengths'] = db.get_protein_lengths(return_dict['other']['all proteins'])
-        pd.read_json(return_dict['data tables']['spc'],orient='split').to_csv(db.get_cache_file(session_uid, 'SPC table.tsv'),sep='\t',encoding = 'utf-8')
-        pd.read_json(return_dict['data tables']['intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Intensity table.tsv'),sep='\t',encoding = 'utf-8')
-        pd.read_json(return_dict['data tables']['raw intensity'],orient='split').to_csv(db.get_cache_file(session_uid, 'Raw intensity table.tsv'),sep='\t',encoding = 'utf-8')
+        for table_name, table_json in return_dict['data tables'].items():
+            pd.read_json(table_json,orient='split').to_csv(db.get_cache_file(session_uid, f'{table_name} table.tsv'),sep='\t',encoding = 'utf-8')
         return_message = f'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
@@ -182,7 +181,7 @@ def generate_tic_graph_data(data_dictionary, figure_template) -> tuple:
     
     max_auc: float = info_df['AUC'].max()
     max_auc += (max_auc*0.15)
-    max_tic_int: float = info_df['max_intensity']
+    max_tic_int: float = info_df['tic_max_intensity'].max()
     max_tic_int += (max_tic_int*0.15)
     tic_info: dict = {
         'tic_graph_max_x': info_df['max_time'].max(),
@@ -216,14 +215,13 @@ def generate_tic_graph_data(data_dictionary, figure_template) -> tuple:
             go.Scatter(
                 x = list(range(index)),
                 y = auc_up_to_index['AUC'],
-                mode = 'lines',
+                mode = 'lines+markers',
                 opacity = 1,
                 line={'width': 1, 'color': color_to_use},
                 showlegend=False
             )
         )
-    print(f'returning: True\n{len(tic_traces)}\n{len(auc_traces)}\n{tic_info}')
-    return True, tic_traces, tic_info, auc_traces
+    return False, tic_traces, tic_info, auc_traces
 
 
 def list_to_chunks(original_list, chunk_size):
@@ -244,18 +242,19 @@ def save_figures(save_data, session_uid) -> None:
 
 @callback(
     Output('tic-graph', 'children'),
-    Output('current-tic-index','children'),
+    Output('current-tic-idx','children'),
     Input('interval-component', 'n_intervals'),
     State('tic-traces','data'),
     State('tic-info','data'),
     State('auc-traces','data'),
     State('current-tic-idx','children'),
     State('figure-template-choice', 'data'),
-    prevent_initial_call=True,
+    prevent_initial_call=True
 )
 def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, current_tic_idx: int, figure_template_name:str) -> tuple:
     print(current_tic_idx)
     if tic_info is None:
+        print('none')
         return 'NONE',current_tic_idx
     num_of_traces_visible: int = tic_info['num_of_traces_visible']
 
@@ -264,10 +263,15 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
         return_tic_index = 0
 
     tic_figure: go.Figure = go.Figure()
-    tic_traces = tic_traces[:current_tic_idx+1]
-    these_tics: list = tic_traces[:num_of_traces_visible]
+    these_tics: list
+    if current_tic_idx <= num_of_traces_visible:
+        these_tics = tic_traces[:current_tic_idx]
+    else:
+        these_tics: list = tic_traces[current_tic_idx-num_of_traces_visible:current_tic_idx]
+    #these_tics: list = tic_traces[:num_of_traces_visible]
+    print(len(these_tics))
     for i, trace_dict in enumerate(these_tics[::-1]):
-        tic_figure.add_traces(trace_dict[i])
+        tic_figure.add_traces(trace_dict[str(i)])
 
     tic_figure.update_layout(
         title = 'TIC',
@@ -277,29 +281,29 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
         template=figure_template_name,
         #plot_bgcolor= 'rgba(0, 0, 0, 0)',
         #paper_bgcolor= 'rgba(0, 0, 0, 0)',
-        margin=dict(l=5, r=5, t=20, b=5)
+        margin=dict(l=5, r=5, t=35, b=5)
     )
 
     auc_figure: go.Figure = go.Figure()
     auc_figure.add_traces(auc_traces[current_tic_idx])
     auc_figure.update_layout(
-        ticle = 'AUC',
+        title = 'AUC',
         height=150,
         xaxis_range=[0,tic_info['auc_graph_max_x']],
         yaxis_range=[0,tic_info['auc_graph_max_y']],
         template=figure_template_name,
         #plot_bgcolor= 'rgba(0, 0, 0, 0)',
         #paper_bgcolor= 'rgba(0, 0, 0, 0)',
-        margin=dict(l=5, r=5, t=20, b=5)
+        margin=dict(l=5, r=5, t=35, b=5)
     )
 
-    tic_graph = dbc.Graph(tic_figure)
-    auc_graph = dbc.Graph(auc_figure)
+    tic_graph = dcc.Graph(id='tic-graph-with-figure',figure=tic_figure)
+    auc_graph = dcc.Graph(id='auc-graph-with-figure',figure=auc_figure)
     tic_div = html.Div([
         dbc.Row([tic_graph]),
-        dbc.Row([auc_graph])
+        dbc.Row([auc_graph]),
     ])
-
+    print(current_tic_idx, '->', return_tic_index)
     return tic_div, return_tic_index
 
 @callback(
@@ -1539,15 +1543,12 @@ upload_tab: dbc.Card = dbc.Card(
             dcc.Store(id='auc-traces'),
             dcc.Interval(
                 id='interval-component',
-                interval=2*1000, # in milliseconds
+                interval=5*1000, # in milliseconds
                 n_intervals=0,
                 disabled=True
             ),
             html.Div(id='current-tic-idx', children = 0,hidden=True),
-            html.Hr(),
-            html.Div('TIC GRAPHS BELOW'),
             html.Div(id='tic-graph'),
-            html.Hr(),
             dcc.Loading(
                 id='qc-loading',
                 children=[
