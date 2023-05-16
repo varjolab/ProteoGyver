@@ -252,10 +252,8 @@ def save_figures(save_data, session_uid) -> None:
     prevent_initial_call=True
 )
 def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, current_tic_idx: int, figure_template_name:str) -> tuple:
-    print(current_tic_idx)
     if tic_info is None:
-        print('none')
-        return 'NONE',current_tic_idx
+        return '',current_tic_idx
     num_of_traces_visible: int = tic_info['num_of_traces_visible']
 
     return_tic_index: int = current_tic_idx + 1
@@ -269,7 +267,6 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
     else:
         these_tics: list = tic_traces[current_tic_idx-num_of_traces_visible:current_tic_idx]
     #these_tics: list = tic_traces[:num_of_traces_visible]
-    print(len(these_tics))
     for i, trace_dict in enumerate(these_tics[::-1]):
         tic_figure.add_traces(trace_dict[str(i)])
 
@@ -303,7 +300,6 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
         dbc.Row([tic_graph]),
         dbc.Row([auc_graph]),
     ])
-    print(current_tic_idx, '->', return_tic_index)
     return tic_div, return_tic_index
 
 @callback(
