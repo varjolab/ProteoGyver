@@ -43,6 +43,7 @@ Flask==2.2.2
 fonttools==4.38.0
 fqdn==1.5.1
 GEOparse==2.0.3
+gunicorn==20.1.0
 h5py==3.7.0
 idna==3.4
 importlib-metadata==5.0.0
@@ -134,6 +135,7 @@ soupsieve==2.3.2.post1
 sqlitedict==2.0.0
 stack-data==0.6.2
 statsmodels==0.13.5
+suds==1.1.2
 supervenn==0.4.1
 tenacity==8.1.0
 terminado==0.17.1
