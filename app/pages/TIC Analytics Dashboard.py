@@ -48,7 +48,7 @@ for dfname in os.listdir(ticfile_dir):
             )
 df = df[df['run_id'].isin(traces.keys())]
 df.sort_values(by='run_id',ascending=True)
-df['Run index'] = list(range(df.shape[0]))
+#df['Run index'] = list(range(df.shape[0]))
 
 def description_card() -> html.Div:
     """
@@ -61,7 +61,7 @@ def description_card() -> html.Div:
             html.H4("Visualize and assess MS performance."),
             html.Div(
                 id="intro",
-                children="Explore TICs of any MS run or sample set. Choose runs based on times, run IDs, or sample types. By default, last 25 runs for which TICs are available are shown.",
+                children="Explore TICs of any MS run or sample set. Choose runs based on times, run IDs, or sample types.",
             ),
         ],
     )
@@ -86,6 +86,7 @@ def generate_control_card() -> html.Div:
             html.P('Select Run time'),
             dcc.DatePickerRange(
                 id='date-picker-select',
+                display_format='YYYY.MM.DD',
                 start_date = round_time(df['run_time'].min()),
                 end_date = round_time(df['run_time'].max()),
                 min_date_allowed = round_time(df['run_time'].min()),
@@ -158,7 +159,7 @@ def update_tic_graph(_,prev_btn_nclicks, next_btn_nclicks, __, tic_index: int, t
         tic_index += 1
     else:
         next_offset = 1
-    return_tic_index = tic_index + next_offset
+    return_tic_index: int = tic_index + next_offset
 
     if tic_index < 0:
         tic_index = len(ticlist)-1
@@ -168,12 +169,10 @@ def update_tic_graph(_,prev_btn_nclicks, next_btn_nclicks, __, tic_index: int, t
         return_tic_index = 0# + prev_btn_nclicks - next_btn_nclicks
     these_tics: list = [traces[t] for t in ticlist][:tic_index+1]
     these_tics = these_tics[-num_of_traces_visible:]
-    print(tic_index, ' / ', len(ticlist), '=>', return_tic_index)
-    tic_figure = go.Figure()
+    tic_figure: go.Figure = go.Figure()
     these_tics = these_tics[:num_of_traces_visible]
     for i, trace_dict in enumerate(these_tics[::-1]):
         tic_figure.add_traces(trace_dict[i])
-
     data_to_use: pd.DataFrame = df[df['run_id'].isin(ticlist)]
     supp_graph_max_x: int = data_to_use.shape[0]
     auc_graph_max_y: int = data_to_use['AUC'].max()
@@ -182,32 +181,33 @@ def update_tic_graph(_,prev_btn_nclicks, next_btn_nclicks, __, tic_index: int, t
     auc_graph_max_y += auc_graph_max_y/20
     max_intensity_graph_max_y += max_intensity_graph_max_y/20
     mean_intensity_graph_max_y += mean_intensity_graph_max_y/20
+    data_to_use = data_to_use.head(tic_index+1).copy()
 
-    data_to_use = data_to_use.head(tic_index+1)
-    auc_figure = go.Figure(
+    data_to_use['Run index'] = list(range(data_to_use.shape[0]))
+    auc_figure: go.Figure = go.Figure(
         go.Scatter(
             x = data_to_use['Run index'],
             y = data_to_use['AUC'],
-            mode = 'lines',
+            mode = 'lines+markers',
             opacity = 1,
             line={'width': 1, 'color': color},
             showlegend=False
         )
     )
-    max_intensity = go.Figure(
+    max_intensity: go.Figure = go.Figure(
         go.Scatter(
             x = data_to_use['Run index'],
             y = data_to_use['max_intensity'],
-            mode = 'lines',
+            mode = 'lines+markers',
             opacity = 1,
             line={'width': 1, 'color': color},
             showlegend=False
         ))
-    mean_intensity_figure = go.Figure(
+    mean_intensity_figure: go.Figure = go.Figure(
         go.Scatter(
             x = data_to_use['Run index'],
             y = data_to_use['mean_intensity'],
-            mode = 'lines',
+            mode = 'lines+markers',
             opacity = 1,
             line={'width': 1, 'color': color},
             showlegend=False

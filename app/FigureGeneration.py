@@ -371,7 +371,7 @@ class FigureGeneration:
     def contaminant_figure(self, data_table: pd.DataFrame, contaminant_list: list, title:str = None, legend:str = None, ) -> dcc.Graph:
 
         if title is None:
-            title = 'Contaminants'
+            title = 'Signal sum from contaminants per sample'
         contaminant_list: list = list(set(contaminant_list) & set(data_table.index.values))
         plot_data: list = []
         plot_index: list = []
@@ -515,7 +515,7 @@ class FigureGeneration:
             )
         return (pd.concat(significants), figures, volcanoes)
 
-    def tic_summary_graphs(info_df, tics_found) -> html.Div:
+    def tic_summary_graphs(self, info_df, tics_found) -> html.Div:
         #tics_found[run_id] = ticdf
         return [html.Div('figure Not implemented'), html.Div('graph Not implemented')]
 

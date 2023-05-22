@@ -11,6 +11,7 @@ import uuid
 import subprocess
 from importlib import util as import_util
 import textwrap
+from typing import Any
 
 class DataFunctions:
 
@@ -72,7 +73,10 @@ class DataFunctions:
         enrich_lists: list = []
         for bait in data_table['Bait'].unique():
             enrich_lists.append([bait, list(data_table[data_table['Bait']==bait]['Prey'])])
-        handler = self.handlers[api]['handler']
+        handler: Any = self.handlers[api]['handler']
+        result_names: list
+        return_dataframes: list
+        done_information: list
         result_names, return_dataframes, done_information = handler.enrich(enrich_lists, options)
         if not 'Enrichment' in self._done_operations:
             self._done_operations['Enrichment'] = {}
@@ -551,8 +555,13 @@ class DataFunctions:
         saint_command: str,
         control_table: pd.DataFrame = None,
         control_groups:set = None,
-        output_directory:str = None) -> Tuple[pd.DataFrame,set]:
-        """This function will run SAINTexpress analysis on the given data table and control sets."""
+        output_directory:str = None) -> Tuple[pd.DataFrame,list]:
+        """This function will run SAINTexpress analysis on the given data table and control sets.
+        
+        :param data_table: input data
+
+        :return: tuple of (pd.DataFrame, list). Results are in the dataframe, and the list contains proteins for which no length could be found.        
+        """
 
         if control_groups is None:
             control_groups: set = set()
@@ -756,7 +765,9 @@ class DataFunctions:
             expdesign,
             [intensity_table, spc_table]
         )
+        spc_table = spc_table[sorted(list(spc_table.columns))]
         if len(intensity_table.columns) > 1:
+            intensity_table = intensity_table[sorted(list(intensity_table.columns))]
             untransformed_intensity_table: pd.DataFrame = intensity_table
             intensity_table = intensity_table.apply(np.log2)
         else:

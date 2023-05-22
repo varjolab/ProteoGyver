@@ -34,11 +34,7 @@ data_functions: DataFunctions = DataFunctions(os.path.join(*db.parameters['data 
 dash.register_page(__name__, path='/')
 styles: Styles = Styles()
 figure_templates: list = [
-    'plotly',
     'plotly_white',
-    'plotly_dark',
-    'ggplot2',
-    'seaborn',
     'simple_white'
 ]
 
@@ -319,9 +315,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
         if 'data tables' in data_dictionary:
             data_table: pd.DataFrame = pd.read_json(
                 data_dictionary['data tables']['main table'], orient='split')
-            raw_intensity_table: pd.DataFrame = pd.read_json(
-                data_dictionary['data tables']['raw intensity'], orient='split'
-            )
+            
             count_data: pd.DataFrame = data_functions.get_count_data(
                 data_table)
             figure_generation.add_replicate_colors(
@@ -425,7 +419,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
     prevent_initial_call=True,
 )
 def sample_table_example_download(_) -> dict:
-    return dcc.send_file(db.request_file('example data', 'example-sample_table'))
+    return dcc.send_file(db.request_file('example files', 'example-sample_table'))
 
 
 @callback(
@@ -434,7 +428,7 @@ def sample_table_example_download(_) -> dict:
     prevent_initial_call=True,
 )
 def download_data_table_example(_) -> dict:
-    return dcc.send_file(db.request_file('example data', 'example-data_file'))
+    return dcc.send_file(db.request_file('example files', 'example-data_file'))
 
 
 @callback(
