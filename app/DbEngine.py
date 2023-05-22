@@ -243,15 +243,15 @@ class DbEngine:
                 self._tic_dict['TIC data'][run_id] = pd.read_csv(
                     os.path.join(tic_dir, f'{run_id}.tsv'),sep='\t'
                 )
-        with open('full info.json','w') as fil:
-            temp_dict = {'Run data': {},'Map':{},'TIC data':{}}
-            for key, value in self._tic_dict['Run data'].items():
-                temp_dict['Run data'][key] = value
-            for key, value in self._tic_dict['Map'].items():
-                temp_dict['Map'][key] = value
-            for i, df in self._tic_dict['TIC data'].items():
-                temp_dict['TIC data'][i]= df.to_json(orient='split')
-            json.dump(temp_dict,fil,indent=4)
+        # with open('full info.json','w') as fil:
+        #     temp_dict = {'Run data': {},'Map':{},'TIC data':{}}
+        #     for key, value in self._tic_dict['Run data'].items():
+        #         temp_dict['Run data'][key] = value
+        #     for key, value in self._tic_dict['Map'].items():
+        #         temp_dict['Map'][key] = value
+        #     for i, df in self._tic_dict['TIC data'].items():
+        #         temp_dict['TIC data'][i]= df.to_json(orient='split')
+        #     json.dump(temp_dict,fil,indent=4)
     
     def refresh_tic_information(self, override=False) -> None:
         time_since_last_refresh: int = (datetime.now() - self._tic_data_reloaded).total_seconds()
