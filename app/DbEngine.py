@@ -90,6 +90,8 @@ class DbEngine:
                 for file in files:
                     with open(os.path.join(root,file),encoding='utf-8') as fil:
                         self._figure_names_and_legends[file] = fil.read()
+        #self._protein_database: pd.DataFrame = pd.read_feather(os.path.join(*parameters['files']['data']['Protein database']['feather']))
+        #self.parse_protein_database(os.path.join(*parameters['files']['data']['Protein database']['json']))
 
     @property
     def controlsets(self) -> dict:
@@ -279,17 +281,17 @@ class DbEngine:
                     value.split('.')[0],
                 ])))
             for runid in possible_run_identifiers:
-                runid = runid.lower()
-                found = False
-                for candidate in self.tic_information['prefix']:
-                    if candidate == runid.split('_')[0]:
+                runid: str = runid.lower()
+                # found = False
+                # for candidate in self.tic_information['prefix']:
+                #     if candidate == runid.split('_')[0]:
+                #         runid = candidate
+                #         found = True
+                # if not found:
+                for candidate in self.tic_information['postfix']:
+                    if candidate == runid.split('_')[-1]:
                         runid = candidate
-                        found = True
-                if not found:
-                    for candidate in self.tic_information['postfix']:
-                        if candidate == runid.split('_')[-1]:
-                            runid = candidate
-                            found = True
+                        #found = True
                 try:
                     info_found_for_row.append(
                         self.tic_information['Run data'][
@@ -313,7 +315,7 @@ class DbEngine:
                 data[-1].append(tic_dict[column])
         info_df: pd.DataFrame = pd.DataFrame(data=data,columns=columns)
         info_df['run_time'] = info_df['run_time'].apply(
-            lambda x: datetime.strptime(x,'%Y-%m-%d_%H-%M-%S_%z')
+            lambda x: datetime.strptime(x,self.parameters['Config']['Time format'])
         )
         info_df.sort_values(by='run_time',ascending=True,inplace=True)
         return info_df, tics_found
@@ -331,7 +333,6 @@ class DbEngine:
     @property
     def protein_lengths(self) -> dict:
         return self._protein_lengths
-
     @protein_lengths.setter
     def protein_lengths(self, filename) -> None:
         if isinstance(filename, dict):
@@ -481,11 +482,19 @@ class DbEngine:
         cache_dir_for_session: str = self.get_cache_dir(session_folder_name)
         return os.path.join(cache_dir_for_session, filename)
     
-    def get_cache_dir(self, session_folder_name) -> str:
+    def get_cache_dir(self, session_folder_name, figure_dir: bool=True, make_subdirs: list=None) -> str:
+        if make_subdirs is None:
+            make_subdirs = []
         cache_dir_for_session: str = os.path.join(
             self.cache_dir, session_folder_name)
         if not os.path.isdir(cache_dir_for_session):
             os.makedirs(cache_dir_for_session)
+        if figure_dir:
+            make_subdirs.append('Figures')
+        for sname in make_subdirs:
+            subdir: str = os.path.join(cache_dir_for_session, sname)
+            if not os.path.isdir(subdir):
+                os.makedirs(subdir)
         return cache_dir_for_session
 
     def scripts(self, scriptname) -> Tuple[str, str]:

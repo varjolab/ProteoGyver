@@ -350,6 +350,10 @@ def get_default_uniprot_column_map() -> dict:
             'IntAct': 'xref_intact',
             'InterPro': 'xref_interpro',
             'PANTHER': 'xref_panther',
+            'SUPFAM': 'xref_supfam',
+            'Pfam': 'xref_pfam',
+            'PRO': 'xref_pro',
+            'PROSITE': 'xref_prosite',
             }
 
 
@@ -382,7 +386,7 @@ def __get_uniprot_next_link(headers: requests.structures.CaseInsensitiveDict) ->
 
 
 def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
-                            fields: list = None) -> pd.DataFrame:
+                            fields: list = None, reviewed_only: bool = True) -> pd.DataFrame:
     """Downloads whole uniprot for a given organism using pagination.
 
     Entry -column will always be the first column and used as the index in the output dataframe.
@@ -394,6 +398,10 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
         https://www.uniprot.org/help/return_fields for help with field Labels \
         (from the label column). If None, download a default selection.
     """
+    if reviewed_only:
+        reviewed:str = '%29%20AND%20%28reviewed%3Atrue'
+    else:
+        reviewed = ''
 
     retries: Retry = Retry(total=5, backoff_factor=0.25,
                     status_forcelist=[500, 502, 503, 504])
@@ -441,7 +449,7 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     fieldstr = '%2C'.join(fieldstr)
     pagination_url: str = (
         f'https://rest.uniprot.org/uniprotkb/search?fields={fieldstr}&format={output_format}&'
-        f'query=%28reviewed%3Atrue%29%20AND%20%28model_organism%3A{organism}%29&size=500'
+        f'query=%28taxonomy_id%3A{organism}{reviewed}%29&size=500'
     )
     url: str = pagination_url
     alltext: list = []
@@ -476,7 +484,7 @@ def retrieve_uniprot(uniprotfile: str = 'Full human uniprot.tsv', **kwargs) -> p
 
 def download_full_uniprot_for_organism(organism: Union[list, int] = None,
                                        columns=None, progress: bool = False,
-                                       overall_progress=False) -> pd.DataFrame:
+                                       overall_progress=False, reviewed_only:bool = True) -> pd.DataFrame:
     """Downloads the full uniprot database EXCLUDING isoforms in a .tsv format for a \
         given organism.
 
@@ -486,7 +494,7 @@ def download_full_uniprot_for_organism(organism: Union[list, int] = None,
     progress: Print progress reports of how each batch download is going
     overall_progress: Print progress reports when each batch is finished"""
     if not organism:
-        organism: list = ['9606']
+        organism: list = [9606]
     elif isinstance(organism, int):
         organism: list = [organism]
     dfs_to_merge: list = []
@@ -501,8 +509,8 @@ def download_full_uniprot_for_organism(organism: Union[list, int] = None,
         next_batch.extend(list(need)[:(lim-1)])
         for organism_id in organism:
             dfs_to_merge.append(download_uniprot_chunks(fields=next_batch,
-                                                        organism=organism_id, progress=progress))
-        need -= set(next_batch)
+                                                        organism=organism_id, progress=progress, reviewed_only=reviewed_only))
+        need = {k: v for k, v in need.items() if k not in next_batch}
         next_batch = ['Entry']
     return pd.concat(dfs_to_merge, axis=1)
 

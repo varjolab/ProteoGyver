@@ -318,7 +318,6 @@ class FigureGeneration:
         hide_legend: True, if legend should be hidden
         color_discrete_map: if True, color_discrete_map='identity' will be used with the plotly function.
         """
-        value_df.to_csv('testdf.csv')
         colorval: str
         if color_col is not None:
             colorval = color_col
@@ -883,11 +882,12 @@ class FigureGeneration:
                     figure_datapoints.extend([[r[column], r[column2], sample_group] for _,r in data_table.iterrows()])
         plot_dataframe: pd.DataFrame = pd.DataFrame(data=figure_datapoints, columns = ['Sample A','Sample B', 'Sample group'])
         plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
+        plot_dataframe.to_csv('for testing.tsv',sep='\t')
         figure: go.Figure = px.density_heatmap(
             plot_dataframe,
             title='Sample reproducibility (missing values ignored)',
-            x=plot_dataframe['Sample A'],
-            y=plot_dataframe['Sample B'],
+            x='Sample A',
+            y='Sample B',
             height=self.defaults['height']*(len(plot_dataframe['Sample group'].unique())/2),
             width=self.defaults['width'],
             color_continuous_scale='blues',

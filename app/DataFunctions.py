@@ -3,6 +3,7 @@ import qnorm
 import pandas as pd
 import io
 import time
+import json
 import numpy as np
 import base64
 from typing import Tuple
@@ -13,13 +14,9 @@ from importlib import util as import_util
 import textwrap
 from typing import Any
 
-class DataFunctions:
+from regex import D
 
-    _api_handlers: dict = {}
-    _handler_types: dict = {}
-    _done_operations: dict = {}
-    _default_enrichments: list = None
-    _available_enrichments: list = None
+class DataFunctions:
 
     @property
     def handlers(self) -> dict:
@@ -48,6 +45,7 @@ class DataFunctions:
             self._default_enrichments = defaults
         return self._default_enrichments
 
+
     def enrich_all_per_bait(self, data_table: pd.DataFrame,enrichment_strings: list) -> list:
         enrichments_to_do: dict = {}
         for e_str in enrichment_strings:
@@ -63,12 +61,12 @@ class DataFunctions:
         for api, enrichmentlist in enrichments_to_do.items():
             enrichment_str: str = ';'.join(enrichmentlist)
             names: list
-            result_dataframes: list
-            names, result_dataframes = self.enrich_per_bait(data_table, api, enrichment_str)
+            api_enrichment_result: list
+            names, api_enrichment_result = self.enrich_per_bait(data_table, api, enrichment_str)
             enrichment_names.extend(names)
-            enrichment_results.extend(result_dataframes)
+            enrichment_results.extend(api_enrichment_result)
         return (enrichment_names, enrichment_results)
-    
+
     def enrich_per_bait(self, data_table: pd.DataFrame, api: str, options: str) -> list:
         enrich_lists: list = []
         for bait in data_table['Bait'].unique():
@@ -84,6 +82,11 @@ class DataFunctions:
         return (result_names, return_dataframes)
 
     def __init__(self, module_base_dir: str) -> None:
+        self._api_handlers: dict = {}
+        self._handler_types: dict = {}
+        self._done_operations: dict = {}
+        self._default_enrichments: list = None
+        self._available_enrichments: list = None
         self.import_handlers(module_base_dir)
 	
     def register_handler(self, module_name: str, filepath: str) -> None:
@@ -476,20 +479,30 @@ class DataFunctions:
     def read_fragpipe(self, data_table: pd.DataFrame) -> pd.DataFrame:
         intensity_cols: list = []
         spc_cols: list = []
+        uniq_intensity_cols: list = []
+        uniq_spc_cols: list = []
         has_maxlfq: bool = False
         for column in data_table.columns:
             if 'Total' in column:
-                continue
-            if 'Unique' in column:
                 continue
             if 'Combined' in column:
                 continue
             if 'Intensity' in column:
                 if 'maxlfq' in column.lower():
                     has_maxlfq = True
-                intensity_cols.append(column)
+                if 'unique' in column.lower():
+                    uniq_intensity_cols.append(column)
+                else:
+                    intensity_cols.append(column)
             elif 'Spectral Count' in column:
-                spc_cols.append(column)
+                if 'unique' in column.lower():
+                    uniq_spc_cols.append(column)
+                else:
+                    spc_cols.append(column)
+        if len(uniq_intensity_cols) > 0:
+            intensity_cols = uniq_intensity_cols
+        if len(uniq_spc_cols) > 0:
+            spc_cols = uniq_spc_cols
         if has_maxlfq:
             intensity_cols = [i for i in intensity_cols if 'maxlfq' in i.lower()]
         protein_col: str = 'Protein ID'
@@ -504,15 +517,21 @@ class DataFunctions:
         table.replace(0, np.nan, inplace=True)
         table.index = table[protein_col]
         intensity_table: pd.DataFrame = table[intensity_cols]
+        replace_str: str = ''
+        if len(uniq_spc_cols) > 0:
+            replace_str = 'Unique '
         spc_table: pd.DataFrame = table[spc_cols].rename(
-            columns={ic: ic.replace('Spectral Count', '').strip()
+            columns={ic: ic.replace(f'{replace_str}Spectral Count', '').strip()
                     for ic in spc_cols}
         )
+        replace_str = ''
+        if len(uniq_intensity_cols) > 0:
+            replace_str = 'Unique '
         if intensity_table[intensity_cols[0:2]].sum().sum() == 0:
             intensity_table = pd.DataFrame({'No data': ['No data']})
         else:
             intensity_table.rename(
-            columns={ic: ic.replace('Intensity', '').replace('MaxLFQ', '').strip()
+            columns={ic: ic.replace(f'{replace_str}Intensity', '').replace('MaxLFQ', '').strip()
                     for ic in intensity_cols},
             inplace=True)
         return (intensity_table, spc_table, protein_lengths)

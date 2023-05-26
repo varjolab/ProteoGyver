@@ -9,7 +9,8 @@
     },
     "Config": {
         "TIC information refresh interval in seconds": 900,
-        "ID columns in sample table": ["Sample name", "Sample ID", "Run ID"]
+        "ID columns in sample table": ["Sample name", "Sample ID", "Run ID"],
+        "Time format": "%Y-%m-%dT%H:%M:%S%z"
     },
     "Figure legend dir": ["data","figure legends"],
     "Implemented workflows": ["proteomics", "interactomics"],
@@ -41,7 +42,11 @@
             "protein names file": ["data", "protein names.json"],
             "Protein sequence file": ["data", "Protein sequences.tsv"],
             "Contaminant list": ["data", "contaminant_list.tsv"],
-            "TIC information": ["data", "Run information"]
+            "TIC information": ["data", "Run information"],
+            "Protein database": {
+                "feather": ["data","Protein database.feather"],
+                "json": ["data","Protein database.json"]
+            }
         }
     },
     "cache dir": ".cache_data",

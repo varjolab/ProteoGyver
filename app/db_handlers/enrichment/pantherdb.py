@@ -10,22 +10,22 @@ from datetime import datetime
 class handler():
 
     _defaults: list = [
-            'Reactome pathways',
+            'Panther Reactome pathways',
             'Panther GOBP slim',
             'Panther GOMF slim',
             'Panther GOCC slim'
         ]
     _available:dict = {}
     _names:dict =  {
-        'GO molecular function': 'GO:0003674',
-        'GO biological process': 'GO:0008150',
-        'GO cellular component': 'GO:0005575',
+        'Panther GO molecular function': 'GO:0003674',
+        'Panther GO biological process': 'GO:0008150',
+        'Panther GO cellular component': 'GO:0005575',
         'Panther GOMF slim': 'ANNOT_TYPE_ID_PANTHER_GO_SLIM_MF',
         'Panther GOBP slim': 'ANNOT_TYPE_ID_PANTHER_GO_SLIM_BP',
         'Panther GOCC slim': 'ANNOT_TYPE_ID_PANTHER_GO_SLIM_CC',
         'Panther protein class': 'ANNOT_TYPE_ID_PANTHER_PC',
         'Panther pathway': 'ANNOT_TYPE_ID_PANTHER_PATHWAY',
-        'Reactome pathways': 'ANNOT_TYPE_ID_REACTOME_PATHWAY'
+        'Panther Reactome pathways': 'ANNOT_TYPE_ID_REACTOME_PATHWAY'
     }
     _datasets: dict = {}
     _nice_name: str = 'PantherDB'
@@ -166,10 +166,9 @@ class handler():
         result_legends: list = []
         for annokey, result_dfs in results.items():
             result_names.append(annokey)
-            result_dataframes.append(pd.concat(result_dfs))
+            result_dataframes.append(('fold_enrichment', 'fdr','label', pd.concat(result_dfs)))
             result_legends.append(list(set(legends[annokey])))
         return (result_names, result_dataframes, result_legends)
-
 
     def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list,
                                                 background_list: list = None,
@@ -279,8 +278,9 @@ class handler():
                 drop(columns=['term'])
             results.loc[:, 'DB'] = self._names_rev[annotation]
             order: list = ['DB', 'id', 'label']
-            results.loc[:, 'log2_fold_enrichment'] = np.log2(
-                results['fold_enrichment'])
+            with np.errstate(divide='ignore'):
+                results.loc[:, 'log2_fold_enrichment'] = np.log2(
+                    results['fold_enrichment'])
             order.extend([c for c in results.columns if c not in order])
             results = results[order]
 

@@ -250,6 +250,8 @@ def save_figures(save_data, session_uid) -> None:
 def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, current_tic_idx: int, figure_template_name:str) -> tuple:
     if tic_info is None:
         return '',current_tic_idx
+    if len(auc_traces) == 0:
+        return 'No TIC information available.',current_tic_idx
     num_of_traces_visible: int = tic_info['num_of_traces_visible']
 
     return_tic_index: int = current_tic_idx + 1
@@ -276,6 +278,7 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
         #paper_bgcolor= 'rgba(0, 0, 0, 0)',
         margin=dict(l=5, r=5, t=35, b=5)
     )
+
 
     auc_figure: go.Figure = go.Figure()
     auc_figure.add_traces(auc_traces[current_tic_idx])
@@ -315,7 +318,6 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
         if 'data tables' in data_dictionary:
             data_table: pd.DataFrame = pd.read_json(
                 data_dictionary['data tables']['main table'], orient='split')
-            
             count_data: pd.DataFrame = data_functions.get_count_data(
                 data_table)
             figure_generation.add_replicate_colors(
@@ -444,10 +446,16 @@ def download_all_data(_, data_dictionary,session_uid) -> dict:
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
-    shutil.copytree(
-        os.path.join(db.get_cache_dir(session_uid),'Figures'),
-        os.path.join(export_dir, 'Figures')
-    )
+    copydirs: list = [
+        'Enrichments',
+        'Figures'
+    ]
+    for dirname in copydirs:
+        shutil.copytree(
+            os.path.join(db.get_cache_dir(session_uid),dirname),
+            os.path.join(export_dir, dirname)
+        )
+
     export_fileinfo: list = [f'Session UID:{session_uid}']
     for key, value in data_dictionary['info'].items():
         export_fileinfo.append(key)
@@ -674,6 +682,7 @@ def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
     volcano_graphs: list
     significants, figures, volcano_graphs = figure_generation.volcano_plots(
                     data_table,
+                    db.annotation_for_protein_list('Primary gene name',data_table.index),
                     data_dictionary['sample groups']['norm'],
                     control_group
         )
@@ -1023,9 +1032,18 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     figures.append(figure)
     enrichment_names: list
     enrichment_results: pd.DataFrame
-    with open('sebugging','w') as fil:
-        fil.write(str(enrichments_to_do))
     enrichment_names, enrichment_results = data_functions.enrich_all_per_bait(saint_output, enrichments_to_do)#'pantherdb', 'defaults')
+    save_dir:str = os.path.join(db.get_cache_dir(session_uid, make_subdirs = ['Enrichments']), 'Enrichments')
+    with open(os.path.join(save_dir, f'Enrichment_information.txt'),'w',encoding='utf-8') as fil:
+        for i, (rescol, sigcol, namecol, result) in enumerate(enrichment_results):
+            result_filename:str = os.path.join(save_dir, enrichment_names[i])
+            result.to_csv(os.path.join(save_dir, f'{result_filename}_enrichmentResult.tsv'),sep='\t')
+            fil.write(f'{enrichment_names[i]}\n')
+            fil.write(f'Result name column: {namecol}\n')
+            fil.write(f'Result significance column: {sigcol}\n')
+            fil.write(f'Result result column: {rescol}\n')
+            fil.write(f'Result datafile: {result_filename}_enrichmentResult.tsv\n')
+            fil.write('----------\n')
     
     figures.append(
         dbc.Tabs(
@@ -1150,15 +1168,15 @@ def create_network( saint_data) -> list:
 
 def make_enrichment_tabs(names, results) -> list:
     tablist: list = []
-    for i, result in enumerate(results):
-        keep_these: set = set(result[result['log2_fold_enrichment']>=2]['label'].values)
-        keep_these = keep_these & set(result[result['fdr']<0.01]['label'].values)
-        filtered_result: pd.DataFrame = result[result['label'].isin(keep_these)]
+    for i, (rescol, sigcol, namecol, result) in enumerate(results):
+        keep_these: set = set(result[result[rescol]>=2][namecol].values)
+        keep_these = keep_these & set(result[result[sigcol]<0.01][namecol].values)
+        filtered_result: pd.DataFrame = result[result[namecol].isin(keep_these)]
         matrix: pd.DataFrame = pd.pivot_table(
             filtered_result,
-            index='label',
+            index=namecol,
             columns='Bait',
-            values='log2_fold_enrichment'
+            values=rescol
             )
         graph:dcc.Graph
         if filtered_result.shape[0] == 0:
@@ -1167,7 +1185,7 @@ def make_enrichment_tabs(names, results) -> list:
             graph = figure_generation.heatmap(
                 matrix,
                 plot_name = f'interactomics-enrichment-{names[i]}',
-                value_name = 'log2 Fold Change')
+                value_name = rescol.replace('_',' '))
 
         table_label: str = f'{names[i]} data table'
         table: dash_table.DataTable = dash_table.DataTable(

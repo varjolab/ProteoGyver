@@ -1,53 +1,42 @@
-import pandas as pd
-import requests
-import json
 import numpy as np
-
-from urllib.parse import quote
-from datetime import datetime
+import pandas as pd
 from suds.client import Client
-from datetime import datetime
 from typing import Any
-
+import os
 class handler():
 
     @property
     def nice_name(self) -> str:
         return self._nice_name
-    
-    @property
-    def legends(self) -> dict:
-        return self._legends
 
     def __init__(self) -> None:
         self._defaults: list = [
-                'GOBP Direct',
-                'GOCC Direct',
-                'GOMF Direct',
-                'KEGG',
-                'Reactome',
-                'Wikipathway',
+                'DAVID GOBP Direct',
+                'DAVID GOCC Direct',
+                'DAVID GOMF Direct',
+                'DAVID KEGG',
+                'DAVID Reactome',
+                'DAVID Wikipathway',
             ]
         self._names:dict =  {
-            'GOBP Direct': 'GOTERM_BP_DIRECT',
-            'GOCC Direct': 'GOTERM_CC_DIRECT',
-            'GOMF Direct': 'GOTERM_MF_DIRECT',
-            'GOBP All': 'GOTERM_BP_ALL',
-            'GOCC All': 'GOTERM_CC_ALL',
-            'GOMF All': 'GOTERM_MF_ALL',
-            'KEGG': 'KEGG_PATHWAY',
-            'Reactome': 'REACTOME_PATHWAY',
-            'Wikipathway': 'WIKIPATHWAY',
-            'Interpro Domains': 'INTERPRO',
-            'Pfam domains': 'PFAM',
-            'Disgenet diseases': 'DISGENET',
-            'GAD diseases': 'GAD_DISEASE',
+            'DAVID GOBP Direct': 'GOTERM_BP_DIRECT',
+            'DAVID GOCC Direct': 'GOTERM_CC_DIRECT',
+            'DAVID GOMF Direct': 'GOTERM_MF_DIRECT',
+      #      'DAVID GOBP All': 'GOTERM_BP_ALL',
+       #     'DAVID GOCC All': 'GOTERM_CC_ALL',
+        #    'DAVID GOMF All': 'GOTERM_MF_ALL',
+            'DAVID KEGG': 'KEGG_PATHWAY',
+            'DAVID Reactome': 'REACTOME_PATHWAY',
+            'DAVID Wikipathway': 'WIKIPATHWAY',
+       #     'DAVID Interpro Domains': 'INTERPRO',
+            'DAVID Pfam domains': 'PFAM',
+       #     'DAVID Disgenet diseases': 'DISGENET',
+       #     'DAVID GAD diseases': 'GAD_DISEASE',
         }
         self._nice_name: str = 'DAVID'
         self._available: dict = {}
         self._available['enrichment'] = sorted(list(self._names.keys()))
         self._names_rev: dict = {v: k for k,v in self._names.items()}
-        self._legends: dict = self._names_rev
 
     @property
     def handler_types(self) -> list:
@@ -59,34 +48,42 @@ class handler():
     def get_default_panel(self) -> list:
         return self._defaults
     
-    def enrich(self, data_lists:list, options: str) -> list:
+    def enrich(self, data_lists:list, options: str) -> tuple:
+        """Main enrich method.
+        
+        :returns: a tuple of (result_names, result_data, result_legends). Result names is a list of the names of different enrichments. Result data is a list of tuples of (fold change column name, dataframe), and result legends is a list of more elaborate information about each enrichment, if available.
+        """
         if options == 'defaults':
             datasets: list = self.get_default_panel()
         else:
             datasets = options.split(';')
+        datasets = [self._names[dataname] for dataname in datasets]
         results: dict = {}
         for bait, preylist in data_lists:
-            for data_type_key, result in self.run_david_overrepresentation_analysis(datasets, preylist).items():
+            for data_type_key, results_df in self.run_david_overrepresentation_analysis(datasets, preylist).items():
                 if data_type_key not in results:
                     results[data_type_key] = []
-                results_df: pd.DataFrame = result['Results']
                 results_df.insert(1, 'Bait', bait)
                 results[data_type_key].append(results_df)
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
         for annokey, result_dfs in results.items():
-            result_names.append(annokey)
-            result_dataframes.append(pd.concat(result_dfs))
-            result_legends.append(self.legends[annokey])
+            if annokey in self._names:
+                result_names.append(annokey)
+                result_df: pd.DataFrame = pd.concat(result_dfs)
+                with np.errstate(divide='ignore'):
+                    result_df.loc[:, 'log2_foldEnrichment'] = np.log2(
+                        result_df['foldEnrichment'])
+                result_dataframes.append(('foldEnrichment', 'afdr', 'termName', result_df))
+                result_legends.append(annokey)
         return (result_names, result_dataframes, result_legends)
-
 
     def suds_to_dict(self, suds_item: Any) -> dict:
         """Transcodes suds objects to a dictionary.
         Can handle nested suds objects as well, unlike the suds Client.dict(sucs_object) -method.
         :param suds_item: suds.sudsobject.simpleChartRecord object
-        :return:  dictionary representation of the input object
+        :returns:  dictionary representation of the input object
         """
         # Thanks to radtek on stackoverflow for most of this function: https://stackoverflow.com/questions/17581731/parsing-suds-soap-complex-data-type-into-python-dict
         # if object doesn't have __keylist__, we can't iterate it and should just return it as is.
@@ -150,12 +147,10 @@ class handler():
             input_bg_ids: str = ','.join(bg_uniprot_list)
             list_type = 1
             proportion_of_background_mapped = client.service.addList(input_bg_ids, id_type, bg_list_name, list_type)
-
         category_string: str = ','.join(david_categories)
         client.service.setCategories(category_string)
         chart_report: list = client.service.getChartReport(1,fold_enrichment_threshold)
         result_dataframe:pd.DataFrame = pd.DataFrame(data=[self.suds_to_dict(s) for s in chart_report])
-
         # Filter results
         result_dataframe = result_dataframe[result_dataframe[sig_col]<sig_threshold]
         result_dataframe = result_dataframe[result_dataframe['listHits']>count_threshold]
@@ -179,6 +174,16 @@ class handler():
                             'afdr',
                             'rfdr'
                         ]]
+        new_category_names: list = []
+        discarded: set = set()
+        for cat_value in result_dataframe['categoryName'].values:
+            if cat_value not in self._names_rev:
+                discarded.add(cat_value)
+                new_category_names.append('discard')
+            else:
+                new_category_names.append(self._names_rev[cat_value])
+        result_dataframe['categoryName'] = new_category_names
+        result_dataframe = result_dataframe[result_dataframe['categoryName']!='discard']
         result_dict: dict= {}
         for category in result_dataframe['categoryName'].unique():
             result_dict[category] = result_dataframe[result_dataframe['categoryName']==category]

@@ -25,7 +25,7 @@ ms_list: list = sorted(list(df['MS'].unique()))
 sample_list: list = sorted(list(df['sample_type'].unique()))
 max_x: int = df['max_time'].max()
 max_y: float = df['tic_max_intensity'].max()
-df['run_time'] = df['run_time'].apply(lambda x: datetime.strptime(x,'%Y-%m-%d_%H-%M-%S_%z'))
+df['run_time'] = df['run_time'].apply(lambda x: datetime.strptime(x,parameters['Config']['Time format']))
 
 ticfile_dir: str = os.path.join(data_dir, 'TIC_files')
 color = 'rgb(56, 8, 35)'
@@ -268,8 +268,8 @@ def update_tic_graph(_,prev_btn_nclicks, next_btn_nclicks, __, tic_index: int, t
 )
 # untested
 def update_run_choices(start, end, sample_types) -> list:
-    start: datetime = datetime.strptime(start+'_00-00-00_+0200','%Y-%m-%d_%H-%M-%S_%z')
-    end: datetime = datetime.strptime(end+'_23-59-59_+0200','%Y-%m-%d_%H-%M-%S_%z')
+    start: datetime = datetime.strptime(start+'_00-00-00_+0200',parameters['Config']['Time format'])
+    end: datetime = datetime.strptime(end+'_23-59-59_+0200',parameters['Config']['Time format'])
     chosen_runs: pd.DataFrame = df[(df['run_time']>=start) & (df['run_time']<=end)]
     chosen_runs = chosen_runs[chosen_runs['sample_type'].isin(sample_types)]
     return list(chosen_runs['run_id'].values)
