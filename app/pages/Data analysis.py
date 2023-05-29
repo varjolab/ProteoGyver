@@ -684,7 +684,7 @@ def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
     volcano_graphs: list
     significants, figures, volcano_graphs = figure_generation.volcano_plots(
                     data_table,
-                    db.annotation_for_protein_list('Primary gene name',data_table.index),
+                    db.names_for_protein_list(data_table.index),
                     data_dictionary['sample groups']['norm'],
                     control_group
         )

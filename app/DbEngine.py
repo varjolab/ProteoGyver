@@ -97,6 +97,14 @@ class DbEngine:
     def controlsets(self) -> dict:
         return self._controls['sets']['all']
     
+    def names_for_protein_list(self, protein_list: list) -> list:
+        retlist: list = []
+        for p in protein_list:
+            if p in self.protein_names:
+                retlist.append(self.protein_names[p])
+            else:
+                retlist.append(p)
+        return retlist
     
     @property
     def figure_data(self) -> dict:
