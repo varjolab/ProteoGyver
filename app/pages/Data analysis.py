@@ -451,10 +451,12 @@ def download_all_data(_, data_dictionary,session_uid) -> dict:
         'Figures'
     ]
     for dirname in copydirs:
-        shutil.copytree(
-            os.path.join(db.get_cache_dir(session_uid),dirname),
-            os.path.join(export_dir, dirname)
-        )
+        dir_to_copy: str = os.path.join(db.get_cache_dir(session_uid), dirname)
+        if os.path.isdir(dir_to_copy):
+            shutil.copytree(
+                os.path.join(dir_to_copy),
+                os.path.join(export_dir, dirname)
+            )
 
     export_fileinfo: list = [f'Session UID:{session_uid}']
     for key, value in data_dictionary['info'].items():

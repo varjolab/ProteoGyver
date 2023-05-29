@@ -471,13 +471,11 @@ class FigureGeneration:
     def volcano_plots(self, data_table, sample_groups, control_group, legend_for_all:str = None, data_is_log2_transformed:bool = True) -> list:
         """Generates volcano plots of all sample groups vs given control group in data_table.
 
-        Parameters:
-        data_table: table of samples (columns) and measurements(rows)
-        sample_groups: dictionary of {sample_group_name: [sample_columns]}
-        control_group: name of the control group
+        :param data_table: table of samples (columns) and measurements(rows)
+        :param sample_groups: dictionary of {sample_group_name: [sample_columns]}
+        :param control_group: name of the control group
         
-        Returns: 
-        a list of [dcc.Graph] volcano plots.
+        :returns: a list of [dcc.Graph] volcano plots.
         """
         if legend_for_all is None:
             legend_for_all = 'Changes are considered significant, if the associated FDR-corrected p-value is under 0.05, and the associated log2 fold change either over 1 or under -1.'
@@ -522,21 +520,19 @@ class FigureGeneration:
             self, data_table, sample_name, control_name, sample_columns, control_columns,
             data_is_log2_transformed:bool = True, adj_p_threshold: float = 0.05,
             fc_threshold: float = 1, fc_axis_min_max: float = 2
-        ) -> dcc.Graph:
+        ) -> tuple:
         """Draws a Volcano plot of the given data_table
 
-        Parameters:
-        data_table: table of samples (columns) and measurements(rows)
-        sample_name: Name for the test sample
-        control_name: Name for control
-        sample_columns: columns corresponding to test sample data
-        control_columns: columns corresponding to control data
-        adj_p_threshold: threshold of significance for the calculated adjusted p value (Default 0.05)
-        fc_threshold: threshold of significance for the log2 fold change. Proteins with fold change of <-fc_threshold or >fc_threshold are considered significant (Default 1)
-        fc_axis_min_max: minimum for the maximum value of fold change axis. Default of 2 is used to keep the plot from becoming ridiculously narrow
+        :param data_table: table of samples (columns) and measurements(rows)
+        :param sample_name: Name for the test sample
+        :param control_name: Name for control
+        :param sample_columns: columns corresponding to test sample data
+        :param control_columns: columns corresponding to control data
+        :param adj_p_threshold: threshold of significance for the calculated adjusted p value (Default 0.05)
+        :param fc_threshold: threshold of significance for the log2 fold change. Proteins with fold change of <-fc_threshold or >fc_threshold are considered significant (Default 1)
+        :param fc_axis_min_max: minimum for the maximum value of fold change axis. Default of 2 is used to keep the plot from becoming ridiculously narrow
         
-        Returns: 
-        dcc.Graph containing a go.Figure of the Volcano plot.
+        :returns: (result: pd.DataFrame, volcano_plot: go.Figure)
         """
 
         # Calculate log2 fold change for each protein between the two sample groups
@@ -598,8 +594,8 @@ class FigureGeneration:
         fig.add_shape(type='line', x0=-fcrange, y0=p_thresh_val,
                     x1=fcrange, y1=p_thresh_val, line=dict(width=2, dash='dot'))
 
-        # Show the plot
-        return result, fig
+        # Return the plot
+        return (result, fig)
 
     def improve_text_position(self, data_frame: pd.DataFrame) -> list:
         """Returns a list of text positions in alternating pattern."""
