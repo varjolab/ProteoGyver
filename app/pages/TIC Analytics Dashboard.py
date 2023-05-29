@@ -268,8 +268,8 @@ def update_tic_graph(_,prev_btn_nclicks, next_btn_nclicks, __, tic_index: int, t
 )
 # untested
 def update_run_choices(start, end, sample_types) -> list:
-    start: datetime = datetime.strptime(start+'_00-00-00_+0200',parameters['Config']['Time format'])
-    end: datetime = datetime.strptime(end+'_23-59-59_+0200',parameters['Config']['Time format'])
+    start: datetime = datetime.strptime(start+'T00:00:00+0200',parameters['Config']['Time format'])
+    end: datetime = datetime.strptime(end+'T23:59:59+0200',parameters['Config']['Time format'])
     chosen_runs: pd.DataFrame = df[(df['run_time']>=start) & (df['run_time']<=end)]
     chosen_runs = chosen_runs[chosen_runs['sample_type'].isin(sample_types)]
     return list(chosen_runs['run_id'].values)

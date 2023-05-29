@@ -684,9 +684,9 @@ def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
     volcano_graphs: list
     significants, figures, volcano_graphs = figure_generation.volcano_plots(
                     data_table,
-                    db.names_for_protein_list(data_table.index),
                     data_dictionary['sample groups']['norm'],
-                    control_group
+                    control_group,
+                    replacement_index = db.names_for_protein_list(data_table.index)
         )
     data_dictionary['data tables'][f'Comparisons vs {control_group}'] = significants.to_json(orient='split')
     return [
@@ -1133,7 +1133,8 @@ def interactomics_volcano_plots(control_group, saint_output, data_dictionary) ->
     significants, figures, volcano_graphs = figure_generation.volcano_plots(
                 intensity_table,
                 sample_groups,
-                control_group
+                control_group,
+                replacement_index = db.names_for_protein_list(intensity_table.index)
             )
     significants.to_csv('SIGS.tsv',sep='\t')
     intensity_table.to_csv('INTS.tsv',sep='\t')

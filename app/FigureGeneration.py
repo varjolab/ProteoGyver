@@ -468,17 +468,21 @@ class FigureGeneration:
         )
 
 
-    def volcano_plots(self, data_table, sample_groups, control_group, legend_for_all:str = None, data_is_log2_transformed:bool = True) -> list:
+    def volcano_plots(self, data_table, sample_groups, control_group, replacement_index:str = None, legend_for_all:str = None, data_is_log2_transformed:bool = True) -> list:
         """Generates volcano plots of all sample groups vs given control group in data_table.
 
         :param data_table: table of samples (columns) and measurements(rows)
         :param sample_groups: dictionary of {sample_group_name: [sample_columns]}
         :param control_group: name of the control group
+        :param replacement_index: replace index with these values. Must be in same order.
         
         :returns: a list of [dcc.Graph] volcano plots.
         """
         if legend_for_all is None:
             legend_for_all = 'Changes are considered significant, if the associated FDR-corrected p-value is under 0.05, and the associated log2 fold change either over 1 or under -1.'
+        if replacement_index is not None:
+            data_table: pd.DataFrame = data_table.copy()
+            data_table.index = replacement_index
         control_cols: list = sample_groups[control_group]
         volcanoes: list = []
         figures: list = []
@@ -878,7 +882,6 @@ class FigureGeneration:
                     figure_datapoints.extend([[r[column], r[column2], sample_group] for _,r in data_table.iterrows()])
         plot_dataframe: pd.DataFrame = pd.DataFrame(data=figure_datapoints, columns = ['Sample A','Sample B', 'Sample group'])
         plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
-        plot_dataframe.to_csv('for testing.tsv',sep='\t')
         figure: go.Figure = px.density_heatmap(
             plot_dataframe,
             title='Sample reproducibility (missing values ignored)',
