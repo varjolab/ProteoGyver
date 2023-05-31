@@ -470,8 +470,22 @@ class DataFunctions:
             protein_lengths = {}
             for _,row in data_table[[protein_col,'Protein Length']].drop_duplicates().iterrows():
                 protein_lengths[row[protein_col]] = row['Protein Length']
-        table: pd.DataFrame = pd.pivot_table(
-            data=data_table, index=protein_col, columns='Run', values='PG.MaxLFQ')
+        is_report: bool = False
+        for c in data_table.columns:
+            if c == 'Run':
+                is_report = True
+                break
+        if is_report:
+            table: pd.DataFrame = pd.pivot_table(
+                data=data_table, index=protein_col, columns='Run', values='PG.MaxLFQ')
+        else:
+            data_cols: list = []
+            for column in data_table.columns:
+                col: list = column.split('.')
+                if col[-1] == 'd':
+                    data_cols.append(column)
+            table: pd.DataFrame = data_table[data_cols]
+            table.index = data_table['Protein.Group']
         # Replace zeroes with missing values
         table.replace(0, np.nan, inplace=True)
         return [table, pd.DataFrame({'No data': ['No data']}), protein_lengths]
@@ -546,11 +560,15 @@ class DataFunctions:
         if protein_id_column not in table.columns:
             protein_id_column = table.columns[0]
         protein_lengths:dict = None
-        if 'Protein Length' in data_table.columns:
-            protein_lengths = {}
-            for _,row in data_table[[protein_id_column,'Protein Length']].drop_duplicates().iterrows():
-                protein_lengths[row[protein_id_column]] = row['Protein Length']
-            table = table.drop('Protein Length')
+        protein_length_cols:list = ['Protein Length','Protein.Length']
+        protein_length_cols.extend([x.lower() for x in protein_length_cols])
+        for plencol in protein_length_cols:
+            if plencol in data_table.columns:
+                protein_lengths = {}
+                for _,row in data_table[[protein_id_column,plencol]].drop_duplicates().iterrows():
+                    protein_lengths[row[protein_id_column]] = row[plencon]
+                table = table.drop(plencol)
+                break
         table.index = table[protein_id_column]
         # Replace zeroes with missing values
         table.replace(0, np.nan, inplace=True)
@@ -759,8 +777,8 @@ class DataFunctions:
 
         data_type: tuple = None
         keyword_args: dict = {}
-        if 'Fragment.Quant.Raw' in table.columns:
-            if 'Decoy.CScore' in table.columns:
+        if 'Protein.Ids' in table.columns:
+            if 'First.Protein.Description' in table.columns:
                 data_type = ('DIA', 'DIA-NN')
         elif 'Top Peptide Probability' in table.columns:
             if 'Protein Existence' in table.columns:
@@ -768,7 +786,6 @@ class DataFunctions:
         if data_type is None:
             data_type = ('DDA/DIA', 'Unknown')
             keyword_args['max_spc_ever'] = max_theoretical_spc
-
         intensity_table: pd.DataFrame
         spc_table: pd.DataFrame
         protein_length_dict: dict

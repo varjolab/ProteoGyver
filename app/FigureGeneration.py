@@ -172,7 +172,7 @@ class FigureGeneration:
                 height=self.defaults['height'],
                 width=self.defaults['width'],
                 )
-
+        figure.update_xaxes(title=None)
         self.add_figure(figure, title, legend)
         return (
             figure,

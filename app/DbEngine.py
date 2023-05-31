@@ -231,6 +231,7 @@ class DbEngine:
         ])
         if 'Run data' in self._tic_dict:
             missing_runs: list = (runs_in_dir - set(self._tic_dict['Run data'].keys()))
+            missing_runs = [m for m in missing_runs if not 'ipynb' in m]
         else:
             self._tic_dict['Run data'] = {}
             self._tic_dict['TIC data'] = {}
