@@ -484,6 +484,17 @@ class DataFunctions:
                 col: list = column.split('.')
                 if col[-1] == 'd':
                     data_cols.append(column)
+            if len(data_cols) == 0:
+                gather: bool = False
+                for c in data_table.columns:
+                    if gather:
+                        data_cols.append(c)
+                    elif c == 'First.Protein.Description':
+                        gather = True
+            #if len(data_cols) == 0:
+                #data_cols = numerical_columns: set = set(data_table.select_dtypes(include=np.number).columns)
+
+                
             table: pd.DataFrame = data_table[data_cols]
             table.index = data_table['Protein.Group']
         # Replace zeroes with missing values
@@ -703,7 +714,6 @@ class DataFunctions:
                         if col not in expdesign['Sample name'].values:
                             # Discard column if not found
                             discarded_columns.append(col)
-                            print('fail', col)
                             continue
                 intermediate_renaming[column_name] = col
                 sample_group: str = expdesign[expdesign['Sample name']
@@ -722,7 +732,6 @@ class DataFunctions:
             if len(intermediate_renaming.keys()) > 0:
                 table.rename(columns=intermediate_renaming, inplace = True)
             rev_intermediate_renaming.append({value: key for key,value in intermediate_renaming.items()})
-        print(sample_group_columns)
         column_renames: list = [{} for _ in range(len(tables))]
         used_columns: list = [{} for _ in range(len(tables))]
         for nname, list_of_all_table_columns in sample_group_columns.items():

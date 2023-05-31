@@ -135,9 +135,7 @@ def process_input_tables(
             for table_dict in return_dict['info']['used columns']:
                 for newcol, oldcol in table_dict.items():
                     col_list_to_write.append(f'{newcol} -> {oldcol}')
-            for chunk in list_to_chunks(col_list_to_write, 5):
-                chunkstr: str = '\t'.join(chunk)
-                fil.write(f'{chunkstr}\n')
+            fil.write('\n'.join(col_list_to_write)+'\n')
         name_dict: dict = {}
         for protein_id in return_dict['other']['all proteins']:
              name_dict[protein_id] =  db.get_name(protein_id)
@@ -466,7 +464,13 @@ def download_all_data(_, data_dictionary,session_uid) -> dict:
     for key, value in data_dictionary['info'].items():
         export_fileinfo.append(key)
         if isinstance(value,list) or isinstance(value,set):
-            export_fileinfo.append('\n'.join(value))
+            export_fileinfo.append('\n'.join([
+                str(x) for x in value
+            ]))
+        elif isinstance(value, dict):
+            export_fileinfo.extend([
+                f'{key2}: {value2}' for key2, value2 in value.items()
+            ])
         else:
             export_fileinfo.append(f'{value}')
         export_fileinfo.append('')
