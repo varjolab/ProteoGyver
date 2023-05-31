@@ -131,7 +131,11 @@ def process_input_tables(
                 chunkstr: str = '\t'.join(chunk)
                 fil.write(f'{chunkstr}\n')
             fil.write('Used columns:\n')
-            for chunk in list_to_chunks(list(return_dict['info']['used columns']), 5):
+            col_list_to_write: list = []
+            for table_dict in return_dict['info']['used columns']:
+                for newcol, oldcol in table_dict.items():
+                    col_list_to_write.append(f'{newcol} -> {oldcol}')
+            for chunk in list_to_chunks(col_list_to_write, 5):
                 chunkstr: str = '\t'.join(chunk)
                 fil.write(f'{chunkstr}\n')
         name_dict: dict = {}

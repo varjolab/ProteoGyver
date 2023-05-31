@@ -684,13 +684,13 @@ class DataFunctions:
                 .rstrip('.d') for oldvalue in expdesign['Sample name'].values
         ]
         discarded_columns:list = []
-        used_columns:list = []
         sample_groups: dict = {}
         sample_group_columns: dict = {}
+        rev_intermediate_renaming: list = []
         for table_ind, table in enumerate(tables):
+            intermediate_renaming: dict = {}
             if len(table.columns) < 2:
                 continue
-            rename_columns: dict = {}
             for column_name in table.columns:
                 # Discard samples that are not named
                 col: str = column_name
@@ -699,13 +699,13 @@ class DataFunctions:
                     col = col.rsplit(
                         '\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
                     if col not in expdesign['Sample name'].values:
-                        # Discard column if not found
-                        discarded_columns.append(col)
-                        continue
-                    else:
-                        used_columns.append(col)
-                else:
-                    used_columns.append(col)
+                        col = col.rsplit('.d',maxsplit=1)[0]
+                        if col not in expdesign['Sample name'].values:
+                            # Discard column if not found
+                            discarded_columns.append(col)
+                            print('fail', col)
+                            continue
+                intermediate_renaming[column_name] = col
                 sample_group: str = expdesign[expdesign['Sample name']
                                             == col].iloc[0]['Sample group']
                 # If no value is available for sample in the expdesign
@@ -719,8 +719,12 @@ class DataFunctions:
                 if newname not in sample_group_columns:
                     sample_group_columns[newname] = [[] for _ in range(len(tables))]
                 sample_group_columns[newname][table_ind].append(col)
-        
+            if len(intermediate_renaming.keys()) > 0:
+                table.rename(columns=intermediate_renaming, inplace = True)
+            rev_intermediate_renaming.append({value: key for key,value in intermediate_renaming.items()})
+        print(sample_group_columns)
         column_renames: list = [{} for _ in range(len(tables))]
+        used_columns: list = [{} for _ in range(len(tables))]
         for nname, list_of_all_table_columns in sample_group_columns.items():
             first_len: int = 0
             for table_index, table_columns in enumerate(list_of_all_table_columns):
@@ -740,9 +744,10 @@ class DataFunctions:
                         sample_groups[nname] = set()
                     sample_groups[nname].add(newname_to_use)
                     column_renames[table_index][newname_to_use] = column_name
-        sample_groups = {k: sorted(list(v)) for k, v in sample_groups.items()}        
+                    used_columns[table_index][newname_to_use] = rev_intermediate_renaming[table_index][column_name]
+        sample_groups = {k: sorted(list(v)) for k, v in sample_groups.items()}   
         for table_index, table in enumerate(tables):
-            rename_columns = {value: key for key, value in column_renames[table_index].items()}
+            rename_columns: dict = {value: key for key, value in column_renames[table_index].items()}
             table.drop(
                 columns= [c for c in table.columns if c not in rename_columns],
                 inplace=True
