@@ -231,7 +231,6 @@ class DbEngine:
         ])
         if 'Run data' in self._tic_dict:
             missing_runs: list = (runs_in_dir - set(self._tic_dict['Run data'].keys()))
-            missing_runs = [m for m in missing_runs if not 'ipynb' in m]
         else:
             self._tic_dict['Run data'] = {}
             self._tic_dict['TIC data'] = {}
@@ -241,6 +240,7 @@ class DbEngine:
             with open(os.path.join(dirpath, 'info.json'),encoding='utf-8') as fil:
                 self._tic_dict['Info'] = json.load(fil)
             missing_runs: list = runs_in_dir
+        missing_runs = [m for m in missing_runs if not 'ipynb' in m]
         for run_id in missing_runs:
             with open(os.path.join(info_dir,f'{run_id}.json'),encoding='utf-8') as fil:
                 run_dict: dict = json.load(fil)
