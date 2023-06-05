@@ -246,7 +246,7 @@ class DataFunctions:
             ret = self.impute_qrilc(data_table, tempdir = tempdir)
         return ret
 
-    def impute_qrilc(self, dataframe: pd.DataFrame, rpath:str='C:\\Program Files\\R\\newest-r\\bin', tempdir:str=None) -> pd.DataFrame:
+    def impute_qrilc(self, dataframe: pd.DataFrame, rpath:str=None, tempdir:str=None) -> pd.DataFrame:
         """Impute missing values in dataframe using QRILC method
 
         Calls an R function to qrilc-impute missing values into the input dataframe.
@@ -256,6 +256,8 @@ class DataFunctions:
         df: pandas dataframe with the missing values. Should not have any text columns
         rpath: path to Rscript.exe
         """
+        if rpath is None:
+            rpath: str = 'C:\\Program Files\\R\\newest-r\\bin'
         if not tempdir: 
             tempdir: str = '.'
         tempname: uuid.UUID = uuid.uuid4()
@@ -273,7 +275,6 @@ class DataFunctions:
                         df3 = data.frame(imputed)
                         write.table(imputed,file="{tempdffile_dest}",sep="\\t")
                         """))
-
         process: subprocess.CompletedProcess = self.run_r_script(temp_r_file, rpath=rpath)
         df2: pd.DataFrame = pd.DataFrame()
         try:
@@ -687,13 +688,14 @@ class DataFunctions:
 
         return (output_dataframe, sorted(list(discarded)))
 
-    def rename_columns_and_update_expdesign(self, expdesign, tables) -> Tuple[dict, dict]:
+    def rename_columns_and_update_expdesign(self, expdesign: pd.DataFrame, tables: list, discard_samples: list) -> Tuple[dict, dict]:
         # Get rid of file paths and timstof .d -file extension, if present:
         expdesign['Sample name'] = [
             oldvalue.rsplit('\\', maxsplit=1)[-1]\
                 .rsplit('/', maxsplit=1)[-1]\
                 .rstrip('.d') for oldvalue in expdesign['Sample name'].values
         ]
+        expdesign: pd.DataFrame = expdesign[~expdesign['Sample name'].isin(discard_samples)]
         discarded_columns:list = []
         sample_groups: dict = {}
         sample_group_columns: dict = {}
@@ -779,7 +781,7 @@ class DataFunctions:
                 aggfuncs[column] = 'first'
         return data_table.groupby(data_table.index).agg(aggfuncs).replace(0,np.nan)
 
-    def parse_data(self, data_content, data_name, expdes_content, expdes_name, max_theoretical_spc: int=0) -> list:
+    def parse_data(self, data_content, data_name, expdes_content, expdes_name, max_theoretical_spc: int=0, discard_samples: list=None) -> list:
         table: pd.DataFrame = self.read_df_from_content(data_content, data_name)
         expdesign: pd.DataFrame = self.read_df_from_content(expdes_content, expdes_name)
         read_funcs: dict[tuple[str, str]] = {
@@ -811,11 +813,18 @@ class DataFunctions:
         rev_sample_groups: dict
         discarded_columns: list
         used_columns: list
+        
+        if discard_samples is None:
+            discard_samples = []
         sample_groups, rev_sample_groups, discarded_columns, used_columns = self.rename_columns_and_update_expdesign(
             expdesign,
-            [intensity_table, spc_table]
+            [intensity_table, spc_table],
+            discard_samples
         )
         spc_table = spc_table[sorted(list(spc_table.columns))]
+
+
+
         if len(intensity_table.columns) > 1:
             intensity_table = intensity_table[sorted(list(intensity_table.columns))]
             untransformed_intensity_table: pd.DataFrame = intensity_table
@@ -846,7 +855,8 @@ class DataFunctions:
             'info': {
                 'discarded columns': discarded_columns,
                 'used columns': used_columns,
-                'data type': data_type
+                'data type': data_type,
+                'discarded samples': discard_samples
             },
             'other': {
                 'protein lengths': protein_length_dict,

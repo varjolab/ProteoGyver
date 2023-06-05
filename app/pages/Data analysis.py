@@ -79,7 +79,7 @@ def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
     Output('output-data-upload', 'data'),
     Output('output-data-upload-problems', 'children'),
     Output('figure-template-choice', 'data'),
-    Output('upload-complete-indicator', 'children')
+    Output('upload-complete-indicator', 'children'),
 ],
     Input('figure-theme-dropdown', 'value'),
     Input('upload-data-file', 'contents'),
@@ -87,6 +87,8 @@ def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
     Input('upload-sample_table-file', 'contents'),
     State('upload-sample_table-file', 'filename'),
     State('session-uid', 'children'),
+    Input('filter-complete-button', 'n_clicks'),
+    State('qc-checklist-select-samples-to-discard', 'value')
 )
 def process_input_tables(
     figure_template_dropdown_value,
@@ -95,6 +97,8 @@ def process_input_tables(
     sample_table_file_contents,
     sample_table_file_name,
     session_uid,
+    filter_button,
+    discard_samples
 ) -> tuple:
     if figure_template_dropdown_value:
         with open(db.get_cache_file(session_uid, 'figure-template-choice.txt'), 'w', encoding='utf-8') as fil:
@@ -112,7 +116,8 @@ def process_input_tables(
             data_file_name,
             sample_table_file_contents,
             sample_table_file_name,
-            max_theoretical_spc=db.max_theoretical_spc
+            max_theoretical_spc=db.max_theoretical_spc,
+            discard_samples = discard_samples
         )
         #TODO: Move writing these to a subprocess?
         with open(db.get_cache_file(session_uid, 'data_dict.json'), 'w', encoding='utf-8') as fil:
@@ -303,13 +308,22 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
     ])
     return tic_div, return_tic_index
 
+def make_sample_strings(sample_dict:dict) -> list:
+    ret_list = []
+    for key, value in sample_dict.items():
+        ret_list.append(f'{key}: {value}')
+    return ret_list
+
 @callback(
     Output('qc-plot-container', 'children'),
     Output('rep-colors', 'data'),
     Output('figures-to-save','data'),
+    #Output('discard-sample-checklist-container','children'),
+    Output('qc-checklist-select-samples-to-discard','options'),
+    Output('discard-sample-container', 'hidden'),
     Input('upload-complete-indicator', 'children'),
     State('output-data-upload', 'data'),
-    State('session-uid', 'children')
+    State('session-uid', 'children'),
 )
 def quality_control_charts(_, data_dictionary,session_uid) -> list:
     figures: list = []
@@ -320,6 +334,10 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
         if 'data tables' in data_dictionary:
             data_table: pd.DataFrame = pd.read_json(
                 data_dictionary['data tables']['main table'], orient='split')
+            #cols_to_use:dict = {}
+            #for _, table_col_map in make_sample_strings(data_dictionary['info']['used columns']).items():
+            #    if len(table_col_map.keys()) > len(cols_to_use.keys()):
+            #        cols_to_use = table_col_map            
             count_data: pd.DataFrame = data_functions.get_count_data(
                 data_table)
             figure_generation.add_replicate_colors(
@@ -406,15 +424,16 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             with open(os.path.join(figure_data_dir, 'rep colors.json'),'w',encoding='utf-8') as fil:
                 json.dump(rep_colors,fil, indent = 4)
 
+            discard_samples_checklist: list = sorted(list(data_dictionary['sample groups']['rev'].keys()))
             # Long-term:
             # - protein counts compared to previous similar samples
             # - sum value compared to previous similar samples
             # - Person-to-person comparisons: protein counts, intensity/psm totals
             to_save = [f[0] for f in figures if f[0] is not None]
             figures = [f[1] for f in figures]
-        return (figures, rep_colors, [to_save, figure_names_and_legends])
+            return (figures, rep_colors, [to_save, figure_names_and_legends], discard_samples_checklist, False)
     else:
-        return (dash.no_update, dash.no_update, dash.no_update)
+        return (dash.no_update, dash.no_update, dash.no_update, dash.no_update, True)
 
 
 @callback(
@@ -440,9 +459,12 @@ def download_data_table_example(_) -> dict:
     Input('button-export-all-data', 'n_clicks'),
     State('output-data-upload', 'data'),
     State('session-uid', 'children'),
+    State('interactomics-volcano-significants', 'data'),
+    State('proteomics-volcano-significants', 'data'),
+    State('hci-intensities', 'data'),
     prevent_initial_call=True
 )
-def download_all_data(_, data_dictionary,session_uid) -> dict:
+def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteomics_sigs, hci_intensities) -> dict:
     export_dir: str = os.path.join(db.get_cache_dir(session_uid),'export')
     figure_generation.save_figures(os.path.join(db.get_cache_dir(session_uid),'Figures'), None)
     if os.path.isdir(export_dir):
@@ -476,6 +498,14 @@ def download_all_data(_, data_dictionary,session_uid) -> dict:
         export_fileinfo.append('')
     for key, table in data_dictionary['data tables'].items():
         pd.read_json(table, orient='split').to_excel(os.path.join(export_dir, f'{key}.xlsx'))
+        
+    if interactomics_sigs is not None:
+        pd.read_json(interactomics_sigs, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'interactomics_significants.xlsx'))
+    if proteomics_sigs is not None:
+        pd.read_json(proteomics_sigs, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'proteomics_significants.xlsx'))
+    if hci_intensities is not None:
+        pd.read_json(hci_intensities, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'HCI_intensities.xlsx'))
+    
     with open(os.path.join(export_dir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
     with open(os.path.join(export_dir, 'full data for debugging.json'),'w',encoding='utf-8') as fil:
@@ -677,11 +707,12 @@ def proteomics_full_clustermap_figure(_, data_dictionary) -> list:
 
 @callback(
     Output('proteomics-volcano-plots', 'children'),
+    Output('proteomics-volcano-significants','data'),
     Input('proteomics-full-clustermap-figure', 'children'),
     Input('control-dropdown', 'value'),
     State('processed-proteomics-data', 'data'),
 )
-def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
+def proteomics_volcano_plots(_, control_group, data_dictionary) -> tuple:
     if control_group is None:
         return dash.no_update
     data_table = data_dictionary['final data table']
@@ -696,12 +727,11 @@ def proteomics_volcano_plots(_, control_group, data_dictionary) -> list:
                     control_group,
                     replacement_index = db.names_for_protein_list(data_table.index)
         )
-    data_dictionary['data tables'][f'Comparisons vs {control_group}'] = significants.to_json(orient='split')
-    return [
+    return ([
         html.Div(id='volcano-plot-label', children='Volcano plots'),
         html.Div(id='volcano-plot-container', children=volcano_graphs
         )
-    ]
+    ], significants.to_json(orient='split'))
 
 
 @callback(
@@ -751,7 +781,6 @@ def generate_proteomics_tab() -> dbc.Tab:
     proteomics_tab: dbc.Card = dbc.Card(
         dbc.CardBody(
             children=[
-                dcc.Store(id='processed-proteomics-data'),
                 html.Div(
                     [
 
@@ -800,7 +829,7 @@ def generate_proteomics_tab() -> dbc.Tab:
     return dbc.Tab(proteomics_tab, label='Proteomics', id='proteomics-tab')
 
 
-def checklist(label: str, options: list, default_choice: list, disabled: list = None, id_prefix: str = None, simple_text_clean: bool = False, id_only:bool=False) -> dbc.Checklist:
+def checklist(label: str, options: list, default_choice: list, disabled: list = None, id_prefix: str = None, simple_text_clean: bool = False, id_only:bool=False, prefix_list:list = None, postfix_list:list = None) -> dbc.Checklist:
     if disabled is None:
         disabled: set = set()
     else:
@@ -812,7 +841,11 @@ def checklist(label: str, options: list, default_choice: list, disabled: list = 
         checklist_id = f'{id_prefix}-{text_functions.clean_text(label.lower())}'
     if id_only:
         label = ''
-    return [
+    if prefix_list is None:
+        prefix_list = []
+    if postfix_list is None:
+        postfix_list = []
+    retlist: list = [
         label,
         dbc.Checklist(
             options=[
@@ -825,6 +858,8 @@ def checklist(label: str, options: list, default_choice: list, disabled: list = 
             switch=True
         )
     ]
+
+    return prefix_list + retlist + postfix_list
 
 def map_intensity(saint_output, intensity_table, sample_groups) -> list:
     intensity_column: list = []
@@ -1118,6 +1153,8 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
 
 @callback(
     Output('interactomics-volcano-plot-container', 'children'),
+    Output('interactomics-volcano-significants','data'),
+    Output('hci-intensities','data'),
     Input('interactomics-control-dropdown', 'value'),
     State('interactomics-fully-filtered-saint-data', 'data'),
     State('output-data-upload', 'data'),
@@ -1144,16 +1181,12 @@ def interactomics_volcano_plots(control_group, saint_output, data_dictionary) ->
                 control_group,
                 replacement_index = db.names_for_protein_list(intensity_table.index)
             )
-    significants.to_csv('SIGS.tsv',sep='\t')
-    intensity_table.to_csv('INTS.tsv',sep='\t')
-    data_dictionary['data tables'][f'Comparisons vs {control_group}'] = significants.to_json(orient='split')
-    data_dictionary['data tables'][f'HCI intensity'] = intensity_table.to_json(orient='split')
 
-    return [
+    return ([
         html.Div(id='volcano-plot-label', children='Volcano plots'),
         html.Div(id='volcano-plot-container', children=volcano_graphs
         )
-    ]
+    ], significants.to_json(orient='split'), intensity_table.to_json(orient='split'))
 
 def create_network( saint_data) -> list:
     nodes: list = [
@@ -1424,10 +1457,6 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
     interactomics_tab: dbc.Card = dbc.Card(
         dbc.CardBody(
             children=[
-                dcc.Store(id='processed-interactomics-data'),
-                dcc.Store(id='raw-interactomics-data'),
-                dcc.Store(id='interactomics-fully-filtered-saint-data'),
-                dcc.Store(id='crapome-column-groups'),
                 html.Div(
                     id='interactomics-options',
                     children=[
@@ -1530,7 +1559,7 @@ upload_row_3: list = [
 upload_tab: dbc.Card = dbc.Card(
     dbc.CardBody(
         [
-            html.Div(
+            dbc.Row(
                 [
                     dbc.Row(
                         upload_row_1
@@ -1553,13 +1582,6 @@ upload_tab: dbc.Card = dbc.Card(
             dcc.Download(id='download-all-data'),
             html.Div(id='upload-complete-indicator'),
             html.Hr(),
-            dcc.Store(id='output-data-upload'),
-            dcc.Store(id='figure-template-choice'),
-            dcc.Store(id='workflow-choice'),
-            dcc.Store(id='rep-colors'),
-            dcc.Store(id='tic-traces'),
-            dcc.Store(id='tic-info'),
-            dcc.Store(id='auc-traces'),
             dcc.Interval(
                 id='interval-component',
                 interval=5*1000, # in milliseconds
@@ -1568,15 +1590,38 @@ upload_tab: dbc.Card = dbc.Card(
             ),
             html.Div(id='current-tic-idx', children = 0,hidden=True),
             html.Div(id='tic-graph'),
-            dcc.Loading(
-                id='qc-loading',
-                children=[
-                    html.Div(id='qc-plot-container',
-                             children=[
-                             ])
-                ],
-                type='default'
-            ),
+            dbc.Row([
+                dbc.Col([
+                        dcc.Loading(
+                            id='qc-loading',
+                            children=[
+                                html.Div(id='qc-plot-container',
+                                        children=[
+                                        ])
+                            ],
+                            type='default'
+                        ) 
+                    ],
+                    width=8
+                ),
+                dbc.Col([
+                    html.Div(
+                        id='discard-sample-container',
+                        children = checklist(
+                                label = 'Select samples to discard',
+                                #options = [make_sample_strings(cols_to_use)],
+                                options = [],
+                                default_choice = [],
+                                id_prefix = 'qc-checklist',
+                                simple_text_clean = True,
+                                prefix_list = [
+                                    html.Div(id='discard-sample-checklist-container'),
+                                    dbc.Button('Discard samples', id = 'filter-complete-button'),
+                                ]
+                            ),
+                        hidden=True)
+                ])
+            ]),            
         ],
         className="mt-3"
     ),
@@ -1599,5 +1644,20 @@ layout: html.Div = html.Div([
     #            id='session-save-button', color='success'),
     html.Div(id='void',hidden=True),
     dcc.Store(id='figures-to-save'),
+    dcc.Store(id='output-data-upload'),
+    dcc.Store(id='figure-template-choice'),
+    dcc.Store(id='workflow-choice'),
+    dcc.Store(id='rep-colors'),
+    dcc.Store(id='tic-traces'),
+    dcc.Store(id='tic-info'),
+    dcc.Store(id='auc-traces'),
+    dcc.Store(id='processed-interactomics-data'),
+    dcc.Store(id='processed-proteomics-data'),
+    dcc.Store(id='raw-interactomics-data'),
+    dcc.Store(id='interactomics-fully-filtered-saint-data'),
+    dcc.Store(id='crapome-column-groups'),
+    dcc.Store(id='interactomics-volcano-significants'),
+    dcc.Store(id='hci-intensities'),
+    dcc.Store(id='proteomics-volcano-significants'),
     tabs
 ])
