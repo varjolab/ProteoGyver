@@ -560,8 +560,8 @@ class FigureGeneration:
         result: pd.DataFrame = pd.DataFrame(
             {'fold_change': log2_fold_change, 'p_value_adj': p_value_adj, 'p_value': p_value})
         result['Name'] = data_table.index.values
-        comparison_name = f'{sample_name} vs {control_name}'
-        result['Comparison'] = 
+        comparison_name: str = f'{sample_name} vs {control_name}'
+        result['Comparison'] = comparison_name
         result['significant'] = ((result['p_value_adj'] < adj_p_threshold) & (
             abs(result['fold_change']) >= 1))
         result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
