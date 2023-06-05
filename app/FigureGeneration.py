@@ -560,18 +560,23 @@ class FigureGeneration:
         result: pd.DataFrame = pd.DataFrame(
             {'fold_change': log2_fold_change, 'p_value_adj': p_value_adj, 'p_value': p_value})
         result['Name'] = data_table.index.values
+        comparison_name = f'{sample_name} vs {control_name}'
+        result['Comparison'] = 
         result['significant'] = ((result['p_value_adj'] < adj_p_threshold) & (
             abs(result['fold_change']) >= 1))
         result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
         result['Highlight'] = [row['Name'] if row['significant']
                             else '' for _, row in result.iterrows()]
+        col_order: list = ['Comparison','Name','significant']
+        col_order.extend([c for c in result.columns if c not in col_order])
+        result = result[col_order]
         result.sort_values(by='significant',ascending=True,inplace=True)
         # Draw the volcano plot using plotly express
         fig: go.Figure = px.scatter(
             result,
             x='fold_change',
             y='p_value_adj_neg_log10',
-            title=f'{sample_name} vs {control_name}',
+            title=comparison_name,
             color='significant',
             text='Highlight',
             height=self.defaults['height'],

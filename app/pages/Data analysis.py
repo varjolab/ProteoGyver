@@ -500,11 +500,11 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
         pd.read_json(table, orient='split').to_excel(os.path.join(export_dir, f'{key}.xlsx'))
         
     if interactomics_sigs is not None:
-        pd.read_json(interactomics_sigs, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'interactomics_significants.xlsx'))
+        pd.read_json(interactomics_sigs, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'data', 'interactomics_significants.xlsx'))
     if proteomics_sigs is not None:
-        pd.read_json(proteomics_sigs, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'proteomics_significants.xlsx'))
+        pd.read_json(proteomics_sigs, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'data', 'proteomics_significants.xlsx'))
     if hci_intensities is not None:
-        pd.read_json(hci_intensities, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'HCI_intensities.xlsx'))
+        pd.read_json(hci_intensities, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'data', 'HCI_intensities.xlsx'))
     
     with open(os.path.join(export_dir, 'Info.txt'), 'w',encoding='utf-8') as fil:
         fil.write('\n'.join(export_fileinfo))
