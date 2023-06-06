@@ -496,7 +496,7 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
             )
     
 
-    for group_map_type, gmap in data_dictionary['sample groups']:
+    for group_map_type, gmap in data_dictionary['sample groups'].items():
         if isinstance(gmap, dict):
             with open(os.path.join(export_dir, f'{group_map_type}.json'),'w',encoding='utf-8') as fil:
                 json.dump(gmap, fil)
