@@ -1002,9 +1002,9 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
     with open(db.get_cache_file(session_uid, 'SAINT info.txt'),'w',encoding='utf-8') as fil:
         discarded_str: str = '\t'.join(discarded_proteins)
         fil.write(f'Discarded proteins:\n{discarded_str}')
-    saint_output.to_csv(db.get_cache_file(session_uid, 'Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
-    inbuilt_control_table.to_csv(db.get_cache_file(session_uid, 'Inbuilt controls.tsv'),sep='\t',index = False,encoding = 'utf-8')
-    crapome_table.to_csv(db.get_cache_file(session_uid, 'Crapome table.tsv'),sep='\t',index = False,encoding = 'utf-8')
+    saint_output.to_csv(db.get_cache_file(session_uid, 'Data', 'Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
+    inbuilt_control_table.to_csv(db.get_cache_file(session_uid, 'Data', 'Inbuilt controls.tsv'),sep='\t',index = False,encoding = 'utf-8')
+    crapome_table.to_csv(db.get_cache_file(session_uid, 'Data', 'Crapome table.tsv'),sep='\t',index = False,encoding = 'utf-8')
     return container_contents, saint_output.to_json(orient='split'), crapome_column_groups
 
 def filter_saint(saint_output, saint_bfdr: float, crapome_freq: float, crapome_rescue: int)-> pd.DataFrame:
@@ -1065,7 +1065,7 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     # Commented out because bait uniprot has already been mapped directly after SAINT analysis
     #saint_output['Bait uniprot'] = saint_output.apply(lambda x: data_dictionary['other']['bait uniprots'][x['Bait']],axis=1)
     data_functions.map_known(saint_output,db.get_known(saint_output['Bait uniprot'].unique()))
-    saint_output.to_csv(db.get_cache_file(session_uid, 'Filtered Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
+    saint_output.to_csv(db.get_cache_file(session_uid, 'Data', 'Filtered Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
 
     figures: list = []
     pdf_data: list  =[]
