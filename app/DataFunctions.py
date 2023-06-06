@@ -578,7 +578,7 @@ class DataFunctions:
             if plencol in data_table.columns:
                 protein_lengths = {}
                 for _,row in data_table[[protein_id_column,plencol]].drop_duplicates().iterrows():
-                    protein_lengths[row[protein_id_column]] = row[plencon]
+                    protein_lengths[row[protein_id_column]] = row[plencol]
                 table = table.drop(plencol)
                 break
         table.index = table[protein_id_column]

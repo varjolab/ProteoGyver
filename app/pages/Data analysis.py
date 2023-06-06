@@ -325,6 +325,7 @@ def make_sample_strings(sample_dict:dict) -> list:
     Input('upload-complete-indicator', 'children'),
     State('output-data-upload', 'data'),
     State('session-uid', 'children'),
+    prevent_initial_call=True,
 )
 def quality_control_charts(_, data_dictionary,session_uid) -> list:
     figures: list = []
@@ -484,6 +485,17 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
                 os.path.join(export_dir, dirname)
             )
 
+    dest_dir: str = os.path.join(db.get_cache_dir(session_uid), 'Data')
+    for filename in os.listdir(db.get_cache_dir(session_uid)):
+        if filename.rsplit('.', maxsplit=1)[1] == 'tsv':
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir)
+            shutil.copy(
+                os.path.join(db.get_cache_dir(session_uid), filename),
+                os.path.join(dest_dir, filename)
+            )
+    
+
     for group_map_type, gmap in data_dictionary['sample groups']:
         if isinstance(gmap, dict):
             with open(os.path.join(export_dir, f'{group_map_type}.json'),'w',encoding='utf-8') as fil:
@@ -509,6 +521,7 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
         export_fileinfo.append('')
     for key, table in data_dictionary['data tables'].items():
         pd.read_json(table, orient='split').to_excel(os.path.join(export_dir, f'{key}.xlsx'))
+    
         
     if interactomics_sigs is not None:
         pd.read_json(interactomics_sigs, orient='split').to_excel(os.path.join(export_dir, 'Figures', 'data', 'interactomics_significants.xlsx'))
@@ -549,14 +562,14 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             # Filter by missing value proportion
             original_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
-            original_counts.to_csv(db.get_cache_file(session_uid, 'Data', 'Original counts.tsv'),sep='\t',encoding = 'utf-8')
+            original_counts.to_csv(db.get_cache_file(session_uid, 'Original counts.tsv'),sep='\t',encoding = 'utf-8')
             data_table = data_functions.filter_missing(
                 data_table, sample_groups, threshold=filter_threshold)
             data_table = data_table.loc[~data_table.index.isin(db.contaminant_list)]
-            data_table.to_csv(db.get_cache_file(session_uid, 'Data', 'NA and contaminant filtereddata table.tsv'),sep='\t',encoding = 'utf-8')
+            data_table.to_csv(db.get_cache_file(session_uid, 'NA and contaminant filtereddata table.tsv'),sep='\t',encoding = 'utf-8')
             filtered_counts: pd.Series = data_functions.count_per_sample(
                 data_table, rev_sample_groups)
-            filtered_counts.to_csv(db.get_cache_file(session_uid, 'Data', 'Filtered counts.tsv'),sep='\t',encoding = 'utf-8')
+            filtered_counts.to_csv(db.get_cache_file(session_uid, 'Filtered counts.tsv'),sep='\t',encoding = 'utf-8')
             data_dictionary['filter data'] = [original_counts.to_json(), filtered_counts.to_json()]
 
             data_dictionary['normalization data'] = [
@@ -565,12 +578,12 @@ def make_proteomics_data_processing_figures(filter_threshold, imputation_method,
             if normalization_method:
                 data_table = data_functions.normalize(
                     data_table, normalization_method)
-                data_table.to_csv(db.get_cache_file(session_uid, 'Data', 'NA Filtered and normalized data table.tsv'),sep='\t',encoding = 'utf-8')
+                data_table.to_csv(db.get_cache_file(session_uid, 'NA Filtered and normalized data table.tsv'),sep='\t',encoding = 'utf-8')
                 data_dictionary['normalization data'].append(
                     data_table.to_json(orient='split'))
             data_table = data_functions.impute(
                 data_table, method=imputation_method, tempdir=db.temp_dir)
-            data_table.to_csv(db.get_cache_file(session_uid, 'Data', 'NA filtered, normalized and imputed data table.tsv'),sep='\t',encoding = 'utf-8')
+            data_table.to_csv(db.get_cache_file(session_uid, 'NA filtered, normalized and imputed data table.tsv'),sep='\t',encoding = 'utf-8')
             data_dictionary['final data table'] = data_table.to_json(
                 orient='split')
             

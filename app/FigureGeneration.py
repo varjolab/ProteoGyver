@@ -831,7 +831,7 @@ class FigureGeneration:
             dcc.Graph(config=self.defaults['config'], figure=figure, id=plot_name)
         )
     
-    def violin_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict) -> go.Figure:
+    def violin_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict, title: str) -> go.Figure:
         distances_to_average_point_per_sample_group: pd.DataFrame = pd.DataFrame(index=data_table.index)
         drop_columns: list = []
         for sample_group, sample_columns in sample_groups.items():
@@ -855,7 +855,7 @@ class FigureGeneration:
             yaxis_title='Mean distance from average per protein'
         )
 
-    def scatter_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict) -> go.Figure:
+    def scatter_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict, title) -> go.Figure:
         figure_datapoints:list = []
         for sample_group, sample_columns in sample_groups.items():
             for i, column in enumerate(sample_columns):
@@ -867,7 +867,7 @@ class FigureGeneration:
         plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
         figure: go.Figure = px.scatter(
             plot_dataframe, 
-            title='Sample reproducibility (missing values ignored)',
+            title=title,
             x=plot_dataframe['Sample A'],
             y=plot_dataframe['Sample B'],
             color = 'Sample group',
@@ -877,7 +877,7 @@ class FigureGeneration:
         
         return figure
 
-    def heatmap_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict) -> go.Figure:
+    def heatmap_reproducibility(self, data_table: pd.DataFrame, sample_groups: dict, title) -> go.Figure:
         figure_datapoints:list = []
         for sample_group, sample_columns in sample_groups.items():
             for i, column in enumerate(sample_columns):
@@ -889,7 +889,7 @@ class FigureGeneration:
         plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
         figure: go.Figure = px.density_heatmap(
             plot_dataframe,
-            title='Sample reproducibility (missing values ignored)',
+            title=title,
             x='Sample A',
             y='Sample B',
             height=self.defaults['height']*(len(plot_dataframe['Sample group'].unique())/2),
@@ -904,7 +904,7 @@ class FigureGeneration:
         )
         return figure
 
-    def reproducibility_figure(self, data_table: pd.DataFrame, sample_groups: dict, title='Reproducibility plot', style='heatmap', legend:str = None) -> dcc.Graph:
+    def reproducibility_figure(self, data_table: pd.DataFrame, sample_groups: dict, title='Sample reproducibility (missing values ignored)', style='heatmap', legend:str = None) -> dcc.Graph:
         """Produces a graph describing reproducibility within sammple groups
 
         Parameters:
@@ -917,11 +917,11 @@ class FigureGeneration:
         dcc.Graph containing a go.Figure describing the reproducibility of the samples within sample groups.
         """
         if style == 'violin':
-            figure: go.Figure = self.violin_reproducibility(data_table, sample_groups)
+            figure: go.Figure = self.violin_reproducibility(data_table, sample_groups, title)
         elif style == 'scatter':
-            figure: go.Figure = self.scatter_reproducibility(data_table, sample_groups)
+            figure: go.Figure = self.scatter_reproducibility(data_table, sample_groups, title)
         else:
-            figure: go.Figure = self.heatmap_reproducibility(data_table, sample_groups)
+            figure: go.Figure = self.heatmap_reproducibility(data_table, sample_groups, title)
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], figure=figure, id=f'{title.lower().replace(" ","-")}')
