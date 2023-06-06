@@ -427,6 +427,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                 json.dump(rep_colors,fil, indent = 4)
 
             discard_samples_checklist: list = sorted(list(data_dictionary['sample groups']['rev'].keys()))
+            print(discard_samples_checklist)
             # Long-term:
             # - protein counts compared to previous similar samples
             # - sum value compared to previous similar samples
@@ -434,8 +435,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             to_save = [f[0] for f in figures if f[0] is not None]
             figures = [f[1] for f in figures]
             return (figures, rep_colors, [to_save, figure_names_and_legends], discard_samples_checklist, False)
-    else:
-        return (dash.no_update, dash.no_update, dash.no_update, [], True)
+    return (dash.no_update, dash.no_update, dash.no_update, dash.no_update, True)
 
 
 @callback(
@@ -487,7 +487,7 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
 
     dest_dir: str = os.path.join(db.get_cache_dir(session_uid), 'Data')
     for filename in os.listdir(db.get_cache_dir(session_uid)):
-        if filename.rsplit('.', maxsplit=1)[1] == 'tsv':
+        if filename.rsplit('.', maxsplit=1)[-1] == 'tsv': # Not all files will have file extension, so just check with index -1
             if not os.path.isdir(dest_dir):
                 os.makedirs(dest_dir)
             shutil.copy(
