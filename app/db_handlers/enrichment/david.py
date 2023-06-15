@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from suds.client import Client
 from typing import Any
-import os
 class handler():
 
     @property
@@ -109,11 +108,9 @@ class handler():
             'bonferroni',
             'EASEBonferroni',
             'benjamini',
-            'afdr',
-            'rfdr'
         ]
 
-    def run_david_overrepresentation_analysis(self, david_categories: list, uniprot_idlist: list, bg_uniprot_list: list = None, sig_threshold: float = 0.05, sig_col:str = 'afdr', fold_enrichment_threshold: float = 2, count_threshold: int = 2) -> tuple:
+    def run_david_overrepresentation_analysis(self, david_categories: list, uniprot_idlist: list, bg_uniprot_list: list = None, sig_threshold: float = 0.05, sig_col:str = 'benjamini', fold_enrichment_threshold: float = 2, count_threshold: int = 2) -> tuple:
         """Runs statistical overrepresentation analysis on DAVID server (david.ncifcrf.gov), and \
             returns the results as a dictionary.
 
@@ -143,7 +140,7 @@ class handler():
         # These proportions are unused for now.
         proportion_of_input_mapped: float =  client.service.addList(input_ids, id_type, input_list_name, list_type)
         proportion_of_background_mapped: float = -1
-        if bg_uniprot_list:
+        if bg_uniprot_list is not None:
             input_bg_ids: str = ','.join(bg_uniprot_list)
             list_type = 1
             proportion_of_background_mapped = client.service.addList(input_bg_ids, id_type, bg_list_name, list_type)

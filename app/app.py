@@ -1,10 +1,8 @@
 
-from uuid import uuid4
 from dash import Dash, html, callback, Input, Output, State  # dcc,DiskcacheManager, CeleryManager
 import dash_bootstrap_components as dbc
 import dash
 from DbEngine import DbEngine
-from datetime import datetime
 
 
 db: DbEngine = DbEngine()
@@ -57,7 +55,7 @@ def clear_session_data(_, uid) -> str:
 
 
 app.layout = html.Div([
-    html.Div(id='session-uid', children=f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}--{uuid4()}', hidden=True),
+    html.Div(id='session-uid', children='placeholder', hidden=True),
     navbar,
     dash.page_container,
     #    dbc.Button('Clear session data',\

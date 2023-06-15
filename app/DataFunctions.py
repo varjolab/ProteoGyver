@@ -14,8 +14,6 @@ from importlib import util as import_util
 import textwrap
 from typing import Any
 
-from regex import D
-
 class DataFunctions:
 
     @property

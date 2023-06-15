@@ -6,9 +6,11 @@ import base64
 import io
 import json
 import os
+from uuid import uuid4
 from typing import Any
 import dash
 from matplotlib.pyplot import isinteractive
+from datetime import datetime
 from regex import F
 import dash_bootstrap_components as dbc
 from DataFunctions import DataFunctions
@@ -81,6 +83,7 @@ def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
     Output('output-data-upload-problems', 'children'),
     Output('figure-template-choice', 'data'),
     Output('upload-complete-indicator', 'children'),
+    Output('session-uid','children')
 ],
     Input('figure-theme-dropdown', 'value'),
     Input('upload-data-file', 'contents'),
@@ -153,7 +156,7 @@ def process_input_tables(
         return_message = f'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
-    return return_dict, return_message, figure_template_dropdown_value, ''
+    return return_dict, return_message, figure_template_dropdown_value, '',f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}--{uuid4()}'
 
 @callback(
     Output('interval-component','disabled'),

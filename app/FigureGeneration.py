@@ -66,16 +66,16 @@ class FigureGeneration:
     def save_figures(self, figure_dir: str, save_data: list) -> None:
         for figure_name, (figure_legend, figure) in self.generated_figures.items():
             if isinstance(figure, str):
-                os.rename(figure, os.path.join(figure_dir,figure_name+'testing.pdf'))
+                os.rename(figure, os.path.join(figure_dir,figure_name+'.pdf'))
             else:
                 figure: go.Figure = go.Figure(figure)
                 if figure_legend is None:
                     figure_legend = ''
                 elif isinstance(figure_legend,list):
                     figure_legend = '\n'.join(figure_legend)
-                with open(os.path.join(figure_dir, figure_name + 'testing.txt'),'w',encoding='utf-8') as fil:
+                with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
                     fil.write(figure_legend)
-                figure.write_html(os.path.join(figure_dir,figure_name+'testing.html'),config=self.defaults['config'])
+                figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
 
         if save_data is not None:
             for i, figure in enumerate(save_data[0]):
@@ -523,7 +523,7 @@ class FigureGeneration:
     def volcano_plot(
             self, data_table, sample_name, control_name, sample_columns, control_columns,
             data_is_log2_transformed:bool = True, adj_p_threshold: float = 0.05,
-            fc_threshold: float = 1, fc_axis_min_max: float = 2
+            fc_threshold: float = 1, fc_axis_min_max: float = 2, highlight_only: list = None
         ) -> tuple:
         """Draws a Volcano plot of the given data_table
 
@@ -535,6 +535,7 @@ class FigureGeneration:
         :param adj_p_threshold: threshold of significance for the calculated adjusted p value (Default 0.05)
         :param fc_threshold: threshold of significance for the log2 fold change. Proteins with fold change of <-fc_threshold or >fc_threshold are considered significant (Default 1)
         :param fc_axis_min_max: minimum for the maximum value of fold change axis. Default of 2 is used to keep the plot from becoming ridiculously narrow
+        :param highlight_only: only highlight significant ones that are also in this list
         
         :returns: (result: pd.DataFrame, volcano_plot: go.Figure)
         """
@@ -550,6 +551,24 @@ class FigureGeneration:
         # Calculate the p-value for each protein using a two-sample t-test
         p_value: float = data_table.apply(lambda x: ttest_ind(
             x[sample_columns], x[control_columns])[1], axis=1)
+        # if all values between mutant and control are exactly the same, p value will be undefined. 
+        # This can happen with some normalizations, e.g. baitnorm
+        # However, if it does happen, we want to make a note of it for debugging, hence we will first save all info:
+        if p_value.isna().sum()>0:
+            if not os.path.isdir('DEBUG'):
+                os.makedirs('DEBUG')
+            i = 1
+            debugfile: str = os.path.join('DEBUG',f'p_value_nan_{i}')
+            while os.path.isfile(debugfile):
+                i+=1
+                debugfile = os.path.join('DEBUG',f'p_value_nan_{i}')
+            with open(debugfile) as fil:
+                fil.write(f'nan encountered in p values\nSample({sample_name}) cols:\n')
+                fil.write('\t'.join(sample_columns) + '\n')
+                fil.write(f'Control({control_name}) cols:\n')
+                fil.write('\t'.join(control_columns) + '\n')
+            data_table.to_csv(debugfile + '.tsv',sep='\t')
+            p_value = p_value.fillna(1) 
 
         # Adjust the p-values for multiple testing using the Benjamini-Hochberg correction method
         _: Any
@@ -565,8 +584,12 @@ class FigureGeneration:
         result['significant'] = ((result['p_value_adj'] < adj_p_threshold) & (
             abs(result['fold_change']) >= 1))
         result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
-        result['Highlight'] = [row['Name'] if row['significant']
+        
+        if not highlight_only:
+            highlight_only = set(result['Name'].values)
+        result['Highlight'] = [row['Name'] if ((row['significant']) & (row['Name'] in highlight_only))
                             else '' for _, row in result.iterrows()]
+
         col_order: list = ['Comparison','Name','significant']
         col_order.extend([c for c in result.columns if c not in col_order])
         result = result[col_order]
