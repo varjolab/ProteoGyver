@@ -9,7 +9,6 @@ import os
 from uuid import uuid4
 from typing import Any
 import dash
-from matplotlib.pyplot import isinteractive
 from datetime import datetime
 from regex import F
 import dash_bootstrap_components as dbc
@@ -512,13 +511,13 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
     for key, value in data_dictionary['info'].items():
         export_fileinfo.append(key)
         if isinstance(value,list) or isinstance(value,set):
-            export_fileinfo.append('\n'.join([
-                str(x) for x in value
-            ]))
+            for val in value:
+                if isinstance(val, dict):
+                    export_fileinfo.append(format_dictionary(val))
+                else:
+                    export_fileinfo.append(str(val))
         elif isinstance(value, dict):
-            export_fileinfo.extend([
-                f'{key2}: {value2}' for key2, value2 in value.items()
-            ])
+            export_fileinfo.append(format_dictionary(val))
         else:
             export_fileinfo.append(f'{value}')
         export_fileinfo.append('')
@@ -539,6 +538,27 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
         json.dump(data_dictionary,fil, indent = 4)
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
     return dcc.send_file(export_dir.rstrip(os.sep) + '.zip')
+
+def format_dictionary(dic: dict, level = 0) -> list:
+    """Formats a dictionary into a more file-output friendly format."""
+    retlist: list = []
+    prefix: str = '\t'*level
+    keys: list = sorted(list(dic.keys()))
+    for k in keys:
+        retlist.append(f'{prefix}{k}:')
+        v: Any = dic[k]
+        if isinstance(v, dict):
+            retlist.extend(format_dict(v, level=level+1))
+        elif isinstance(v, list) or isinstance(v,set):
+            retlist.extend([
+                f'{prefix}\t{l}' for l in v
+            ])
+        else:
+            retlist.append(f'\t{v}')
+    if level > 0:
+        return retlist
+    else:
+        return '\n'.join(retlist)    
 
 @callback(
     Output('data-processing-figures', 'children'),
