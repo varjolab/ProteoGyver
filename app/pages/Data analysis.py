@@ -80,40 +80,36 @@ def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
 @callback([
     Output('output-data-upload', 'data'),
     Output('output-data-upload-problems', 'children'),
-    Output('figure-template-choice', 'data'),
+#    Output('figure-template-choice', 'data'),
     Output('upload-complete-indicator', 'children'),
     Output('session-uid','children')
 ],
-    Input('figure-theme-dropdown', 'value'),
+  #  Input('figure-theme-dropdown', 'value'),
     Input('upload-data-file', 'contents'),
     State('upload-data-file', 'filename'),
     Input('upload-sample_table-file', 'contents'),
     State('upload-sample_table-file', 'filename'),
-    State('session-uid', 'children'),
     Input('filter-complete-button', 'n_clicks'),
     State('qc-checklist-select-samples-to-discard', 'value')
 )
 def process_input_tables(
-    figure_template_dropdown_value,
+  #  figure_template_dropdown_value,
     data_file_contents,
     data_file_name,
     sample_table_file_contents,
     sample_table_file_name,
-    session_uid,
-    filter_button,
+    filter_button_clicks,
     discard_samples
 ) -> tuple:
-    if figure_template_dropdown_value:
-        with open(db.get_cache_file(session_uid, 'figure-template-choice.txt'), 'w', encoding='utf-8') as fil:
-            fil.write(figure_template_dropdown_value)
-        pio.templates.default = figure_template_dropdown_value
     return_message: list = []
     return_dict: dict = {}
+    session_uid: str = 'placeholder'
     if data_file_contents is None:
         return_message.append('Missing data table')
     if sample_table_file_contents is None:
         return_message.append('Missing sample_table')
     if len(return_message) == 0:
+        session_uid = f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}'
         return_dict = data_functions.parse_data(
             data_file_contents,
             data_file_name,
@@ -155,7 +151,12 @@ def process_input_tables(
         return_message = f'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
-    return return_dict, return_message, figure_template_dropdown_value, '',f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}--{uuid4()}'
+    #if figure_template_dropdown_value:
+    #    with open(db.get_cache_file(session_uid, 'figure-template-choice.txt'), 'w', encoding='utf-8') as fil:
+    #        fil.write(figure_template_dropdown_value)
+    #    pio.templates.default = figure_template_dropdown_value
+    #return return_dict, return_message, figure_template_dropdown_value, '',session_uid
+    return return_dict, return_message, '',session_uid
 
 @callback(
     Output('interval-component','disabled'),
