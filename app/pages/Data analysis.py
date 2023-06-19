@@ -469,7 +469,7 @@ def download_data_table_example(_) -> dict:
     prevent_initial_call=True
 )
 def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteomics_sigs, hci_intensities) -> dict:
-    export_dir: str = os.path.join(db.get_cache_dir(session_uid),'export')
+    export_dir: str = os.path.join(db.get_cache_dir(session_uid),'export from proteogyver')
     figure_generation.save_figures(os.path.join(db.get_cache_dir(session_uid),'Figures'), None)
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
