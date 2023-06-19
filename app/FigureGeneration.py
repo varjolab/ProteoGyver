@@ -76,7 +76,7 @@ class FigureGeneration:
                 with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
                     fil.write(figure_legend)
                 figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
-                figure.write_image(os.path.join(figure_dir,figure_name+'.pdf')
+                figure.write_image(os.path.join(figure_dir,figure_name+'.pdf'))
 
         if save_data is not None:
             for i, figure in enumerate(save_data[0]):

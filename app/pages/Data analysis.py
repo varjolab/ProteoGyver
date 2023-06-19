@@ -474,6 +474,17 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
+
+    dest_dir: str = os.path.join(db.get_cache_dir(session_uid), 'Data')
+    for filename in os.listdir(db.get_cache_dir(session_uid)):
+        if filename.rsplit('.', maxsplit=1)[-1] == 'tsv': # Not all files will have file extension, so just check with index -1
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir)
+            shutil.copy(
+                os.path.join(db.get_cache_dir(session_uid), filename),
+                os.path.join(dest_dir, filename)
+            )
+
     copydirs: list = [
         'Enrichments',
         'Figures',
@@ -486,17 +497,6 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
                 os.path.join(dir_to_copy),
                 os.path.join(export_dir, dirname)
             )
-
-    dest_dir: str = os.path.join(db.get_cache_dir(session_uid), 'Data')
-    for filename in os.listdir(db.get_cache_dir(session_uid)):
-        if filename.rsplit('.', maxsplit=1)[-1] == 'tsv': # Not all files will have file extension, so just check with index -1
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir)
-            shutil.copy(
-                os.path.join(db.get_cache_dir(session_uid), filename),
-                os.path.join(dest_dir, filename)
-            )
-    
 
     for group_map_type, gmap in data_dictionary['sample groups'].items():
         if isinstance(gmap, dict):
