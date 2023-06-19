@@ -85,12 +85,13 @@ def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
     Output('session-uid','children')
 ],
   #  Input('figure-theme-dropdown', 'value'),
-    Input('upload-data-file', 'contents'),
+    Input('input-complete-button', 'n_clicks'),
+    State('upload-data-file', 'contents'),
     State('upload-data-file', 'filename'),
-    Input('upload-sample_table-file', 'contents'),
+    State('upload-sample_table-file', 'contents'),
     State('upload-sample_table-file', 'filename'),
     Input('filter-complete-button', 'n_clicks'),
-    State('qc-checklist-select-samples-to-discard', 'value')
+    State('qc-checklist-select-samples-to-discard', 'value'),
 )
 def process_input_tables(
   #  figure_template_dropdown_value,
@@ -99,7 +100,7 @@ def process_input_tables(
     sample_table_file_contents,
     sample_table_file_name,
     filter_button_clicks,
-    discard_samples
+    discard_samples,
 ) -> tuple:
     return_message: list = []
     return_dict: dict = {}
@@ -1620,6 +1621,14 @@ upload_tab: dbc.Card = dbc.Card(
                     dbc.Row(
                         upload_row_3
                     ),
+                    dbc.Row(
+                        dbc.Col(
+                            dbc.Button(
+                                'Begin!',
+                                id='input-complete-button'
+                            )
+                        )
+                    )
                     dbc.Row(
                         dbc.Col(
                             html.Div(id='output-data-upload-problems')
