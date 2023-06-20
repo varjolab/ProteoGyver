@@ -295,16 +295,16 @@ class DbEngine:
                 fil.write(' :: '.join(possible_run_identifiers) + '\n')
                 for runid in possible_run_identifiers:
                     runid: str = runid.lower()
-                    # found = False
-                    # for candidate in self.tic_information['prefix']:
-                    #     if candidate == runid.split('_')[0]:
-                    #         runid = candidate
-                    #         found = True
-                    # if not found:
-                    for candidate in self.tic_information['postfix']:
-                        if candidate == runid.split('_')[-1]:
-                            runid = candidate
-                            #found = True
+                    found = False
+                    for candidate in self.tic_information['prefix']:
+                         if candidate == runid.split('_')[0]:
+                             runid = candidate
+                             found = True
+                    if not found:
+                        for candidate in self.tic_information['postfix']:
+                            if candidate == runid.split('_')[-1]:
+                                runid = candidate
+                                found = True
                     try:
                         info_found_for_row.append(
                             self.tic_information['Run data'][
