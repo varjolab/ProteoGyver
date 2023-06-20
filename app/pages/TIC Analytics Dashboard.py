@@ -32,6 +32,7 @@ color = 'rgb(56, 8, 35)'
 num_of_traces_visible = 7
 traces: dict = {}
 for dfname in os.listdir(ticfile_dir):
+    if 'ipynb' in dfname:continue
     runid: int = int(dfname.replace('.tsv',''))
     rundf: pd.DataFrame = pd.read_csv(os.path.join(ticfile_dir, f'{runid}.tsv'),sep='\t')
     traces[runid] = {}
