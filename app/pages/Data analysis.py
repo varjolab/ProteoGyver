@@ -1045,6 +1045,8 @@ def generate_saint_container(_, inbuilt_controls, crapome_controls, control_samp
     with open(db.get_cache_file(session_uid, 'SAINT info.txt'),'w',encoding='utf-8') as fil:
         discarded_str: str = '\t'.join(discarded_proteins)
         fil.write(f'Discarded proteins:\n{discarded_str}')
+    if not os.path.isdir(os.path.join(db.get_cache_dir(session_uid), 'Data')):
+        os.makedirs(os.path.join(db.get_cache_dir(session_uid), 'Data'))
     saint_output.to_csv(os.path.join(db.get_cache_dir(session_uid), 'Data', 'Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
     inbuilt_control_table.to_csv(os.path.join(db.get_cache_dir(session_uid), 'Data', 'Inbuilt controls.tsv'),sep='\t',index = False,encoding = 'utf-8')
     crapome_table.to_csv(os.path.join(db.get_cache_dir(session_uid), 'Data', 'Crapome table.tsv'),sep='\t',index = False,encoding = 'utf-8')
