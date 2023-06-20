@@ -277,57 +277,64 @@ class DbEngine:
         self.refresh_tic_information()
         info_found: list = []
         tics_found: dict = {}
-        for _,row in expdesign.iterrows():
-            info_found_for_row: list = []
-            tics_found_for_row: list = []
-            possible_run_identifiers: list = []
-            for column in ['Sample name','sample name']:
-                if column not in expdesign.columns:
-                    continue
-                value: Any = row[column]
-                possible_run_identifiers.extend(list(set([
-                    value,
-                    value.replace('.d',''),
-                    value.split('.')[0],
-                ])))
-            for runid in possible_run_identifiers:
-                runid: str = runid.lower()
-                # found = False
-                # for candidate in self.tic_information['prefix']:
-                #     if candidate == runid.split('_')[0]:
-                #         runid = candidate
-                #         found = True
-                # if not found:
-                for candidate in self.tic_information['postfix']:
-                    if candidate == runid.split('_')[-1]:
-                        runid = candidate
-                        #found = True
-                try:
-                    info_found_for_row.append(
-                        self.tic_information['Run data'][
-                            self.tic_information['Map'][runid]
-                        ]
-                    )
-                    tics_found_for_row.append([runid, self.tic_information['TIC data'][
-                            self.tic_information['Map'][runid]
-                        ]])
-                except KeyError:
-                    continue
-            if len(info_found_for_row) > 0:
-                info_found.append(info_found_for_row[0])
-                tics_found[tics_found_for_row[0][0]] = tics_found_for_row[0][1]
+        with open('debuggings.txt','a') as fil:
+            fil.write('---BEGIN---')
+            for _,row in expdesign.iterrows():
+                info_found_for_row: list = []
+                tics_found_for_row: list = []
+                possible_run_identifiers: list = []
+                for column in ['Sample name','sample name']:
+                    if column not in expdesign.columns:
+                        continue
+                    value: Any = row[column]
+                    possible_run_identifiers.extend(list(set([
+                        value,
+                        value.replace('.d',''),
+                        value.split('.')[0],
+                    ])))
+                fil.write(' :: '.join(possible_run_identifiers))
+                for runid in possible_run_identifiers:
+                    runid: str = runid.lower()
+                    # found = False
+                    # for candidate in self.tic_information['prefix']:
+                    #     if candidate == runid.split('_')[0]:
+                    #         runid = candidate
+                    #         found = True
+                    # if not found:
+                    for candidate in self.tic_information['postfix']:
+                        if candidate == runid.split('_')[-1]:
+                            runid = candidate
+                            #found = True
+                    try:
+                        info_found_for_row.append(
+                            self.tic_information['Run data'][
+                                self.tic_information['Map'][runid]
+                            ]
+                        )
+                        tics_found_for_row.append([runid, self.tic_information['TIC data'][
+                                self.tic_information['Map'][runid]
+                            ]])
+                    except KeyError:
+                        continue
+                fil.write(' ::: '.join(l[0] for l in tics_found_for_row))
+                fil.write('===')
+                if len(info_found_for_row) > 0:
+                    info_found.append(info_found_for_row[0])
+                    tics_found[tics_found_for_row[0][0]] = tics_found_for_row[0][1]
 
-        columns: list = self.tic_information['Info']['Information fields']
-        data: list = []
-        for tic_dict in info_found:
-            data.append([])
-            for column in columns:
-                data[-1].append(tic_dict[column])
-        info_df: pd.DataFrame = pd.DataFrame(data=data,columns=columns)
-        info_df['run_time'] = info_df['run_time'].apply(
-            lambda x: datetime.strptime(x,self.parameters['Config']['Time format'])
-        )
-        info_df.sort_values(by='run_time',ascending=True,inplace=True)
+            columns: list = self.tic_information['Info']['Information fields']
+            data: list = []
+            for tic_dict in info_found:
+                data.append([])
+                for column in columns:
+                    data[-1].append(tic_dict[column])
+            info_df: pd.DataFrame = pd.DataFrame(data=data,columns=columns)
+            info_df['run_time'] = info_df['run_time'].apply(
+                lambda x: datetime.strptime(x,self.parameters['Config']['Time format'])
+            )
+            info_df.sort_values(by='run_time',ascending=True,inplace=True)
+            fil.write(info_df.shape)
+            fil.write('---END---')
         return info_df, tics_found
 
 
