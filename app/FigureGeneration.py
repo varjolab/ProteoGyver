@@ -659,7 +659,7 @@ class FigureGeneration:
         pc1 = int(pc1*100)
         pc2 = int(pc2*100)
         pc1 = f'PC1 ({pc1}%)'
-        pc2 = f'PC1 ({pc2}%)'
+        pc2 = f'PC2 ({pc2}%)'
 
         data_df[pc1] = pca_result[:, 0]
         data_df[pc2] = pca_result[:, 1]

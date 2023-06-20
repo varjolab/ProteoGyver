@@ -1139,6 +1139,8 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     enrichment_results: pd.DataFrame
     enrichment_names, enrichment_results = data_functions.enrich_all_per_bait(saint_output, enrichments_to_do)#'pantherdb', 'defaults')
     save_dir:str = os.path.join(db.get_cache_dir(session_uid, make_subdirs = ['Enrichments']), 'Enrichments')
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
     with open(os.path.join(save_dir, f'Enrichment_information.txt'),'w',encoding='utf-8') as fil:
         for i, (rescol, sigcol, namecol, result) in enumerate(enrichment_results):
             result_filename:str = os.path.join(save_dir, enrichment_names[i])
