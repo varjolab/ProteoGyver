@@ -278,7 +278,7 @@ class DbEngine:
         info_found: list = []
         tics_found: dict = {}
         with open('debuggings.txt','a') as fil:
-            fil.write('---BEGIN---')
+            fil.write('---BEGIN---\n')
             for _,row in expdesign.iterrows():
                 info_found_for_row: list = []
                 tics_found_for_row: list = []
@@ -292,7 +292,7 @@ class DbEngine:
                         value.replace('.d',''),
                         value.split('.')[0],
                     ])))
-                fil.write(' :: '.join(possible_run_identifiers))
+                fil.write(' :: '.join(possible_run_identifiers) + '\n')
                 for runid in possible_run_identifiers:
                     runid: str = runid.lower()
                     # found = False
@@ -316,8 +316,8 @@ class DbEngine:
                             ]])
                     except KeyError:
                         continue
-                fil.write(' ::: '.join(l[0] for l in tics_found_for_row))
-                fil.write('===')
+                fil.write(' ::: '.join(l[0] for l in tics_found_for_row) + '\n')
+                fil.write('===\n')
                 if len(info_found_for_row) > 0:
                     info_found.append(info_found_for_row[0])
                     tics_found[tics_found_for_row[0][0]] = tics_found_for_row[0][1]
@@ -333,8 +333,8 @@ class DbEngine:
                 lambda x: datetime.strptime(x,self.parameters['Config']['Time format'])
             )
             info_df.sort_values(by='run_time',ascending=True,inplace=True)
-            fil.write(str(info_df.shape))
-            fil.write('---END---')
+            fil.write(str(info_df.shape) + '\n')
+            fil.write('---END---\n')
         return info_df, tics_found
 
 
