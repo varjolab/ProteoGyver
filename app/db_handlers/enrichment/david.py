@@ -144,11 +144,15 @@ class handler():
             input_bg_ids: str = ','.join(bg_uniprot_list)
             list_type = 1
             proportion_of_background_mapped = client.service.addList(input_bg_ids, id_type, bg_list_name, list_type)
+
+        david_categories = [self.names[n] for n in david_categories]
         category_string: str = ','.join(david_categories)
         client.service.setCategories(category_string)
         chart_report: list = client.service.getChartReport(1,fold_enrichment_threshold)
         result_dataframe:pd.DataFrame = pd.DataFrame(data=[self.suds_to_dict(s) for s in chart_report])
         # Filter results
+        if len(result_dataframe.columns) == 0:
+            return {}
         result_dataframe = result_dataframe[result_dataframe[sig_col]<sig_threshold]
         result_dataframe = result_dataframe[result_dataframe['listHits']>count_threshold]
         # Reorganize columns

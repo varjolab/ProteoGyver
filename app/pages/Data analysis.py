@@ -80,11 +80,11 @@ def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
 @callback([
     Output('output-data-upload', 'data'),
     Output('output-data-upload-problems', 'children'),
-#    Output('figure-template-choice', 'data'),
+    Output('figure-template-choice', 'data'),
     Output('upload-complete-indicator', 'children'),
     Output('session-uid','children')
 ],
-  #  Input('figure-theme-dropdown', 'value'),
+    State('figure-theme-dropdown', 'value'),
     Input('input-complete-button', 'n_clicks'),
     State('upload-data-file', 'contents'),
     State('upload-data-file', 'filename'),
@@ -94,7 +94,8 @@ def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
     State('qc-checklist-select-samples-to-discard', 'value'),
 )
 def process_input_tables(
-  #  figure_template_dropdown_value,
+    figure_template_dropdown_value,
+    done_inputting_nclicks,
     data_file_contents,
     data_file_name,
     sample_table_file_contents,
@@ -152,12 +153,12 @@ def process_input_tables(
         return_message = f'Succesful Upload! Data file: {data_file_name}  Sample table file: {sample_table_file_name}'
     else:
         return_message = ' ; '.join(return_message)
-    #if figure_template_dropdown_value:
-    #    with open(db.get_cache_file(session_uid, 'figure-template-choice.txt'), 'w', encoding='utf-8') as fil:
-    #        fil.write(figure_template_dropdown_value)
-    #    pio.templates.default = figure_template_dropdown_value
-    #return return_dict, return_message, figure_template_dropdown_value, '',session_uid
-    return return_dict, return_message, '',session_uid
+    if figure_template_dropdown_value:
+        with open(db.get_cache_file(session_uid, 'figure-template-choice.txt'), 'w', encoding='utf-8') as fil:
+            fil.write(figure_template_dropdown_value)
+        pio.templates.default = figure_template_dropdown_value
+    return return_dict, return_message, figure_template_dropdown_value, '',session_uid
+    #return return_dict, return_message, '',session_uid
 
 @callback(
     Output('interval-component','disabled'),
@@ -480,12 +481,18 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
     dest_dir: str = os.path.join(db.get_cache_dir(session_uid), 'Data')
     for filename in os.listdir(db.get_cache_dir(session_uid)):
         if filename.rsplit('.', maxsplit=1)[-1] == 'tsv': # Not all files will have file extension, so just check with index -1
+            if 'main table' in filename:
+                continue
             if not os.path.isdir(dest_dir):
                 os.makedirs(dest_dir)
+            #df = pd.read_csv(os.path.join(db.get_cache_dir(session_uid),filename),sep='\t',index_col=0)
             shutil.copy(
                 os.path.join(db.get_cache_dir(session_uid), filename),
                 os.path.join(dest_dir, filename)
             )
+
+    for key, table in data_dictionary['data tables'].items():
+        pd.read_json(table, orient='split').to_excel(os.path.join(export_dir, 'Data', f'{key}.xlsx'))
 
     copydirs: list = [
         'Enrichments',
@@ -511,20 +518,18 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
 
     export_fileinfo: list = [f'Session UID:{session_uid}']
     for key, value in data_dictionary['info'].items():
-        export_fileinfo.append(key)
+        export_fileinfo.append(f'-------\n{key}\n-------')
         if isinstance(value,list) or isinstance(value,set):
             for val in value:
                 if isinstance(val, dict):
                     export_fileinfo.append(format_dictionary(val))
                 else:
-                    export_fileinfo.append(str(val))
+                    export_fileinfo.append(f'{val}')
         elif isinstance(value, dict):
             export_fileinfo.append(format_dictionary(val))
         else:
             export_fileinfo.append(f'{value}')
         export_fileinfo.append('')
-    for key, table in data_dictionary['data tables'].items():
-        pd.read_json(table, orient='split').to_excel(os.path.join(export_dir, f'{key}.xlsx'))
     
         
     if interactomics_sigs is not None:
@@ -1628,7 +1633,7 @@ upload_tab: dbc.Card = dbc.Card(
                                 id='input-complete-button'
                             )
                         )
-                    )
+                    ),
                     dbc.Row(
                         dbc.Col(
                             html.Div(id='output-data-upload-problems')
