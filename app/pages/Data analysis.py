@@ -1636,7 +1636,8 @@ upload_tab: dbc.Card = dbc.Card(
                     ),
                     dbc.Row(
                         dbc.Col(
-                            html.Div(id='output-data-upload-problems')
+                            #TODO: either unhide, or delete this component and adjust callbacks accordingly
+                            html.Div(id='output-data-upload-problems', hidden=True)
                         )
                     ),
                 ]
