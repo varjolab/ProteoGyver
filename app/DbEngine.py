@@ -333,7 +333,7 @@ class DbEngine:
                 lambda x: datetime.strptime(x,self.parameters['Config']['Time format'])
             )
             info_df.sort_values(by='run_time',ascending=True,inplace=True)
-            fil.write(info_df.shape)
+            fil.write(str(info_df.shape))
             fil.write('---END---')
         return info_df, tics_found
 
