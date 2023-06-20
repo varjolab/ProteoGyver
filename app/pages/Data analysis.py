@@ -1110,7 +1110,9 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     # Commented out because bait uniprot has already been mapped directly after SAINT analysis
     #saint_output['Bait uniprot'] = saint_output.apply(lambda x: data_dictionary['other']['bait uniprots'][x['Bait']],axis=1)
     data_functions.map_known(saint_output,db.get_known(saint_output['Bait uniprot'].unique()))
-    saint_output.to_csv(db.get_cache_file(session_uid, 'Data', 'Filtered Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
+    outdir: str = os.path.join(db.get_cache_dir(session_uid), 'Data')
+    if not os.path.isdir(outdir): os.makedirs(outdir)
+    saint_output.to_csv(os.path.join(outdir, 'Filtered Saint output.tsv'),sep='\t',index = False,encoding = 'utf-8')
 
     figures: list = []
     pdf_data: list  =[]
