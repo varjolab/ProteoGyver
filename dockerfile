@@ -57,7 +57,7 @@ RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
 WORKDIR /
 
-RUN apt-get -yq postgresql
+RUN apt-get -yq install postgresql
 
 # JupyterHub
 RUN apt-get -yq install npm nodejs && \
