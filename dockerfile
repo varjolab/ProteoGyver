@@ -24,12 +24,11 @@ RUN apt-get update && \
 RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
     echo "kamms:kamms" | chpasswd
 
-# Proteogyver python package
 RUN mkdir /proteogyver
-COPY docker_entrypoint.sh /proteogyver/
-COPY proteogyver/update.sh /update.sh
-COPY proteogyver /proteogyver/proteogyver
-WORKDIR /proteogyver/proteogyver
+COPY docker_entrypoint.sh /
+COPY app/update.sh /update.sh
+COPY app /proteogyver
+WORKDIR /proteogyver
 
 # Python installs
 RUN pip3 install --upgrade pip
@@ -50,20 +49,20 @@ RUN apt-get update && \
     r-base-dev \
     r-recommended
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
-COPY /proteogyver/resources/R_requirements.R ./R_requirements.R
-RUN Rscript R_requirements.R
+WORKDIR /proteogyver/resources
+#RUN Rscript R_requirements.R
 
-
-
-WORKDIR /proteogyver/proteogyver/external/SAINTexpress
-RUN chmod +x SAINTexpress-spc
-RUN chmod +x SAINTexpress-int
+WORKDIR /proteogyver/external/SAINTexpress
+RUN chmod 777 SAINTexpress-spc
+RUN chmod 777 SAINTexpress-int
 WORKDIR /
+
+RUN apt-get -yq postgresql
 
 # JupyterHub
 RUN apt-get -yq install npm nodejs && \
     npm install -g configurable-http-proxy
-RUN pip3 install jupyter jupyterlab jupyterhub pandas
+RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash
 RUN mkdir /etc/jupyterhub
 COPY jupyterhub.py /etc/jupyterhub/
 
