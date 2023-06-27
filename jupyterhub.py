@@ -4,7 +4,7 @@
 
 # set of users who can administer the Hub itself
 c.Authenticator.admin_users = {'kamms'}
-c.Authenticator.whitelist = {'kamms'}
+c.Authenticator.allowed_users = {'kamms'}
 
 # set the Custom logo
 #c.JupyterHub.logo_file = '/proteogyver/assets/logo_small.jpg'

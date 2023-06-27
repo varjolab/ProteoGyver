@@ -70,4 +70,4 @@ COPY jupyterhub.py /etc/jupyterhub/
 EXPOSE 8090 8050
 
 # Finished.
-ENTRYPOINT ["/bin/bash", "/proteogyver/docker_entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
