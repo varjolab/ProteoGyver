@@ -38,7 +38,7 @@ RUN pip3 install setuptools gunicorn
 # Install and setup R
 RUN apt-get install -y \
     software-properties-common dirmngr wget
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubu>
+wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 RUN apt-get update && \
     apt-get install -y \
@@ -47,7 +47,7 @@ RUN apt-get update && \
     r-base \
     r-base-dev \
     r-recommended
-RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofi>
+RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
 WORKDIR /proteogyver/resources
 RUN Rscript R_requirements.R
 
