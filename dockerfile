@@ -1,4 +1,3 @@
-  GNU nano 6.2                                           dockerfile                                                     #Download base image ubuntu
 FROM ubuntu:22.04
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 
