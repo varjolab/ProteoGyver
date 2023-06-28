@@ -2,10 +2,10 @@ version: "3"
 
 services:
   proteogyver:
-    image: pgtesting:latest
+    image: pgtesting:current
     ports:
       - 8090:8090
       - 8050:8050
 #      - 8888:8888
-    volumes:
-      - /srv/mergerfs/Grand/Shared/Dockertesting:/test
+#    volumes:
+#      - /srv/mergerfs/Grand/Shared/Dockertesting:/test

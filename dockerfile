@@ -1,4 +1,4 @@
-#Download base image ubuntu
+  GNU nano 6.2                                           dockerfile                                                     #Download base image ubuntu
 FROM ubuntu:22.04
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 
@@ -39,16 +39,16 @@ RUN pip3 install setuptools gunicorn
 # Install and setup R
 RUN apt-get install -y \
     software-properties-common dirmngr wget
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubu>
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 RUN apt-get update && \
-    apt-get install -y \ 
+    apt-get install -y \
     littler \
     r-cran-littler \
     r-base \
     r-base-dev \
     r-recommended
-RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
+RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofi>
 WORKDIR /proteogyver/resources
 RUN Rscript R_requirements.R
 
@@ -65,6 +65,12 @@ RUN apt-get -yq install npm nodejs && \
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash
 RUN mkdir /etc/jupyterhub
 COPY jupyterhub.py /etc/jupyterhub/
+
+COPY additional/data.tar /proteogyver/data.tar
+COPY additional/external.tar /proteogyver/external.tar
+WORKDIR /proteogyver
+RUN tar xf data.tar
+RUN tar xf external.tar
 
 # Expose ports (jupyterHub. dash)
 EXPOSE 8090 8050
