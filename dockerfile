@@ -50,7 +50,7 @@ RUN apt-get update && \
     r-recommended
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
 WORKDIR /proteogyver/resources
-#RUN Rscript R_requirements.R
+RUN Rscript R_requirements.R
 
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
