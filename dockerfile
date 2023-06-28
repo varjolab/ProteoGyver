@@ -14,14 +14,14 @@ USER root
 WORKDIR /
 
 # Install and setup R and other software
-RUN apt-get install -yq \
+RUN apt-get update && \
+    apt-get -yq dist-upgrade && \
+    apt-get install -yq \
     software-properties-common dirmngr wget
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 
-RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
-    apt-get install -yq apt-utils software-properties-common locales \
+RUN apt-get install -yq apt-utils software-properties-common locales \
     git python3 python3-pip nodejs npm  \
     dos2unix ca-certificates nano postgresql \
     littler \
