@@ -1,8 +1,9 @@
 version: "3"
 
 services:
-  proteogyver:
+  pg:
     image: pgtesting:current
+    container_name: pg
     ports:
       - 8090:8090
       - 8050:8050
