@@ -145,7 +145,6 @@ class handler():
             list_type = 1
             proportion_of_background_mapped = client.service.addList(input_bg_ids, id_type, bg_list_name, list_type)
 
-        david_categories = [self._names[n] for n in david_categories]
         category_string: str = ','.join(david_categories)
         client.service.setCategories(category_string)
         chart_report: list = client.service.getChartReport(1,fold_enrichment_threshold)
