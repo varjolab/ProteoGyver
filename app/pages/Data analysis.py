@@ -33,7 +33,7 @@ db: DbEngine = DbEngine()
 figure_generation: FigureGeneration = FigureGeneration()
 data_functions: DataFunctions = DataFunctions(os.path.join(*db.parameters['data functions']))
 
-dash.register_page(__name__, path='/')
+#dash.register_page(__name__, path='/')
 styles: Styles = Styles()
 figure_templates: list = [
     'plotly_white',
@@ -64,12 +64,11 @@ def read_df_from_content(content, filename) -> pd.DataFrame:
 
 @callback(
     Output('workflow-choice', 'data'),
-    Input('workflow-dropdown', 'value'),
-    Input('upload-data-file', 'contents'),
-    Input('upload-sample_table-file', 'contents'),
+    Input('input-complete-button', 'n_clicks'),
+    State('workflow-dropdown', 'value'),
     State('session-uid', 'children')
 )
-def set_workflow(workflow_setting_value, _, __, session_uid) -> str:
+def set_workflow(_, workflow_setting_value, session_uid) -> str:
     if workflow_setting_value is None:
         return dash.no_update
     with open(db.get_cache_file(session_uid,'workflow-choice.txt'), 'w', encoding='utf-8') as fil:
@@ -112,6 +111,7 @@ def process_input_tables(
         return_message.append('Missing sample_table')
     if len(return_message) == 0:
         session_uid = f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}'
+        db.clear_session_data(session_uid)
         return_dict = data_functions.parse_data(
             data_file_contents,
             data_file_name,
@@ -941,7 +941,9 @@ def map_intensity(saint_output, intensity_table, sample_groups) -> list:
     State('session-uid', 'children'),
     prevent_initial_call=True
 )
-def generate_saint_container(_, inbuilt_controls, crapome_controls, control_sample_groups, additional_options, data_dictionary, session_uid) -> html.Div:
+def generate_saint_container(button_clicks, inbuilt_controls, crapome_controls, control_sample_groups, additional_options, data_dictionary, session_uid) -> html.Div:
+    if button_clicks < 1:
+        return dash.no_update, dash.no_update, dash.no_update
     spc_table: pd.DataFrame = pd.read_json(
         data_dictionary['data tables']['spc'], orient='split')
     if spc_table.columns[0] == 'No data':
@@ -1144,7 +1146,7 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
     with open(os.path.join(save_dir, f'Enrichment_information.txt'),'w',encoding='utf-8') as fil:
         for i, (rescol, sigcol, namecol, result) in enumerate(enrichment_results):
             result_filename:str = os.path.join(save_dir, enrichment_names[i])
-            result.to_csv(os.path.join(save_dir, f'{result_filename}_enrichmentResult.tsv'),sep='\t')
+            result.to_csv(f'{result_filename}_enrichmentResult.tsv',sep='\t')
             fil.write(f'{enrichment_names[i]}\n')
             fil.write(f'Result name column: {namecol}\n')
             fil.write(f'Result significance column: {sigcol}\n')
@@ -1659,7 +1661,7 @@ upload_tab: dbc.Card = dbc.Card(
                 n_intervals=0,
                 disabled=True
             ),
-            html.Div(id='current-tic-idx', children = 0,hidden=True),
+            html.Div(id='current-tic-idx', children = 0, hidden=True),
             html.Div(id='tic-graph'),
             dbc.Row([
                 dbc.Col([
