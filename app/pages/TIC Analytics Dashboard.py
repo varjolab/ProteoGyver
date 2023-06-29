@@ -11,7 +11,7 @@ import plotly.io as pio
 from datetime import datetime, date
 import json
 
-dash.register_page(__name__, path='/')
+dash.register_page(__name__, path='/TIC_inspector')
 
 with open('parameters.json', encoding = 'utf-8') as fil:
     parameters: dict = json.load(fil)

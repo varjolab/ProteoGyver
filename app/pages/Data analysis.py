@@ -33,7 +33,7 @@ db: DbEngine = DbEngine()
 figure_generation: FigureGeneration = FigureGeneration()
 data_functions: DataFunctions = DataFunctions(os.path.join(*db.parameters['data functions']))
 
-#dash.register_page(__name__, path='/')
+dash.register_page(__name__, path='/')
 styles: Styles = Styles()
 figure_templates: list = [
     'plotly_white',
