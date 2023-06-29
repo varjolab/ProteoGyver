@@ -37,14 +37,13 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
 
 
 # Python installs
+WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
 RUN pip3 install -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
-
 # R things
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
-WORKDIR /proteogyver/resources
 RUN Rscript R_requirements.R
 RUN npm install -g configurable-http-proxy
 
