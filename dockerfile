@@ -18,6 +18,7 @@ COPY app/update.sh /update.sh
 COPY app /proteogyver
 
 # Install and setup R and other software
+# Updates and packages
 RUN apt-get update && \
     apt-get -yq dist-upgrade && \
     apt-get install -yq \
@@ -33,10 +34,7 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
     r-base \
     r-base-dev \
     r-recommended 
-RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
-WORKDIR /proteogyver/resources
-RUN Rscript R_requirements.R
-RUN npm install -g configurable-http-proxy
+
 
 # Python installs
 RUN pip3 install --upgrade pip
@@ -44,12 +42,17 @@ RUN pip3 install setuptools
 RUN pip3 install -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 
-# Updates and packages
+# R things
+RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
+WORKDIR /proteogyver/resources
+RUN Rscript R_requirements.R
+RUN npm install -g configurable-http-proxy
 
 # User management
 RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
     echo "kamms:kamms" | chpasswd
 
+# Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
@@ -58,6 +61,7 @@ WORKDIR /
 RUN mkdir /etc/jupyterhub
 COPY jupyterhub.py /etc/jupyterhub/
 
+# Put additional data where it should be
 COPY additional/data.tar /proteogyver/data.tar
 COPY additional/external.tar /proteogyver/external.tar
 WORKDIR /proteogyver
