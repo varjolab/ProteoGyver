@@ -12,6 +12,10 @@ ENV R_BASE_VERSION 3.6.1
 # First steps
 USER root
 WORKDIR /
+RUN mkdir /proteogyver
+COPY docker_entrypoint.sh /
+COPY app/update.sh /update.sh
+COPY app /proteogyver
 
 # Install and setup R and other software
 RUN apt-get update && \
@@ -41,11 +45,6 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 
 # Updates and packages
-
-RUN mkdir /proteogyver
-COPY docker_entrypoint.sh /
-COPY app/update.sh /update.sh
-COPY app /proteogyver
 
 # User management
 RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
