@@ -942,7 +942,7 @@ def map_intensity(saint_output, intensity_table, sample_groups) -> list:
     prevent_initial_call=True
 )
 def generate_saint_container(button_clicks, inbuilt_controls, crapome_controls, control_sample_groups, additional_options, data_dictionary, session_uid) -> html.Div:
-    if button_clicks < 1:
+    if button_clicks is None:
         return dash.no_update, dash.no_update, dash.no_update
     spc_table: pd.DataFrame = pd.read_json(
         data_dictionary['data tables']['spc'], orient='split')
