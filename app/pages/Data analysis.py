@@ -478,13 +478,13 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
 
-    dest_dir: str = os.path.join(db.get_cache_dir(session_uid), 'Data')
+    dest_dir: str = os.path.join(export_dir, 'Data')
+    if not os.path.isdir(dest_dir):
+        os.makedirs(dest_dir)
     for filename in os.listdir(db.get_cache_dir(session_uid)):
         if filename.rsplit('.', maxsplit=1)[-1] == 'tsv': # Not all files will have file extension, so just check with index -1
             if 'main table' in filename:
                 continue
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir)
             #df = pd.read_csv(os.path.join(db.get_cache_dir(session_uid),filename),sep='\t',index_col=0)
             shutil.copy(
                 os.path.join(db.get_cache_dir(session_uid), filename),

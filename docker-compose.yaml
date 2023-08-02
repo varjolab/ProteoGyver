@@ -8,5 +8,8 @@ services:
       - 8090:8090
       - 8050:8050
 #      - 8888:8888
+    environment:
+      - TZ=Europe/Helsinki
+
 #    volumes:
 #      - /srv/mergerfs/Grand/Shared/Dockertesting:/test
