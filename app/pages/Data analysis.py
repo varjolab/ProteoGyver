@@ -478,22 +478,6 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
 
-    dest_dir: str = os.path.join(export_dir, 'Data')
-    if not os.path.isdir(dest_dir):
-        os.makedirs(dest_dir)
-    for filename in os.listdir(db.get_cache_dir(session_uid)):
-        if filename.rsplit('.', maxsplit=1)[-1] == 'tsv': # Not all files will have file extension, so just check with index -1
-            if 'main table' in filename:
-                continue
-            #df = pd.read_csv(os.path.join(db.get_cache_dir(session_uid),filename),sep='\t',index_col=0)
-            shutil.copy(
-                os.path.join(db.get_cache_dir(session_uid), filename),
-                os.path.join(dest_dir, filename)
-            )
-
-    for key, table in data_dictionary['data tables'].items():
-        pd.read_json(table, orient='split').to_excel(os.path.join(export_dir, 'Data', f'{key}.xlsx'))
-
     copydirs: list = [
         'Enrichments',
         'Figures',
@@ -506,6 +490,22 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
                 os.path.join(dir_to_copy),
                 os.path.join(export_dir, dirname)
             )
+
+
+    data_dest_dir: str = os.path.join(export_dir, 'Data')
+    if not os.path.isdir(data_dest_dir):
+        os.makedirs(data_dest_dir)
+    for filename in os.listdir(db.get_cache_dir(session_uid)):
+        if filename.rsplit('.', maxsplit=1)[-1] == 'tsv': # Not all files will have file extension, so just check with index -1
+            if 'main table' in filename:
+                continue
+            #df = pd.read_csv(os.path.join(db.get_cache_dir(session_uid),filename),sep='\t',index_col=0)
+            shutil.copy(
+                os.path.join(db.get_cache_dir(session_uid), filename),
+                os.path.join(data_dest_dir, filename)
+            )
+    for key, table in data_dictionary['data tables'].items():
+        pd.read_json(table, orient='split').to_excel(os.path.join(data_dest_dir, f'{key}.xlsx'))
 
     for group_map_type, gmap in data_dictionary['sample groups'].items():
         if isinstance(gmap, dict):
@@ -543,8 +543,11 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
         fil.write('\n'.join(export_fileinfo))
     with open(os.path.join(export_dir, 'full data for debugging.json'),'w',encoding='utf-8') as fil:
         json.dump(data_dictionary,fil, indent = 4)
+    export_zip_name: str = export_dir.rstrip(os.sep) + '.zip'
+    if os.path.isfile(export_zip_name):
+        os.remove(export_zip_name)
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
-    return dcc.send_file(export_dir.rstrip(os.sep) + '.zip')
+    return dcc.send_file(export_zip_name)
 
 def format_dictionary(dic: dict, level = 0) -> list:
     """Formats a dictionary into a more file-output friendly format."""

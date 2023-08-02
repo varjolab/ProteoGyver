@@ -463,7 +463,7 @@ class FigureGeneration:
         return (
             figure,
             dcc.Graph(config=self.defaults['config'], 
-                id='protein-coverage-{title}',
+                id=f'protein-coverage-{title}',
                 figure=figure
             )
         )
