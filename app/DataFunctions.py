@@ -693,12 +693,15 @@ class DataFunctions:
                 .rsplit('/', maxsplit=1)[-1]\
                 .rstrip('.d') for oldvalue in expdesign['Sample name'].values
         ]
+        expdesign.to_csv(f'expdesign.tsv',sep='\t')
         expdesign: pd.DataFrame = expdesign[~expdesign['Sample name'].isin(discard_samples)]
+        expdesign.to_csv(f'expdesign_afterdiscard.tsv',sep='\t')
         discarded_columns:list = []
         sample_groups: dict = {}
         sample_group_columns: dict = {}
         rev_intermediate_renaming: list = []
         for table_ind, table in enumerate(tables):
+            table.to_csv(f'{table_ind}.tsv',sep='\t')
             intermediate_renaming: dict = {}
             if len(table.columns) < 2:
                 continue
@@ -806,6 +809,9 @@ class DataFunctions:
         intensity_table, spc_table, protein_length_dict = read_funcs[data_type](table, **keyword_args)
         intensity_table = self.remove_duplicate_protein_groups(intensity_table)
         spc_table = self.remove_duplicate_protein_groups(spc_table)
+
+        intensity_table.to_csv('intensity table.tsv',sep='\t')
+        spc_table.to_csv('spc table.tsv',sep='\t')
 
         sample_groups: dict
         rev_sample_groups: dict
