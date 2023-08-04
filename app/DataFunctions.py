@@ -803,6 +803,8 @@ class DataFunctions:
         if data_type is None:
             data_type = ('DDA/DIA', 'Unknown')
             keyword_args['max_spc_ever'] = max_theoretical_spc
+        with open('datatype','w') as fil:
+            fil.write(data_type)
         intensity_table: pd.DataFrame
         spc_table: pd.DataFrame
         protein_length_dict: dict
