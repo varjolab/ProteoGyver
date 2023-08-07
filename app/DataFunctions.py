@@ -580,7 +580,7 @@ class DataFunctions:
                     protein_lengths = {}
                     for _,row in table[[protein_id_column,plencol]].drop_duplicates().iterrows():
                         protein_lengths[row[protein_id_column]] = row[plencol]
-                    table = table.drop(plencol)
+                    table = table.drop(columns=plencol)
                     break
             fil.write('ts:\t'+str(table.shape) + '\n')
             table.index = table[protein_id_column]
