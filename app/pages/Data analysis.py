@@ -179,6 +179,8 @@ def static_tic_graph(_: Any, data_dictionary: dict, figure_template: str) -> tup
     info_df, tics_found = db.get_tic_dfs_from_expdesign(
                         pd.read_json(data_dictionary['data tables']['experimental design'], orient='split')
                     )
+    if len(tics_found) == 0:
+        return ('No TIC information',None)
 
     max_auc: float = info_df['AUC'].max()
     max_auc += (max_auc*0.15)
@@ -302,6 +304,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             for sname, sample_color_row in count_data[['Color']].iterrows():
                 rep_colors[sname] = sample_color_row['Color']
             data_dictionary['Replicate colors'] = rep_colors
+            data_table.to_csv(os.path.join('debug','data_table.tsv'))
             figures.append(figure_generation.protein_count_figure(count_data))
             figure_names_and_legends.append(['Protein count in samples',''])
             figures.append(figure_generation.contaminant_figure(data_table, db.contaminant_list))

@@ -558,6 +558,8 @@ class DataFunctions:
             columns={ic: ic.replace(f'{replace_str}Intensity', '').replace('MaxLFQ', '').strip()
                     for ic in intensity_cols},
             inplace=True)
+        intensity_table.replace(0, np.nan, inplace=True)
+        spc_table.replace(0, np.nan, inplace=True)
         return (intensity_table, spc_table, protein_lengths)
 
     def read_matrix(self, data_table: pd.DataFrame, is_spc_table:bool=False, max_spc_ever:int=0) -> pd.DataFrame:
@@ -592,6 +594,8 @@ class DataFunctions:
                 spc_table = table
             else:
                 intensity_table = table
+        intensity_table.replace(0, np.nan, inplace=True)
+        spc_table.replace(0, np.nan, inplace=True)
         return (intensity_table, spc_table, protein_lengths)
 
     def run_saint(self, 
