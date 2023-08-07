@@ -1149,7 +1149,7 @@ class FigureGeneration:
                 else:
                     val = len(group_sets[gname] & group_sets[gname2])
                 hmdata[-1].append(val)
-        figure = px.imshow(pd.DataFrame(data=hmdata,index=index,columns=index))
+        figure: go.Figure = px.imshow(pd.DataFrame(data=hmdata,index=index,columns=index))
         return [
             figure, 
             dcc.Graph(

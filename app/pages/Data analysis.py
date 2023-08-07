@@ -26,6 +26,7 @@ import shutil
 import dash_cytoscape as cyto
 from dash import dash_table
 import text_functions
+import iter_functions
 import plotly.io as pio
 
 
@@ -133,7 +134,7 @@ def process_input_tables(
             fil.write(f'Data type: {return_dict["info"]["values"]}\n')
             fil.write(f'Data type: {return_dict["info"]["data type"]}\n')
             fil.write('Discarded columns:\n')
-            for chunk in list_to_chunks(list(return_dict['info']['discarded columns']), 5):
+            for chunk in iter_functions.list_to_chunks(list(return_dict['info']['discarded columns']), 5):
                 chunkstr: str = '\t'.join(chunk)
                 fil.write(f'{chunkstr}\n')
             fil.write('Used columns:\n')
@@ -161,33 +162,23 @@ def process_input_tables(
     #return return_dict, return_message, '',session_uid
 
 @callback(
-    Output('interval-component','disabled'),
-    Output('tic-traces','data'),
+    Output('tic-graph','children'),
     Output('tic-info','data'),
-    Output('auc-traces','data'),
-    Input('output-data-upload','data'),
+    Input('session-uid', 'children'),
     Input('figure-template-choice', 'data')
 )
-def generate_tic_graph_data(data_dictionary, figure_template) -> tuple:
-    start:bool = True
+def static_tic_graph(_: Any, data_dictionary: dict, figure_template: str) -> tuple:
     if data_dictionary is None:
-        start = False
-    elif not 'data tables' in data_dictionary:
-        start = False
-    if not start:
-        return [
-            dash.no_update,
-            dash.no_update,
-            dash.no_update,
-            dash.no_update
-        ]
+        return ('No data',None)
+    if not 'data tables' in data_dictionary:
+        return ('No data tables',None)
+
     info_df: pd.DataFrame
     tics_found: dict
     info_df, tics_found = db.get_tic_dfs_from_expdesign(
                         pd.read_json(data_dictionary['data tables']['experimental design'], orient='split')
                     )
-    num_of_traces_visible: int = 7
-    
+
     max_auc: float = info_df['AUC'].max()
     max_auc += (max_auc*0.15)
     max_tic_int: float = info_df['tic_max_intensity'].max()
@@ -197,96 +188,43 @@ def generate_tic_graph_data(data_dictionary, figure_template) -> tuple:
         'tic_graph_max_y': max_tic_int,
         'auc_graph_max_x': info_df.shape[0],
         'auc_graph_max_y': max_auc,
-        'num_of_traces_visible': num_of_traces_visible
     }
+    color_to_use: str = figure_template_colors[figure_template][0]
 
     tic_traces: list = []
     auc_traces: list = []
-
-    color_to_use: str = figure_template_colors[figure_template][0]
-
-    for index, row in info_df.iterrows():
+    for _, row in info_df.iterrows():
         run_id: str = row['run_id']
         run_label: str = row['run_name']
         ticdf: pd.DataFrame = tics_found[run_id]
-        tic_traces.append({})
-        for color_i in range(num_of_traces_visible):
-            tic_traces[-1][color_i] = go.Scatter(
+        tic_traces.append(
+            go.Scatter(
                 x=ticdf['Time'],
                 y=ticdf['SumIntensity'],
                 mode = 'lines',
-                opacity=(1/num_of_traces_visible)*(num_of_traces_visible - color_i),
                 line = {'color' : color_to_use, 'width': 1},
                 name = run_label,
             )
-        auc_up_to_index: pd.DataFrame = info_df[:index]
+        )
         auc_traces.append(
             go.Scatter(
-                x = list(range(index)),
-                y = auc_up_to_index['AUC'],
+                x = list(range(info_df.shape[0])),
+                y = info_df['AUC'],
                 mode = 'lines+markers',
                 opacity = 1,
                 line={'width': 1, 'color': color_to_use},
                 showlegend=False
             )
         )
-    return False, tic_traces, tic_info, auc_traces
-
-
-def list_to_chunks(original_list, chunk_size):
-    # looping till length l
-    for i in range(0, len(original_list), chunk_size):
-        yield original_list[i:i + chunk_size]
-
-@callback(
-    Output('void','children'),
-    Input('figures-to-save','data'),
-    State('session-uid', 'children')
-)
-def save_figures(save_data, session_uid) -> None:
-    figure_generation.save_figures(
-        os.path.join(db.get_cache_dir(session_uid), 'Figures'),
-        save_data
-    )
-
-@callback(
-    Output('tic-graph', 'children'),
-    Output('current-tic-idx','children'),
-    Input('interval-component', 'n_intervals'),
-    State('tic-traces','data'),
-    State('tic-info','data'),
-    State('auc-traces','data'),
-    State('current-tic-idx','children'),
-    State('figure-template-choice', 'data'),
-    prevent_initial_call=True
-)
-def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, current_tic_idx: int, figure_template_name:str) -> tuple:
-    if tic_info is None:
-        return '',current_tic_idx
-    if len(auc_traces) == 0:
-        return 'No TIC information available.',current_tic_idx
-    num_of_traces_visible: int = tic_info['num_of_traces_visible']
-
-    return_tic_index: int = current_tic_idx + 1
-    if return_tic_index >= len(tic_traces):
-        return_tic_index = 0
-
     tic_figure: go.Figure = go.Figure()
-    these_tics: list
-    if current_tic_idx <= num_of_traces_visible:
-        these_tics = tic_traces[:current_tic_idx]
-    else:
-        these_tics: list = tic_traces[current_tic_idx-num_of_traces_visible:current_tic_idx]
-    #these_tics: list = tic_traces[:num_of_traces_visible]
-    for i, trace_dict in enumerate(these_tics[::-1]):
-        tic_figure.add_traces(trace_dict[str(i)])
+    tic_figure.add_traces(tic_traces)
 
     tic_figure.update_layout(
         title = 'TIC',
         height=400,
         xaxis_range=[0,tic_info['tic_graph_max_x']],
         yaxis_range=[0,tic_info['tic_graph_max_y']],
-        template=figure_template_name,
+        template=figure_template,
         #plot_bgcolor= 'rgba(0, 0, 0, 0)',
         #paper_bgcolor= 'rgba(0, 0, 0, 0)',
         margin=dict(l=5, r=5, t=35, b=5)
@@ -294,13 +232,13 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
 
 
     auc_figure: go.Figure = go.Figure()
-    auc_figure.add_traces(auc_traces[current_tic_idx])
+    auc_figure.add_traces(auc_traces)
     auc_figure.update_layout(
         title = 'AUC',
         height=150,
         xaxis_range=[0,tic_info['auc_graph_max_x']],
         yaxis_range=[0,tic_info['auc_graph_max_y']],
-        template=figure_template_name,
+        template=figure_template,
         #plot_bgcolor= 'rgba(0, 0, 0, 0)',
         #paper_bgcolor= 'rgba(0, 0, 0, 0)',
         margin=dict(l=5, r=5, t=35, b=5)
@@ -312,7 +250,17 @@ def update_tic_graph(_,tic_traces: list, tic_info:dict, auc_traces: list, curren
         dbc.Row([tic_graph]),
         dbc.Row([auc_graph]),
     ])
-    return tic_div, return_tic_index
+    return tic_div, tic_info
+@callback(
+    Output('void','children'),
+    Input('figures-to-save','data'),
+    State('session-uid', 'children')
+)
+def save_figures(save_data, session_uid) -> None:
+    figure_generation.save_figures(
+        os.path.join(db.get_cache_dir(session_uid), 'Figures'),
+        save_data
+    )
 
 def make_sample_strings(sample_dict:dict) -> list:
     ret_list = []
@@ -522,11 +470,11 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
         if isinstance(value,list) or isinstance(value,set):
             for val in value:
                 if isinstance(val, dict):
-                    export_fileinfo.append(format_dictionary(val))
+                    export_fileinfo.append(iter_functions.format_dictionary(val))
                 else:
                     export_fileinfo.append(f'{val}')
         elif isinstance(value, dict):
-            export_fileinfo.append(format_dictionary(val))
+            export_fileinfo.append(iter_functions.format_dictionary(val))
         else:
             export_fileinfo.append(f'{value}')
         export_fileinfo.append('')
@@ -549,26 +497,6 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
     return dcc.send_file(export_zip_name)
 
-def format_dictionary(dic: dict, level = 0) -> list:
-    """Formats a dictionary into a more file-output friendly format."""
-    retlist: list = []
-    prefix: str = '\t'*level
-    keys: list = sorted(list(dic.keys()))
-    for k in keys:
-        retlist.append(f'{prefix}{k}:')
-        v: Any = dic[k]
-        if isinstance(v, dict):
-            retlist.extend(format_dict(v, level=level+1))
-        elif isinstance(v, list) or isinstance(v,set):
-            retlist.extend([
-                f'{prefix}\t{l}' for l in v
-            ])
-        else:
-            retlist.append(f'\t{v}')
-    if level > 0:
-        return retlist
-    else:
-        return '\n'.join(retlist)    
 
 @callback(
     Output('data-processing-figures', 'children'),

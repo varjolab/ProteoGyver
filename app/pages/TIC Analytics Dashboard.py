@@ -1,12 +1,11 @@
 """Dash app for inspection and analysis of MS performance based on TIC graphs"""
 
 import os
-from typing import Any
 import dash
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import pandas as pd
-from dash import callback, dcc, html, Input, Output, State, ALL, MATCH, ctx
+from dash import callback, dcc, html, Input, Output, State, ctx
 import plotly.io as pio
 from datetime import datetime, date
 import json
@@ -15,7 +14,6 @@ dash.register_page(__name__, path='/TIC_inspector')
 
 with open('parameters.json', encoding = 'utf-8') as fil:
     parameters: dict = json.load(fil)
-
 
 data_dir: str = os.path.join(*parameters['files']['data']['TIC information'])
 data_file: str = os.path.join(data_dir, 'rundata.tsv')

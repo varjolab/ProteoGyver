@@ -3,7 +3,8 @@ from dash import Dash, html, callback, Input, Output, State  # dcc,DiskcacheMana
 import dash_bootstrap_components as dbc
 import dash
 from DbEngine import DbEngine
-
+import logging
+import logging
 
 db: DbEngine = DbEngine()
 
@@ -14,25 +15,36 @@ app: Dash = Dash(
         dbc.themes.SANDSTONE
     ],
     suppress_callback_exceptions=True)
+)
+
 app.title = 'Data analysis alpha version'
 app.enable_dev_tools(debug=True)
 #app.config.from_pyfile('app_config.py')
-#app.enable_devtools
 server = app.server
-print('Site pages:')
+
+
+logger = logging.getLogger('applogger')
+log_handler = logging.handlers.RotatingFileHandler('dashlog.log', maxBytes=1000000000, backupCount=1)
+log_handler.setLevel(logging.INFO)
+logger.addHandler(log_handler)
+logger.warning('Start app.')
+server.logger.addHandler(log_handler)
+
+logger.warning('Initialize app.')
+logger.info('Site pages:')
 for page in dash.page_registry.values():
-    print(page['name'])
+    logger.info(page['name'])
 navbar_items = [
         dbc.NavItem(
             dbc.NavLink(page['name'], href=page['relative_path'])
         )
         for page in dash.page_registry.values()
     ]
-navbar_items.append(
-    dbc.NavItem(
-        dbc.NavLink('JupyterHub',href='pg-23.biocenter.helsinki.fi:8090/')
-    )
-)
+#navbar_items.append(
+#    dbc.NavItem(
+#        dbc.NavLink('JupyterHub',href='pg-23.biocenter.helsinki.fi:8090/')
+#    )
+#)
 navbar: dbc.NavbarSimple = dbc.NavbarSimple(
     id='main-navbar',
     children=navbar_items,
@@ -44,7 +56,7 @@ navbar: dbc.NavbarSimple = dbc.NavbarSimple(
 
 
 @callback(
-    Output('notused', 'children'),
+    Output('session-data-clear-output', 'children'),
     Input('button-clear-session-data', 'n_clicks'),
     State('session-uid', 'children'),
     prevent_initial_call=True,
@@ -60,10 +72,10 @@ app.layout = html.Div([
     dash.page_container,
     #    dbc.Button('Clear session data',\
     #        id='button-clear-session-data'),
-    html.Div(id='notused', hidden=True)
+    html.Div(id='session-data-clear-output', hidden=True)
 
 ])
-
+logger.warning('End app.')
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
 # <iframe src="https://www.chat.openai.com/chat" title="ChatGPT Embed"></iframe>
