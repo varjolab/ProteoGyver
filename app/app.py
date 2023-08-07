@@ -14,7 +14,7 @@ app: Dash = Dash(
     external_stylesheets=[
         dbc.themes.SANDSTONE
     ],
-    suppress_callback_exceptions=True)
+    suppress_callback_exceptions=True
 )
 
 app.title = 'Data analysis alpha version'
