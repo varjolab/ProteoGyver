@@ -582,6 +582,13 @@ class DataFunctions:
                 table = table.drop(plencol)
                 break
         table.index = table[protein_id_column]
+        table = table[table.index != 'na']
+        for c in table.columns:
+            if not np.issubdtype(table[c].dtype, np.number):
+                try:
+                    table[c] = pd.to_numeric(table[c])
+                except ValueError:
+                    continue
         # Replace zeroes with missing values
         table.replace(0, np.nan, inplace=True)
         table.drop(columns=[protein_id_column,],inplace=True)
@@ -594,8 +601,6 @@ class DataFunctions:
                 spc_table = table
             else:
                 intensity_table = table
-        intensity_table.replace(0, np.nan, inplace=True)
-        spc_table.replace(0, np.nan, inplace=True)
         return (intensity_table, spc_table, protein_lengths)
 
     def run_saint(self, 
