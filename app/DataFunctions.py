@@ -575,10 +575,10 @@ class DataFunctions:
             protein_length_cols:list = ['PROTLEN','Protein Length','Protein.Length']
             protein_length_cols.extend([x.lower() for x in protein_length_cols])
             for plencol in protein_length_cols:
-                if plencol in data_table.columns:
+                if plencol in table.columns:
                     fil.write('pl:\t'+str(plencol) + '\n')
                     protein_lengths = {}
-                    for _,row in data_table[[protein_id_column,plencol]].drop_duplicates().iterrows():
+                    for _,row in table[[protein_id_column,plencol]].drop_duplicates().iterrows():
                         protein_lengths[row[protein_id_column]] = row[plencol]
                     table = table.drop(plencol)
                     break
