@@ -165,7 +165,8 @@ def process_input_tables(
     Output('tic-graph','children'),
     Output('tic-info','data'),
     Input('session-uid', 'children'),
-    Input('figure-template-choice', 'data')
+    State('output-data-upload', 'data'),
+    State('figure-template-choice', 'data')
 )
 def static_tic_graph(_: Any, data_dictionary: dict, figure_template: str) -> tuple:
     if data_dictionary is None:
