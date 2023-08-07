@@ -736,31 +736,47 @@ class DataFunctions:
         used_columns: list = [{} for _ in range(len(tables))]
         with open(os.path.join('debug','rev_intermediate_renaming.json'),'w') as fil:
             json.dump(rev_intermediate_renaming, fil, indent=4)
-        with open(os.path.join('debug','used_columns.json'),'w') as fil:
-            json.dump(used_columns, fil, indent=4)
-        for nname, list_of_all_table_columns in sample_group_columns.items():
-            first_len: int = 0
-            for table_index, table_columns in enumerate(list_of_all_table_columns):
-                if len(table_columns) == 0:
-                    continue
-                if first_len == 0:
-                    first_len = len(table_columns)
-                else:
-                    # Should have same number of columns/replicates for SPC and intensity tables
-                    assert len(table_columns) == first_len
-                for column_name in table_columns:
-                    i: int = 1
-                    while f'{nname}_Rep_{i}' in column_renames[table_index]:
-                        i += 1
-                    newname_to_use: str = f'{nname}_Rep_{i}'
-                    if nname not in sample_groups:
-                        sample_groups[nname] = set()
-                    sample_groups[nname].add(newname_to_use)
-                    column_renames[table_index][newname_to_use] = column_name
-                    used_columns[table_index][newname_to_use] = rev_intermediate_renaming[table_index][column_name]
+        with open(os.path.join('debug','inprocess.txt'),'w') as fil:
+            for nname, list_of_all_table_columns in sample_group_columns.items():
+                first_len: int = 0
+                fil.write('ti::\t' + nname + '\n')
+                fil.write('ti::\t' + str(list_of_all_table_columns) + '\n')
+                fil.write('------\n')
+                for table_index, table_columns in enumerate(list_of_all_table_columns):
+                    if len(table_columns) < 2:
+                        continue
+                    if first_len == 0:
+                        first_len = len(table_columns)
+                    else:
+                        # Should have same number of columns/replicates for SPC and intensity tables
+                        assert len(table_columns) == first_len
+                    fil.write('ti::\t' + str(table_index) + '\n')
+                    fil.write('ti::\t' + str(table_columns) + '\n')
+                    fil.write('ti::\t' + str(first_len) + '\n')
+                    for column_name in table_columns:
+                        i: int = 1
+                        while f'{nname}_Rep_{i}' in column_renames[table_index]:
+                            i += 1
+                        newname_to_use: str = f'{nname}_Rep_{i}'
+                        if nname not in sample_groups:
+                            sample_groups[nname] = set()
+                        sample_groups[nname].add(newname_to_use)
+                        fil.write('cn::\t' + str(column_name) + '\n')
+                        fil.write('ntu::\t' + str(newname_to_use) + '\n')
+                        fil.write('sg::\t' + str(sample_groups[nname]) + '\n')
+                        fil.write('o::\t' + str(i) + '\n')
+                        column_renames[table_index][newname_to_use] = column_name
+                        fil.write('cr::\t' + str(column_renames[table_index][newname_to_use]) + '\n')
+                        used_columns[table_index][newname_to_use] = rev_intermediate_renaming[table_index][column_name]
+                fil.write('---\n')
+            fil.write('======\n')
         sample_groups = {k: sorted(list(v)) for k, v in sample_groups.items()}   
         with open(os.path.join('debug','column_renames.json'),'w') as fil:
             json.dump(column_renames, fil, indent=4)
+        with open(os.path.join('debug','sample_groups.json'),'w') as fil:
+            json.dump(sample_groups, fil, indent=4)
+        with open(os.path.join('debug','used_columns.json'),'w') as fil:
+            json.dump(used_columns, fil, indent=4)
         for table_index, table in enumerate(tables):
             rename_columns: dict = {value: key for key, value in column_renames[table_index].items()}
             table.drop(
