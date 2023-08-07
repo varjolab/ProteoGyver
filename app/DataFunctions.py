@@ -700,6 +700,7 @@ class DataFunctions:
         rev_intermediate_renaming: list = []
         for table_ind, table in enumerate(tables):
             intermediate_renaming: dict = {}
+            rev_intermediate_renaming.append([])
             if len(table.columns) < 2:
                 continue
             for column_name in table.columns:
@@ -731,7 +732,7 @@ class DataFunctions:
                 sample_group_columns[newname][table_ind].append(col)
             if len(intermediate_renaming.keys()) > 0:
                 table.rename(columns=intermediate_renaming, inplace = True)
-            rev_intermediate_renaming.append({value: key for key,value in intermediate_renaming.items()})
+            rev_intermediate_renaming[-1] = {value: key for key,value in intermediate_renaming.items()}
         column_renames: list = [{} for _ in range(len(tables))]
         used_columns: list = [{} for _ in range(len(tables))]
         with open(os.path.join('debug','rev_intermediate_renaming.json'),'w') as fil:
@@ -739,8 +740,8 @@ class DataFunctions:
         with open(os.path.join('debug','inprocess.txt'),'w') as fil:
             for nname, list_of_all_table_columns in sample_group_columns.items():
                 first_len: int = 0
-                fil.write('ti::\t' + nname + '\n')
-                fil.write('ti::\t' + str(list_of_all_table_columns) + '\n')
+                fil.write('nn::\t' + nname + '\n')
+                fil.write('latc::\t' + str(list_of_all_table_columns) + '\n')
                 fil.write('------\n')
                 for table_index, table_columns in enumerate(list_of_all_table_columns):
                     if len(table_columns) < 2:
@@ -751,8 +752,8 @@ class DataFunctions:
                         # Should have same number of columns/replicates for SPC and intensity tables
                         assert len(table_columns) == first_len
                     fil.write('ti::\t' + str(table_index) + '\n')
-                    fil.write('ti::\t' + str(table_columns) + '\n')
-                    fil.write('ti::\t' + str(first_len) + '\n')
+                    fil.write('tc::\t' + str(table_columns) + '\n')
+                    fil.write('fl::\t' + str(first_len) + '\n')
                     for column_name in table_columns:
                         i: int = 1
                         while f'{nname}_Rep_{i}' in column_renames[table_index]:
