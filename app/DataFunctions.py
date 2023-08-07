@@ -558,8 +558,6 @@ class DataFunctions:
             columns={ic: ic.replace(f'{replace_str}Intensity', '').replace('MaxLFQ', '').strip()
                     for ic in intensity_cols},
             inplace=True)
-        intensity_table.replace(0, np.nan, inplace=True)
-        spc_table.replace(0, np.nan, inplace=True)
         return (intensity_table, spc_table, protein_lengths)
 
     def read_matrix(self, data_table: pd.DataFrame, is_spc_table:bool=False, max_spc_ever:int=0) -> pd.DataFrame:
@@ -567,41 +565,51 @@ class DataFunctions:
         
         Matrix is assumed to be SPC matrix, if the maximum value is smaller than max_spc_ever.
         """
-        protein_id_column: str = 'Protein.Group'
-        table: pd.DataFrame = data_table
-        if protein_id_column not in table.columns:
-            protein_id_column = table.columns[0]
-        protein_lengths:dict = None
-        protein_length_cols:list = ['Protein Length','Protein.Length']
-        protein_length_cols.extend([x.lower() for x in protein_length_cols])
-        for plencol in protein_length_cols:
-            if plencol in data_table.columns:
-                protein_lengths = {}
-                for _,row in data_table[[protein_id_column,plencol]].drop_duplicates().iterrows():
-                    protein_lengths[row[protein_id_column]] = row[plencol]
-                table = table.drop(plencol)
-                break
-        table.index = table[protein_id_column]
-        table = table[table.index != 'na']
-        for c in table.columns:
-            if not np.issubdtype(table[c].dtype, np.number):
-                try:
-                    table[c] = pd.to_numeric(table[c])
-                except ValueError:
-                    continue
-        # Replace zeroes with missing values
-        table.replace(0, np.nan, inplace=True)
-        table.drop(columns=[protein_id_column,],inplace=True)
-        spc_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
-        intensity_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
-        if is_spc_table:
-            spc_table = table
-        else:
-            if table.select_dtypes(include=[np.number]).max().max() <= max_spc_ever:
+        with open(os.path.join('debug','read_matrix.txt'),'w') as fil:
+            fil.write('Reading matrix')
+            protein_id_column: str = 'Protein.Group'
+            table: pd.DataFrame = data_table
+            if protein_id_column not in table.columns:
+                protein_id_column = table.columns[0]
+            protein_lengths:dict = None
+            protein_length_cols:list = ['PROTLEN','Protein Length','Protein.Length']
+            protein_length_cols.extend([x.lower() for x in protein_length_cols])
+            for plencol in protein_length_cols:
+                if plencol in data_table.columns:
+                    fil.write('pl:\t'+str(plencol) + '\n')
+                    protein_lengths = {}
+                    for _,row in data_table[[protein_id_column,plencol]].drop_duplicates().iterrows():
+                        protein_lengths[row[protein_id_column]] = row[plencol]
+                    table = table.drop(plencol)
+                    break
+            fil.write('ts:\t'+str(table.shape) + '\n')
+            table.index = table[protein_id_column]
+            table = table[table.index != 'na']
+            for c in table.columns:
+                isnumber: bool = np.issubdtype(table[c].dtype, np.number)
+                fil.write('in:\t'+str(isnumber) + '\n')
+                if not isnumber:
+                    try:
+                        table[c] = pd.to_numeric(table[c])
+                    except ValueError:
+                        continue
+            # Replace zeroes with missing values
+            table.replace(0, np.nan, inplace=True)
+            table.drop(columns=[protein_id_column,],inplace=True)
+            spc_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
+            intensity_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
+            if is_spc_table:
                 spc_table = table
             else:
-                intensity_table = table
-        return (intensity_table, spc_table, protein_lengths)
+                fil.write('sel:\t' + str(table.select_dtypes(include=[np.number]).columns)+ '\n')
+                fil.write('tm:\t' + str(table.select_dtypes(include=[np.number]).max().max()) + '\n')
+                if table.select_dtypes(include=[np.number]).max().max() <= max_spc_ever:
+                    fil.write('is_spc' + '\n')
+                    spc_table = table
+                else:
+                    fil.write('not_spc' + '\n')
+                    intensity_table = table
+            return (intensity_table, spc_table, protein_lengths)
 
     def run_saint(self, 
         data_table: pd.DataFrame,
