@@ -693,15 +693,12 @@ class DataFunctions:
                 .rsplit('/', maxsplit=1)[-1]\
                 .rstrip('.d') for oldvalue in expdesign['Sample name'].values
         ]
-        expdesign.to_csv(f'expdesign.tsv',sep='\t')
         expdesign: pd.DataFrame = expdesign[~expdesign['Sample name'].isin(discard_samples)]
-        expdesign.to_csv(f'expdesign_afterdiscard.tsv',sep='\t')
         discarded_columns:list = []
         sample_groups: dict = {}
         sample_group_columns: dict = {}
         rev_intermediate_renaming: list = []
         for table_ind, table in enumerate(tables):
-            table.to_csv(f'{table_ind}.tsv',sep='\t')
             intermediate_renaming: dict = {}
             if len(table.columns) < 2:
                 continue
@@ -737,6 +734,10 @@ class DataFunctions:
             rev_intermediate_renaming.append({value: key for key,value in intermediate_renaming.items()})
         column_renames: list = [{} for _ in range(len(tables))]
         used_columns: list = [{} for _ in range(len(tables))]
+        with open(os.path.join('debug','rev_intermediate_renaming.json'),'w') as fil:
+            json.dump(rev_intermediate_renaming, fil, indent=4)
+        with open(os.path.join('debug','used_columns.json'),'w') as fil:
+            json.dump(used_columns, fil, indent=4)
         for nname, list_of_all_table_columns in sample_group_columns.items():
             first_len: int = 0
             for table_index, table_columns in enumerate(list_of_all_table_columns):
@@ -758,6 +759,8 @@ class DataFunctions:
                     column_renames[table_index][newname_to_use] = column_name
                     used_columns[table_index][newname_to_use] = rev_intermediate_renaming[table_index][column_name]
         sample_groups = {k: sorted(list(v)) for k, v in sample_groups.items()}   
+        with open(os.path.join('debug','column_renames.json'),'w') as fil:
+            json.dump(column_renames, fil, indent=4)
         for table_index, table in enumerate(tables):
             rename_columns: dict = {value: key for key, value in column_renames[table_index].items()}
             table.drop(
@@ -812,9 +815,6 @@ class DataFunctions:
         intensity_table = self.remove_duplicate_protein_groups(intensity_table)
         spc_table = self.remove_duplicate_protein_groups(spc_table)
 
-        intensity_table.to_csv('intensity table.tsv',sep='\t')
-        spc_table.to_csv('spc table.tsv',sep='\t')
-
         sample_groups: dict
         rev_sample_groups: dict
         discarded_columns: list
@@ -828,8 +828,6 @@ class DataFunctions:
             discard_samples
         )
         spc_table = spc_table[sorted(list(spc_table.columns))]
-
-
 
         if len(intensity_table.columns) > 1:
             intensity_table = intensity_table[sorted(list(intensity_table.columns))]
