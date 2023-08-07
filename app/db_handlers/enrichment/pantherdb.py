@@ -152,15 +152,31 @@ class handler():
         datasets = [self._datasets[d] for d in datasets]
         results: dict = {}
         legends: dict = {}
-        for bait, preylist in data_lists:
-            for data_type_key, result in self.run_panther_overrepresentation_analysis(datasets, preylist).items():
-                if data_type_key not in results:
-                    results[data_type_key] = []
-                    legends[data_type_key] = []
-                results_df: pd.DataFrame = result['Results']
-                results_df.insert(1, 'Bait', bait)
-                results[data_type_key].append(results_df)
-                legends[data_type_key].append(tuple(result[k] for k in result.keys() if k != 'Results'))
+        with open(os.path.join('debug','panther.txt'),'w') as fil:
+            for bait, preylist in data_lists:
+                for data_type_key, result in self.run_panther_overrepresentation_analysis(datasets, preylist).items():
+                    if data_type_key not in results:
+                        results[data_type_key] = []
+                        legends[data_type_key] = []
+                    fil.write(bait)
+                    fil.write('\n')
+                    fil.write(data_type_key)
+                    fil.write('\n')
+                    try:
+                        with open(os.path.join('debug',data_type_key + '.json'),'w') as fil2:
+                            json.dump(result,fil2,indent=4)
+                    except:
+                        pass
+                    fil.write(str(result))
+                    fil.write('\n')
+
+                    results_df: pd.DataFrame = result['Results']
+                    results_df.to_csv(os.path.join('debug','results_df.tsv'),sep='\t')
+                    results_df.insert(1, 'Bait', bait)
+                    results[data_type_key].append(results_df)
+                    legends[data_type_key].append(tuple(result[k] for k in result.keys() if k != 'Results'))
+                    fil.write(str(results_df.columns))
+                    fil.write('\n=====\n')
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
