@@ -63,20 +63,30 @@ class FigureGeneration:
         self._save_dir: str
         self._generated_figures: dict = {}
 
+    def write_error(self, figure_dir, figure:go.Figure, figure_name: str, figure_legend: str, save_data, error: Exception) -> None:
+        with open(os.path.join(figure_dir, figure_name+'_ERROR.txt'),'a',encoding='utf-8') as fil:
+            fil.write('Got error:')
+            fil.write(str(error)+'\n')
+            fil.write(f'With figure:\n{figure_name}\nLegend:\n{figure_legend}\nPlotly object:\n{figure}\nSave data:\n{save_data}')
+            fil.write('============')
+
     def save_figures(self, figure_dir: str, save_data: list) -> None:
         for figure_name, (figure_legend, figure) in self.generated_figures.items():
             if isinstance(figure, str):
                 os.rename(figure, os.path.join(figure_dir,figure_name+'.pdf'))
             else:
-                figure: go.Figure = go.Figure(figure)
-                if figure_legend is None:
-                    figure_legend = ''
-                elif isinstance(figure_legend,list):
-                    figure_legend = '\n'.join(figure_legend)
-                with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
-                    fil.write(figure_legend)
-                figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
-                figure.write_image(os.path.join(figure_dir,figure_name+'.pdf'))
+                try:
+                    figure: go.Figure = go.Figure(figure)
+                    if figure_legend is None:
+                        figure_legend = ''
+                    elif isinstance(figure_legend,list):
+                        figure_legend = '\n'.join(figure_legend)
+                    with open(os.path.join(figure_dir, figure_name + '.txt'),'w',encoding='utf-8') as fil:
+                        fil.write(figure_legend)
+                    figure.write_html(os.path.join(figure_dir,figure_name+'.html'),config=self.defaults['config'])
+                    figure.write_image(os.path.join(figure_dir,figure_name+'.pdf'))
+                except ValueError as value_error:
+                    self.write_error(figure_dir, figure, figure_name, figure_legend, save_data, value_error)
 
         if save_data is not None:
             for i, figure in enumerate(save_data[0]):
@@ -85,11 +95,13 @@ class FigureGeneration:
                 if isinstance(figure, str):
                     os.rename(figure, os.path.join(figure_dir,figure_name+'testing2.pdf'))
                 else:
-                    figure: go.Figure = go.Figure(figure)
-                    with open(os.path.join(figure_dir, figure_name + 'testing2.txt'),'w',encoding='utf-8') as fil:
-                        fil.write(figure_legend)
-                        figure.write_html(os.path.join(figure_dir,figure_name+'testing2.html'),config=self.defaults['config'])
-
+                    try:
+                        figure: go.Figure = go.Figure(figure)
+                        with open(os.path.join(figure_dir, figure_name + 'testing2.txt'),'w',encoding='utf-8') as fil:
+                            fil.write(figure_legend)
+                            figure.write_html(os.path.join(figure_dir,figure_name+'testing2.html'),config=self.defaults['config'])
+                    except ValueError as value_error:
+                        self.write_error(figure_dir, figure, figure_name, figure_legend, save_data, value_error)
     def get_cut_colors(self, colormapname: str = 'gist_ncar', number_of_colors: int = 15,
                     cut: float = 0.4) -> list:
         """Returns cut colors from the given colormapname
