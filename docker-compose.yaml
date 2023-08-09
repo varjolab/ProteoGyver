@@ -3,7 +3,7 @@ version: "3"
 services:
   pg:
     image: pgtesting:prod
-    container_name: pg
+    container_name: pgprod
     ports:
       - 8090:8090
       - 8050:8050
@@ -12,7 +12,7 @@ services:
       - TZ=Europe/Helsinki
   pgtest:
     image: pgtesting:testing
-    container_name: pg
+    container_name: pgtesting
     ports:
       - 8060:8050
 #      - 8888:8888
