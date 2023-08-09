@@ -5,9 +5,13 @@ mkdir ../develop
 git checkout main
 git pull
 rsync -vu * ../prod/
+mkdir ../prod/additional
+rsync -vu ../additional/* ../prod/additional/
 git checkout develop
 git pull
 rsync -vu * ../develop
+mkdir ../develop/additional
+rsync -vu ../additional/* ../develop/additional/
 git checkout main
 
 cd ../prod
