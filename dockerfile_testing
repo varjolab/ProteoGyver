@@ -1,5 +1,3 @@
-
-
 FROM ubuntu:22.04
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 
@@ -7,6 +5,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
+ENV R_BASE_VERSION 3.6.1
 
 # First steps
 USER root
@@ -22,10 +21,17 @@ RUN apt-get update && \
     apt-get -yq dist-upgrade && \
     apt-get install -yq \
     software-properties-common dirmngr wget
-RUN apt-get install -yq apt-utils locales \
+RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+
+RUN apt-get install -yq apt-utils software-properties-common locales \
     git python3 python3-pip nodejs npm  \
-    dos2unix ca-certificates nano \
-    littler 
+    dos2unix ca-certificates nano  \
+    littler \
+    r-cran-littler \
+    r-base \
+    r-base-dev \
+    r-recommended 
 
 
 # Python installs
@@ -33,7 +39,11 @@ WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
 RUN pip3 install -r requirements.txt
-RUN pip3 install jupyter jupyterlab pandas jupyter-dash gunicorn
+RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
+# R things
+RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
+RUN Rscript R_requirements.R
+#RUN Rscript R_requirements.R
 RUN npm install -g configurable-http-proxy
 
 # User management
@@ -45,6 +55,9 @@ WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
 WORKDIR /
+# JupyterHub
+RUN mkdir /etc/jupyterhub
+COPY jupyterhub.py /etc/jupyterhub/
 
 # Put additional data where it should be
 COPY additional/data.tar /proteogyver/data.tar
@@ -55,8 +68,8 @@ RUN tar xf external.tar
 RUN mkdir /proteogyver/debug
 
 
-# Expose ports (dash)
-EXPOSE 8050
+# Expose ports (jupyterHub. dash)
+EXPOSE 8090 8050
 
 # Finished.
-ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/docker_entrypoint_testing.sh"]

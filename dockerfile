@@ -22,7 +22,8 @@ COPY app /proteogyver
 RUN apt-get update && \
     apt-get -yq dist-upgrade && \
     apt-get install -yq \
-    software-properties-common dirmngr wget
+    software-properties-common dirmngr wget libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
+    libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libcurl4-openssl-dev libnetcdf-dev
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 
@@ -44,6 +45,7 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 # R things
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
+RUN Rscript R_requirements.R
 #RUN Rscript R_requirements.R
 RUN npm install -g configurable-http-proxy
 

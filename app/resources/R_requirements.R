@@ -1,4 +1,4 @@
-install.packages("pacman")
-pacman::p_load('BiocManager', 'IRkernel', 'devtools', 'tidyverse', 'flashClust', 'WGCNA', 'samr')
-BiocManager::install(c('DEP', 'AnnotationDb', 'GO.db', 'preprocessCore', 'impute'))
+install.packages(c('BiocManager', 'IRkernel', 'devtools', 'tidyverse', 'flashClust', 'samr'),Ncpus=16)
+BiocManager::install(c('DEP'))
 IRkernel::installspec(user = FALSE) 
+install.packages(c('WGCNA'),Ncpus=16)
