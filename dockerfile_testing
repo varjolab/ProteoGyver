@@ -12,7 +12,7 @@ ENV LANG en_US.UTF-8
 USER root
 WORKDIR /
 RUN mkdir /proteogyver
-COPY docker_entrypoint.sh /
+COPY docker_entrypoint_testing.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver
 
@@ -24,7 +24,7 @@ RUN apt-get update && \
     software-properties-common dirmngr wget
 RUN apt-get install -yq apt-utils software-properties-common locales \
     git python3 python3-pip nodejs npm  \
-    dos2unix ca-certificates nano postgresql \
+    dos2unix ca-certificates nano \
     littler 
 
 
@@ -33,7 +33,7 @@ WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
 RUN pip3 install -r requirements.txt
-RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
+RUN pip3 install jupyter jupyterlab pandas jupyter-dash gunicorn
 RUN npm install -g configurable-http-proxy
 
 # User management
@@ -45,9 +45,6 @@ WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
 WORKDIR /
-# JupyterHub
-RUN mkdir /etc/jupyterhub
-COPY jupyterhub.py /etc/jupyterhub/
 
 # Put additional data where it should be
 COPY additional/data.tar /proteogyver/data.tar

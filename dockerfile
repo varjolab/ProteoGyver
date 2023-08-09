@@ -28,7 +28,7 @@ RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_r
 
 RUN apt-get install -yq apt-utils software-properties-common locales \
     git python3 python3-pip nodejs npm  \
-    dos2unix ca-certificates nano postgresql \
+    dos2unix ca-certificates nano  \
     littler \
     r-cran-littler \
     r-base \
