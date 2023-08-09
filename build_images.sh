@@ -4,10 +4,10 @@ mkdir ../prod
 mkdir ../develop
 git checkout main
 git pull
-cp -r * ../prod/
+rsync -vu * ../prod/
 git checkout develop
 git pull
-cp -r * ../develop
+rsync -vu * ../develop
 git checkout main
 
 cd ../prod
