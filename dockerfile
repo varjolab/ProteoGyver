@@ -44,7 +44,7 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 # R things
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
-RUN Rscript R_requirements.R
+#RUN Rscript R_requirements.R
 RUN npm install -g configurable-http-proxy
 
 # User management
