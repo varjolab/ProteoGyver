@@ -4,10 +4,10 @@ mkdir ../prod
 mkdir ../develop
 git checkout main
 git pull
-mv * ../prod/
+cp -r * ../prod/
 git checkout develop
 git pull
-mv * ../develop
+cp -r * ../develop
 
 cd ../prod
 sudo docker build -t pgtesting:prod -f dockerfile . 
