@@ -66,6 +66,7 @@ COPY additional/external.tar /proteogyver/external.tar
 WORKDIR /proteogyver
 RUN tar xf data.tar
 RUN tar xf external.tar
+RUN mkdir /proteogyver/debug
 
 
 # Expose ports (jupyterHub. dash)
