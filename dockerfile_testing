@@ -1,3 +1,5 @@
+
+
 FROM ubuntu:22.04
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 
@@ -11,7 +13,7 @@ ENV R_BASE_VERSION 3.6.1
 USER root
 WORKDIR /
 RUN mkdir /proteogyver
-COPY docker_entrypoint_testing.sh /
+COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver
 
@@ -20,10 +22,10 @@ COPY app /proteogyver
 RUN apt-get update && \
     apt-get -yq dist-upgrade && \
     apt-get install -yq \
-    software-properties-common dirmngr wget
+    software-properties-common dirmngr wget libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
+    libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libcurl4-openssl-dev libnetcdf-dev
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-
 RUN apt-get install -yq apt-utils software-properties-common locales \
     git python3 python3-pip nodejs npm  \
     dos2unix ca-certificates nano  \
@@ -34,12 +36,12 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
     r-recommended 
 
 
-# Python installs
+# Python installss
 WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
 RUN pip3 install -r requirements.txt
-RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
+RUN pip3 install jupyter jupyterlab pandas jupyter-dash gunicorn
 # R things
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
 RUN Rscript R_requirements.R
@@ -55,9 +57,6 @@ WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
 WORKDIR /
-# JupyterHub
-RUN mkdir /etc/jupyterhub
-COPY jupyterhub.py /etc/jupyterhub/
 
 # Put additional data where it should be
 COPY additional/data.tar /proteogyver/data.tar
@@ -69,7 +68,7 @@ RUN mkdir /proteogyver/debug
 
 
 # Expose ports (jupyterHub. dash)
-EXPOSE 8090 8050
+EXPOSE 8050
 
 # Finished.
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint_testing.sh"]

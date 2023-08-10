@@ -26,7 +26,6 @@ RUN apt-get update && \
     libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libcurl4-openssl-dev libnetcdf-dev
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-
 RUN apt-get install -yq apt-utils software-properties-common locales \
     git python3 python3-pip nodejs npm  \
     dos2unix ca-certificates nano  \
