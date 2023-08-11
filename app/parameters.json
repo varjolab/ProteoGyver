@@ -1,5 +1,5 @@
 {
-    "Run data": ["assets", "Combined runlist.tsv"],
+    "Run data": ["data_assets", "Combined runlist.tsv"],
     "Known types": {
         "Who": ["Iftekhar", "Kari"],
         "Cell line / material": ["HEK293 Flp-In T-ReX"],
@@ -30,8 +30,8 @@
     "Default normalization method": "Median",
     "files": {
         "example files": {
-            "example-sample_table": ["assets", "example-sample_table.tsv"],
-            "example-data_file": ["assets", "example-data_file.tsv"]
+            "example-sample_table": ["data_assets", "example-sample_table.tsv"],
+            "example-data_file": ["data_assets", "example-data_file.tsv"]
         },
         "data": {
             "crapome": ["data", "crapome sets.json"],

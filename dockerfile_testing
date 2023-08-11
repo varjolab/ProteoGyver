@@ -45,9 +45,6 @@ WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
 WORKDIR /
-# JupyterHub
-RUN mkdir /etc/jupyterhub
-COPY jupyterhub.py /etc/jupyterhub/
 
 # Put additional data where it should be
 COPY additional/data.tar /proteogyver/data.tar
@@ -58,7 +55,7 @@ RUN tar xf external.tar
 
 
 # Expose ports (jupyterHub. dash)
-EXPOSE 8090 8050
+EXPOSE 8050
 
 # Finished.
-ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/docker_entrypoint_testing.sh"]

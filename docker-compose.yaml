@@ -2,12 +2,19 @@ version: "3"
 
 services:
   pg:
-    image: pgtesting:current
+    image: pgtesting:prod
     container_name: pg
     ports:
       - 8090:8090
       - 8050:8050
 #      - 8888:8888
+    environment:
+      - TZ=Europe/Helsinki
+  pg:
+    image: pgtesting:testing
+    container_name: pg
+    ports:
+      - 8060:8050
     environment:
       - TZ=Europe/Helsinki
 

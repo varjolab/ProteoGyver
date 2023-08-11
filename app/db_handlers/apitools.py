@@ -72,7 +72,7 @@ def get_newest_file(directory, namefilter:str = None) -> str:
 def get_nbibfile(databasename:str) -> str:
     nbibpath: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)).rsplit(os.sep,maxsplit=1)[0],
-        'assets',
+        'data_assets',
         'nbibs',
         f'{databasename.lower()}.nbib')
     return nbibpath

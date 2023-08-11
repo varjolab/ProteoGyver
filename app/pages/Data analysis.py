@@ -10,7 +10,6 @@ from uuid import uuid4
 from typing import Any
 import dash
 from datetime import datetime
-from regex import F
 import dash_bootstrap_components as dbc
 from DataFunctions import DataFunctions
 import plotly.graph_objects as go
@@ -28,7 +27,7 @@ from dash import dash_table
 import text_functions
 import iter_functions
 import plotly.io as pio
-
+from components.ui_components import checklist
 
 db: DbEngine = DbEngine()
 figure_generation: FigureGeneration = FigureGeneration()
@@ -820,37 +819,7 @@ def generate_proteomics_tab() -> dbc.Tab:
     return dbc.Tab(proteomics_tab, label='Proteomics', id='proteomics-tab')
 
 
-def checklist(label: str, options: list, default_choice: list, disabled: list = None, id_prefix: str = None, simple_text_clean: bool = False, id_only:bool=False, prefix_list:list = None, postfix_list:list = None) -> dbc.Checklist:
-    if disabled is None:
-        disabled: set = set()
-    else:
-        disabled: set = set(disabled)
-    checklist_id: str
-    if simple_text_clean:
-        checklist_id = f'{id_prefix}-{label.strip(":").strip().replace(" ","-").lower()}'
-    else:
-        checklist_id = f'{id_prefix}-{text_functions.clean_text(label.lower())}'
-    if id_only:
-        label = ''
-    if prefix_list is None:
-        prefix_list = []
-    if postfix_list is None:
-        postfix_list = []
-    retlist: list = [
-        label,
-        dbc.Checklist(
-            options=[
-                {
-                    'label': o, 'value': o, 'disabled': o in disabled
-                } for o in options
-            ],
-            value=default_choice,
-            id=checklist_id,
-            switch=True
-        )
-    ]
 
-    return prefix_list + retlist + postfix_list
 
 def map_intensity(saint_output, intensity_table, sample_groups) -> list:
     intensity_column: list = []
@@ -1482,7 +1451,6 @@ def generate_interactomics_tab(sample_groups: dict, guessed_controls: tuple) -> 
         )
     )
     return dbc.Tab(interactomics_tab, label='Interactomics', id='interactomics-tab')
-
 
 upload_row_1: list = [
     dbc.Col(
