@@ -1,0 +1,30 @@
+{
+    "file loading": {
+        "Maximum psm ever theoretically encountered": 5000
+    },
+    "Figure defaults": {
+        "full-height": {
+            "config": {
+                "toImageButtonOptions": {
+                    "format": "svg"
+                }
+            },
+            "width": 1000,
+            "height": 700
+        },
+        "half-height": {
+            "config": {
+                "toImageButtonOptions": {
+                    "format": "svg"
+                }
+            },
+            "width": 1000,
+            "height": 350
+        }
+    },
+    "Possible values": {
+        "Figure-config-toImageButtonOptions-format": ["png", "svg", "jpeg", "webp"],
+        "Implemented workflows": ["Proteomics","Interactomics"],
+        "Figure templates": ["plotly_white", "simple_white"]
+    }
+}

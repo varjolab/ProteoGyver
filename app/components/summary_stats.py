@@ -1,0 +1,60 @@
+from pandas import DataFrame
+from regex import F
+
+def get_count_data(data_table: DataFrame) -> DataFrame:
+    """Returns non-na count per column."""
+    data: DataFrame = data_table.\
+        notna().sum().\
+        to_frame(name='Protein count')
+    data.index.name = 'Sample name'
+    return data
+def get_coverage_data(data_table: DataFrame) -> DataFrame:
+    """Returns coverage dataframe."""
+    return  DataFrame(
+            data_table.notna()
+            .astype(int)
+            .sum(axis=1)
+            .value_counts(), columns=['Identified in # samples']
+        )
+
+def get_na_data(data_table: DataFrame) -> DataFrame:
+    """Returns na count per column."""
+    data: DataFrame = ((data_table.
+                        isna().sum() / data_table.shape[0]) * 100).\
+        to_frame(name='Missing value %')
+    data.index.name = 'Sample name'
+    return data
+
+def get_sum_data(data_table) -> DataFrame:
+    data: DataFrame = data_table.sum().\
+        to_frame(name='Value sum')
+    data.index.name = 'Sample name'
+    return data
+
+
+def get_mean_data(data_table) -> DataFrame:
+    data: DataFrame = data_table.mean().\
+        to_frame(name='Value mean')
+    data.index.name = 'Sample name'
+    return data
+
+def get_comparative_data(data_table, sample_groups) -> tuple:
+    sample_names: list = sorted(list(sample_groups.keys()))
+    comparative_data: list = []
+    for sample_name in sample_names:
+        sample_columns: list = [sn for sn, sg in sample_groups.items() if sg == sample_groups[sample_name]]
+        comparative_data.append(data_table[sample_columns])
+    return (
+            [sample_groups[sample_name] for sample_name in sample_names],
+            comparative_data
+        )
+
+def get_common_data(data_table: DataFrame, rev_sample_groups: dict) -> dict:
+    group_sets: dict = {}
+    for column in data_table.columns:
+        col_proteins: set = set(data_table[[column]].dropna().index.values)
+        group_name: str = rev_sample_groups[column]
+        if group_name not in group_sets:
+            group_sets[group_name] = set()
+        group_sets[group_name] |= col_proteins
+    return group_sets

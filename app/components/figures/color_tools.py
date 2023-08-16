@@ -1,0 +1,32 @@
+import numpy as np
+from matplotlib import pyplot as plt
+
+def get_assigned_colors(sample_group_dict: dict) -> dict:
+    """Returns a dictionary with each sample name from the sample group dict assigned a color\
+        corresponding to its sample group.
+
+    :param: sample_group_dict: dictionary of sample groups, where one group maps to a list of samples.
+    """
+    entry_list: list = list(sample_group_dict.keys())
+    colors: list = get_cut_colors(number_of_colors=len(entry_list))
+    group_colors: dict = {}
+    for i, entry in enumerate(entry_list):
+         group_colors[entry] = f'rgb({",".join(str(int(255*x)) for x in colors[i][:3])})'
+    ret: dict = {'samples': {}, 'sample groups': group_colors}
+    for i, (sample_group, sample_list) in enumerate(sample_group_dict.items()):
+        for sample_name in sample_list:
+            ret['samples'][sample_name] = group_colors[sample_group]
+    return ret
+def get_cut_colors(colormapname: str = 'gist_ncar', number_of_colors: int = 15,
+                cut: float = 0.4) -> list:
+    """Returns cut colors from the given colormapname
+
+    :param: colormap: which matplotlib colormap to use
+    :param: number_of_colors: how many colors to return. Colors will be equally spaced in the map
+    :param: cut: how much to cut the colors.
+    """
+    number_of_colors += 1
+    colors: list = (1. - cut) * (plt.get_cmap(colormapname)(np.linspace(0., 1., number_of_colors))) + \
+        cut * np.ones((number_of_colors, 4))
+    colors = colors[:-1]
+    return colors

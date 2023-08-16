@@ -57,10 +57,9 @@ def checklist(
             switch=True
         )
     ]
-
     return prefix_list + retlist + postfix_list
 
-def upload_area(id_text, upload_name) -> html.Div:
+def upload_area(id_text, upload_id) -> html.Div:
     return html.Div(
         [
             html.Div(
@@ -70,7 +69,7 @@ def upload_area(id_text, upload_name) -> html.Div:
                         children=html.Div([
                             'Drag and drop or ',
                             html.A('select',style=UPLOAD_A_STYLE),
-                            f' {upload_name}'
+                            f' {upload_id}'
                         ]
                         ),
                         style=UPLOAD_STYLE,
@@ -85,10 +84,11 @@ def upload_area(id_text, upload_name) -> html.Div:
             ) ##fixthis
         ]
     )
+
 def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Div:
     return html.Div(
         [
-            html.H2("Sidebar", style={'textAlign': 'center'}),
+            html.H2("Input", style={'textAlign': 'center'}),
             dbc.Button(
                 'Download sample table template',
                 style=UPLOAD_BUTTON_STYLE,
@@ -119,11 +119,24 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 ],
                 id='figure-theme-dropdown',
             ),
+            html.Div(
+                id='discard-samples-div',
+                children = [
+                    dbc.Button(
+                        'Choose samples to discard',
+                        id='discard-samples-button',
+                        style=UPLOAD_BUTTON_STYLE,
+                        className='btn-warning',
+                    ),
+                ],
+                hidden=True
+            ),
             dbc.Button(
-                'Begin!',
-                id='input-complete-button',
+                'Begin analysis',
+                id='begin-analysis-button',
                 style=UPLOAD_BUTTON_STYLE,
                 className='btn-info',
+                disabled=True,
             ),
             dbc.Button(
                 'Download all data',
@@ -132,14 +145,10 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 className='btn-info',
                 disabled=True,
             ),
-            html.Div(id='toc-div',children=[]),
+            html.Div(id='toc-div',style={'padding': '0px 10px 10px 30px'}),# top right bottom left
             dcc.Download(id='download-sample_table-template'),
             dcc.Download(id='download-datafile-example'),
             dcc.Download(id='download-all-data'),
-            dbc.Button(
-                'call1',
-                id='call1-button'
-            ),
 
         ],
         className='card text-white bg-primary mb-3',
@@ -149,42 +158,119 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
 
 def main_content_div() -> html.Div:
     return html.Div(
-        id="first-div",
+        id='main-content-div',
         children=[
-            'discard samples checklist here',
-            html.Div([
-                html.Div(id='upload-complete-indicator'),
-                dcc.Loading(
-                    id='qc-loading',
-                    children=[
-                        html.Div(id='qc-plot-container',
-                                children=[
-                                ])
-                    ],
-                    type='default'
-                ),
-                html.Hr(),
-                html.P(
-                    "First row stuff", className="lead"
-                )
-            ]),
-            html.Div(id='tic-graph'),
-
-            # second row
-            html.Div([
-                html.H2("Second Row"),
-                html.Hr(),
-                html.P(
-                    "Second row stuff", className="lead"
-                )
-            ]),
-            html.Div(id='contents-div', children=[])
-
-        ],
+            html.Div(
+                id={'type': 'analysis-div','id':'qc-analysis-area'},
+                children=[
+                ]
+            ),
+            html.Div(id = 'workflow-specific-div')
+            ],
         style=CONTENT_STYLE
     )
 
-def table_of_contents(contents) -> list:
+def workflow_area(workflow) -> html.Div:
+    ret: html.Div
+    if workflow == 'Proteomics':
+        ret = proteomics_area()
+    elif workflow == 'Interactomics':
+        ret = interactomics_area()
+    elif workflow == 'Phosphoproteomics':
+        ret = phosphoproteomics_area()
+    return ret
+
+
+def proteomics_area() -> html.Div:
+    return html.Div(id={'type': 'analysis-div','id':'proteomics-analysis-area'}),
+def interactomics_area() -> html.Div:
+    return html.Div(id={'type': 'analysis-div','id':'phosphoproteomics-analysis-area'}),
+def phosphoproteomics_area() -> html.Div:
+    return html.Div(id={'type': 'analysis-div','id':'interactomics-analysis-area'}),
+
+def qc_area() -> html.Div:
+    return html.Div(
+        id = 'qc-area',
+        children=[
+        html.H1(id='qc-main-header', children = 'Quality control'),
+        dcc.Loading(
+            id='qc-loading-count',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'count-plot-div'}),
+            type='default'
+        ),
+        dcc.Loading(
+            id='qc-loading-coverage',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'coverage-plot-div'}),
+            type='default'
+        ),
+        dcc.Loading(
+            id='qc-loading-reproducibility',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'reproducibility-plot-div'}),
+            type='default'
+        ),
+        dcc.Loading(
+            id='qc-loading-missing',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'missing-plot-div'}),
+            type='default'
+        ),
+        dcc.Loading(
+            id='qc-loading-sum',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'sum-plot-div'}),
+            type='default'
+        ),
+        dcc.Loading(
+            id='qc-loading-mean',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'mean-plot-div'}),
+            type='default'
+        ),
+        dcc.Loading(
+            id='qc-loading-distribution',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'distribution-plot-div'}),
+            type='default'
+        ),
+        dcc.Loading(
+            id='qc-loading-commonality',
+            children=html.Div(id={'type': 'qc-plot', 'id': 'commonality-plot-div'}),
+            type='default'
+        ),
+    ])
+
+def table_of_contents(main_div_children: list, itern = 0) -> list:
+    ret: list = []
+    if isinstance(main_div_children, dict):
+        ret.extend(table_of_contents(main_div_children['props']['children'], itern+1))
+    else:
+        for element in main_div_children:
+            try:
+                kids: list | str = element['props']['children']
+            except KeyError:
+                continue
+            ctype: str = element['type']
+            if isinstance(kids, list):
+                ret.extend(table_of_contents(kids), itern + 1)
+            elif isinstance(kids, str):
+                if ctype.startswith('H'):
+                    level = int(ctype[1])
+                    if level > 6:
+                        level = 6
+                    html_component: Any = HEADER_DICT['component'][level]
+                    idstr: str = element['props']['id']
+                    ret.append(
+                        html.Li(
+                            html_component(
+                                html.A(
+                                    href=f'#{idstr}', 
+                                    children=kids,
+                                ),
+                                style = SIDEBAR_LIST_STYLES[level]
+                            )
+                        )
+                    )
+            elif isinstance(kids, dict):
+                ret.extend(table_of_contents(kids['props']['children'], itern+1))
+    return ret
+
+def old_table_of_contents(contents) -> list:
     headers: list = [html.H1('Contents:', style=SIDEBAR_LIST_STYLES[1]), html.Ul(children=[])]
     for element in contents:
         for child_element in element['props']['children']:
