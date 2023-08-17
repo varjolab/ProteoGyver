@@ -4,8 +4,8 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 from element_styles import SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES,UPLOAD_INDICATOR_STYLE
-import text_functions
 from typing import Any
+from components import tooltips, text_handling
 
 HEADER_DICT: dict = {
     'component': {
@@ -24,7 +24,6 @@ def checklist(
         default_choice: list,
         disabled: list = None,
         id_prefix: str = None,
-        simple_text_clean: bool = False,
         id_only:bool=False,
         prefix_list:list = None,
         postfix_list:list = None
@@ -34,17 +33,16 @@ def checklist(
     else:
         disabled: set = set(disabled)
     checklist_id: str
-    if simple_text_clean:
-        checklist_id = f'{id_prefix}-{label.strip(":").strip().replace(" ","-").lower()}'
-    else:
-        checklist_id = f'{id_prefix}-{text_functions.clean_text(label.lower())}'
+    checklist_id = text_handling.replace_special_characters(
+        f'{id_prefix}-{label}',
+        '-',stripresult=True,remove_duplicates=True)
     if id_only:
         label = ''
     if prefix_list is None:
         prefix_list = []
     if postfix_list is None:
         postfix_list = []
-    retlist: list = [
+    retlist: html.Div = [
         label,
         dbc.Checklist(
             options=[
@@ -127,6 +125,7 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                         id='discard-samples-button',
                         style=UPLOAD_BUTTON_STYLE,
                         className='btn-warning',
+                        n_clicks = 0
                     ),
                 ],
                 hidden=True
@@ -152,40 +151,118 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
 
         ],
         className='card text-white bg-primary mb-3',
-        style=SIDEBAR_STYLE,
-
+        style=SIDEBAR_STYLE
     )
+
+def modals() -> html.Div:
+    return html.Div([
+            dbc.Modal(
+                id='discard-samples-modal',
+                is_open=False,
+                scrollable=True,
+                size='xl',
+                children=[
+                    dbc.ModalHeader(dbc.ModalTitle('Select samples to discard')),
+                    dbc.ModalBody(
+                        children=[
+                            dbc.Button('Discard samples', id = 'done-discarding-button', n_clicks = 0),
+                            html.Div(
+                                id='discard-sample-checklist-container'
+                            ),
+                        ]
+                    ),
+                ]
+            )
+    ])
 
 def main_content_div() -> html.Div:
     return html.Div(
         id='main-content-div',
         children=[
+            html.Div(id='workflow-specific-input-div'),
             html.Div(
                 id={'type': 'analysis-div','id':'qc-analysis-area'},
                 children=[
                 ]
             ),
             html.Div(id = 'workflow-specific-div')
-            ],
+        ],
         style=CONTENT_STYLE
     )
 
-def workflow_area(workflow) -> html.Div:
+def workflow_area(workflow: str, workflow_specific_parameters: dict) -> html.Div:
     ret: html.Div
     if workflow == 'Proteomics':
-        ret = proteomics_area()
+        ret = proteomics_area(workflow_specific_parameters['proteomics'])
     elif workflow == 'Interactomics':
-        ret = interactomics_area()
+        ret = interactomics_area(workflow_specific_parameters['interactomics'])
     elif workflow == 'Phosphoproteomics':
-        ret = phosphoproteomics_area()
+        ret = phosphoproteomics_area(workflow_specific_parameters['phosphoproteomics'])
     return ret
 
+def proteomics_area(parameters) -> html.Div:
+    return [
+        html.Div(
+            id={'type': 'input-div','id':'proteomics-analysis-area'},
+            children=[
+                html.H1('Proteomics specific input options'),
+                html.Div([
+                    html.Div([
+                        dbc.Label('NA Filtering:', id='filtering-label'),
+                        tooltips.na_tooltip()
+                    ]),
+                    dcc.Slider(0, 100, 10, value=parameters['na_filter_default_value'],
+                                id='proteomics-filter-minimum-percentage'),
+                    dbc.Select(
+                        options=[
+                            {'label': 'wait', 'value': 'wait'}
+                        ],
+                        required=True,
+                        id='proteomics-control-dropdown',
+                    ),
+                ]
+            ),
+            dbc.Label('Imputation:'),
+            dbc.RadioItems(
+                options=[
+                    {'label': i_opt, 'value': i_opt_val}
+                        for i_opt, i_opt_val in parameters['imputation methods'].items()
+                ],
+                value=parameters['default imputation method'],
+                id='proteomics-imputation-radio-option'
+            ),
+            dbc.Label('Normalization:'),
+            dbc.RadioItems(
+                options=[
+                    {'label': n_opt, 'value': n_opt_val}
+                        for n_opt, n_opt_val in parameters['normalization methods'].items()
+                ],
+                value=parameters['default normalization method'],
+                id='proteomics-normalization-radio-option'
+            ),
+            html.Hr()
+        ]), 
+        html.Div(
+            id={'type': 'analysis-div','id':'proteomics-analysis-area'},
+        )
+    ]
 
-def proteomics_area() -> html.Div:
-    return html.Div(id={'type': 'analysis-div','id':'proteomics-analysis-area'}),
-def interactomics_area() -> html.Div:
+def discard_samples_checklist(count_plot, list_of_samples) -> html.Div:
+    return [
+        count_plot,
+        html.Div(
+            checklist(
+                label = 'Select samples to discard',
+                id_only=True,
+                options = list_of_samples,
+                default_choice = [],
+                id_prefix = 'checklist'
+            )
+        )
+    ]
+def interactomics_area(parameters) -> html.Div:
     return html.Div(id={'type': 'analysis-div','id':'phosphoproteomics-analysis-area'}),
-def phosphoproteomics_area() -> html.Div:
+def phosphoproteomics_area(parameters) -> html.Div:
     return html.Div(id={'type': 'analysis-div','id':'interactomics-analysis-area'}),
 
 def qc_area() -> html.Div:
@@ -235,8 +312,22 @@ def qc_area() -> html.Div:
         ),
     ])
 
+def navbar(navbar_pages) -> dbc.NavbarSimple:
+    navbar_items: list = [
+        dbc.NavItem(dbc.NavLink(name, href=link)) for name, link in navbar_pages
+    ]
+    return dbc.NavbarSimple(
+        id='main-navbar',
+        children=navbar_items,
+        brand='Quick analysis',
+        color='primary',
+        dark=True
+    )
+
 def table_of_contents(main_div_children: list, itern = 0) -> list:
     ret: list = []
+    if main_div_children is None:
+        return ret
     if isinstance(main_div_children, dict):
         ret.extend(table_of_contents(main_div_children['props']['children'], itern+1))
     else:
@@ -245,53 +336,37 @@ def table_of_contents(main_div_children: list, itern = 0) -> list:
                 kids: list | str = element['props']['children']
             except KeyError:
                 continue
+            except TypeError:
+                continue
             ctype: str = element['type']
             if isinstance(kids, list):
-                ret.extend(table_of_contents(kids), itern + 1)
+                ret.extend(table_of_contents(kids, itern + 1))
             elif isinstance(kids, str):
                 if ctype.startswith('H'):
                     level = int(ctype[1])
                     if level > 6:
                         level = 6
                     html_component: Any = HEADER_DICT['component'][level]
-                    idstr: str = element['props']['id']
+                    list_component: Any = html.Li
+                    style: dict = SIDEBAR_LIST_STYLES[level]
+                    if level == 1:
+                        list_component = html.Div
+                        style['padding-left'] = '0%'
+                    try:
+                        idstr: str = element['props']['id']
+                    except KeyError:
+                        continue
                     ret.append(
-                        html.Li(
+                        list_component(
                             html_component(
                                 html.A(
                                     href=f'#{idstr}', 
                                     children=kids,
                                 ),
-                                style = SIDEBAR_LIST_STYLES[level]
+                                style = style
                             )
                         )
                     )
             elif isinstance(kids, dict):
                 ret.extend(table_of_contents(kids['props']['children'], itern+1))
     return ret
-
-def old_table_of_contents(contents) -> list:
-    headers: list = [html.H1('Contents:', style=SIDEBAR_LIST_STYLES[1]), html.Ul(children=[])]
-    for element in contents:
-        for child_element in element['props']['children']:
-            ctype: str = child_element['type']
-            if ctype.startswith('H'):
-                if len(ctype) == 2:
-                    level = int(ctype[1])
-                    child_id: str = child_element['props']['id']
-                    child_heading: str = child_element['props']['children']
-                    if level > 6:
-                        level = 6
-                    html_component: Any = HEADER_DICT['component'][level]
-                    headers[1].children.append(
-                        html.Li(
-                            html_component(
-                                html.A(
-                                    href=f'#{child_id}', 
-                                    children=child_heading,
-                                ),
-                                style = SIDEBAR_LIST_STYLES[level]
-                            )
-                        )
-                    )
-    return headers

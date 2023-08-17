@@ -2,6 +2,30 @@
     "file loading": {
         "Maximum psm ever theoretically encountered": 5000
     },
+    "workflow parameters": {
+        "proteomics": {    
+            "na_filter_default_value": 60,
+            "imputation methods": {
+                "QRILC": "QRILC",
+                "minProb": "minProb",
+                "gaussian": "gaussian",
+                "minValue": "minValue"
+            },
+            "default imputation method": "QRILC",
+            "normalization methods": {
+                "Median": "Median",
+                "Quantile": "Quantile",
+                "No normalization": "gausnullsian"
+            },
+            "default normalization method": "Median"        
+        },
+        "interactomics": {
+
+        },
+        "phosphoproteomics": {
+            
+        }
+    },
     "Figure defaults": {
         "full-height": {
             "config": {

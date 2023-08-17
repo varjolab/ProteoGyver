@@ -2,6 +2,7 @@
 
 import pandas as pd
 import numpy as np
+from pyrsistent import discard
 
 def check_bait(bait_entry: str) -> str:
     """Checks if a string contains a valid bait name.
@@ -99,6 +100,32 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
 
 def delete_samples(discard_samples, data_dictionary) -> dict:
     print(f'Implement sample deletion. Selected samples: {", ".join(discard_samples)}')
+    for table_name, table_json in data_dictionary['data tables'].items():
+        if table_name == 'table to use':
+            continue
+        table_without_discarded_samples: pd.DataFrame = pd.read_json(table_json,orient='split')
+        if table_name == 'experimental design':
+            table_without_discarded_samples = table_without_discarded_samples[
+                ~table_without_discarded_samples['Sample name'].isin(discard_samples)
+            ]
+        else:
+            table_without_discarded_samples = table_without_discarded_samples[
+                [c for c in table_without_discarded_samples.columns if c not in discard_samples]
+            ]
+        data_dictionary['data tables'][table_name] = table_without_discarded_samples.to_json(
+            orient='split'
+        )
+    sg_dict: dict = {'norm': {}, 'rev': {}}
+    for sample_group_name, sample_group_samples in data_dictionary['sample groups']['norm'].items():
+        sg_dict['norm'][sample_group_name] = [
+            s_name for s_name in sample_group_samples if s_name not in discard_samples
+        ]
+    for group, samples in sg_dict['norm'].items():
+        for sample in samples:
+            sg_dict['rev'][sample] = group
+    data_dictionary['sample groups'] = sg_dict
+    data_dictionary['user-discarded samples'] = discard_samples
+
     return data_dictionary
 
 def rename_columns_and_update_expdesign(

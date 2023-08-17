@@ -4,7 +4,7 @@ import json
 from uuid import uuid4
 from datetime import datetime
 from dash_bootstrap_components.themes import FLATLY
-from dash import html, callback, Dash
+from dash import html, callback, Dash, no_update
 from dash.dependencies import Input, Output, State
 from components import ui_components as ui
 from components.infra import data_stores, notifiers
@@ -111,6 +111,42 @@ def check_inputs(*args) -> bool:
     return data_validation.validate_basic_inputs(*args)
 
 @callback(
+    Output('discard-sample-checklist-container','children'),
+    Input('discard-samples-button', 'n_clicks'), State({'type': 'qc-plot','id':'count-plot-div'},'children'),
+    State('upload-data-store','data'),
+    prevent_initial_call=True
+)
+def open_discard_samples_modal(_, count_plot: list, data_dictionary: dict) -> tuple[bool, list]:
+    return ui.discard_samples_checklist(
+            count_plot,
+            sorted(list(data_dictionary['sample groups']['rev'].keys()))
+    )
+
+
+@app.callback(
+    Output('discard-samples-modal','is_open'),
+    Input('discard-samples-button', 'n_clicks'),
+    Input('done-discarding-button','n_clicks'),
+    State('discard-samples-modal','is_open'),
+    prevent_initial_call=True
+)
+def toggle_discard_modal(n1, n2, is_open) -> bool:
+    if (n1>0) or (n2>0):
+        return not is_open
+    return is_open
+
+@callback(
+    Output('discard-samples','data'),
+    Input('done-discarding-button','n_clicks'),
+    State('checklist-select-samples-to-discard','value'),
+    prevent_initial_call=True
+)
+def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
+    if n_clicks < 1:
+        return no_update
+    return chosen_samples
+
+@callback(
     Output({'type': 'qc-plot','id':'count-plot-div'},'children'), Output('count-data-store','data'),
     Input('qc-area','children'),
     State('upload-data-store','data'), State('replicate-colors','data'),
@@ -207,26 +243,48 @@ def qc_done(_) -> str:
     return ''
 
 @callback(
+    Output('proteomics-analysis-area','children'),
+    Input('qc-done-notifier','children')
+)
+def start_proteomics(_) -> list:
+    return [
+
+    ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@callback(
     Output('toc-div','children'),
     Input('qc-done-notifier', 'children'),
+    Input('workflow-done-notifier','children'),
     State('main-content-div', 'children'),
+    prevent_initial_call=True
 )
-def table_of_contents(_, main_div_contents: list) -> html.Div:
+def table_of_contents(_,__, main_div_contents: list) -> html.Div:
     """updates table of contents to reflect the main div"""
     return ui.table_of_contents(main_div_contents)
 
 @callback(
+    Output('workflow-specific-input-div','children'),
     Output('workflow-specific-div','children'),
     Input('qc-done-notifier', 'children'),
     State('workflow-dropdown', 'value'),
 )
 def workflow_area(_, workflow: str) -> html.Div:
-    return ui.workflow_area(workflow)
-
-
-
-
-
+    return ui.workflow_area(workflow, parameters['workflow parameters'])
 
 @callback(
     Output('download-sample_table-template', 'data'),
@@ -254,45 +312,12 @@ def download_data_table_example(_) -> dict:
 def download_all_data(_, ) -> dict:
     # DB dependent function
     pass
-@callback(
-    Output('contents-div', 'children', allow_duplicate=True), #Added in dash version 2.9
-    Input('call1-button','n_clicks'),
-    State('contents-div','children'),
-    prevent_initial_call=True
-)
-def call1(_, contents) -> html.Div:
-    ret_text = "Nulla ut erat quis enim dignissim egestas. Quisque id porttitor leo. Aliquam vitae euismod massa, vel posuere mi. Curabitur vulputate pretium metus sed placerat. Nulla facilisi. Pellentesque sit amet sapien at leo cursus ullamcorper. Etiam quis sodales felis, hendrerit lobortis neque."
-    new_contents: list = []
-    idstr = 'call1-div'
-    # The loop under makes sure that whatever the div contains, we will not duplicate what this call will add. 
-    for element in contents:
-        needed = True
-        try:
-            if element['props']['id']==idstr:
-                needed = False
-        except KeyError:
-            pass
-        if needed:
-            new_contents.append(element)
-    new_contents.append(
-        html.Div(id=idstr, children=[
-            html.H2(id='h12',children=ret_text[:12]),
-            html.H3(id='h13',children=ret_text[24:36]),
-            html.H2(id='h13',children=ret_text[36:48]),
-            html.H3(id='h13',children=ret_text[48:55]),
-            html.H4(id='h13',children=ret_text[48:55]),
-            html.H3(id='h13',children=ret_text[48:55]),
-            html.H2(id='h13',children=ret_text[55:65]),
-            html.H3(id='h13',children=ret_text[55:65]),
-            html.P(id='p1',children=ret_text)
-        ])
-    )
-    return new_contents
 
 app.layout = html.Div([
     ui.main_sidebar(
         parameters['Possible values']['Figure templates'],
         parameters['Possible values']['Implemented workflows']),
+    ui.modals(),
     ui.main_content_div(),
     data_stores(),
     notifiers()
