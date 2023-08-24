@@ -514,7 +514,7 @@ def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteo
 def make_proteomics_data_processing_figures(filter_threshold, imputation_method, normalization_method, data_dictionary, session_uid) -> list:
     if data_dictionary is not None:
         if 'data tables' in data_dictionary:
-            if data_dictionary['info']['values'] == 'SPC':
+            if data_dictionary['info']['values'] == 'spc':
                 return ['No intensity data in input, cannot generate figures.', data_dictionary]
             # define the data:
             data_table: pd.DataFrame = pd.read_json(
@@ -779,7 +779,7 @@ def generate_proteomics_tab() -> dbc.Tab:
                             dbc.Label('NA Filtering:', id='filtering-label'),
                             tooltips.na_tooltip()
                         ]),
-                        dcc.Slider(0, 100, 10, value=70,
+                        dcc.Slider(0, 100, 10, value=60,
                                    id='filter-minimum-percentage'),
                         dbc.Select(
                             options=[
@@ -881,6 +881,8 @@ def generate_saint_container(button_clicks, inbuilt_controls, crapome_controls, 
         return dash.no_update, dash.no_update, dash.no_update
     spc_table: pd.DataFrame = pd.read_json(
         data_dictionary['data tables']['spc'], orient='split')
+    with open(os.path.join('data','Server_output','datadic_saint.json'),'w') as fil:
+        json.dump(data_dictionary, fil)
     if spc_table.columns[0] == 'No data':
         return html.Div(['No spectral count data in input, cannot run SAINT.'])
     inbuilt_control_table: pd.DataFrame = db.controls(inbuilt_controls)

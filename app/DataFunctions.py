@@ -220,13 +220,22 @@ class DataFunctions:
         
     def filter_missing(self, data_table: pd.DataFrame, sample_groups: dict, threshold: int = 60) -> pd.DataFrame:
         """Discards rows with more than threshold percent of missing values in all sample groups"""
-        threshold: int = threshold/100
+        threshold: float = float(threshold)/100
         keeps: list = []
+        printed: int = 0
         for _, row in data_table.iterrows():
             keep: bool = False
             for _, sample_columns in sample_groups.items():
                 keep = keep | (row[sample_columns].notna().sum()
-                            >= (threshold*len(sample_columns)))
+                            >= int(threshold*len(sample_columns)))
+                if printed < 15:
+                    print(row)
+                    print('----')
+                    print(row[sample_columns].notna().sum())
+                    print(int(threshold*len(sample_columns)))
+                    print((row[sample_columns].notna().sum()
+                            >= int(threshold*len(sample_columns))))
+                    print('==========')
                 if keep:
                     break
             keeps.append(keep)
@@ -903,7 +912,7 @@ class DataFunctions:
         }
         if len(intensity_table.columns) < 2:
             return_dict['data tables']['main table'] = return_dict['data tables']['spc']
-            return_dict['info']['values'] = 'SPC'
+            return_dict['info']['values'] = 'spc'
             return_dict['other']['all proteins'] =  list(spc_table.index)
         else:
             return_dict['data tables']['main table'] = return_dict['data tables']['intensity']
