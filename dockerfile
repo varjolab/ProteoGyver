@@ -13,6 +13,7 @@ ENV R_BASE_VERSION 3.6.1
 USER root
 WORKDIR /
 RUN mkdir /proteogyver
+# Create mounts for the data
 RUN mkdir /proteogyver/data
 RUN mkdir /proteogyver/data/Server_output
 RUN mkdir /proteogyver/data/MS_rundata
