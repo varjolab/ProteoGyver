@@ -13,6 +13,9 @@ ENV R_BASE_VERSION 3.6.1
 USER root
 WORKDIR /
 RUN mkdir /proteogyver
+RUN mkdir /proteogyver/data
+RUN mkdir /proteogyver/data/Server_output
+RUN mkdir /proteogyver/data/MS_rundata
 COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver

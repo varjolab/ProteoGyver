@@ -523,9 +523,9 @@ class DataFunctions:
                     uniq_spc_cols.append(column)
                 else:
                     spc_cols.append(column)
-        if len(uniq_intensity_cols) > 0:
+        if False:#len(uniq_intensity_cols) > 0:
             intensity_cols = uniq_intensity_cols
-        if len(uniq_spc_cols) > 0:
+        if False:#len(uniq_spc_cols) > 0:
             spc_cols = uniq_spc_cols
         if has_maxlfq:
             intensity_cols = [i for i in intensity_cols if 'maxlfq' in i.lower()]
