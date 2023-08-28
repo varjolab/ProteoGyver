@@ -305,11 +305,11 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                 rep_colors[sname] = sample_color_row['Color']
             data_dictionary['Replicate colors'] = rep_colors
             data_table.to_csv(os.path.join('debug','data_table.tsv'))
-            figures.append(figure_generation.protein_count_figure(count_data))
+            figures.append(figure_generation.protein_count_figure(session_uid, count_data))
             figure_names_and_legends.append(['Protein count in samples',''])
-            figures.append(figure_generation.contaminant_figure(data_table, db.contaminant_list))
+            figures.append(figure_generation.contaminant_figure(session_uid, data_table, db.contaminant_list))
             figure_names_and_legends.append(['Contaminants in samples',''])
-            figures.append(figure_generation.protein_coverage(data_table))
+            figures.append(figure_generation.protein_coverage(session_uid, data_table))
             figure_names_and_legends.append(['Protein coverage',''])
 
             figures.append(figure_generation.reproducibility_figure(
@@ -321,7 +321,7 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
             na_data: pd.DataFrame = data_functions.get_na_data(data_table)
             na_data['Color'] = [rep_colors[sample_name]
                                 for sample_name in na_data.index.values]
-            figures.append(figure_generation.missing_figure(na_data))
+            figures.append(figure_generation.missing_figure(session_uid, na_data))
             figure_names_and_legends.append(['Missing values in samples',''])
             # figures.append(figure_generation.missing_clustermap(data_table))
             # figure_names_and_legends.append(['Missing value clustermap',''])
@@ -329,14 +329,14 @@ def quality_control_charts(_, data_dictionary,session_uid) -> list:
                 data_table)
             sumdata['Color'] = [rep_colors[sample_name]
                                 for sample_name in sumdata.index.values]
-            figures.append(figure_generation.sum_value_figure(sumdata, valname = data_dictionary['info']['values'].capitalize()))
+            figures.append(figure_generation.sum_value_figure(session_uid, sumdata, valname = data_dictionary['info']['values'].capitalize()))
             figure_names_and_legends.append(['Sum of values in samples',''])
 
             avgdata: pd.DataFrame = data_functions.get_avg_data(
                 data_table)
             avgdata['Color'] = [rep_colors[sample_name]
                                 for sample_name in avgdata.index.values]
-            figures.append(figure_generation.avg_value_figure(avgdata, valname = data_dictionary['info']['values'].capitalize()))
+            figures.append(figure_generation.avg_value_figure(session_uid, avgdata, valname = data_dictionary['info']['values'].capitalize()))
             figure_names_and_legends.append(['Sample averages',''])
             dist_title: str = 'Value distribution'
             if data_dictionary['info']['values'] == 'intensity':
@@ -425,7 +425,7 @@ def download_data_table_example(_) -> dict:
 )
 def download_all_data(_, data_dictionary,session_uid, interactomics_sigs, proteomics_sigs, hci_intensities) -> dict:
     export_dir: str = os.path.join(db.get_cache_dir(session_uid),'export from proteogyver')
-    figure_generation.save_figures(os.path.join(db.get_cache_dir(session_uid),'Figures'), None)
+    figure_generation.save_figures(session_uid, os.path.join(db.get_cache_dir(session_uid),'Figures'), None)
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
@@ -611,6 +611,7 @@ def proteomics_normalization_figure(_, data_dictionary,) -> list:
     pre_norm: pd.DataFrame = pd.read_json(pre_norm, orient='split')
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
     return [figure_generation.comparative_violin_plot(
+        session_uid, 
         [pre_norm, data_table],
         names=['Before normalization', 'After normalization'],
         id_name='normalization-plot', title='Normalization'
@@ -627,7 +628,7 @@ def proteomics_imputation_figure(_, data_dictionary) -> list:
     data_table = data_dictionary['final data table']
     pre_imp: pd.DataFrame = pd.read_json(pre_imp, orient='split')
     data_table: pd.DataFrame = pd.read_json(data_table, orient='split')
-    return [figure_generation.imputation_histogram(pre_imp, data_table)[1]]
+    return [figure_generation.imputation_histogram(session_uid, pre_imp, data_table)[1]]
 
 
 @callback(
@@ -966,7 +967,7 @@ def generate_saint_container(button_clicks, inbuilt_controls, crapome_controls, 
     container_contents.append(
         html.Div([
             figure_generation.histogram(
-                saint_output, x_column='BFDR', title='Saint BFDR distribution',height = 400, nbins = 100)[1],
+                session_uid, saint_output, x_column='BFDR', title='Saint BFDR distribution',height = 400, nbins = 100)[1],
             dcc.Graph(id='interactomics-saint-graph'),
             dbc.Label('Saint BFDR threshold:'),
             dcc.Slider(0, 0.1, 0.01, value=0.05,
@@ -1067,6 +1068,7 @@ def post_saint_analysis(n_clicks,saint_bfdr,crapome_freq,crapome_rescue, saint_d
                 continue
     figure: dcc.Graph = figure_generation.bar_graph(
         'known-bar-graph',
+        session_uid,
         pd.DataFrame(data=pdf_data,columns=['Bait','Known or not','Preys']),
         title = 'Known interactors in preys',
         color_col = 'Known or not',
@@ -1294,6 +1296,7 @@ def filter_saint_table_and_update_graph(bfdr_threshold, crapome_freq, crapome_fc
     ).reset_index()
     figure: go.Figure
     figure = figure_generation.bar_plot(
+        session_uid,
         bar_plot_df,
         'Protein counts after filtering',
         y_name='Prey count',
