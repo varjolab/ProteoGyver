@@ -155,7 +155,7 @@ def read_matrix(
             intensity_table = table
     return (intensity_table, spc_table, protein_lengths)
 
-def read_df_from_content(content, filename) -> pd.DataFrame:
+def read_df_from_content(content, filename, lowercase_columns = False) -> pd.DataFrame:
     """Reads a dataframe from uploaded content.
     
     Filenames ending with ".csv" are read as comma separated, filenames ending with ".tsv", ".tab"
@@ -176,6 +176,8 @@ def read_df_from_content(content, filename) -> pd.DataFrame:
             decoded_content.decode('utf-8')), sep='\t', index_col=False)
     elif f_end in ['xlsx', 'xls']:
         data: pd.DataFrame = pd.read_excel(io.StringIO(decoded_content))
+    if lowercase_columns:
+        data.columns = [c.lower() for c in data.columns]
     return data
 
 def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
@@ -214,6 +216,27 @@ def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
     }
     return table_dict, info_dict
 
+def guess_control_samples(sample_names: list) -> list:
+    possible_control_samples: list = []
+    for group_name in sample_names:
+        if 'gfp' in group_name.lower():
+            possible_control_samples.append(group_name)
+    return possible_control_samples
+
+def parse_comparisons(control_group, comparison_file, comparison_file_name, sgroups) -> list:
+    comparisons: list = []
+    if control_group is None:
+        dataframe: pd.DataFrame = read_df_from_content(comparison_file, comparison_file_name, lowercase_columns = True)
+        scol:str = 'sample'
+        ccol:str = 'control'
+        if ('sample' not in dataframe.columns) or ('control' not in dataframe.columns):
+            scol, ccol = dataframe.columns[:2]
+        for _, row in dataframe.iterrows():
+            comparisons.append([row[scol], row[ccol]])
+    else:
+        comparisons = [(sample, control_group) for sample in sgroups.keys()if sample != control_group]
+    return comparisons
+
 def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
     """Removes duplicate protein groups from a given data table by summing the values
     of numerical columns and using the first value of non-numerical columns."""
@@ -225,6 +248,7 @@ def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
         else:
             aggfuncs[column] = 'first'
     return data_table.groupby(data_table.index).agg(aggfuncs).replace(0,np.nan)
+
 def parse_data_file(
         data_file_contents,
         data_file_name,

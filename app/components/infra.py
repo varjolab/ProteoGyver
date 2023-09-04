@@ -2,25 +2,41 @@
 
 from dash import dcc, html
 
+DATA_STORE_IDS: list = [
+    'uploaded-data-table-info',
+    'uploaded-data-table',
+    'uploaded-sample-table-info',
+    'uploaded-sample-table',
+    'upload-data-store',
+    'replicate-colors',
+    'replicate-colors-with-contaminants',
+    'discard-samples',
+    'count-data-store',
+    'coverage-data-store',
+    'reproducibility-data-store',
+    'missing-data-store',
+    'sum-data-store',
+    'mean-data-store',
+    'distribution-data-store',
+    'commonality-data-store',
+    'proteomics-na-filtered-data',
+    'proteomics-normalization-data-store',
+    'proteomics-imputation-data-store',
+    'proteomics-distribution-data-store',
+    'proteomics-pca-data-store',
+    'proteomics-clustermap-data-store',
+    'proteomics-volcano-data-store',
+]
+
+
 def data_stores() -> html.Div:
     """Returns all the needed data store components"""
-    return html.Div([
-        dcc.Store(id='uploaded-data-table-info'),
-        dcc.Store(id='uploaded-data-table'),
-        dcc.Store(id='uploaded-sample-table-info'),
-        dcc.Store(id='uploaded-sample-table'),
-        dcc.Store(id='upload-data-store'),
-        dcc.Store(id='replicate-colors'),
-        dcc.Store(id='discard-samples'),
-        dcc.Store(id='count-data-store'),
-        dcc.Store(id='coverage-data-store'),
-        dcc.Store(id='reproducibility-data-store'),
-        dcc.Store(id='missing-data-store'),
-        dcc.Store(id='sum-data-store'),
-        dcc.Store(id='mean-data-store'),
-        dcc.Store(id='distribution-data-store'),
-        dcc.Store(id='commonality-data-store'),
-    ])
+    return html.Div(
+        id='dcc-stores',
+        children=[
+            dcc.Store(id=ID_STR) for ID_STR in DATA_STORE_IDS
+        ]
+    )
 
 def notifiers() -> html.Div:
     """Returns divs used for various callbacks only."""

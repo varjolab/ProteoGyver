@@ -3,9 +3,12 @@
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html
+from regex import P
 from element_styles import SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES,UPLOAD_INDICATOR_STYLE
 from typing import Any
 from components import tooltips, text_handling
+from numpy import log2
+from components.parsing import guess_control_samples
 
 HEADER_DICT: dict = {
     'component': {
@@ -57,31 +60,33 @@ def checklist(
     ]
     return prefix_list + retlist + postfix_list
 
-def upload_area(id_text, upload_id) -> html.Div:
-    return html.Div(
-        [
-            html.Div(
-                children = [
-                    dcc.Upload(
-                        id=id_text,
-                        children=html.Div([
-                            'Drag and drop or ',
-                            html.A('select',style=UPLOAD_A_STYLE),
-                            f' {upload_id}'
-                        ]
-                        ),
-                        style=UPLOAD_STYLE,
-                        multiple=False
-                    )
-                ],
-                style={'display': 'inline-block','width':'75%','float':'left','height':'65px'},
-            ),
+def upload_area(id_text, upload_id, indicator = True) -> html.Div:
+    ret: list = [
+        html.Div(
+            children = [
+                dcc.Upload(
+                    id=id_text,
+                    children=html.Div([
+                        'Drag and drop or ',
+                        html.A('select',style=UPLOAD_A_STYLE),
+                        f' {upload_id}'
+                    ]
+                    ),
+                    style=UPLOAD_STYLE,
+                    multiple=False
+                )
+            ],
+            style={'display': 'inline-block','width':'75%','float':'left','height':'65px'},
+        ),
+    ]
+    if indicator:
+        ret.append(
             html.Div(
                 id=f'{id_text}-success',
                 style=UPLOAD_INDICATOR_STYLE
-            ) ##fixthis
-        ]
-    )
+            )
+        )
+    return html.Div(ret)
 
 def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Div:
     return html.Div(
@@ -190,60 +195,139 @@ def main_content_div() -> html.Div:
         style=CONTENT_STYLE
     )
 
-def workflow_area(workflow: str, workflow_specific_parameters: dict) -> html.Div:
+
+
+def workflow_area(workflow: str, workflow_specific_parameters: dict, data_dictionary: dict) -> html.Div:
     ret: html.Div
     if workflow == 'Proteomics':
-        ret = proteomics_area(workflow_specific_parameters['proteomics'])
+        ret = proteomics_area(workflow_specific_parameters['proteomics'], data_dictionary)
     elif workflow == 'Interactomics':
-        ret = interactomics_area(workflow_specific_parameters['interactomics'])
+        ret = interactomics_area(workflow_specific_parameters['interactomics'], data_dictionary)
     elif workflow == 'Phosphoproteomics':
-        ret = phosphoproteomics_area(workflow_specific_parameters['phosphoproteomics'])
+        ret = phosphoproteomics_area(workflow_specific_parameters['phosphoproteomics'], data_dictionary)
     return ret
 
-def proteomics_area(parameters) -> html.Div:
+def proteomics_input_card(parameters: dict, data_dictionary:dict) -> dbc.Card:
+    return dbc.Card(
+        dbc.CardBody([
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                            dbc.Label('NA Filtering:', id='filtering-label'),
+                            tooltips.na_tooltip()
+                        ]),
+                    dcc.Slider(0, 100, 10, value=parameters['na_filter_default_value'],
+                                id='proteomics-filter-minimum-percentage'),
+                ], width=5),
+                dbc.Col([
+                    dbc.Label('Imputation:'),
+                    dbc.RadioItems(
+                        options=[
+                            {'label': i_opt, 'value': i_opt_val}
+                                for i_opt, i_opt_val in parameters['imputation methods'].items()
+                        ],
+                        value=parameters['default imputation method'],
+                        id='proteomics-imputation-radio-option'
+                    ),
+                ], width=2),
+                dbc.Col([
+                    dbc.Label('Normalization:'),
+                    dbc.RadioItems(
+                        options=[
+                            {'label': n_opt, 'value': n_opt_val}
+                                for n_opt, n_opt_val in parameters['normalization methods'].items()
+                        ],
+                        value=parameters['default normalization method'],
+                        id='proteomics-normalization-radio-option'
+                    ),
+                ], width=2),
+            ]),
+            dbc.Row([
+                        dbc.Label('Select control group:'),]),
+            dbc.Row([
+                dbc.Col([
+                        dbc.Select(
+                            options=[
+                                {'label': sample_group, 'value': sample_group} for sample_group in \
+                                    data_dictionary['sample groups']['norm'].keys()
+                            ],
+                            required=True,
+                            id='proteomics-control-dropdown',
+                            ),
+                ], width=5),
+                dbc.Col([
+                    html.Div(
+                            dbc.Label('Or'),
+                            style= {'text-align': 'bottom',}# 'padding': '50% 0px 0px 0px'} # top right bottom left
+                        )
+                ], width=2),
+                dbc.Col(
+                    upload_area('proteomics-comparison-table-upload', 'Comparison file', indicator=False),
+                    width=5, 
+                )
+            ], style={"display": "flex", "align-items": "bottom"},),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Label('log2 fold change threshold for comparisons:'),
+                    dcc.RadioItems([
+                        {'label': f'{log2(x):.2f} ({x}-fold change)', 'value': log2(x)}
+                                for x in (1.5, 2, 3, 4, 5)
+                        ], 1, id='proteomics-fc-value-threshold'),
+                ], width=6),
+                dbc.Col([
+                    dbc.Label('Adjusted p-value threshold for comparisons:'),
+                    dcc.RadioItems([0.001, 0.01,0.05], 0.01, id='proteomics-p-value-threshold'),
+                ], width=6)
+            ])
+        ])
+    )
+
+def proteomics_area(parameters: dict, data_dictionary:dict) -> html.Div:
+    
     return [
         html.Div(
             id={'type': 'input-div','id':'proteomics-analysis-area'},
             children=[
                 html.H1('Proteomics specific input options'),
-                html.Div([
-                    html.Div([
-                        dbc.Label('NA Filtering:', id='filtering-label'),
-                        tooltips.na_tooltip()
-                    ]),
-                    dcc.Slider(0, 100, 10, value=parameters['na_filter_default_value'],
-                                id='proteomics-filter-minimum-percentage'),
-                    dbc.Select(
-                        options=[
-                            {'label': 'wait', 'value': 'wait'}
-                        ],
-                        required=True,
-                        id='proteomics-control-dropdown',
-                    ),
-                ]
-            ),
-            dbc.Label('Imputation:'),
-            dbc.RadioItems(
-                options=[
-                    {'label': i_opt, 'value': i_opt_val}
-                        for i_opt, i_opt_val in parameters['imputation methods'].items()
-                ],
-                value=parameters['default imputation method'],
-                id='proteomics-imputation-radio-option'
-            ),
-            dbc.Label('Normalization:'),
-            dbc.RadioItems(
-                options=[
-                    {'label': n_opt, 'value': n_opt_val}
-                        for n_opt, n_opt_val in parameters['normalization methods'].items()
-                ],
-                value=parameters['default normalization method'],
-                id='proteomics-normalization-radio-option'
-            ),
-            html.Hr()
-        ]), 
+                proteomics_input_card(parameters, data_dictionary),
+                html.Hr()
+            ]
+        ), 
         html.Div(
-            id={'type': 'analysis-div','id':'proteomics-analysis-area'},
+            id={'type': 'analysis-div','id':'proteomics-analysis-results-area'},
+            children = [
+                html.H1(id='proteomics-result-header',children='Proteomics'),
+                dcc.Loading(
+                    id='proteomics-loading-filtering',
+                    children=html.Div(id={'type': 'workflow-plot', 'id': 'proteomics-filtering-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-loading-normalization',
+                    children=html.Div(id={'type': 'workflow-plot', 'id': 'proteomics-normalization-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-loading-imputation',
+                    children=html.Div(id={'type': 'workflow-plot', 'id': 'proteomics-imputation-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-loading-pca',
+                    children=html.Div(id={'type': 'workflow-plot', 'id': 'proteomics-pca-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-loading-clustermap',
+                    children=html.Div(id={'type': 'workflow-plot', 'id': 'proteomics-clustermap-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-loading-volcano',
+                    children=html.Div(id={'type': 'workflow-plot', 'id': 'proteomics-volcano-plot-div'}),
+                    type='default'
+                ),
+            ]
         )
     ]
 
@@ -260,10 +344,152 @@ def discard_samples_checklist(count_plot, list_of_samples) -> html.Div:
             )
         )
     ]
-def interactomics_area(parameters) -> html.Div:
+
+def interactomics_control_col(all_sample_groups, chosen) -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all uploaded',
+                ['Select all uploaded'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose uploaded controls:',
+                all_sample_groups,
+                chosen,
+                id_prefix='interactomics',
+            )
+        ),
+        html.Br(),
+        html.Div(
+            checklist(
+                'Additional steps:',
+                ['Remove contaminants'],
+                ['Remove contaminants'],
+                id_prefix='interactomics',
+            )
+        )
+    ])
+
+def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all inbuilt controls',
+                ['Select all inbuilt controls'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose additional control sets:',
+                controls_dict['available'],
+                controls_dict['default'],
+                disabled=controls_dict['disabled'],
+                id_prefix='interactomics',
+            )
+        )
+    ])
+
+def interactomics_crapome_col(crapome_dict) -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all crapomes',
+                ['Select all crapomes'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose Crapome sets:',
+                crapome_dict['available'],
+                crapome_dict['default'],
+                disabled=crapome_dict['disabled'],
+                id_prefix='interactomics',
+            )
+        )
+    ])
+
+def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
+    return dbc.Col([
+        html.Div(
+            checklist(
+                'select all enrichments',
+                ['Select all enrichments'],
+                [],
+                id_only = True,
+                id_prefix = 'interactomics',
+            )
+        ),
+        html.Div(
+            checklist(
+                'Choose enrichments:',
+                enrichment_dict['available'],
+                enrichment_dict['default'],
+                disabled=enrichment_dict['disabled'],
+                id_prefix='interactomics',
+            )
+        )
+    ])
+
+
+def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Div:
+    all_sample_groups: list = []
+    sample_groups: dict = data_dictionary['samle groups']['norm']
+    chosen: list = guess_control_samples(list(sample_groups.keys()))
+    for k in sample_groups.keys():
+        if k not in chosen:
+            all_sample_groups.append(k)
+    all_sample_groups = sorted(chosen) + sorted(all_sample_groups)
+    return html.Div(
+        children=[
+            dbc.Row(
+                [
+                    interactomics_control_col(all_sample_groups, chosen),
+                    interactomics_inbuilt_control_col(parameters['controls']),
+                    interactomics_crapome_col(parameters['crapome']),
+                    interactomics_enrichment_col(parameters['enrichment'])
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Button('Run SAINT analysis',
+                                id='button-run-saint-analysis'),
+                ]
+            )
+        ]
+    )
+
+def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
+    return [
+        html.Div(
+            id={'type': 'input-div','id':'interactomics-analysis-area'},
+            children=[
+                html.H1('Interactomics specific input options'),
+                interactomics_input_card(parameters, data_dictionary),
+                html.Hr()
+            ]
+        ), 
+        html.Div(
+            id={'type': 'analysis-div','id':'interactomics-analysis-results-area'},
+            children = [
+                html.H1(id='interactomics-result-header',children='Interactomics'),
+                dcc.Loading(id='interactomics-saint-container',),
+                dcc.Loading(id='interactomics-post-saint-analysis-graphs'),
+            ]
+        )
+    ]
+def phosphoproteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
     return html.Div(id={'type': 'analysis-div','id':'phosphoproteomics-analysis-area'}),
-def phosphoproteomics_area(parameters) -> html.Div:
-    return html.Div(id={'type': 'analysis-div','id':'interactomics-analysis-area'}),
 
 def qc_area() -> html.Div:
     return html.Div(

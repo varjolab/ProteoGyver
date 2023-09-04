@@ -1,12 +1,19 @@
-from pandas import DataFrame
-from regex import F
+from pandas import DataFrame, concat
 
-def get_count_data(data_table: DataFrame) -> DataFrame:
+def get_count_data(data_table: DataFrame, contaminant_list: list = None) -> DataFrame:
     """Returns non-na count per column."""
-    data: DataFrame = data_table.\
+    data: DataFrame
+    data = data_table.\
         notna().sum().\
         to_frame(name='Protein count')
     data.index.name = 'Sample name'
+    if contaminant_list is not None:
+        contaminants = data_table[data_table.index.isin(contaminant_list)].notna().sum()
+        data['Protein count'] = data['Protein count'] - contaminants
+        data['Is contaminant'] = False
+        cont_data: DataFrame = contaminants.to_frame(name='Protein count')
+        cont_data['Is contaminant'] = True
+        data = concat([data, cont_data]).reset_index().rename(columns={'index': 'Sample name'})
     return data
 def get_coverage_data(data_table: DataFrame) -> DataFrame:
     """Returns coverage dataframe."""

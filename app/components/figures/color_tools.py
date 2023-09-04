@@ -13,10 +13,24 @@ def get_assigned_colors(sample_group_dict: dict) -> dict:
     for i, entry in enumerate(entry_list):
          group_colors[entry] = f'rgb({",".join(str(int(255*x)) for x in colors[i][:3])})'
     ret: dict = {'samples': {}, 'sample groups': group_colors}
+    ret_cont: dict = {}
+    for c in 'contaminant','non-contaminant':
+        ret_cont[c] = {'samples': {}, 'sample groups': group_colors}
     for i, (sample_group, sample_list) in enumerate(sample_group_dict.items()):
         for sample_name in sample_list:
             ret['samples'][sample_name] = group_colors[sample_group]
-    return ret
+            ret_cont['non-contaminant']['samples'][sample_name] = pale(group_colors[sample_group],20)
+            ret_cont['contaminant']['samples'][sample_name] = group_colors[sample_group]
+    return (ret, ret_cont)
+
+def pale(color, percent):
+    tp: str
+    col_ints:list
+    tp, col_ints = color.split('(')
+    col_ints = [int(x) for x in col_ints.split(')')[0].split(',')]
+    col_ints = [str(int(c*((100-percent)/100))) for c in col_ints]
+    return f'{tp}({",".join(col_ints)})'
+
 def get_cut_colors(colormapname: str = 'gist_ncar', number_of_colors: int = 15,
                 cut: float = 0.4) -> list:
     """Returns cut colors from the given colormapname
