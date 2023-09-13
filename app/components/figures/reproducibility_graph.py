@@ -1,33 +1,67 @@
-from pandas import DataFrame
+import pandas as pd
 from dash.dcc import Graph
 from plotly import express as px
+from plotly import graph_objects as go
+from plotly.subplots import make_subplots
 
-def get_reproducibility_dataframe(data_table: DataFrame, sample_groups: dict) -> Graph:
-    figure_datapoints:list = []
+def get_reproducibility_dataframe(data_table:pd.DataFrame, sample_groups: dict) -> pd.DataFrame:
+    repro_data: dict = {}
     for sample_group, sample_columns in sample_groups.items():
-        for i, column in enumerate(sample_columns):
-            if i == (len(sample_columns)-1):
-                break
-            for column2 in sample_columns[i+1:]:
-                figure_datapoints.extend([[r[column], r[column2], sample_group] for _,r in data_table.iterrows()])
-    plot_dataframe: DataFrame = DataFrame(data=figure_datapoints, columns = ['Sample A','Sample B', 'Sample group'])
-    plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
-    return plot_dataframe
+        sgroup_data_table: pd.DataFrame = data_table[sample_columns]
+        mean: pd.Series = sgroup_data_table.mean(axis=1)
+        for col in sgroup_data_table.columns:
+            if sample_group not in repro_data:
+                repro_data[sample_group] = {}
+            coldata: pd.Series = sgroup_data_table[col].dropna()
+            coldata = coldata-mean.loc[coldata.index]
+            repro_data[sample_group][col] = list(coldata.values)
+    return repro_data
 
-def make_graph(graph_id: str, defaults:dict, plot_dataframe: DataFrame, title: str) -> Graph:
-    plot_dataframe = plot_dataframe.dropna() # No use plotting data points with missing values.
-    return Graph(id=graph_id, figure = px.density_heatmap(
-        plot_dataframe,
-        title=title,
-        x='Sample A',
-        y='Sample B',
-        height=defaults['height']*(len(plot_dataframe['Sample group'].unique())/2),
-        width=defaults['width'],
-        color_continuous_scale='blues',
-        #marginal_x = 'histogram',
-        #marginal_y = 'histogram',
-        facet_col= 'Sample group',
-        facet_col_wrap=2,
-        nbinsx=50,
-        nbinsy=50,
-    ))
+def make_graph(graph_id: str, defaults:dict, plot_data: dict, title: str, num_per_row: int = 2) -> Graph:
+    sample_groups:list = sorted(list(plot_data.keys()))
+    num_plots: int = len(sample_groups)
+    rows: int = int(num_plots/num_per_row)
+    if num_plots%num_per_row != 0:
+        rows += 1
+    fig: go.Figure = make_subplots(
+        rows=rows,
+        cols=num_per_row,
+        subplot_titles = sample_groups,
+        x_title = 'Value deviation from mean',
+        y_title = 'Count',
+        vertical_spacing = 0.1/(rows-1)#0.05 # 3 riviä = 0.05, 2 = 0.1 5 = 0.025
+    )
+
+    xmax: int = 3    
+    current_row: int = 1
+    current_col: int = 1
+    for sgroup in sample_groups:
+        sgroup_data: dict = plot_data[sgroup]
+        for replicate, rep_list in sgroup_data.items():
+            fig.add_trace(
+                go.Histogram(
+                    x = rep_list,
+                    name = replicate,
+                    showlegend=False,
+                    nbinsx = 50,
+                ),
+                row = current_row,
+                col = current_col
+            )
+            xmax = max(xmax, max(rep_list))
+        current_col += 1
+        if current_col > num_per_row:
+            current_col = 1
+            current_row += 1
+    xmax = max(xmax, 2)
+    tick_distance: int = round(xmax/4)
+    tick_distance = max(1, tick_distance)
+    fig.update_layout(
+        barmode='overlay',
+        title = title,
+        height = defaults['height'] * (rows) * 0.5,
+        width = defaults['width'],
+    )
+    fig.update_xaxes(range=[-xmax, xmax], dtick=tick_distance)
+    fig.update_traces(opacity=0.5)
+    return Graph(id=graph_id, figure = fig, config = defaults['config'])

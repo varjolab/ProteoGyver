@@ -3,7 +3,6 @@
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html
-from regex import P
 from element_styles import SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES,UPLOAD_INDICATOR_STYLE
 from typing import Any
 from components import tooltips, text_handling
@@ -107,6 +106,10 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
             html.H4('Upload files:'),
             upload_area('upload-data-file', 'Data file'),
             upload_area('upload-sample_table-file', 'Sample table'),
+            dcc.Checklist(
+                id='sidebar-remove-common-contaminants',
+                options=['Remove common contaminants'], value=['Remove common contaminants']
+            ),
             html.H4('Select workflow:'),
             dbc.Select(
                 options=[
@@ -366,12 +369,6 @@ def interactomics_control_col(all_sample_groups, chosen) -> dbc.Col:
         ),
         html.Br(),
         html.Div(
-            checklist(
-                'Additional steps:',
-                ['Remove contaminants'],
-                ['Remove contaminants'],
-                id_prefix='interactomics',
-            )
         )
     ])
 
@@ -444,7 +441,7 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
 
 def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Div:
     all_sample_groups: list = []
-    sample_groups: dict = data_dictionary['samle groups']['norm']
+    sample_groups: dict = data_dictionary['sample groups']['norm']
     chosen: list = guess_control_samples(list(sample_groups.keys()))
     for k in sample_groups.keys():
         if k not in chosen:
@@ -469,6 +466,24 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
         ]
     )
 
+def saint_filtering_container() -> list:
+    container_contents = [
+        dcc.Graph(id='interactomics-saint-bfdr-histogram'),
+        dcc.Graph(id='interactomics-saint-graph'),
+        dbc.Label('Saint BFDR threshold:'),
+        dcc.Slider(0, 0.1, 0.01, value=0.05,
+                id='interactomics-saint-bfdr-filter-threshold'),
+        dbc.Label('Crapome filtering percentage:'),
+        dcc.Slider(1, 100, 10, value=20,
+                id='interactomics-crapome-frequency-threshold'),
+        dbc.Label('SPC fold change vs crapome threshold for rescue'),
+        dcc.Slider(0, 10, 1, value=3,
+                id='interactomics-crapome-rescue-threshold'),
+        html.Div([dbc.Button('Done filtering',id='button-done-filtering')])
+    ]
+    return container_contents
+        
+
 def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
     return [
         html.Div(
@@ -483,8 +498,9 @@ def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
             id={'type': 'analysis-div','id':'interactomics-analysis-results-area'},
             children = [
                 html.H1(id='interactomics-result-header',children='Interactomics'),
-                dcc.Loading(id='interactomics-saint-container',),
-                dcc.Loading(id='interactomics-post-saint-analysis-graphs'),
+                dcc.Loading(
+                    id='interactomics-saint-container-loading',
+                    children=html.Div(id={'type': 'workflow-plot', 'id': 'interactomics-saint-container'})),
             ]
         )
     ]

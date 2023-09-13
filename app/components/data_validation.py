@@ -29,7 +29,7 @@ def guess_controls(sample_groups: dict) -> tuple:
             control_groups.append(group_name)
             control_samples.append(samples)
     return (control_groups, control_samples)
-def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict) -> dict:
+def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list) -> dict:
     """Formats data formats into usable form and produces a data dictionary for later use"""
 
     intensity_table: pd.DataFrame = pd.read_json(data_tables['int'],orient='split')
@@ -52,6 +52,14 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
     else:
         untransformed_intensity_table = intensity_table
     
+    wcont_spc_table: pd.DataFrame = spc_table
+    wcont_untransformed_intensity_table: pd.DataFrame = untransformed_intensity_table
+    wcont_intensity_table: pd.DataFrame = intensity_table
+    if len(contaminants_to_remove) > 0:
+        spc_table = spc_table.loc[[i for i in spc_table.index if i not in contaminants_to_remove]]
+        untransformed_intensity_table = untransformed_intensity_table.loc[[i for i in untransformed_intensity_table.index if i not in contaminants_to_remove]]
+        intensity_table = intensity_table.loc[[i for i in intensity_table.index if i not in contaminants_to_remove]]
+    
     return_dict: dict = {
         'sample groups': sample_groups,
         'data tables': {
@@ -59,6 +67,11 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
             'spc': spc_table.to_json(orient='split'),
             'intensity': intensity_table.to_json(orient='split'),
             'experimental design': expdesign.to_json(orient='split'),
+            'with-contaminants': {
+                'raw intensity': wcont_untransformed_intensity_table.to_json(orient='split'),
+                'spc': wcont_spc_table.to_json(orient='split'),
+                'intensity': wcont_intensity_table.to_json(orient='split'),
+            }
         }, 
         'info': {
             'discarded columns': discarded_columns,

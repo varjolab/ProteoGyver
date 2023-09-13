@@ -19,13 +19,18 @@ DATA_STORE_IDS: list = [
     'mean-data-store',
     'distribution-data-store',
     'commonality-data-store',
-    'proteomics-na-filtered-data',
+    'proteomics-na-filtered-data-store',
     'proteomics-normalization-data-store',
     'proteomics-imputation-data-store',
     'proteomics-distribution-data-store',
     'proteomics-pca-data-store',
     'proteomics-clustermap-data-store',
     'proteomics-volcano-data-store',
+    'interactomics-saint-input-data-store',
+    'interactomics-saint-crapome-data-store',
+    'interactomics-saint-output-data-store',
+    'interactomics-saint-final-output-data-store',
+    'interactomics-saint-filtered-output-data-store',
 ]
 
 

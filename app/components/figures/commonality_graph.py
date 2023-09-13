@@ -73,10 +73,11 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> Graph:
             hmdata[-1].append(val)
     return Graph(id = id_str, figure = imshow(
         DataFrame(data=hmdata,index=index,columns=index),
-        config=defaults['config'],
         height=defaults['height'],
         width=defaults['width']
-        ))
+        ),
+        config=defaults['config']
+        )
 
 def make_graph(group_sets: dict, id_str: str, defaults:dict) -> Img | Graph:
     if len(group_sets.keys()) <= 6:

@@ -1,19 +1,29 @@
+import json
 from pandas import DataFrame
 from pandas import read_json as pd_read_json
 from dash import html
 from components.figures import bar_graph, comparative_violin_plot, commonality_graph, reproducibility_graph
 from components import summary_stats
+from components.figures.figure_legends import QC_LEGENDS as legends
 
-def count_plot(pandas_json:str, replicate_colors: dict, defaults:dict, title: str = None) -> tuple:
+def count_plot(pandas_json:str, replicate_colors: dict, contaminant_list: list, defaults:dict, title: str = None) -> tuple:
     """Generates a bar plot of given data"""
-    count_data: DataFrame = summary_stats.get_count_data(pd_read_json(pandas_json,orient='split'))
-    count_data['Color'] = [
-        replicate_colors['samples'][rep_name] for rep_name in count_data.index.values
-    ]
+    count_data: DataFrame = summary_stats.get_count_data(
+        pd_read_json(pandas_json,orient='split'),
+        contaminant_list
+    )
+    color_col: list = []
+    for index, row in count_data.iterrows():
+        if row['Is contaminant']:
+            color_col.append(replicate_colors['contaminant']['samples'][index])
+        else:
+            color_col.append(replicate_colors['non-contaminant']['samples'][index])
+    count_data['Color'] = color_col
     graph_div: html.Div = html.Div(
         id='qc-count-div',
         children=[
             html.H4(id='qc-heading-proteins_per_sample',children='Proteins per sample'),
+            html.P(id='count-plot-legend',children=legends['count-plot']),
             bar_graph.make_graph(
                 'qc-count-plot',
                 defaults,
@@ -21,6 +31,7 @@ def count_plot(pandas_json:str, replicate_colors: dict, defaults:dict, title: st
                 title, color_discrete_map=True
             )]
         )
+    count_data.to_csv('test.tsv',sep='\t')
     return (graph_div, count_data.to_json(orient='split'))
 
 def coverage_plot(pandas_json:str, defaults:dict, title: str = None) -> tuple:
@@ -49,8 +60,8 @@ def reproducibility_plot(pandas_json:str, sample_groups: dict, defaults:dict, ti
             reproducibility_graph.make_graph('qc-reproducibility-plot', defaults, repro_data, title)
             ]
         )
-    return (graph_div, repro_data.to_json(orient='split')
-    )
+    return (graph_div,  json.dumps(repro_data))
+    
 
 def missing_plot(pandas_json:str, replicate_colors: dict, defaults:dict, title: str = None) -> tuple:
     if title is None:

@@ -13,8 +13,11 @@ def get_count_data(data_table: DataFrame, contaminant_list: list = None) -> Data
         data['Is contaminant'] = False
         cont_data: DataFrame = contaminants.to_frame(name='Protein count')
         cont_data['Is contaminant'] = True
-        data = concat([data, cont_data]).reset_index().rename(columns={'index': 'Sample name'})
+        data = concat([cont_data, data]).reset_index().rename(columns={'index': 'Sample name'})
+        data.index = data['Sample name']
+        data = data.drop(columns='Sample name')
     return data
+
 def get_coverage_data(data_table: DataFrame) -> DataFrame:
     """Returns coverage dataframe."""
     return  DataFrame(

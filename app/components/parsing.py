@@ -4,6 +4,96 @@ import base64
 import io
 import pandas as pd
 import numpy as np
+from collections.abc import Mapping
+import os
+import json
+from components import db_functions
+from importlib import util as import_util
+
+def update_nested_dict(base_dict, update_dict) -> dict:
+    for key, value in update_dict.items():
+        if isinstance(value, Mapping):
+            base_dict[key] = update_nested_dict(base_dict.get(key, {}), value)
+        else:
+            base_dict[key] = value
+    return base_dict
+def parse_parameters(parameters_file: str) -> dict:
+    with open(parameters_file, encoding='utf-8') as fil:
+        parameters: dict = json.load(fil)
+    db_conn = db_functions.create_connection(os.path.join(*parameters['Data paths']['Database file']))
+    control_sets: list = db_functions.get_from_table(db_conn, 'control_sets', select_col = 'control_set_name')
+    default_control_sets: list = db_functions.get_from_table(
+        db_conn,
+        'control_sets',
+        'control_set_name',
+        'is_default',
+        1
+        )
+    disabled_control_sets: list = db_functions.get_from_table(
+        db_conn,
+        'control_sets',
+        'control_set_name',
+        'is_disabled',
+        1
+        )
+    crapome_sets: list = db_functions.get_from_table(db_conn, 'control_sets', select_col = 'control_set_name')
+    default_crapome_sets: list = db_functions.get_from_table(
+        db_conn,
+        'crapome_sets',
+        'crapome_set_name',
+        'is_default',
+        1
+        )
+    disabled_crapome_sets: list = db_functions.get_from_table(
+        db_conn,
+        'crapome_sets',
+        'crapome_set_name',
+        'is_disabled',
+        1
+        )
+    db_conn.close()
+    handler_names: list = []
+    enrichments: list = []
+    default_enrichments: list = []
+    disabled_enrichments: list = []
+    for enricher_mod in os.listdir(os.path.join(*parameters['Module paths']['Enrichers'])):
+        if enricher_mod.split('.')[-1] != 'py':
+            continue
+        filepath = os.path.join(*parameters['Module paths']['Enrichers'], enricher_mod)
+        spec = import_util.spec_from_file_location(
+            'module.name', filepath)
+        api_module = import_util.module_from_spec(spec)
+        spec.loader.exec_module(api_module)
+        handler = api_module.handler()
+
+        handler_names.append((handler.nice_name, filepath))
+        handler_enrichments:list = [
+            f'{handler.nice_name}: {e_type}' for e_type in handler.get_available()['enrichment']
+        ]
+        enrichments.extend(handler_enrichments)
+        if not 'david' in handler.nice_name.lower():
+            default_enrichments.extend([
+                f'{handler.nice_name}: {e_type}' for e_type in handler.get_default_panel()
+            ])
+    parameters['workflow parameters']['interactomics'] = {}
+    parameters['workflow parameters']['interactomics']['crapome'] = {
+        'available': crapome_sets, 
+        'disabled': disabled_crapome_sets,
+        'default': default_crapome_sets
+    }
+    parameters['workflow parameters']['interactomics']['controls'] = {
+        'available': control_sets,
+        'disabled': disabled_control_sets,
+        'default': default_control_sets
+    }
+    parameters['workflow parameters']['interactomics']['enrichment'] = {
+        'available': enrichments,
+        'default': default_enrichments,
+        'disabled': disabled_enrichments,
+        'handler names': handler_names
+    }
+
+    return parameters
 
 def get_distribution_title(used_table_type: str) -> str:
     if used_table_type == 'intensity':
@@ -40,7 +130,7 @@ def read_dia_nn(data_table: pd.DataFrame) -> pd.DataFrame:
                 if gather:
                     data_cols.append(column)
                 elif column == 'First.Protein.Description':
-                    gather = true
+                    gather = True
         table: pd.DataFrame = data_table[data_cols]
         table.index = data_table['Protein.Group']
     # Replace zeroes with missing values

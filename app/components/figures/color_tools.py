@@ -19,16 +19,17 @@ def get_assigned_colors(sample_group_dict: dict) -> dict:
     for i, (sample_group, sample_list) in enumerate(sample_group_dict.items()):
         for sample_name in sample_list:
             ret['samples'][sample_name] = group_colors[sample_group]
-            ret_cont['non-contaminant']['samples'][sample_name] = pale(group_colors[sample_group],20)
-            ret_cont['contaminant']['samples'][sample_name] = group_colors[sample_group]
+            ret_cont['non-contaminant']['samples'][sample_name] = group_colors[sample_group]
+            ret_cont['contaminant']['samples'][sample_name] = darken(group_colors[sample_group],20)
     return (ret, ret_cont)
 
-def pale(color, percent):
+def darken(color, percent):
     tp: str
     col_ints:list
     tp, col_ints = color.split('(')
     col_ints = [int(x) for x in col_ints.split(')')[0].split(',')]
-    col_ints = [str(int(c*((100-percent)/100))) for c in col_ints]
+    multiplier: float = ((100-percent)/100)
+    col_ints = [str(int(c*multiplier)) for c in col_ints]
     return f'{tp}({",".join(col_ints)})'
 
 def get_cut_colors(colormapname: str = 'gist_ncar', number_of_colors: int = 15,
