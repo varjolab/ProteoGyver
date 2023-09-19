@@ -8,11 +8,17 @@ import subprocess
 from components.figures import histogram, bar_graph
 
 def saint_histogram(saint_output_json:str, figure_defaults):
-    saint_output:pd.DataFrame = pd.read_json(saint_output_json)
-    return histogram(saint_output,'BFDR','BFDR distribution',figure_defaults)
+    saint_output: pd.DataFrame = pd.read_json(saint_output_json)
+    return histogram.make_figure(saint_output,'BFDR','BFDR distribution',figure_defaults)
 
-def run_saint(saint_input: dict, saint_path:str, error_log_file: str, session_uid:str, cleanup: bool = True) -> str:
-    temp_dir: str = os.path.join(saint_path[:-1])
+def run_saint(saint_input: dict, saint_path:list, error_log_file: str, session_uid:str, cleanup: bool = True) -> str:
+    print('TESTING')
+    print(type(saint_path))
+    print(saint_path)
+    print(saint_path[:-1])
+    print(*(saint_path[:-1]))
+    return 'SAINT failed. Can not proceed.'
+    temp_dir: str = os.path.join(*(saint_path[:-1]))
     saint_cmd: str = os.path.join(temp_dir, saint_path[-1])
     temp_dir = os.path.join(temp_dir, session_uid)
     if not os.path.isdir(temp_dir):
@@ -106,12 +112,12 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table,protein_table) -
             bait.append([col, rev_sample_groups[col], 'C'])
         else:
             bait.append([col, 'inbuilt_ctrl', 'C'])
-    for uniprot, srow in pd.melt(control_table,ignore_index=False).replace(0,np.nan).dropna():
+    for uniprot, srow in pd.melt(control_table,ignore_index=False).replace(0,np.nan).dropna().iterrows():
         sgroup: str = 'inbuilt_ctrl'
         if srow['variable'] in rev_sample_groups:
             sgroup = rev_sample_groups[srow['variable']]
         inter.append([srow['variable'], sgroup, uniprot, str(srow['value'])])
-    for uniprot, srow in pd.melt(control_table,ignore_index=False).replace(0,np.nan).dropna():
+    for uniprot, srow in pd.melt(control_table,ignore_index=False).replace(0,np.nan).dropna().iterrows():
         sgroup: str = 'inbuilt_ctrl'
         if srow['variable'] in spc_table:
             sgroup = rev_sample_groups[srow['variable']]
@@ -119,10 +125,12 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table,protein_table) -
     for uniprotid in (set(control_table.index.values) | set(spc_table.index.values)):
         try:
             plen: str = str(protein_lenghts_and_names[uniprotid]['length'])
+            gname: str = protein_lenghts_and_names[uniprotid]['gene name']
         except KeyError:
             print('NO LENGTH FOUND', uniprotid)
             plen = '200'
-        prey.append([uniprotid, plen, protein_lenghts_and_names[uniprot]['gene name']])
+            gname = uniprotid
+        prey.append([uniprotid, plen, gname])
     
     return {'bait': bait, 'prey': prey, 'int': inter}
 
@@ -146,11 +154,13 @@ def generate_saint_container(input_data_dict, uploaded_controls, additional_cont
         as_pandas = True
     )
     protein_table = protein_table[protein_table['uniprot_id'].isin(protein_list)]
-    crapome: pd.DataFrame = prepare_crapome(db_conn, crapomes)
+    if len(crapomes) > 0:
+        crapome: pd.DataFrame = prepare_crapome(db_conn, crapomes)
+    else:
+        crapome = pd.DataFrame()
     db_conn.close()
 
     saint_dict: dict = make_saint_dict(spc_table, input_data_dict['sample groups']['rev'], control_table, protein_table)
-
     return (
         html.Div(
             id='interactomics-saint-container',

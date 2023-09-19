@@ -4,6 +4,7 @@ from dash import html
 from dash.dcc import Graph
 from components.figures import before_after_plot, comparative_violin_plot, imputation_histogram, scatter, heatmaps, volcano_plot
 from components import matrix_functions, summary_stats, stats
+from components.figures.figure_legends import PROTEOMICS_LEGENDS as legends
 
 def na_filter(input_data_dict, filtering_percentage,figure_defaults, title:str=None) -> tuple:
     data_table: DataFrame = pd_read_json(
@@ -19,12 +20,15 @@ def na_filter(input_data_dict, filtering_percentage,figure_defaults, title:str=N
     )
     filtered_counts:DataFrame = matrix_functions.count_per_sample(
                 filtered_data, input_data_dict['sample groups']['rev'])
+    figure_legend: html.P = legends['na_filter']
+    figure_legend.children = figure_legend.children.replace('FILTERPERC', f'{filtering_percentage}')
     return (
         html.Div(
             id='proteomics-na-filter-plot-div',
             children=[
                 html.H4(id='proteomics-na-filter-header',children='Missing value filtering'),
-                before_after_plot.make_graph(figure_defaults, original_counts, filtered_counts, 'proteomics-na-filter-plot', title=title)
+                before_after_plot.make_graph(figure_defaults, original_counts, filtered_counts, 'proteomics-na-filter-plot', title=title),
+                figure_legend
             ]
         ),
         filtered_data.to_json(orient='split')
@@ -66,7 +70,8 @@ def normalization(filtered_data_json, normalization_option, defaults, title:str=
                     names=names, 
                     title=title, 
                     replicate_colors=plot_colors
-                )
+                ),
+                legends['comparative-violin-plot']
             ]
         ),
         normalized_table.to_json(orient='split')
@@ -87,7 +92,8 @@ def imputation(filtered_data_json, imputation_option, defaults, title:str=None) 
                     defaults,
                     id_name = 'proteomics-imputation-plot',
                     title=title
-                )
+                ),
+                legends['imputation']
             ]
         ),
         imputed_table.to_json(orient='split')
@@ -115,6 +121,7 @@ def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tup
                     pc2,
                     'Sample group'
                 ),
+                legends['pca']
             ]
         ),
         pca_result.to_json(orient='split')
@@ -143,6 +150,7 @@ def clustermap(imputed_data_json:dict, defaults: dict) -> tuple:
                         corrdata, defaults
                     )
                 ),
+                legends['clustermap']
             ]
         ),
         corrdata.to_json(orient='split')
@@ -151,15 +159,11 @@ def clustermap(imputed_data_json:dict, defaults: dict) -> tuple:
 def volcano_plots(imputed_data_json: dict, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
     data: DataFrame = pd_read_json(imputed_data_json, orient='split')
     significant_data: DataFrame = stats.differential(data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr)
-    significant_data.to_csv('volcano_plots_debug.tsv',sep='\t')
-    graphs_div: html.Div = volcano_plot.generate_graphs(significant_data, defaults, fc_thr, p_thr)
-    return (
-        html.Div(
-            id='proteomics-volcano-div',
-            children = [
-                html.H4(id='proteomics-volcano-header',children='Volcano plots'),
+    significant_data.to_csv('DEBUG Sig data.tsv',sep='\t')
+    graphs_div: html.Div = volcano_plot.generate_graphs(significant_data, defaults, fc_thr, p_thr, 'proteomics')
+    return ([
+                html.H3(id='proteomics-volcano-header',children='Volcano plots'),
                 graphs_div
-            ]
-        ),
+            ],
         significant_data.to_json(orient='split')
     )

@@ -29,7 +29,7 @@ def make_graph(graph_id: str, defaults:dict, plot_data: dict, title: str, num_pe
         subplot_titles = sample_groups,
         x_title = 'Value deviation from mean',
         y_title = 'Count',
-        vertical_spacing = 0.1/(rows-1)#0.05 # 3 riviä = 0.05, 2 = 0.1 5 = 0.025
+        vertical_spacing = 0.1/max(1,(rows-1))#0.05 # 3 riviä = 0.05, 2 = 0.1 5 = 0.025
     )
 
     xmax: int = 3    

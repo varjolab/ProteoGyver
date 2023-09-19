@@ -6,7 +6,7 @@ import uuid
 import pandas as pd
 
 
-def impute_qrilc(dataframe: pd.DataFrame, rpath:str=None, tempdir:str=None) -> pd.DataFrame:
+def impute_qrilc(dataframe: pd.DataFrame, random_seed: int, rpath:str=None, tempdir:str=None) -> pd.DataFrame:
     """Impute missing values in dataframe using QRILC method
 
     Calls an R function to qrilc-impute missing values into the input dataframe.
@@ -29,6 +29,7 @@ def impute_qrilc(dataframe: pd.DataFrame, rpath:str=None, tempdir:str=None) -> p
     with open(temp_r_file, 'w', encoding='utf-8') as fil:
         fil.write(textwrap.dedent(f"""
                     library("imputeLCMD")
+                    set.seed({random_seed})
                     df <- read.csv("{tempdffile}",sep="\\t",row.names=1)
                     df2 = impute.QRILC(df, tune.sigma = 1)
                     imputed = df2[1]
@@ -112,6 +113,7 @@ def run_r_script(scriptfilepath: str, rpath: str = 'C:\\Program Files\\R\\newest
     elif 'newest-r' in rpath: ## Windows probably
         rpath: str = get_newest_r(rpath)
         rpath = os.path.join(rpath, 'Rscript.exe')
+    rpath = 'Rscript'
     cmd: list = [rpath, scriptfilepath]
     process: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, check=False)
     if output_file:

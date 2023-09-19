@@ -6,11 +6,11 @@ from uuid import uuid4
 from datetime import datetime
 from dash_bootstrap_components.themes import FLATLY
 from dash.long_callback import CeleryLongCallbackManager
-from dash import html, callback, Dash, no_update
+from dash import html, callback, Dash, no_update, ALL, dcc
 from dash.dependencies import Input, Output, State
 from components import ui_components as ui
-from components.infra import data_stores, notifiers
-from components import parsing, qc_analysis, data_validation, proteomics, interactomics, db_functions
+from components.infra import data_stores, notifiers, prepare_download
+from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
 import plotly.io as pio
 
@@ -58,9 +58,10 @@ def handle_uploaded_data_table(file_contents, file_name, mod_date, current_uploa
 def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upload_style) -> tuple:
     """Parses uploaded data table and sends data to data stores"""
     if file_contents is not None:
-        return parsing.parse_generic_table(file_contents, file_name, mod_date, current_upload_style)
+        return parsing.parse_sample_table(file_contents, file_name, mod_date, current_upload_style)
 @callback(
     Output('upload-data-store','data', allow_duplicate=True),
+    Output('button-download-all-data','disabled'),
     Input('begin-analysis-button','n_clicks'),
     State('uploaded-data-table','data'),
     State('uploaded-data-table-info','data'),
@@ -78,9 +79,9 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
     if len(remove_contaminants)>0:
         cont = contaminant_list
     pio.templates.default = figure_template
-    return data_validation.format_data(
+    return (parsing.format_data(
         f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
-        data_tables, data_info, expdes_table, expdes_info, cont)
+        data_tables, data_info, expdes_table, expdes_info, cont), False)
 @callback(
     Output('upload-data-store','data', allow_duplicate=True),
     Input('discard-samples','data'),
@@ -90,7 +91,7 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
 def remove_samples(discard_samples_list, data_dictionary) -> dict:
     """Sends data to preliminary analysis and returns the resulting dictionary.
     """
-    return data_validation.delete_samples(discard_samples_list, data_dictionary)
+    return parsing.delete_samples(discard_samples_list, data_dictionary)
 
 
 @callback(
@@ -121,7 +122,7 @@ def assign_replicate_colors(data_dictionary) -> dict:
 )
 def check_inputs(*args) -> bool:
     """Checks that all inputs are present and we can begin."""
-    return data_validation.validate_basic_inputs(*args)
+    return parsing.validate_basic_inputs(*args)
 
 @callback(
     Output('discard-sample-checklist-container','children'),
@@ -315,23 +316,24 @@ def proteomics_pca_plot(imputed_data:dict, upload_dict:dict) -> html.Div:
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-clustermap-plot-div'},'children'),
     Output('proteomics-clustermap-data-store','data'),
+    Output('workflow-done-notifier','children'),
     Input('proteomics-imputation-data-store','data'),
     prevent_initial_call=True
 )
 def proteomics_clustermap(imputed_data:dict) -> html.Div:
-    return proteomics.clustermap(imputed_data, parameters['Figure defaults']['full-height'])
-
+    return proteomics.clustermap(imputed_data, parameters['Figure defaults']['full-height']) + ('',)
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-volcano-plot-div'},'children'),
     Output('proteomics-volcano-data-store','data'),
+    Output('workflow-volcanoes-done-notifier','children'),
     Input('proteomics-imputation-data-store','data'),
     Input('proteomics-control-dropdown','value'),
     Input('proteomics-comparison-table-upload','data'),
     Input('proteomics-comparison-table-upload','filename'),
     State('upload-data-store','data'),
-    State('proteomics-fc-value-threshold', 'value'),
-    State('proteomics-p-value-threshold', 'value'),
+    Input('proteomics-fc-value-threshold', 'value'),
+    Input('proteomics-p-value-threshold', 'value'),
     prevent_initial_call=True
 )
 def proteomics_volcano_plots(imputed_data, control_group, comparison_file, comparison_file_name, data_dictionary, fc_thr, p_thr) -> tuple:
@@ -340,7 +342,7 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_file, compa
     else:
         sgroups: dict = data_dictionary['sample groups']['norm']
         comparisons: list = parsing.parse_comparisons(control_group, comparison_file, comparison_file_name, sgroups)
-        return proteomics.volcano_plots(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'])
+        return proteomics.volcano_plots(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height']) + ('',)
 
 # Need to implement: 
 # GOBP mapping
@@ -358,6 +360,8 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_file, compa
     prevent_initial_call=True
 )
 def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_controls: list, crapomes: list, uploaded_data: dict) -> html.Div:
+    if nclicks is None:
+        return (no_update,no_update,no_update)
     return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file)
 
 @app.long_callback(
@@ -418,18 +422,25 @@ def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentag
 def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
     return interactomics.saint_counts(filtered_output, parameters['Figure defaults']['half-height'], replicate_colors)
 
-def download_all_data(_):
-    pass
-    # Download plots in html (with svg export), pdf, and png.     
+
+@callback(
+    Output({'type': 'analysis-div','id':'interactomics-analysis-post-saint-area'},'children'),
+    Input('interactomics-button-done-filtering','n_clicks'),
+    #State('interactomics-saint-final-output-data-store','data'),
+    prevent_initial_call=True
+)
+def interactomics_initiate_post_saint(_) -> html.Div:
+    return ui.post_saint_cointainer()
 
 @callback(
     Output('toc-div','children'),
     Input('qc-done-notifier', 'children'),
     Input('workflow-done-notifier','children'),
+    Input('workflow-volcanoes-done-notifier','children'),
     State('main-content-div', 'children'),
     prevent_initial_call=True
 )
-def table_of_contents(_,__, main_div_contents: list) -> html.Div:
+def table_of_contents(_,__, ___,main_div_contents: list) -> html.Div:
     """updates table of contents to reflect the main div"""
     return ui.table_of_contents(main_div_contents)
 
@@ -464,12 +475,18 @@ def download_data_table_example(_) -> dict:
 
 @callback(
     Output('download-all-data', 'data'),
-    Input('button-export-all-data', 'n_clicks'),
+    Input('button-download-all-data','n_clicks'),
+    State('dcc-stores','children'),
+    State({'type': 'analysis-div','id':ALL}, 'children'),
+    State({'type': 'input-div', 'id': ALL}, 'children'),
+    State('upload-data-store','data'),
     prevent_initial_call=True
 )
-def download_all_data(_, ) -> dict:
+def download_all_data(nclicks, stores, analysis_divs, input_divs, main_data) -> dict:
+    figure_output_formats = ['html','png','pdf']
+    export_zip_name: str = prepare_download(stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats)
+    return dcc.send_file(export_zip_name)
     # DB dependent function
-    pass
 
 app.layout = html.Div([
     ui.main_sidebar(

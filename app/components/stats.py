@@ -39,7 +39,8 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
         result['Name'] = data_table.index.values
         result['Sample'] = sample
         result['Control'] = control
-        result['Significant'] = ((result['p_value_adj']<adj_p_thr) & result['fold_change'].abs() > fc_thr) 
+        result['Significant'] = ((result['p_value_adj']<adj_p_thr) & (result['fold_change'].abs() > fc_thr))
+        result.sort_values(by='Significant',ascending=True,inplace=True)
         #result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
         sig_data.append(result)
     return pd.concat(sig_data).reset_index().drop(columns='index')[

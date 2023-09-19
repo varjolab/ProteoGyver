@@ -89,18 +89,20 @@ def normalize(data_table, normalization_method) -> DataFrame:
     if normalization_method == 'Median':
         return_table = median_normalize(data_table)
     elif normalization_method == 'Quantile':
-        return_table = quantile_normalize(data_table)
+        return_table = quantile_normalize(data_table,)
     return return_table
 
-def impute(data_table:DataFrame, method:str='QRILC', tempdir:str='.') -> DataFrame:
+def impute(data_table:DataFrame, method:str='QRILC', tempdir:str='.', random_seed: int = 13) -> DataFrame:
     """Imputes missing values into the dataframe with the specified method"""
     ret: DataFrame = data_table
     if method == 'minProb':
-        ret = impute_minprob_df(data_table)
+        ret = impute_minprob_df(data_table, random_seed)
     elif method == 'minValue':
         ret = impute_minval(data_table)
+    elif method == 'gaussian':
+        ret = impute_gaussian(data_table, random_seed)
     elif method == 'QRILC':
-        ret = R_tools.impute_qrilc(data_table, tempdir = tempdir)
+        ret = R_tools.impute_qrilc(data_table, random_seed, tempdir = tempdir)
     return ret
 
 
@@ -123,7 +125,7 @@ def impute_minval(dataframe: DataFrame, impute_zero:bool=False) -> DataFrame:
         newdf.loc[:, column] = newcol
     return newdf
 
-def impute_gaussian(data_table: DataFrame, dist_width: float = 0.3, dist_down_shift: float = 1.8) -> DataFrame:
+def impute_gaussian(data_table: DataFrame, random_seed: int, dist_width: float = 0.15, dist_down_shift: float = 2,) -> DataFrame:
     """Impute missing values in dataframe using values from random numbers from normal distribution.
 
     Based on the method used by Perseus (http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:imputation:replacemissingfromgaussian)
@@ -132,14 +134,15 @@ def impute_gaussian(data_table: DataFrame, dist_width: float = 0.3, dist_down_sh
     data_table: pandas dataframe with the missing values. Should not have any text columns
     dist_width: Gaussian distribution relative to stdev of each column. 
         Value of 0.5 means the width of the distribution is half the standard deviation of the sample column values.
-    dist_down_shift: How far downwards the distribution is shifted. By default, 1.8 standard deviations down.
+    dist_down_shift: How far downwards the distribution is shifted. By default, 2 standard deviations down.
     """
+    np.random.seed(random_seed)
     newdf: DataFrame = DataFrame(index=data_table.index)
     for column in data_table.columns:
         newcol: Series = data_table[column]
         stdev: float = newcol.std()
         distribution: np.ndarray = np.random.normal(
-                loc = newcol.mean - (dist_down_shift*stdev),
+                loc = newcol.mean() - (dist_down_shift*stdev),
                 scale = dist_width*stdev,
                 size = column.shape[0]*100
             )
@@ -151,7 +154,7 @@ def impute_gaussian(data_table: DataFrame, dist_width: float = 0.3, dist_down_sh
         newdf.loc[:, column] = newcol
     return newdf
 
-def impute_minprob(series_to_impute: Series, scale: float = 1.0,
+def impute_minprob(series_to_impute: Series, random_seed: int, scale: float = 1.0,
                 tune_sigma: float = 0.01, impute_zero=True) -> Series:
     """Imputes missing values with randomly selected entries from a distribution \
         centered around the lowest non-NA values of the series.
@@ -165,7 +168,7 @@ def impute_minprob(series_to_impute: Series, scale: float = 1.0,
         generating the distribution
     impute_zero: treat 0 values as missing values and impute new values for them
     """
-
+    np.random.seed(random_seed)
     ser: Series = series_to_impute.sort_values(ascending=True)
     ser = ser[ser > 0].dropna()
     ser = ser[:int(len(ser)*tune_sigma)]
@@ -185,7 +188,7 @@ def impute_minprob(series_to_impute: Series, scale: float = 1.0,
             output_series[index] = np.random.choice(distribution)
     return output_series
 
-def impute_minprob_df(dataframe: DataFrame, **kwargs) -> DataFrame:
+def impute_minprob_df(dataframe: DataFrame,*args, **kwargs) -> DataFrame:
     """imputes whole dataframe with minprob imputation. Dataframe should only have numerical columns
 
     Parameters:
@@ -194,5 +197,5 @@ def impute_minprob_df(dataframe: DataFrame, **kwargs) -> DataFrame:
     """
     newdf: DataFrame = DataFrame(index=dataframe.index)
     for column in dataframe.columns:
-        newdf.loc[:, column] = impute_minprob(dataframe[column], **kwargs)
+        newdf.loc[:, column] = impute_minprob(dataframe[column], *args, **kwargs)
     return newdf

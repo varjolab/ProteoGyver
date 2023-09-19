@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 import plotly.express as px
 from pandas import DataFrame
-def histogram(data_table: DataFrame, x_column: str, title: str, defaults: dict,**kwargs) -> go.Figure:
+def make_figure(data_table: DataFrame, x_column: str, title: str, defaults: dict,**kwargs) -> go.Figure:
     if 'height' not in kwargs:
         kwargs: dict = dict(kwargs,height=defaults['height'])
     if 'width' not in kwargs:

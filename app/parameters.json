@@ -2,7 +2,6 @@
     "file loading": {
         "Maximum psm ever theoretically encountered": 5000
     },
-    "database filename": "proteogyver.db",
     "workflow parameters": {
         "proteomics": {    
             "na_filter_default_value": 60,
@@ -12,7 +11,7 @@
                 "gaussian": "gaussian",
                 "minValue": "minValue"
             },
-            "default imputation method": "minProb",
+            "default imputation method": "QRILC",
             "normalization methods": {
                 "Median": "Median",
                 "Quantile": "Quantile",
@@ -49,9 +48,9 @@
         "Figure templates": ["plotly_white", "simple_white"]
     },
     "Data paths": {
-        "Database file": ["Data", "proteogyver.db"],
+        "Database file": ["data", "proteogyver.db"],
         "Error log": "proteogyver_errors.log",
-        "Cache dir": ["Data", "cache"]
+        "Cache dir": ["/mnt", "c", "DATA", "PG cache"]
     },
     "Module paths": {
         "Enrichers": ["components", "enrichment"]

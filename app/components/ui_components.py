@@ -147,10 +147,10 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
             ),
             dbc.Button(
                 'Download all data',
-                id='download-all-data-button',
                 style=UPLOAD_BUTTON_STYLE,
+                id='button-download-all-data',
                 className='btn-info',
-                disabled=True,
+                disabled=True
             ),
             html.Div(id='toc-div',style={'padding': '0px 10px 10px 30px'}),# top right bottom left
             dcc.Download(id='download-sample_table-template'),
@@ -252,7 +252,7 @@ def proteomics_input_card(parameters: dict, data_dictionary:dict) -> dbc.Card:
                         dbc.Select(
                             options=[
                                 {'label': sample_group, 'value': sample_group} for sample_group in \
-                                    data_dictionary['sample groups']['norm'].keys()
+                                    sorted(list(data_dictionary['sample groups']['norm'].keys()))
                             ],
                             required=True,
                             id='proteomics-control-dropdown',
@@ -291,7 +291,7 @@ def proteomics_area(parameters: dict, data_dictionary:dict) -> html.Div:
         html.Div(
             id={'type': 'input-div','id':'proteomics-analysis-area'},
             children=[
-                html.H1('Proteomics specific input options'),
+                html.H1('Proteomics-specific input options'),
                 proteomics_input_card(parameters, data_dictionary),
                 html.Hr()
             ]
@@ -467,7 +467,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
     )
 
 def saint_filtering_container() -> list:
-    container_contents = [
+    return [
         dcc.Graph(id='interactomics-saint-bfdr-histogram'),
         dcc.Graph(id='interactomics-saint-graph'),
         dbc.Label('Saint BFDR threshold:'),
@@ -479,17 +479,21 @@ def saint_filtering_container() -> list:
         dbc.Label('SPC fold change vs crapome threshold for rescue'),
         dcc.Slider(0, 10, 1, value=3,
                 id='interactomics-crapome-rescue-threshold'),
-        html.Div([dbc.Button('Done filtering',id='button-done-filtering')])
+        html.Div([dbc.Button('Done filtering',id='interactomics-button-done-filtering')])
     ]
-    return container_contents
-        
+
+def post_saint_cointainer() -> list:
+    return [
+        html.H1(id='interactomics-main-header', children = 'Interactomics'),
+        html.Div(id={'type': 'workflow-area', 'id': 'interactomcis-count-plot-div'}),
+    ]
 
 def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
     return [
         html.Div(
             id={'type': 'input-div','id':'interactomics-analysis-area'},
             children=[
-                html.H1('Interactomics specific input options'),
+                html.H1('Interactomics-specific input options'),
                 interactomics_input_card(parameters, data_dictionary),
                 html.Hr()
             ]
@@ -501,8 +505,9 @@ def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
                 dcc.Loading(
                     id='interactomics-saint-container-loading',
                     children=html.Div(id={'type': 'workflow-plot', 'id': 'interactomics-saint-container'})),
+                html.Div(id={'type': 'analysis-div','id':'interactomics-analysis-post-saint-area'},)
             ]
-        )
+        ),
     ]
 def phosphoproteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
     return html.Div(id={'type': 'analysis-div','id':'phosphoproteomics-analysis-area'}),
