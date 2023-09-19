@@ -75,6 +75,8 @@ def parse_parameters(parameters_file: str) -> dict:
             default_enrichments.extend([
                 f'{handler.nice_name}: {e_type}' for e_type in handler.get_default_panel()
             ])
+    parameters['External tools']['SAINT']['spc'] = [os.getcwd()]+parameters['External tools']['SAINT']['spc']
+    parameters['External tools']['SAINT']['int'] = [os.getcwd()]+parameters['External tools']['SAINT']['int']
     parameters['workflow parameters']['interactomics'] = {}
     parameters['workflow parameters']['interactomics']['crapome'] = {
         'available': crapome_sets, 

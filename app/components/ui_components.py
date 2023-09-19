@@ -420,15 +420,6 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
     return dbc.Col([
         html.Div(
             checklist(
-                'select all enrichments',
-                ['Select all enrichments'],
-                [],
-                id_only = True,
-                id_prefix = 'interactomics',
-            )
-        ),
-        html.Div(
-            checklist(
                 'Choose enrichments:',
                 enrichment_dict['available'],
                 enrichment_dict['default'],
@@ -484,7 +475,6 @@ def saint_filtering_container() -> list:
 
 def post_saint_cointainer() -> list:
     return [
-        html.H1(id='interactomics-main-header', children = 'Interactomics'),
         html.Div(id={'type': 'workflow-area', 'id': 'interactomcis-count-plot-div'}),
     ]
 
@@ -501,7 +491,7 @@ def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
         html.Div(
             id={'type': 'analysis-div','id':'interactomics-analysis-results-area'},
             children = [
-                html.H1(id='interactomics-result-header',children='Interactomics'),
+                html.H1(id='interactomics-main-header', children = 'Interactomics'),
                 dcc.Loading(
                     id='interactomics-saint-container-loading',
                     children=html.Div(id={'type': 'workflow-plot', 'id': 'interactomics-saint-container'})),

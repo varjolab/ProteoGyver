@@ -382,6 +382,8 @@ def interactomics_run_saint(saint_input, data_dictionary):
     prevent_initial_call=True
 )
 def interactomics_add_crapome_to_saint(saint_output, crapome):
+    if saint_output == 'SAINT failed. Can not proceed.':
+        return saint_output
     return interactomics.add_crapome(saint_output, crapome)
 
 @callback(
@@ -409,6 +411,7 @@ def interactomics_draw_saint_histogram(container_ready: list, saint_output: str)
     Input('interactomics-crapome-frequency-threshold','value'),
     Input('interactomics-crapome-rescue-threshold','value'),
     State('interactomics-saint-final-output-data-store','data'),
+    #prevent_initial_call=True
 )
 def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentage: int, crapome_fc: int, saint_output: str):
     return interactomics.saint_filtering(saint_output, bfdr_threshold, crapome_percentage, crapome_fc)

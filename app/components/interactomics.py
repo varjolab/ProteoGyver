@@ -3,21 +3,18 @@ from dash import html
 import pandas as pd
 from components import db_functions
 import numpy as np
+import shutil
 import os
 import subprocess
+import json
 from components.figures import histogram, bar_graph
 
 def saint_histogram(saint_output_json:str, figure_defaults):
-    saint_output: pd.DataFrame = pd.read_json(saint_output_json)
+    saint_output: pd.DataFrame = pd.read_json(saint_output_json, orient='split')
     return histogram.make_figure(saint_output,'BFDR','BFDR distribution',figure_defaults)
 
 def run_saint(saint_input: dict, saint_path:list, error_log_file: str, session_uid:str, cleanup: bool = True) -> str:
-    print('TESTING')
-    print(type(saint_path))
-    print(saint_path)
-    print(saint_path[:-1])
-    print(*(saint_path[:-1]))
-    return 'SAINT failed. Can not proceed.'
+
     temp_dir: str = os.path.join(*(saint_path[:-1]))
     saint_cmd: str = os.path.join(temp_dir, saint_path[-1])
     temp_dir = os.path.join(temp_dir, session_uid)
@@ -36,10 +33,13 @@ def run_saint(saint_input: dict, saint_path:list, error_log_file: str, session_u
         fil.write('\n'.join([
             '\t'.join(x) for x in saint_input['bait']
         ]))
+    with open(paths[2].replace('bait.dat','saint_data.json'),'w') as fil:
+        json.dump(saint_input, fil)
     try:
         subprocess.check_output([saint_cmd], stderr=subprocess.STDOUT, cwd=temp_dir, text=True)
-        failed: bool = os.path.isfile(os.path.join(temp_dir, 'list.txt'))
-    except subprocess.CalledProcessError:
+        failed: bool = not os.path.isfile(os.path.join(temp_dir, 'list.txt'))
+    except subprocess.CalledProcessError as e:
+        print(e)
         failed = True
     if failed:
         with open(error_log_file,'a',encoding='utf-8') as fil:
@@ -47,7 +47,8 @@ def run_saint(saint_input: dict, saint_path:list, error_log_file: str, session_u
         ret: str = 'SAINT failed. Can not proceed.'
     else:
         ret = pd.read_csv(os.path.join(temp_dir, 'list.txt'), sep='\t').to_json(orient='split')
-    
+        if cleanup:     
+            shutil.rmtree(temp_dir)
     return ret
 
 def prepare_crapome(db_conn, crapomes: list) -> pd.DataFrame:
@@ -74,7 +75,7 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
     spc_table: pd.DataFrame = pd.read_json(
         input_data_dict['data tables']['spc'], orient='split')
     controls: list = [
-        db_functions.get_full_table_as_pd(db_conn, tablename) for tablename in additional_controls
+        db_functions.get_full_table_as_pd(db_conn, tablename, index_col='protein_id') for tablename in additional_controls
     ]
     control_cols: list = []
     for cg in uploaded_controls: 
@@ -117,9 +118,9 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table,protein_table) -
         if srow['variable'] in rev_sample_groups:
             sgroup = rev_sample_groups[srow['variable']]
         inter.append([srow['variable'], sgroup, uniprot, str(srow['value'])])
-    for uniprot, srow in pd.melt(control_table,ignore_index=False).replace(0,np.nan).dropna().iterrows():
+    for uniprot, srow in pd.melt(spc_table,ignore_index=False).replace(0,np.nan).dropna().iterrows():
         sgroup: str = 'inbuilt_ctrl'
-        if srow['variable'] in spc_table:
+        if srow['variable'] in rev_sample_groups:
             sgroup = rev_sample_groups[srow['variable']]
         inter.append([srow['variable'], sgroup, uniprot, str(srow['value'])])
     for uniprotid in (set(control_table.index.values) | set(spc_table.index.values)):
@@ -138,8 +139,9 @@ def generate_saint_container(input_data_dict, uploaded_controls, additional_cont
     if '["No data"]' in input_data_dict['data tables']['spc']:
         return html.Div(['No spectral count data in input, cannot run SAINT.'])
     db_conn = db_functions.create_connection(db_file)
-    additional_controls = [f'control_{ctrl_name.lower()}' for ctrl_name in additional_controls]
-    crapomes = [f'crapome_{crap_name.lower()}' for crap_name in crapomes]
+    print(additional_controls)
+    additional_controls = [f'control_{ctrl_name[0].lower().replace(" ","_")}' for ctrl_name in additional_controls]
+    crapomes = [f'crapome_{crap_name[0].lower().replace(" ","_")}' for crap_name in crapomes]
     spc_table, control_table = prepare_controls(input_data_dict, uploaded_controls, additional_controls, db_conn)
     protein_list: list = list(set(spc_table.index.values) | set(control_table.index))
 
@@ -173,7 +175,7 @@ def generate_saint_container(input_data_dict, uploaded_controls, additional_cont
         )
 
 def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapome_fc):
-    saint_output:pd.DataFrame = pd.read_json(saint_output_json)
+    saint_output:pd.DataFrame = pd.read_json(saint_output_json, orient='split')
     crapome_columns: list = []
     for column in saint_output.columns:
         if '_frequency' in column:
@@ -196,14 +198,14 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         filtered_saint_output = filtered_saint_output[
             filtered_saint_output['Prey'] != filtered_saint_output['Bait uniprot']
         ]
-    return filtered_saint_output.reset_index().drop(columns=['index'])
+    return filtered_saint_output.reset_index().drop(columns=['index']).to_json(orient='split')
 
 def saint_counts(filtered_output_json, figure_defaults, replicate_colors): 
-    count_df: pd.DataFrame = pd.read_json(filtered_output_json)['Bait'].\
+    count_df: pd.DataFrame = pd.read_json(filtered_output_json,orient='split')['Bait'].\
         value_counts().\
         to_frame(name='Prey count')
     count_df['Color'] = [
-        replicate_colors['non-contaminant']['samples'][index] for index in count_df.index.values
+        replicate_colors['sample groups'][index] for index in count_df.index.values
     ]
     return bar_graph.bar_plot(
         figure_defaults, 
