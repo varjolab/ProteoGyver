@@ -16,15 +16,15 @@ RUN mkdir /proteogyver
 #COPY app/update.sh /update.sh
 #COPY app /proteogyver
 # update indices
-RUN apt update -qq
-
+RUN apt-get update  -qq
+RUN apt-get -yq dist-upgrade
 # install R
-RUN apt install --no-install-recommends software-properties-common dirmngr
+RUN apt-get -yq install --no-install-recommends software-properties-common dirmngr
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
-RUN apt update -qq
-RUN apt install --no-install-recommends r-base r-cran-tidyvers
+RUN apt-get update -qq
+RUN apt-get -yq  install --no-install-recommends r-base r-cran-tidyvers
 
 
 # Expose ports (jupyterHub. dash)
