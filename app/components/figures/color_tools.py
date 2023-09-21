@@ -15,8 +15,10 @@ def get_assigned_colors(sample_group_dict: dict) -> dict:
     ret: dict = {'samples': {}, 'sample groups': group_colors}
     ret_cont: dict = {}
     for c in 'contaminant','non-contaminant':
-        ret_cont[c] = {'samples': {}, 'sample groups': group_colors}
+        ret_cont[c] = {'samples': {}, 'sample groups': {}}
     for i, (sample_group, sample_list) in enumerate(sample_group_dict.items()):
+        ret_cont['non-contaminant']['sample groups'][sample_group] = group_colors[sample_group]
+        ret_cont['contaminant']['sample groups'][sample_group] = darken(group_colors[sample_group],20)
         for sample_name in sample_list:
             ret['samples'][sample_name] = group_colors[sample_group]
             ret_cont['non-contaminant']['samples'][sample_name] = group_colors[sample_group]

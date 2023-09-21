@@ -1,6 +1,7 @@
-from pandas import DataFrame
 from dash_bio import Clustergram
 from dash.dcc import Graph
+from plotly import graph_objects as go
+from plotly import express as px
 
 def draw_clustergram(plot_data, defaults, color_map:list = None, **kwargs) -> Clustergram:
     """Draws a clustergram figure from the given plot_data data table.
@@ -28,3 +29,12 @@ def draw_clustergram(plot_data, defaults, color_map:list = None, **kwargs) -> Cl
         width=defaults['width'],
         **kwargs
     )
+
+def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict) -> Graph:
+    figure: go.Figure = px.imshow(matrix_df,
+                                    aspect='auto',
+                                    labels=dict(
+                                    x=matrix_df.columns.name,
+                                    y=matrix_df.index.name,
+                                    color=value_name))
+    return Graph(config=defaults['config'], figure=figure, id=f'heatmap-{plot_name}')

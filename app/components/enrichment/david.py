@@ -33,8 +33,8 @@ class handler():
        #     'DAVID GAD diseases': 'GAD_DISEASE',
         }
         self._nice_name: str = 'DAVID'
-        self._available: dict = {}
-        self._available['enrichment'] = sorted(list(self._names.keys()))
+        self._available: list = []
+        self._available = sorted(list(self._names.keys()))
         self._names_rev: dict = {v: k for k,v in self._names.items()}
 
     @property
@@ -63,11 +63,11 @@ class handler():
                 if data_type_key not in results:
                     results[data_type_key] = []
                 results_df.insert(1, 'Bait', bait)
-                results[data_type_key].append(results_df)
+                results[data_type_key].append((results_df, bait, preylist))
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
-        for annokey, result_dfs in results.items():
+        for annokey, (results_df, bait, preylist) in results.items():
             if annokey in self._names:
                 result_names.append(annokey)
                 result_df: pd.DataFrame = pd.concat(result_dfs)
@@ -75,7 +75,7 @@ class handler():
                     result_df.loc[:, 'log2_foldEnrichment'] = np.log2(
                         result_df['foldEnrichment'])
                 result_dataframes.append(('foldEnrichment', 'afdr', 'termName', result_df))
-                result_legends.append(annokey)
+                result_legends.append((annokey, f'Analysis completed through DAVID API. Annotation: {annokey}, Bait: {bait}, preylist: {", ".join(preylist)}'))
         return (result_names, result_dataframes, result_legends)
 
     def suds_to_dict(self, suds_item: Any) -> dict:

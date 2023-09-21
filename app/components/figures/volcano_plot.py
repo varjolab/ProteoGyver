@@ -26,7 +26,6 @@ def volcano_plot(
         highlight_only = set(data_table['Name'].values)
     data_table['Highlight'] = [row['Name'] if ((row['Significant']) & (row['Name'] in highlight_only))
                         else '' for _, row in data_table.iterrows()]
-    data_table.to_csv('DEBUG data_table.tsv',sep='\t')
     # Draw the volcano plot using plotly express
     fig: go.Figure = px.scatter(
         data_table,

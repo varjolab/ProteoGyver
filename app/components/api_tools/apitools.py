@@ -17,8 +17,9 @@ def is_newer(reference:str, new_date:str) -> bool:
 def get_save_location(databasename) -> str:
     base_location: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        'Datafiles'
+        'api_data'
     )
+    print(base_location)
     dir_name: str = os.path.join(base_location, databasename)
     if not os.path.isdir(dir_name):
         os.makedirs(dir_name)
@@ -52,7 +53,6 @@ def get_newest_file(directory, namefilter:str = None) -> str:
     # Initialize variables to store the name and modification time of the newest file
     newest_file: str = ''
     newest_time = datetime.min
-    directory: str = os.path.join(__file__.rsplit(os.sep)[0],'Datafiles',directory)
     for filename in os.listdir(directory):
         # Check if the file should be checked, if namefilter is set:
         if namefilter:
@@ -71,8 +71,8 @@ def get_newest_file(directory, namefilter:str = None) -> str:
 
 def get_nbibfile(databasename:str) -> str:
     nbibpath: str = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)).rsplit(os.sep,maxsplit=1)[0],
-        'data_assets',
+        os.path.dirname(os.path.realpath(__file__)),
+        'api_data',
         'nbibs',
         f'{databasename.lower()}.nbib')
     return nbibpath

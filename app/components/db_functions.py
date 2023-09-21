@@ -58,6 +58,21 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = 
         ret: list = cursor.fetchall()
     return ret
 
+def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, criteria_col:str, criteria:list,as_pandas:bool = True, select_col: str = None) -> Union[list, pd.DataFrame]:
+    """"""
+    cursor: sqlite3.Cursor = conn.cursor()
+    if select_col is None:
+        select_col = '*'
+    if isinstance(select_col, list):
+        select_col = f'({", ".join(select_col)})'
+    query: str = f'SELECT {select_col} FROM {table_name} WHERE {criteria_col} IN ({", ".join(["?" for _ in criteria])})'
+    if as_pandas:
+        ret: pd.DataFrame = pd.read_sql_query(query, con=conn, params=criteria)
+    else:
+        cursor.execute(query, criteria)
+        ret: list = cursor.fetchall()
+    return ret
+
 def get_contaminants(db_file: str, protein_list:list = None, error_file: str = None) -> list:
     """Retrieve contaminants from a database.
     :param db_file: database file

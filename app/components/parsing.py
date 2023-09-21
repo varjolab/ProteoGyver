@@ -9,6 +9,7 @@ import os
 import json
 from components import db_functions
 from importlib import util as import_util
+from components import EnrichmentAdmin as ea
 
 def update_nested_dict(base_dict, update_dict) -> dict:
     for key, value in update_dict.items():
@@ -36,7 +37,7 @@ def parse_parameters(parameters_file: str) -> dict:
         'is_disabled',
         1
         )
-    crapome_sets: list = db_functions.get_from_table(db_conn, 'control_sets', select_col = 'control_set_name')
+    crapome_sets: list = db_functions.get_from_table(db_conn, 'crapome_sets', select_col = 'crapome_set_name')
     default_crapome_sets: list = db_functions.get_from_table(
         db_conn,
         'crapome_sets',
@@ -52,29 +53,6 @@ def parse_parameters(parameters_file: str) -> dict:
         1
         )
     db_conn.close()
-    handler_names: list = []
-    enrichments: list = []
-    default_enrichments: list = []
-    disabled_enrichments: list = []
-    for enricher_mod in os.listdir(os.path.join(*parameters['Module paths']['Enrichers'])):
-        if enricher_mod.split('.')[-1] != 'py':
-            continue
-        filepath = os.path.join(*parameters['Module paths']['Enrichers'], enricher_mod)
-        spec = import_util.spec_from_file_location(
-            'module.name', filepath)
-        api_module = import_util.module_from_spec(spec)
-        spec.loader.exec_module(api_module)
-        handler = api_module.handler()
-
-        handler_names.append((handler.nice_name, filepath))
-        handler_enrichments:list = [
-            f'{handler.nice_name}: {e_type}' for e_type in handler.get_available()['enrichment']
-        ]
-        enrichments.extend(handler_enrichments)
-        if not 'david' in handler.nice_name.lower():
-            default_enrichments.extend([
-                f'{handler.nice_name}: {e_type}' for e_type in handler.get_default_panel()
-            ])
     parameters['External tools']['SAINT']['spc'] = [os.getcwd()]+parameters['External tools']['SAINT']['spc']
     parameters['External tools']['SAINT']['int'] = [os.getcwd()]+parameters['External tools']['SAINT']['int']
     parameters['workflow parameters']['interactomics'] = {}
@@ -89,10 +67,9 @@ def parse_parameters(parameters_file: str) -> dict:
         'default': default_control_sets
     }
     parameters['workflow parameters']['interactomics']['enrichment'] = {
-        'available': enrichments,
-        'default': default_enrichments,
-        'disabled': disabled_enrichments,
-        'handler names': handler_names
+        'available': ea.get_available(),
+        'default': ea.get_default(),
+        'disabled': ea.get_disabled()
     }
 
     return parameters
@@ -538,23 +515,41 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
 
     return return_dict
 
+def remove_from_table(table_name, table, discard_samples):
+    if table_name == 'experimental design':
+        table_without_discarded_samples = table[
+            ~table['Sample name'].isin(discard_samples)
+        ]
+    else:
+        table_without_discarded_samples = table[
+            [c for c in table.columns if c not in discard_samples]
+        ]
+    return table_without_discarded_samples
+
 def delete_samples(discard_samples, data_dictionary) -> dict:
     print(f'Implement sample deletion. Selected samples: {", ".join(discard_samples)}')
     for table_name, table_json in data_dictionary['data tables'].items():
         if table_name == 'table to use':
             continue
-        table_without_discarded_samples: pd.DataFrame = pd.read_json(table_json,orient='split')
-        if table_name == 'experimental design':
-            table_without_discarded_samples = table_without_discarded_samples[
-                ~table_without_discarded_samples['Sample name'].isin(discard_samples)
-            ]
+        elif table_name == 'with-contaminants':
+            for real_table_name, table_json in data_dictionary['data tables'][table_name].items():
+                table_without_discarded_samples: pd.DataFrame = remove_from_table(
+                    real_table_name,
+                    pd.read_json(table_json,orient='split'),
+                    discard_samples
+                    )
+            data_dictionary['data tables']['with-contaminants'][real_table_name] = table_without_discarded_samples.to_json(
+                orient='split'
+            )
         else:
-            table_without_discarded_samples = table_without_discarded_samples[
-                [c for c in table_without_discarded_samples.columns if c not in discard_samples]
-            ]
-        data_dictionary['data tables'][table_name] = table_without_discarded_samples.to_json(
-            orient='split'
-        )
+            table_without_discarded_samples: pd.DataFrame = remove_from_table(
+                    table_name,
+                    pd.read_json(table_json,orient='split'),
+                    discard_samples
+                    )
+            data_dictionary['data tables'][table_name] = table_without_discarded_samples.to_json(
+                orient='split'
+            )
     sg_dict: dict = {'norm': {}, 'rev': {}}
     for sample_group_name, sample_group_samples in data_dictionary['sample groups']['norm'].items():
         sg_dict['norm'][sample_group_name] = [

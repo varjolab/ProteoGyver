@@ -7,6 +7,7 @@ from io import StringIO
 from urllib.parse import quote
 from datetime import datetime
 
+
 class handler():
 
     _defaults: list = [
@@ -15,7 +16,7 @@ class handler():
             'Panther GOMF slim',
             'Panther GOCC slim'
         ]
-    _available:dict = {}
+    _available:list = []
     _names:dict =  {
         'Panther GO molecular function': 'GO:0003674',
         'Panther GO biological process': 'GO:0008150',
@@ -36,7 +37,7 @@ class handler():
         return self._nice_name
 
     def __init__(self, datasetfile:str = 'panther_datasets.json') -> None:
-        self._available['enrichment'] = sorted(list(self._names.keys()))
+        self._available = sorted(list(self._names.keys()))
         self._names_rev = {v: k for k,v in self._names.items()}
         if datasetfile:
             if os.path.isfile(datasetfile):
@@ -152,41 +153,25 @@ class handler():
         datasets = [self._datasets[d] for d in datasets]
         results: dict = {}
         legends: dict = {}
-        with open(os.path.join('debug','panther.txt'),'w') as fil:
-            for bait, preylist in data_lists:
-                for data_type_key, result in self.run_panther_overrepresentation_analysis(datasets, preylist).items():
-                    if data_type_key not in results:
-                        results[data_type_key] = []
-                        legends[data_type_key] = []
-                    fil.write(bait)
-                    fil.write('\n')
-                    fil.write(data_type_key)
-                    fil.write('\n')
-                    try:
-                        with open(os.path.join('debug',data_type_key + '.json'),'w') as fil2:
-                            json.dump(result,fil2,indent=4)
-                    except:
-                        pass
-                    fil.write(str(result))
-                    fil.write('\n')
-
-                    results_df: pd.DataFrame = result['Results']
-                    results_df.to_csv(os.path.join('debug','results_df.tsv'),sep='\t')
-                    results_df.insert(1, 'Bait', bait)
-                    results[data_type_key].append(results_df)
-                    legends[data_type_key].append(tuple(result[k] for k in result.keys() if k != 'Results'))
-                    fil.write(str(results_df.columns))
-                    fil.write('\n=====\n')
+        for bait, preylist in data_lists:
+            for data_type_key, result in self.run_panther_overrepresentation_analysis(datasets, preylist, bait).items():
+                results_df: pd.DataFrame = result['Results']
+                results_df.insert(1, 'Bait', bait)
+                if data_type_key not in results:
+                    results[data_type_key] = []
+                    legends[data_type_key] = []
+                results[data_type_key].append(results_df)
+                legends[data_type_key].append(result['Reference information'])
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
         for annokey, result_dfs in results.items():
             result_names.append(annokey)
             result_dataframes.append(('fold_enrichment', 'fdr','label', pd.concat(result_dfs)))
-            result_legends.append(list(set(legends[annokey])))
+            result_legends.append((annokey, '\n\n'.join(list(set(legends[annokey])))))
         return (result_names, result_dataframes, result_legends)
 
-    def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list,
+    def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list, data_set_name: str,
                                                 background_list: list = None,
                                                 organism: int = 9606,
                                                 test_type: str = 'FISHER',
@@ -215,7 +200,6 @@ class handler():
         ret: dict = {}
 
         for annotation, name, description in datasets:
-
             data: dict = {
                 'organism': organism,
                 'refOrganism': organism,
@@ -231,13 +215,12 @@ class handler():
             for key, value in data.items():
                 final_url += f'{key}={value}&'
             final_url = final_url.strip('&')
+            reference_string: str = f'PANTHER overrepresentation analysis for {data_set_name} with {name}\n----------\n'
             success: bool = False
             for i in range(20, 100, 20):
                 try:
                     request:requests.Response = requests.post(final_url, timeout=i)
                     req_json: dict = json.loads(request.text)
-                    with open('test.json','w') as fil:
-                        json.dump(req_json,fil)
                     success = True
                     break
                 except requests.exceptions.ReadTimeout:
@@ -245,7 +228,7 @@ class handler():
                 except requests.exceptions.ConnectionError:
                     continue
             try:
-                reference_string: str = f'PANTHERDB reference information:\nTool release date: \
+                reference_string += f'PANTHERDB reference information:\nTool release date: \
                     {req_json["results"]["tool_release_date"]}\nAnalysis run: {datetime.now()}\n'
             except KeyError as exc:
                 print(final_url)

@@ -28,6 +28,8 @@ parameters = parsing.parse_parameters('parameters.json')
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: list = db_functions.get_contaminants(db_file)
 
+
+
 @callback(
     Output('upload-data-file-success', 'style'),
     Output('uploaded-data-table-info','data'),
@@ -156,6 +158,8 @@ def toggle_discard_modal(n1, n2, is_open) -> bool:
     prevent_initial_call=True
 )
 def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
+    if n_clicks is None:
+        return no_update
     if n_clicks < 1:
         return no_update
     return chosen_samples
@@ -349,6 +353,36 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_file, compa
 
 
 @callback(
+    Output('interactomics-choose-uploaded-controls','value'),
+    [Input('interactomics-select-all-uploaded', 'value')],
+    [State('interactomics-choose-uploaded-controls', 'options')],
+    prevent_initial_call=True
+)
+def select_all_none_controls(all_selected, options) -> list:
+    all_or_none: list = [option['value'] for option in options if all_selected]
+    return all_or_none
+
+@callback(
+    Output('interactomics-choose-additional-control-sets','value'),
+    [Input('interactomics-select-all-inbuilt-controls', 'value')],
+    [State('interactomics-choose-additional-control-sets', 'options')],
+    prevent_initial_call=True
+)
+def select_all_none_inbuilt_controls(all_selected, options) -> list:
+    all_or_none: list = [option['value'] for option in options if all_selected]
+    return all_or_none
+
+@callback(
+    Output('interactomics-choose-crapome-sets','value'),
+    [Input('interactomics-select-all-crapomes', 'value')],
+    [State('interactomics-choose-crapome-sets', 'options')],
+    prevent_initial_call=True
+)
+def select_all_none_crapomes(all_selected, options) -> list:
+    all_or_none: list = [option['value'] for option in options if all_selected]
+    return all_or_none
+
+@callback(
     Output({'type': 'workflow-plot', 'id': 'interactomics-saint-container'},'children'),
     Output('interactomics-saint-input-data-store','data'),
     Output('interactomics-saint-crapome-data-store','data'),
@@ -362,6 +396,8 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_file, compa
 def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_controls: list, crapomes: list, uploaded_data: dict) -> html.Div:
     if nclicks is None:
         return (no_update,no_update,no_update)
+    if nclicks < 1:
+        return (no_update,no_update,no_update)
     return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file)
 
 @app.long_callback(
@@ -372,8 +408,11 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
 )
 def interactomics_run_saint(saint_input, data_dictionary):
     return interactomics.run_saint(
-        saint_input, parameters['External tools']['SAINT']['spc'],
-        parameters['Data paths']['Error log'], data_dictionary['other']['session name']
+        saint_input,
+        parameters['External tools']['SAINT']['spc'],
+        parameters['Data paths']['Error log'],
+        data_dictionary['other']['session name'],
+        data_dictionary['other']['bait uniprots']
     )
 @callback(
     Output('interactomics-saint-final-output-data-store','data'),
@@ -395,7 +434,7 @@ def interactomics_create_saint_filtering_container(saint_output_ready):
     if 'SAINT failed.' in saint_output_ready:
         return html.Div(id='saint-failed',children=saint_output_ready)
     else:
-        return ui.saint_filtering_container()
+        return ui.saint_filtering_container(parameters['Figure defaults']['half-height'])
     
 @callback(
     Output('interactomics-saint-bfdr-histogram','figure'),
@@ -434,6 +473,66 @@ def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
 )
 def interactomics_initiate_post_saint(_) -> html.Div:
     return ui.post_saint_cointainer()
+
+@callback(
+    Output('interactomics-saint-filtered-and-intensity-mapped-output-data-store','data'),
+    Input('interactomics-button-done-filtering','n_clicks'),
+    State('interactomics-saint-filtered-output-data-store','data'),
+    State('upload-data-store','data'),
+    prevent_initial_callback = True
+)
+def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary) -> str:
+    if (n_clicks is None):
+        return no_update
+    if (n_clicks < 1):
+        return no_update
+    return interactomics.map_intensity(unfiltered_saint_data, data_dictionary['data tables']['intensity'], data_dictionary['sample groups']['norm'])
+
+@callback(
+    Output('interactomics-known-loading','children'),
+    Output('interactomics-saint-filt-int-known-output-data-store','data'),
+    Input('interactomics-saint-filtered-and-intensity-mapped-output-data-store','data'),
+    State('replicate-colors-with-contaminants','data'),
+    prevent_initial_call=True
+)
+def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
+    return interactomics.known_plot(saint_output, db_file, rep_colors_with_cont, parameters['Figure defaults']['half-height'])
+
+@callback(
+    Output('interactomics-pca-loading','children'),
+    Output('interactomics-pca-data-store','data'),
+    Input('interactomics-saint-filt-int-known-output-data-store','data'),
+    State('interactomics-saint-filtered-output-data-store','data'),
+    prevent_initial_call=True
+
+)
+def interactomics_pca_plot(_, saint_data) -> html.Div:
+    return interactomics.pca(
+        saint_data,
+        parameters['Figure defaults']['full-height']
+    )
+@callback(
+    Output('interactomics-enrichment-loading','children'),
+    Output('interactomics-enrichment-data-store','data'),
+    Output('interactomics-enrichment-information-data-store','data'),
+    Input('interactomics-pca-data-store','data'),
+    State('interactomics-saint-filtered-output-data-store','data'),
+    State('interactomics-choose-enrichments','value'),
+    prevent_initial_call=True
+)
+def interactomics_enrichment(_, saint_output, chosen_enrichments):
+    return interactomics.enrich(saint_output, chosen_enrichments,parameters['Figure defaults']['full-height'])
+
+@callback(
+    Output('interactomics-network-loading','children'),
+    Output('interactomics-network-data-store','data'),
+    Input('interactomics-enrichment-data-store','data'),
+    State('interactomics-saint-filtered-output-data-store','data'),
+    prevent_initial_call=True
+)
+def interactomics_network_plot(_, saint_input):
+    return ('','')
+
 
 @callback(
     Output('toc-div','children'),

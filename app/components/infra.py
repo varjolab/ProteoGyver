@@ -26,18 +26,25 @@ data_store_export_configuration: dict = {
     'mean-data-store': ['xlsx','Data','Summary data','Value means;'],
     'distribution-data-store': ['xlsx','Data','Summary data','Value distribution;'],
     'commonality-data-store': ['json','Data','Commonality data',''],
-    'proteomics-na-filtered-data-store': ['xlsx','Data','Proteomics data tables','Proteomics NA filtered data;Sheet 2'],
-    'proteomics-normalization-data-store': ['xlsx','Data','Proteomics data tables','Proteomics NA-Normalized data;Sheet 1'],
-    'proteomics-imputation-data-store': ['xlsx','Data','Proteomics data tables','Proteomics NA-Norm-Imputed data;Sheet 0'],
-    'proteomics-distribution-data-store': ['xlsx','Data','Summary data','Proteomics sample distribution;'],
+    'proteomics-na-filtered-data-store': ['xlsx','Data','Proteomics data tables','NA filtered data;Sheet 2'],
+    'proteomics-normalization-data-store': ['xlsx','Data','Proteomics data tables','NA-Normalized data;Sheet 1'],
+    'proteomics-imputation-data-store': ['xlsx','Data','Proteomics data tables','NA-Norm-Imputed data;Sheet 0'],
+    'proteomics-distribution-data-store': ['xlsx','Data','Summary data','sample distribution;'],
     'proteomics-pca-data-store': ['xlsx','Data','Figure data','Proteomics PCA;'],
     'proteomics-clustermap-data-store': ['xlsx','Data','Figure data','Proteomics Clustermap;'],
     'proteomics-volcano-data-store': ['xlsx','Data','Significant differences between sample groups','volc-split;significants [sg] vs [cg]'],
     'interactomics-saint-input-data-store': ['xlsx','Data','SAINT input','saint-split'],
-    'interactomics-saint-crapome-data-store': ['xlsx','Data','Interactomics data tables','Crapome;Sheet 3'],
-    'interactomics-saint-output-data-store': ['xlsx','Data','Interactomics data tables','Saint output;Sheet 2'],
-    'interactomics-saint-final-output-data-store': ['xlsx','Data','Interactomics data tables','Saint output with crapome;Sheet 1'],
-    'interactomics-saint-filtered-output-data-store': ['xlsx','Data','Interactomics data tables','Filtered saint output;Sheet 0'],
+    'interactomics-enrichment-data-store': ['xlsx','Data','Enrichment','enrichment-split'],
+    'interactomics-network-data-store': ['xlsx','Data','Interactomics data tables','Network data;Sheet 8'],
+    'interactomics-pca-data-store': ['xlsx','Data','Interactomics data tables','PCA;Sheet 7'],
+    'interactomics-imputed-and-normalized-intensity': ['xlsx','Data','Interactomics data tables','ImpNorm intensities;Sheet 6'],
+    'interactomics-saint-crapome-data-store': ['xlsx','Data','Interactomics data tables','Crapome;Sheet 5'],
+    'interactomics-saint-output-data-store': ['xlsx','Data','Interactomics data tables','Saint output;Sheet 4'],
+    'interactomics-saint-final-output-data-store': ['xlsx','Data','Interactomics data tables','Saint output with crapome;Sheet 3'],
+    'interactomics-saint-filtered-output-data-store': ['xlsx','Data','Interactomics data tables','Filtered saint output;Sheet 2'],
+    'interactomics-saint-filtered-and-intensity-mapped-output-data-store': ['xlsx','Data','Interactomics data tables','Filt saint w intensities;Sheet 1'],
+    'interactomics-saint-filt-int-known-output-data-store': ['xlsx','Data','Interactomics data tables','Filt int saint w knowns;Sheet 0'],
+    'interactomics-enrichment-information-data-store': ['txt','Data','Enrichment information','enrich-split']
 }
 
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
@@ -59,6 +66,11 @@ def save_data_stores(data_stores, export_dir) -> None:
                 file_name = d['props']['id']
             with open(os.path.join(export_destination, file_name+'.json'), 'w', encoding='utf-8') as fil:
                 json.dump(d['props']['data'], fil, indent=2)
+        elif export_format == 'txt':
+            if file_config == 'enrich-split':
+                for enrichment_name, file_contents in d['props']['data']:
+                    with open(os.path.join(export_destination, f'{file_name} {enrichment_name}.{export_format}'),'w', encoding='utf-8') as fil:
+                        fil.write(file_contents)
         elif export_format == 'xlsx':
             file_name = os.path.join(export_destination, '.'.join([file_name, export_format]))
             if file_name not in export_excels:
@@ -75,11 +87,16 @@ def save_data_stores(data_stores, export_dir) -> None:
                 if not file_name in export_excels: 
                     export_excels[file_name] = {}
                 assert sheet_index not in export_excels[file_name], f'DUPLICATE INDEX IN EXCEL EXPORT: {sheet_name} and {export_excels[file_name][sheet_index]["name"]}'
-                export_excels[file_name][sheet_index] = {
-                    'name': sheet_name,
-                    'data': pd.read_json(d['props']['data'], orient='split'),
-                    'headers': True
-                }
+                try:
+                    export_excels[file_name][sheet_index] = {
+                        'name': sheet_name,
+                        'data': pd.read_json(d['props']['data'], orient='split'),
+                        'headers': True,
+                        'index': True
+                    }
+                except ValueError:
+                    print('ValueError:', file_name, sheet_index, sheet_name)
+                    continue
             else:
                 if file_config == 'upload-split':
                     sheet_index = 0
@@ -94,12 +111,13 @@ def save_data_stores(data_stores, export_dir) -> None:
                         export_excels[file_name][sheet_index] = {
                             'name': sheet_name,
                             'data': data_table_pd,
-                            'headers': True
+                            'headers': True,
+                            'index': True,
                         }
                         sheet_index += 1
                 elif file_config == 'saint-split':
                     export_excels[file_name] = {
-                        i: {'name': key, 'data': pd.DataFrame(value), 'headers': False}
+                        i: {'name': key, 'index': False, 'data': pd.DataFrame(value), 'headers': False}
                         for i, (key, value) in enumerate(d['props']['data'].items())
                     }
                 elif 'volc-split' in file_config: 
@@ -112,12 +130,14 @@ def save_data_stores(data_stores, export_dir) -> None:
                         df_dicts.append({
                             'name': f'{sample} vs {control} significant only',
                             'data': df[(df['Sample']==sample) & (df['Control']==control) & df['Significant']],
-                            'headers': True
+                            'headers': True,
+                            'index': True
                         })
                         df_dicts_all.append({
                             'name': f'{sample} vs {control}',
                             'data': df[(df['Sample']==sample) & (df['Control']==control)],
-                            'headers': True
+                            'headers': True,
+                            'index': True
                         })
                     if len(df_dicts) > 20:
                         for df_dict_index, df_dict in enumerate(df_dicts):
@@ -134,15 +154,20 @@ def save_data_stores(data_stores, export_dir) -> None:
                         export_excels[file_name] = {
                             i: df_dict  for i, df_dict in enumerate(df_dicts)
                         }
-                        
     no_index: set = {'Uploaded expdesign'}
                     
     for excel_name, excel_dict in export_excels.items():
+        if len(excel_dict.keys()) == 0:
+            print('No sheets',excel_name)
+            continue
         writer = pd.ExcelWriter(excel_name)
         for df_dict_index in sorted(list(excel_dict.keys())):
             if df_dict_index == 'config_info': continue
-            dic: pd.DataFrame = excel_dict[df_dict_index]
-            dic['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'], index=(dic['name'] not in no_index))
+            dic: dict = excel_dict[df_dict_index]
+            index_bool = dic['index']
+            if (dic['name'] in no_index):
+                index_bool = False
+            dic['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'], index=index_bool)
             #excel_dict[df_dict_index]['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'])
         writer.close()
 
@@ -216,16 +241,48 @@ def save_figures(analysis_divs, export_dir, output_formats) -> None:
             if output_format == 'html': continue
             go.Figure(fig).write_image(os.path.join(export_dir, f'{name}.{output_format}'))
 
+def format_nested_list(input_list: list):
+    if not isinstance(input_list, list):
+        return str(input_list)
+    rlist: list = []
+    for entry in input_list:
+        if isinstance(entry, list):
+            rlist.append(format_nested_list(entry))
+        else:
+            rlist.append(str(entry))
+    return ', '.join(rlist)
+
+def save_input_information(input_divs, export_dir) -> None:
+    these: list = [
+        'Slider',
+        'Select',
+        'Label',
+        'Checklist',
+        'RadioItems'
+    ]
+    input_options: list = []
+    labels_and_inputs: list = get_all_types(input_divs, these)
+    for i, label in enumerate(labels_and_inputs):
+        if label['type']!='Label':
+            continue
+        if len(label['props']['children']) < 4:
+            continue
+        input_options.append([label['props']['children'], labels_and_inputs[i+1]['props']['value']])
+    with open(os.path.join(export_dir, 'Options used in analysis.txt'),'w',encoding='utf-8') as fil:
+        for name, values in input_options:
+            val_str: str = format_nested_list(values)
+            if len(val_str) == 0:
+                val_str = 'None'
+            fil.write(f'{name} {val_str}\n')
 
 def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats) -> str:
     export_dir: str = os.path.join(*cache_dir, session_name)
-    with open('inputdivdump.json','w') as fil:
-        json.dump(input_divs, fil)
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
     save_data_stores(data_stores, export_dir)
     save_figures(analysis_divs, export_dir, figure_output_formats)
+    save_input_information(input_divs, export_dir)
     export_zip_name: str = export_dir.rstrip(os.sep) + '.zip'
     if os.path.isfile(export_zip_name):
         os.remove(export_zip_name)

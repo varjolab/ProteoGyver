@@ -91,7 +91,8 @@ def imputation(filtered_data_json, imputation_option, defaults, title:str=None) 
                     imputed_table,
                     defaults,
                     id_name = 'proteomics-imputation-plot',
-                    title=title
+                    title=title,
+                    
                 ),
                 legends['imputation']
             ]
@@ -159,7 +160,6 @@ def clustermap(imputed_data_json:dict, defaults: dict) -> tuple:
 def volcano_plots(imputed_data_json: dict, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
     data: DataFrame = pd_read_json(imputed_data_json, orient='split')
     significant_data: DataFrame = stats.differential(data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr)
-    significant_data.to_csv('DEBUG Sig data.tsv',sep='\t')
     graphs_div: html.Div = volcano_plot.generate_graphs(significant_data, defaults, fc_thr, p_thr, 'proteomics')
     return ([
                 html.H3(id='proteomics-volcano-header',children='Volcano plots'),

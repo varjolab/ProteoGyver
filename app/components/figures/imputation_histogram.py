@@ -26,4 +26,8 @@ def make_graph(non_imputed, imputed, defaults, id_name: str = None, title:str = 
         title=title,
         **kwargs
     )
+    figure.update_layout(
+        barmode='overlay'
+    )
+    figure.update_traces(opacity=0.75)
     return Graph(config=defaults['config'], id=id_name, figure=figure)

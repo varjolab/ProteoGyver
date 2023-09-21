@@ -31,7 +31,6 @@ def make_graph(graph_id: str, defaults:dict, plot_data: dict, title: str, num_pe
         y_title = 'Count',
         vertical_spacing = 0.1/max(1,(rows-1))#0.05 # 3 riviä = 0.05, 2 = 0.1 5 = 0.025
     )
-
     xmax: int = 3    
     current_row: int = 1
     current_col: int = 1
@@ -60,7 +59,7 @@ def make_graph(graph_id: str, defaults:dict, plot_data: dict, title: str, num_pe
         barmode='overlay',
         title = title,
         height = defaults['height'] * (rows) * 0.5,
-        width = defaults['width'],
+        width = defaults['width']
     )
     fig.update_xaxes(range=[-xmax, xmax], dtick=tick_distance)
     fig.update_traces(opacity=0.5)

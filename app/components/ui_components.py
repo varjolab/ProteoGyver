@@ -8,6 +8,7 @@ from typing import Any
 from components import tooltips, text_handling
 from numpy import log2
 from components.parsing import guess_control_samples
+from components.figures.figure_legends import INTERACTOMICS_LEGENDS as interactomics_legends
 
 HEADER_DICT: dict = {
     'component': {
@@ -365,6 +366,8 @@ def interactomics_control_col(all_sample_groups, chosen) -> dbc.Col:
                 all_sample_groups,
                 chosen,
                 id_prefix='interactomics',
+                id_only=True,
+                prefix_list = [dbc.Label('Choose uploaded controls:')]
             )
         ),
         html.Br(),
@@ -390,6 +393,8 @@ def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
                 controls_dict['default'],
                 disabled=controls_dict['disabled'],
                 id_prefix='interactomics',
+                id_only=True,
+                prefix_list = [dbc.Label('Choose additional control sets:')]
             )
         )
     ])
@@ -412,6 +417,8 @@ def interactomics_crapome_col(crapome_dict) -> dbc.Col:
                 crapome_dict['default'],
                 disabled=crapome_dict['disabled'],
                 id_prefix='interactomics',
+                id_only=True,
+                prefix_list = [dbc.Label('Choose Crapome sets:')]
             )
         )
     ])
@@ -425,6 +432,8 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
                 enrichment_dict['default'],
                 disabled=enrichment_dict['disabled'],
                 id_prefix='interactomics',
+                id_only=True,
+                prefix_list = [dbc.Label('Choose enrichments:')]
             )
         )
     ])
@@ -457,25 +466,41 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
         ]
     )
 
-def saint_filtering_container() -> list:
-    return [
-        dcc.Graph(id='interactomics-saint-bfdr-histogram'),
-        dcc.Graph(id='interactomics-saint-graph'),
-        dbc.Label('Saint BFDR threshold:'),
-        dcc.Slider(0, 0.1, 0.01, value=0.05,
-                id='interactomics-saint-bfdr-filter-threshold'),
-        dbc.Label('Crapome filtering percentage:'),
-        dcc.Slider(1, 100, 10, value=20,
-                id='interactomics-crapome-frequency-threshold'),
-        dbc.Label('SPC fold change vs crapome threshold for rescue'),
-        dcc.Slider(0, 10, 1, value=3,
-                id='interactomics-crapome-rescue-threshold'),
-        html.Div([dbc.Button('Done filtering',id='interactomics-button-done-filtering')])
-    ]
+def saint_filtering_container(defaults) -> list:
+    return html.Div(
+        id = {'type': 'input-div','id':'interactomics-saint-filtering-area'},
+        children = [
+            html.H4(id='interactomics-saint-histo-header',children='SAINT BFDR value distribution'),
+            dcc.Graph(id='interactomics-saint-bfdr-histogram', config=defaults['config']),
+            interactomics_legends['saint-histo'],
+            html.H4(id='interactomics-saint-filtered-counts-header',children='Filtered Prey counts per bait'),
+            dcc.Graph(id='interactomics-saint-graph', config=defaults['config']),
+            interactomics_legends['filtered-saint-counts'],
+            dbc.Label('Saint BFDR threshold:'),
+            dcc.Slider(0, 0.1, 0.01, value=0.05,
+                    id='interactomics-saint-bfdr-filter-threshold'),
+            dbc.Label('Crapome filtering percentage:'),
+            dcc.Slider(1, 100, 10, value=20,
+                    id='interactomics-crapome-frequency-threshold'),
+            dbc.Label('SPC fold change vs crapome threshold for rescue'),
+            dcc.Slider(0, 10, 1, value=3,
+                    id='interactomics-crapome-rescue-threshold'),
+            html.Div([dbc.Button('Done filtering',id='interactomics-button-done-filtering')])
+        ]
+    )
 
 def post_saint_cointainer() -> list:
     return [
-        html.Div(id={'type': 'workflow-area', 'id': 'interactomcis-count-plot-div'}),
+        html.Div(
+            id={'type': 'workflow-area', 'id': 'interactomcis-count-plot-div'},
+            children=[
+                dcc.Loading(id='interactomics-known-loading'),
+                dcc.Loading(id='interactomics-pca-loading'),
+                dcc.Loading(id='interactomics-enrichment-loading'),
+                dcc.Loading(id='interactomics-network-loading'),
+                dcc.Loading(id='interactomics-volcano-loading')
+            ]
+        ),
     ]
 
 def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:

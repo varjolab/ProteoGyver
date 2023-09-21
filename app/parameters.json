@@ -1,6 +1,7 @@
 {
     "file loading": {
-        "Maximum psm ever theoretically encountered": 5000
+        "Maximum psm ever theoretically encountered": 5000,
+        "Do not show in enrichment default": ["david"]
     },
     "workflow parameters": {
         "proteomics": {    
