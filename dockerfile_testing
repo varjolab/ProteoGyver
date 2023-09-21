@@ -33,7 +33,8 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
     r-cran-littler \
     r-base \
     r-base-dev \
-    r-recommended 
+    r-recommended \
+    redis
 
 RUN npm install -g configurable-http-proxy
 # User management
@@ -54,6 +55,7 @@ COPY jupyterhub.py /etc/jupyterhub/
 # Unpack database
 WORKDIR /proteogyver/data
 RUN unxz proteogyver.db.xz
+RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
 
 # Python installs
 WORKDIR /proteogyver/resources
