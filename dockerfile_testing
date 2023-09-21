@@ -15,47 +15,20 @@ RUN mkdir /proteogyver
 COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver
+# update indices
+RUN apt update -qq
 
-# Install and setup R and other software
-# Updates and packages
-RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
-    apt-get install -yq \
-    software-properties-common dirmngr wget
-RUN apt-get install -yq apt-utils software-properties-common locales \
-    git python3 python3-pip nodejs npm  \
-    dos2unix ca-certificates nano postgresql \
-    littler 
-
-
-# Python installs
-WORKDIR /proteogyver/resources
-RUN pip3 install --upgrade pip
-RUN pip3 install setuptools
-RUN pip3 install -r requirements.txt
-RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
-RUN npm install -g configurable-http-proxy
-
-# User management
-RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
-    echo "kamms:kamms" | chpasswd
-
-# Make SAINT executable
-WORKDIR /proteogyver/external/SAINTexpress
-RUN chmod 777 SAINTexpress-spc
-RUN chmod 777 SAINTexpress-int
-WORKDIR /
-
-# Put additional data where it should be
-COPY additional/data.tar /proteogyver/data.tar
-COPY additional/external.tar /proteogyver/external.tar
-WORKDIR /proteogyver
-RUN tar xf data.tar
-RUN tar xf external.tar
+# install R
+RUN apt install --no-install-recommends software-properties-common dirmngr
+RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
+RUN apt update -qq
+RUN apt install --no-install-recommends r-base r-cran-tidyvers
 
 
 # Expose ports (jupyterHub. dash)
 EXPOSE 8050
 
 # Finished.
-ENTRYPOINT ["/bin/bash", "/docker_entrypoint_testing.sh"]
+ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
