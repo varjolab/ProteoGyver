@@ -5,6 +5,7 @@ cd /proteogyver
 redis-cli shutdown
 killall celery
 redis-server --daemonize yes
+sleep 5
 #supervisorctl start celery
 celery -A app.celery_app worker --loglevel=DEBUG &
 sleep 15

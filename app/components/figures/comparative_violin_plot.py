@@ -3,7 +3,8 @@ from pandas import DataFrame
 from dash.dcc import Graph
 from plotly.graph_objects import Figure, Violin
 
-def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, replicate_colors: dict = None, title: str = None, showbox:bool = False) -> Graph:
+
+def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, replicate_colors: dict = None, points_visible: str = False, title: str = None, showbox: bool = False) -> Graph:
     if id_name is None:
         id_name: str = 'comparative-violin-plot'
     if isinstance(names, list):
@@ -28,20 +29,23 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
         }
     )
 
-
     figure: Figure = Figure()
     for sample_group in plot_df['Name'].unique():
-        trace_df: DataFrame = plot_df[plot_df['Name']==sample_group]
+        trace_df: DataFrame = plot_df[plot_df['Name'] == sample_group]
         figure.add_trace(
             Violin(
                 x=trace_df['Column'],
                 y=trace_df['Values'],
-                name = sample_group, 
+                name=sample_group,
                 line_color=replicate_colors['sample groups'][sample_group]
-             )
+            )
         )
-    figure.update_traces(box_visible = showbox, meanline_visible=True)
-    figure.update_layout(violinmode='group',
+    figure.update_traces(
+        box_visible=showbox,
+        points=points_visible,
+        meanline_visible=True)
+    figure.update_layout(
+        violinmode='group',
         height=defaults['height'],
         width=defaults['width']
     )

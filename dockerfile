@@ -34,7 +34,9 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
     r-base \
     r-base-dev \
     r-recommended 
-
+WORKDIR /proteogyver
+RUN sed -i 's\"/mnt", "c", "DATA", "PG cache"\"/proteogyver", "cache"\g' parameters.json  
+RUN mkdir /proteogyver/cache
 
 # Python installs
 WORKDIR /proteogyver/resources
