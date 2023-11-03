@@ -12,6 +12,7 @@ from components.infra import data_stores, notifiers, prepare_download
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
 import plotly.io as pio
+import logging
 
 # import DbEngine
 
@@ -28,6 +29,22 @@ server = app.server
 parameters = parsing.parse_parameters('parameters.json')
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: list = db_functions.get_contaminants(db_file)
+
+app.layout = html.Div([
+    ui.main_sidebar(
+        parameters['Possible values']['Figure templates'],
+        parameters['Possible values']['Implemented workflows']),
+    ui.modals(),
+    ui.main_content_div(),
+    data_stores(),
+    notifiers()
+])
+
+
+def main() -> None:
+    logging.basicConfig(filename='proteogyver.log', level=logging.DEBUG)
+    logging.debug(f'Proteogyver started: {datetime.now()}')
+    app.run(debug=True)
 
 
 @callback(
@@ -670,15 +687,5 @@ def download_all_data(nclicks, stores, analysis_divs, input_divs, main_data) -> 
     # DB dependent function
 
 
-app.layout = html.Div([
-    ui.main_sidebar(
-        parameters['Possible values']['Figure templates'],
-        parameters['Possible values']['Implemented workflows']),
-    ui.modals(),
-    ui.main_content_div(),
-    data_stores(),
-    notifiers()
-])
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    main()

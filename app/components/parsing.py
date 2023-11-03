@@ -11,6 +11,7 @@ from components import db_functions
 from importlib import util as import_util
 from components import EnrichmentAdmin as ea
 
+
 def update_nested_dict(base_dict, update_dict) -> dict:
     for key, value in update_dict.items():
         if isinstance(value, Mapping):
@@ -18,46 +19,53 @@ def update_nested_dict(base_dict, update_dict) -> dict:
         else:
             base_dict[key] = value
     return base_dict
+
+
 def parse_parameters(parameters_file: str) -> dict:
     with open(parameters_file, encoding='utf-8') as fil:
         parameters: dict = json.load(fil)
-    db_conn = db_functions.create_connection(os.path.join(*parameters['Data paths']['Database file']))
-    control_sets: list = db_functions.get_from_table(db_conn, 'control_sets', select_col = 'control_set_name')
+    db_conn = db_functions.create_connection(
+        os.path.join(*parameters['Data paths']['Database file']))
+    control_sets: list = db_functions.get_from_table(
+        db_conn, 'control_sets', select_col='control_set_name')
     default_control_sets: list = db_functions.get_from_table(
         db_conn,
         'control_sets',
         'control_set_name',
         'is_default',
         1
-        )
+    )
     disabled_control_sets: list = db_functions.get_from_table(
         db_conn,
         'control_sets',
         'control_set_name',
         'is_disabled',
         1
-        )
-    crapome_sets: list = db_functions.get_from_table(db_conn, 'crapome_sets', select_col = 'crapome_set_name')
+    )
+    crapome_sets: list = db_functions.get_from_table(
+        db_conn, 'crapome_sets', select_col='crapome_set_name')
     default_crapome_sets: list = db_functions.get_from_table(
         db_conn,
         'crapome_sets',
         'crapome_set_name',
         'is_default',
         1
-        )
+    )
     disabled_crapome_sets: list = db_functions.get_from_table(
         db_conn,
         'crapome_sets',
         'crapome_set_name',
         'is_disabled',
         1
-        )
+    )
     db_conn.close()
-    parameters['External tools']['SAINT']['spc'] = [os.getcwd()]+parameters['External tools']['SAINT']['spc']
-    parameters['External tools']['SAINT']['int'] = [os.getcwd()]+parameters['External tools']['SAINT']['int']
+    parameters['External tools']['SAINT']['spc'] = [
+        os.getcwd()]+parameters['External tools']['SAINT']['spc']
+    parameters['External tools']['SAINT']['int'] = [
+        os.getcwd()]+parameters['External tools']['SAINT']['int']
     parameters['workflow parameters']['interactomics'] = {}
     parameters['workflow parameters']['interactomics']['crapome'] = {
-        'available': crapome_sets, 
+        'available': crapome_sets,
         'disabled': disabled_crapome_sets,
         'default': default_crapome_sets
     }
@@ -74,6 +82,7 @@ def parse_parameters(parameters_file: str) -> dict:
 
     return parameters
 
+
 def get_distribution_title(used_table_type: str) -> str:
     if used_table_type == 'intensity':
         title: str = 'Log2 transformed value distribution'
@@ -81,13 +90,14 @@ def get_distribution_title(used_table_type: str) -> str:
         title = 'Value distribution'
     return title
 
+
 def read_dia_nn(data_table: pd.DataFrame) -> pd.DataFrame:
     """Reads dia-nn report file into an intensity matrix"""
     protein_col: str = 'Protein.Group'
-    protein_lengths:dict = None
+    protein_lengths: dict = None
     if 'Protein Length' in data_table.columns:
         protein_lengths = {}
-        for _,row in data_table[[protein_col,'Protein Length']].drop_duplicates().iterrows():
+        for _, row in data_table[[protein_col, 'Protein Length']].drop_duplicates().iterrows():
             protein_lengths[row[protein_col]] = row['Protein Length']
     is_report: bool = False
     for column in data_table.columns:
@@ -115,6 +125,7 @@ def read_dia_nn(data_table: pd.DataFrame) -> pd.DataFrame:
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
     return [table, pd.DataFrame({'No data': ['No data']}), protein_lengths]
+
 
 def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
     """Reads a fragpipe report into spc and intensity tables (if intensity values are available)"""
@@ -149,7 +160,7 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
     protein_col: str = 'Protein ID'
     if 'Protein Length' in data_table.columns:
         protein_lengths: dict = {}
-        for _,row in data_table[[protein_col,'Protein Length']].drop_duplicates().iterrows():
+        for _, row in data_table[[protein_col, 'Protein Length']].drop_duplicates().iterrows():
             protein_lengths[row[protein_col]] = row['Protein Length']
     else:
         protein_lengths = None
@@ -163,7 +174,7 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
         replace_str = 'Unique '
     spc_table: pd.DataFrame = table[spc_cols].rename(
         columns={ic: ic.replace(f'{replace_str}Spectral Count', '').strip()
-                for ic in spc_cols}
+                 for ic in spc_cols}
     )
     replace_str = ''
     if len(uniq_intensity_cols) > 0:
@@ -172,32 +183,33 @@ def read_fragpipe(data_table: pd.DataFrame) -> pd.DataFrame:
         intensity_table = pd.DataFrame({'No data': ['No data']})
     else:
         intensity_table.rename(
-        columns={ic: ic.replace(f'{replace_str}Intensity', '').replace('MaxLFQ', '').strip()
-                for ic in intensity_cols},
-        inplace=True)
+            columns={ic: ic.replace(f'{replace_str}Intensity', '').replace('MaxLFQ', '').strip()
+                     for ic in intensity_cols},
+            inplace=True)
     return (intensity_table, spc_table, protein_lengths)
+
 
 def read_matrix(
         data_table: pd.DataFrame,
-        is_spc_table:bool=False,
-        max_spc_ever:int=0
-        ) -> pd.DataFrame:
+        is_spc_table: bool = False,
+        max_spc_ever: int = 0
+) -> pd.DataFrame:
     """Reads a generic matrix into a data table. Either the returned SPC or intensity table is
     an empty dataframe.
-    
+
     Matrix is assumed to be SPC matrix, if the maximum value is smaller than max_spc_ever.
     """
     protein_id_column: str = 'Protein.Group'
     table: pd.DataFrame = data_table
     if protein_id_column not in table.columns:
         protein_id_column = table.columns[0]
-    protein_lengths:dict = None
-    protein_length_cols:list = ['PROTLEN','Protein Length','Protein.Length']
+    protein_lengths: dict = None
+    protein_length_cols: list = ['PROTLEN', 'Protein Length', 'Protein.Length']
     protein_length_cols.extend([x.lower() for x in protein_length_cols])
     for plencol in protein_length_cols:
         if plencol in table.columns:
             protein_lengths = {}
-            for _,row in table[[protein_id_column,plencol]].drop_duplicates().iterrows():
+            for _, row in table[[protein_id_column, plencol]].drop_duplicates().iterrows():
                 protein_lengths[row[protein_id_column]] = row[plencol]
             table = table.drop(columns=plencol)
             break
@@ -212,7 +224,7 @@ def read_matrix(
                 continue
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
-    table.drop(columns=[protein_id_column,],inplace=True)
+    table.drop(columns=[protein_id_column,], inplace=True)
     spc_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
     intensity_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
     if is_spc_table:
@@ -224,9 +236,10 @@ def read_matrix(
             intensity_table = table
     return (intensity_table, spc_table, protein_lengths)
 
-def read_df_from_content(content, filename, lowercase_columns = False) -> pd.DataFrame:
+
+def read_df_from_content(content, filename, lowercase_columns=False) -> pd.DataFrame:
     """Reads a dataframe from uploaded content.
-    
+
     Filenames ending with ".csv" are read as comma separated, filenames ending with ".tsv", ".tab"
     or ".txt" are read as tab-delimed files, and ".xlsx" and ".xls" are read as excel files.
     Filename ending identification is case-insensitive.
@@ -249,14 +262,15 @@ def read_df_from_content(content, filename, lowercase_columns = False) -> pd.Dat
         data.columns = [c.lower() for c in data.columns]
     return data
 
+
 def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
     """Determines and applies the appropriate read function to use for the given data file."""
     table: pd.DataFrame = read_df_from_content(file_contents, filename)
     read_funcs: dict[tuple[str, str]] = {
-            ('DIA', 'DIA-NN'): read_dia_nn,
-            ('DDA', 'FragPipe'): read_fragpipe,
-            ('DDA/DIA', 'Unknown'): read_matrix,
-        }
+        ('DIA', 'DIA-NN'): read_dia_nn,
+        ('DDA', 'FragPipe'): read_fragpipe,
+        ('DDA/DIA', 'Unknown'): read_matrix,
+    }
     data_type: tuple = None
     keyword_args: dict = {}
     if 'Protein.Ids' in table.columns:
@@ -271,19 +285,21 @@ def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
     intensity_table: pd.DataFrame
     spc_table: pd.DataFrame
     protein_length_dict: dict
-    intensity_table, spc_table, protein_length_dict = read_funcs[data_type](table, **keyword_args)
+    intensity_table, spc_table, protein_length_dict = read_funcs[data_type](
+        table, **keyword_args)
     intensity_table = remove_duplicate_protein_groups(intensity_table)
     spc_table = remove_duplicate_protein_groups(spc_table)
 
     info_dict: dict = {
         'protein lengths': protein_length_dict,
         'data type': data_type
-        }
+    }
     table_dict: dict = {
         'spc': spc_table.to_json(orient='split'),
         'int': intensity_table.to_json(orient='split'),
     }
     return table_dict, info_dict
+
 
 def guess_control_samples(sample_names: list) -> list:
     possible_control_samples: list = []
@@ -292,31 +308,37 @@ def guess_control_samples(sample_names: list) -> list:
             possible_control_samples.append(group_name)
     return possible_control_samples
 
+
 def parse_comparisons(control_group, comparison_file, comparison_file_name, sgroups) -> list:
     comparisons: list = []
     if control_group is None:
-        dataframe: pd.DataFrame = read_df_from_content(comparison_file, comparison_file_name, lowercase_columns = True)
-        scol:str = 'sample'
-        ccol:str = 'control'
+        dataframe: pd.DataFrame = read_df_from_content(
+            comparison_file, comparison_file_name, lowercase_columns=True)
+        scol: str = 'sample'
+        ccol: str = 'control'
         if ('sample' not in dataframe.columns) or ('control' not in dataframe.columns):
             scol, ccol = dataframe.columns[:2]
         for _, row in dataframe.iterrows():
             comparisons.append([row[scol], row[ccol]])
     else:
-        comparisons = [(sample, control_group) for sample in sgroups.keys()if sample != control_group]
+        comparisons = [(sample, control_group)
+                       for sample in sgroups.keys()if sample != control_group]
     return comparisons
+
 
 def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
     """Removes duplicate protein groups from a given data table by summing the values
     of numerical columns and using the first value of non-numerical columns."""
     aggfuncs: dict = {}
-    numerical_columns: set = set(data_table.select_dtypes(include=np.number).columns)
+    numerical_columns: set = set(
+        data_table.select_dtypes(include=np.number).columns)
     for column in data_table.columns:
         if column in numerical_columns:
             aggfuncs[column] = sum
         else:
             aggfuncs[column] = 'first'
-    return data_table.groupby(data_table.index).agg(aggfuncs).replace(0,np.nan)
+    return data_table.groupby(data_table.index).agg(aggfuncs).replace(0, np.nan)
+
 
 def parse_data_file(
         data_file_contents,
@@ -332,20 +354,22 @@ def parse_data_file(
         'File name': data_file_name
     }
     tables: dict
-    more_info:dict
+    more_info: dict
     tables, more_info = read_data_from_content(
         data_file_contents,
         data_file_name,
         parameters['Maximum psm ever theoretically encountered']
-        )
+    )
     for key, value in more_info.items():
         info[key] = value
     has_data: bool = False
     for _, table_data in tables.items():
         if isinstance(table_data, str):
             if table_data.count('No data') != 2:
-                data_table: pd.DataFrame = pd.read_json(table_data,orient='split')
-                numeric_columns: set = set(data_table.select_dtypes(include=np.number).columns)
+                data_table: pd.DataFrame = pd.read_json(
+                    table_data, orient='split')
+                numeric_columns: set = set(
+                    data_table.select_dtypes(include=np.number).columns)
                 if len(numeric_columns) >= 3:
                     has_data = True
     new_upload_style['background-color'] = 'green'
@@ -353,15 +377,18 @@ def parse_data_file(
         new_upload_style['background-color'] = 'red'
     return (new_upload_style, info, tables)
 
+
 def check_sample_table_column(column, accepted_values) -> str:
     for candidate in accepted_values:
         if candidate == column.lower():
             return column
     return None
-        
+
+
 def check_required_columns(columns) -> tuple:
     reqs_found: set = set()
-    needed_sample_info_columns: set = {('req', ('sample name', 'sample_name')),('req', ('sample group', 'sample_group')),('opt',('bait uniprot', 'bait_uniprot', 'bait_id', 'bait id'))}
+    needed_sample_info_columns: set = {('req', ('sample name', 'sample_name')), ('req', (
+        'sample group', 'sample_group')), ('opt', ('bait uniprot', 'bait_uniprot', 'bait_id', 'bait id'))}
     infodict: dict = {}
     for n in needed_sample_info_columns:
         for c in columns:
@@ -369,10 +396,11 @@ def check_required_columns(columns) -> tuple:
             if found is not None:
                 valname: str = n[1][0]
                 infodict[valname] = found
-                if n[0] == 'req': 
+                if n[0] == 'req':
                     reqs_found.add(valname)
                 break
     return (infodict, reqs_found)
+
 
 def parse_sample_table(
         data_file_contents,
@@ -386,9 +414,10 @@ def parse_sample_table(
         'Modified time': data_file_modified_data,
         'File name': data_file_name
     }
-    decoded_table: pd.DataFrame = read_df_from_content(data_file_contents, data_file_name)
+    decoded_table: pd.DataFrame = read_df_from_content(
+        data_file_contents, data_file_name)
     indicator_color: str = 'green'
-    if not ( (decoded_table.shape[1]>1) and (decoded_table.shape[0]>1) ):
+    if not ((decoded_table.shape[1] > 1) and (decoded_table.shape[0] > 1)):
         indicator_color = 'red'
     reqs_found: set
     additional_info: dict
@@ -403,9 +432,10 @@ def parse_sample_table(
 
     return (new_upload_style, info, decoded_table.to_json(orient='split'))
 
+
 def check_bait(bait_entry: str) -> str:
     """Checks if a string contains a valid bait name.
-    
+
     :returns: a string representation of the bait. 
     """
     bval: str = ''
@@ -415,9 +445,10 @@ def check_bait(bait_entry: str) -> str:
         bval = 'No bait uniprot'
     return bval
 
+
 def guess_controls(sample_groups: dict) -> tuple:
     """Guesses controls from sample groups.
-    
+
     Any samples with GFP in the name are assumed to be controls.
     :returns: tuple of (list of control sample groups, list of control samples)
     """
@@ -429,11 +460,13 @@ def guess_controls(sample_groups: dict) -> tuple:
             control_samples.append(samples)
     return (control_groups, control_samples)
 
+
 def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list) -> dict:
     """Formats data formats into usable form and produces a data dictionary for later use"""
 
-    intensity_table: pd.DataFrame = pd.read_json(data_tables['int'],orient='split')
-    spc_table: pd.DataFrame = pd.read_json(data_tables['spc'],orient='split')
+    intensity_table: pd.DataFrame = pd.read_json(
+        data_tables['int'], orient='split')
+    spc_table: pd.DataFrame = pd.read_json(data_tables['spc'], orient='split')
     expdesign: pd.DataFrame = pd.read_json(expdes_table, orient='split')
 
     sample_groups: dict
@@ -446,20 +479,24 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
     spc_table = spc_table[sorted(list(spc_table.columns))]
 
     if len(intensity_table.columns) > 1:
-        intensity_table = intensity_table[sorted(list(intensity_table.columns))]
+        intensity_table = intensity_table[sorted(
+            list(intensity_table.columns))]
         untransformed_intensity_table: pd.DataFrame = intensity_table
         intensity_table = intensity_table.apply(np.log2)
     else:
         untransformed_intensity_table = intensity_table
-    
+
     wcont_spc_table: pd.DataFrame = spc_table
     wcont_untransformed_intensity_table: pd.DataFrame = untransformed_intensity_table
     wcont_intensity_table: pd.DataFrame = intensity_table
     if len(contaminants_to_remove) > 0:
-        spc_table = spc_table.loc[[i for i in spc_table.index if i not in contaminants_to_remove]]
-        untransformed_intensity_table = untransformed_intensity_table.loc[[i for i in untransformed_intensity_table.index if i not in contaminants_to_remove]]
-        intensity_table = intensity_table.loc[[i for i in intensity_table.index if i not in contaminants_to_remove]]
-    
+        spc_table = spc_table.loc[[
+            i for i in spc_table.index if i not in contaminants_to_remove]]
+        untransformed_intensity_table = untransformed_intensity_table.loc[[
+            i for i in untransformed_intensity_table.index if i not in contaminants_to_remove]]
+        intensity_table = intensity_table.loc[[
+            i for i in intensity_table.index if i not in contaminants_to_remove]]
+
     experiment_type = 'Proteomics/Phosphoproteomics'
     if 'bait uniprot' in expdes_info:
         experiment_type = 'Interactomics'
@@ -476,7 +513,7 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
                 'spc': wcont_spc_table.to_json(orient='split'),
                 'intensity': wcont_intensity_table.to_json(orient='split'),
             }
-        }, 
+        },
         'info': {
             'discarded columns': discarded_columns,
             'used columns': used_columns,
@@ -500,20 +537,23 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
     }
     if 'Bait uniprot' in expdesign.columns:
         return_dict['other']['bait uniprots'] = {}
-        for _,row in expdesign.iterrows():
-            return_dict['other']['bait uniprots'][row['Sample group']] = check_bait(row['Bait uniprot'])
+        for _, row in expdesign.iterrows():
+            return_dict['other']['bait uniprots'][row['Sample group']
+                                                  ] = check_bait(row['Bait uniprot'])
         return_dict['info']['Expdes based experiment type'] = 'Interactomics'
 
     if len(intensity_table.columns) < 2:
         return_dict['data tables']['table to use'] = 'spc'
-        return_dict['other']['all proteins'] =  list(spc_table.index)
+        return_dict['other']['all proteins'] = list(spc_table.index)
     else:
         return_dict['data tables']['table to use'] = 'intensity'
-        return_dict['other']['all proteins'] =  list(intensity_table.index)
+        return_dict['other']['all proteins'] = list(intensity_table.index)
 
-    return_dict['sample groups']['guessed control samples'] = guess_controls(sample_groups)
+    return_dict['sample groups']['guessed control samples'] = guess_controls(
+        sample_groups)
 
     return return_dict
+
 
 def remove_from_table(table_name, table, discard_samples):
     if table_name == 'experimental design':
@@ -526,8 +566,10 @@ def remove_from_table(table_name, table, discard_samples):
         ]
     return table_without_discarded_samples
 
+
 def delete_samples(discard_samples, data_dictionary) -> dict:
-    print(f'Implement sample deletion. Selected samples: {", ".join(discard_samples)}')
+    print(
+        f'Implement sample deletion. Selected samples: {", ".join(discard_samples)}')
     for table_name, table_json in data_dictionary['data tables'].items():
         if table_name == 'table to use':
             continue
@@ -535,18 +577,18 @@ def delete_samples(discard_samples, data_dictionary) -> dict:
             for real_table_name, table_json in data_dictionary['data tables'][table_name].items():
                 table_without_discarded_samples: pd.DataFrame = remove_from_table(
                     real_table_name,
-                    pd.read_json(table_json,orient='split'),
+                    pd.read_json(table_json, orient='split'),
                     discard_samples
-                    )
-            data_dictionary['data tables']['with-contaminants'][real_table_name] = table_without_discarded_samples.to_json(
-                orient='split'
-            )
+                )
+                data_dictionary['data tables']['with-contaminants'][real_table_name] = table_without_discarded_samples.to_json(
+                    orient='split'
+                )
         else:
             table_without_discarded_samples: pd.DataFrame = remove_from_table(
-                    table_name,
-                    pd.read_json(table_json,orient='split'),
-                    discard_samples
-                    )
+                table_name,
+                pd.read_json(table_json, orient='split'),
+                discard_samples
+            )
             data_dictionary['data tables'][table_name] = table_without_discarded_samples.to_json(
                 orient='split'
             )
@@ -563,20 +605,21 @@ def delete_samples(discard_samples, data_dictionary) -> dict:
 
     return data_dictionary
 
+
 def rename_columns_and_update_expdesign(
         expdesign: pd.DataFrame,
         tables: list) -> tuple:
     """Modified expdes and data tables to discard samples not mentioned in the sample table.
-    
+
     :returns: tuple of (sample_groups, discarded columns, used_columns)
     """
     # Get rid of file paths and timstof .d -file extension, if present:
     expdesign['Sample name'] = [
-        oldvalue.rsplit('\\', maxsplit=1)[-1]\
-            .rsplit('/', maxsplit=1)[-1]\
-            .rstrip('.d') for oldvalue in expdesign['Sample name'].values
+        oldvalue.rsplit('\\', maxsplit=1)[-1]
+        .rsplit('/', maxsplit=1)[-1]
+        .rstrip('.d') for oldvalue in expdesign['Sample name'].values
     ]
-    discarded_columns:list = []
+    discarded_columns: list = []
     sample_groups: dict = {}
     sample_group_columns: dict = {}
     rev_intermediate_renaming: list = []
@@ -593,14 +636,14 @@ def rename_columns_and_update_expdesign(
                 col = col.rsplit(
                     '\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
                 if col not in expdesign['Sample name'].values:
-                    col = col.rsplit('.d',maxsplit=1)[0]
+                    col = col.rsplit('.d', maxsplit=1)[0]
                     if col not in expdesign['Sample name'].values:
                         # Discard column if not found
                         discarded_columns.append(col)
                         continue
             intermediate_renaming[column_name] = col
             sample_group: str = expdesign[expdesign['Sample name']
-                                        == col].iloc[0]['Sample group']
+                                          == col].iloc[0]['Sample group']
             # If no value is available for sample in the expdesign
             # (but sample column name is there for some reason), discard column
             if pd.isna(sample_group):
@@ -610,14 +653,16 @@ def rename_columns_and_update_expdesign(
             if newname[0].isdigit():
                 newname = f'Sample_{newname}'
             if newname not in sample_group_columns:
-                sample_group_columns[newname] = [[] for _ in range(len(tables))]
+                sample_group_columns[newname] = [[]
+                                                 for _ in range(len(tables))]
             sample_group_columns[newname][table_ind].append(col)
         if len(intermediate_renaming.keys()) > 0:
-            table.rename(columns=intermediate_renaming, inplace = True)
-        rev_intermediate_renaming[-1] = {value: key for key,value in intermediate_renaming.items()}
+            table.rename(columns=intermediate_renaming, inplace=True)
+        rev_intermediate_renaming[-1] = {value: key for key,
+                                         value in intermediate_renaming.items()}
     column_renames: list = [{} for _ in range(len(tables))]
     used_columns: list = [{} for _ in range(len(tables))]
-    
+
     for nname, list_of_all_table_columns in sample_group_columns.items():
         first_len: int = 0
         for table_index, table_columns in enumerate(list_of_all_table_columns):
@@ -646,11 +691,12 @@ def rename_columns_and_update_expdesign(
         for sample in samples:
             sample_groups['rev'][sample] = group
     for table_index, table in enumerate(tables):
-        rename_columns: dict = {value: key for key, value in column_renames[table_index].items()}
+        rename_columns: dict = {value: key for key,
+                                value in column_renames[table_index].items()}
         table.drop(
-            columns= [c for c in table.columns if c not in rename_columns],
+            columns=[c for c in table.columns if c not in rename_columns],
             inplace=True
-            )
+        )
         table.rename(columns=rename_columns, inplace=True)
 
     return (sample_groups, discarded_columns, used_columns)
@@ -658,7 +704,7 @@ def rename_columns_and_update_expdesign(
 
 def validate_basic_inputs(*args) -> bool:
     """Validates the basic inputs of proteogyver"""
-    not_valid:bool = False
+    not_valid: bool = False
     for arg in args:
         if arg is None:
             not_valid = True
