@@ -2,7 +2,7 @@ version: "3"
 
 services:
   pg:
-    image: pgtesting:prod
+    image: pgtesting:production
     container_name: pg
     ports:
       - 8090:8090
@@ -11,7 +11,8 @@ services:
     environment:
       - TZ=Europe/Helsinki
   pg:
-    image: pgtesting:testing
+    #image: pgtesting:testing
+    image: pgtesting:newui
     container_name: pg
     ports:
       - 8060:8050
