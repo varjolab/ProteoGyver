@@ -11,13 +11,13 @@ from datetime import datetime
 class handler():
 
     _defaults: list = [
-            'Panther Reactome pathways',
-            'Panther GOBP slim',
-            'Panther GOMF slim',
-            'Panther GOCC slim'
-        ]
-    _available:list = []
-    _names:dict =  {
+        'Panther Reactome pathways',
+        'Panther GOBP slim',
+        'Panther GOMF slim',
+        'Panther GOCC slim'
+    ]
+    _available: list = []
+    _names: dict = {
         'Panther GO molecular function': 'GO:0003674',
         'Panther GO biological process': 'GO:0008150',
         'Panther GO cellular component': 'GO:0005575',
@@ -36,17 +36,17 @@ class handler():
     def nice_name(self) -> str:
         return self._nice_name
 
-    def __init__(self, datasetfile:str = 'panther_datasets.json') -> None:
+    def __init__(self, datasetfile: str = 'panther_datasets.json') -> None:
         self._available = sorted(list(self._names.keys()))
-        self._names_rev = {v: k for k,v in self._names.items()}
+        self._names_rev = {v: k for k, v in self._names.items()}
         if datasetfile:
             if os.path.isfile(datasetfile):
                 with open(datasetfile) as fil:
                     datasets: dict = json.load(fil)
             else:
                 datasets = self.get_pantherdb_datasets()
-                with open(datasetfile,'w',encoding='utf-8') as fil:
-                    json.dump(datasets,fil)
+                with open(datasetfile, 'w', encoding='utf-8') as fil:
+                    json.dump(datasets, fil)
         for annotation, (name, description) in datasets.items():
             realname: str = self._names_rev[annotation]
             self._datasets[realname] = [annotation, name, description]
@@ -61,15 +61,15 @@ class handler():
     def get_pantherdb_datasets(self, ) -> list:
         """Retrieves all available pantherDB datasets and returns them in a list of [annotation, \
             annotation_name, annotation_description]"""
-        success:bool = False
+        success: bool = False
         for i in range(20, 100, 20):
             try:
-                request:requests.Response = requests.get(
+                request: requests.Response = requests.get(
                     'http://pantherdb.org/services/oai/pantherdb/supportedannotdatasets',
                     timeout=i
                 )
                 types: dict = json.loads(request.text)
-                success=True
+                success = True
                 break
             except requests.exceptions.ReadTimeout:
                 continue
@@ -84,7 +84,6 @@ class handler():
             description: str = entry['description']
             datasets[annotation] = (name, description)
         return datasets
-
 
     def __get_species_from_panther_datafiles(self, request: str, species_list: list) -> list:
         """Parses out wanted species datafiles from panther request
@@ -106,10 +105,9 @@ class handler():
             datafilelist: list = ndat
         return datafilelist
 
-
     def retrieve_pantherdb_gene_classification(self, species: list = None,
-                                            savepath: str = 'PANTHER datafiles',
-                                            progress: bool = False) -> None:
+                                               savepath: str = 'PANTHER datafiles',
+                                               progress: bool = False) -> None:
         """Downloads PANTHER gene classification files for desired organisms.
 
         Will not download, if files with the same name already exist in the save directory.
@@ -122,7 +120,8 @@ class handler():
         pantherpath: str = 'http://data.pantherdb.org/ftp/sequence_classifications/current_release/\
             PANTHER_Sequence_Classification_files/'
         request: requests.Response = requests.get(pantherpath, timeout=10)
-        datafilelist: list = self.__get_species_from_panther_datafiles(request, species)
+        datafilelist: list = self.__get_species_from_panther_datafiles(
+            request, species)
         if not os.path.isdir(savepath):
             os.makedirs(savepath)
         already_have: set = set(os.listdir(savepath))
@@ -133,7 +132,8 @@ class handler():
             if f'{line}.tsv' not in already_have:
                 filepath: str = f'http://data.pantherdb.org/ftp/sequence_classifications/\
                     current_release/PANTHER_Sequence_Classification_files/{line}'
-                request_2: requests.Response = requests.get(filepath, timeout=10)
+                request_2: requests.Response = requests.get(
+                    filepath, timeout=10)
                 dataframe: pd.DataFrame = pd.read_csv(
                     StringIO(request_2.text), sep='\t', names=panther_headers)
                 dataframe.to_csv(os.path.join(
@@ -142,10 +142,11 @@ class handler():
                 #   fil.write(r2.text)
             if progress:
                 print(f'{line} done, {len(datafilelist)-(i+1)} left')
+
     def get_default_panel(self) -> list:
         return self._defaults
-    
-    def enrich(self, data_lists:list, options: str) -> list:
+
+    def enrich(self, data_lists: list, options: str) -> list:
         if options == 'defaults':
             datasets: list = self.get_default_panel()
         else:
@@ -167,8 +168,10 @@ class handler():
         result_legends: list = []
         for annokey, result_dfs in results.items():
             result_names.append(annokey)
-            result_dataframes.append(('fold_enrichment', 'fdr','label', pd.concat(result_dfs)))
-            result_legends.append((annokey, '\n\n'.join(list(set(legends[annokey])))))
+            result_dataframes.append(
+                ('fold_enrichment', 'fdr', 'label', pd.concat(result_dfs)))
+            result_legends.append(
+                (annokey, '\n\n'.join(list(set(legends[annokey])))))
         return (result_names, result_dataframes, result_legends)
 
     def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list, data_set_name: str,
@@ -219,7 +222,8 @@ class handler():
             success: bool = False
             for i in range(20, 100, 20):
                 try:
-                    request:requests.Response = requests.post(final_url, timeout=i)
+                    request: requests.Response = requests.post(
+                        final_url, timeout=i)
                     req_json: dict = json.loads(request.text)
                     success = True
                     break
@@ -227,14 +231,14 @@ class handler():
                     continue
                 except requests.exceptions.ConnectionError:
                     continue
+            if not success:
+                ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': pd.DataFrame(),
+                                                    'Reference information': 'PANTHER failed.'}
+                continue
             try:
                 reference_string += f'PANTHERDB reference information:\nTool release date: \
                     {req_json["results"]["tool_release_date"]}\nAnalysis run: {datetime.now()}\n'
             except KeyError as exc:
-                print(final_url)
-                print(annotation)
-                print(name)
-                print(description)
                 raise exc
             reference_string += (
                 f'Enrichment test type: '
@@ -268,11 +272,8 @@ class handler():
                 f'{", ".join(req_json["results"]["input_list"]["mapped_id"])}\n'
             )
             reference_string += '-----\n'
-            if not success:
-                ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': pd.DataFrame(),
-                            'Reference information': reference_string}
-                continue
-            results: pd.DataFrame = pd.DataFrame(req_json['results']['result'])  # .keys()
+            results: pd.DataFrame = pd.DataFrame(
+                req_json['results']['result'])  # .keys()
             results = results.join(pd.DataFrame(list(results['term'].values))).\
                 drop(columns=['term'])
             results.loc[:, 'DB'] = self._names_rev[annotation]
@@ -284,5 +285,5 @@ class handler():
             results = results[order]
 
             ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': results,
-                            'Reference information': reference_string}
+                                                'Reference information': reference_string}
         return ret

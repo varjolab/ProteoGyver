@@ -8,7 +8,7 @@ from dash.long_callback import CeleryLongCallbackManager
 from dash import html, callback, Dash, no_update, ALL, dcc
 from dash.dependencies import Input, Output, State
 from components import ui_components as ui
-from components.infra import data_stores, notifiers, prepare_download
+from components.infra import data_stores, notifiers, prepare_download, NUM_DATA_STORES, working_data_stores
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
 import plotly.io as pio
@@ -37,8 +37,26 @@ app.layout = html.Div([
     ui.modals(),
     ui.main_content_div(),
     data_stores(),
-    notifiers()
+    notifiers(),
+    working_data_stores()
 ])
+
+
+@callback(
+    #  Output('workflow-stores', 'children'),
+    # Output({'type': 'data-store', 'name': ALL}, 'clear_data'),
+    Output('start-analysis-notifier', 'children'),
+    Input('begin-analysis-button', 'n_clicks'),
+    prevent_initial_call=True
+)
+def clear_data_stores(begin_clicks):
+    '''Clears all data stores before analysis begins'''
+
+    logging.debug(
+        f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
+    # return (tuple(True for _ in range(NUM_DATA_STORES)), '')
+    # return (working_data_stores(), '')
+    return ''
 
 
 def main() -> None:
@@ -49,8 +67,10 @@ def main() -> None:
 
 @callback(
     Output('upload-data-file-success', 'style'),
-    Output('uploaded-data-table-info', 'data'),
-    Output('uploaded-data-table', 'data'),
+    Output({'type': 'uploaded-data-store',
+           'name': 'uploaded-data-table-info-data-store'}, 'data'),
+    Output({'type': 'uploaded-data-store',
+           'name': 'uploaded-data-table-data-store'}, 'data'),
     Input('upload-data-file', 'contents'),
     State('upload-data-file', 'filename'),
     State('upload-data-file', 'last_modified'),
@@ -67,8 +87,10 @@ def handle_uploaded_data_table(file_contents, file_name, mod_date, current_uploa
 
 @callback(
     Output('upload-sample_table-file-success', 'style'),
-    Output('uploaded-sample-table-info', 'data'),
-    Output('uploaded-sample-table', 'data'),
+    Output({'type': 'uploaded-data-store',
+           'name': 'uploaded-sample-table-info-data-store'}, 'data'),
+    Output({'type': 'uploaded-data-store',
+           'name': 'uploaded-sample-table-data-store'}, 'data'),
     Input('upload-sample_table-file', 'contents'),
     State('upload-sample_table-file', 'filename'),
     State('upload-sample_table-file', 'last_modified'),
@@ -82,13 +104,18 @@ def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upl
 
 
 @callback(
-    Output('upload-data-store', 'data', allow_duplicate=True),
+    Output({'type': 'data-store', 'name': 'upload-data-store'},
+           'data', allow_duplicate=True),
     Output('button-download-all-data', 'disabled'),
-    Input('begin-analysis-button', 'n_clicks'),
-    State('uploaded-data-table', 'data'),
-    State('uploaded-data-table-info', 'data'),
-    State('uploaded-sample-table', 'data'),
-    State('uploaded-sample-table-info', 'data'),
+    Input('start-analysis-notifier', 'children'),
+    State({'type': 'uploaded-data-store',
+          'name': 'uploaded-data-table-data-store'}, 'data'),
+    State({'type': 'uploaded-data-store',
+          'name': 'uploaded-data-table-info-data-store'}, 'data'),
+    State({'type': 'uploaded-data-store',
+          'name': 'uploaded-sample-table-data-store'}, 'data'),
+    State({'type': 'uploaded-data-store',
+          'name': 'uploaded-sample-table-info-data-store'}, 'data'),
     State('figure-theme-dropdown', 'value'),
     State('sidebar-remove-common-contaminants', 'value'),
     prevent_initial_call=True
@@ -107,9 +134,10 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
 
 
 @callback(
-    Output('upload-data-store', 'data', allow_duplicate=True),
-    Input('discard-samples', 'data'),
-    State('upload-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'upload-data-store'},
+           'data', allow_duplicate=True),
+    Input({'type': 'data-store', 'name': 'discard-samples-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def remove_samples(discard_samples_list, data_dictionary) -> dict:
@@ -121,7 +149,7 @@ def remove_samples(discard_samples_list, data_dictionary) -> dict:
 @callback(
     Output({'type': 'analysis-div', 'id': 'qc-analysis-area'}, 'children'),
     Output('discard-samples-div', 'hidden'),
-    Input('replicate-colors', 'data'),
+    Input({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def create_qc_area(_) -> tuple:
@@ -130,9 +158,10 @@ def create_qc_area(_) -> tuple:
 
 
 @callback(
-    Output('replicate-colors', 'data'),
-    Output('replicate-colors-with-contaminants', 'data'),
-    Input('upload-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    Output({'type': 'data-store',
+           'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def assign_replicate_colors(data_dictionary) -> dict:
@@ -141,8 +170,10 @@ def assign_replicate_colors(data_dictionary) -> dict:
 
 @callback(
     Output('begin-analysis-button', 'disabled'),
-    Input('uploaded-data-table-info',
-          'data'), Input('uploaded-sample-table-info', 'data'),
+    Input({'type': 'uploaded-data-store', 'name': 'uploaded-data-table-info-data-store'},
+          'data'),
+    Input({'type': 'uploaded-data-store',
+          'name': 'uploaded-sample-table-info-data-store'}, 'data'),
     Input('workflow-dropdown', 'value'), Input('figure-theme-dropdown', 'value'),
     Input('upload-data-file-success',
           'style'), Input('upload-data-file-success', 'style'),
@@ -157,7 +188,7 @@ def check_inputs(*args) -> bool:
     Output('discard-sample-checklist-container', 'children'),
     Input('discard-samples-button',
           'n_clicks'), State({'type': 'qc-plot', 'id': 'count-plot-div'}, 'children'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def open_discard_samples_modal(_, count_plot: list, data_dictionary: dict) -> tuple[bool, list]:
@@ -181,7 +212,7 @@ def toggle_discard_modal(n1, n2, is_open) -> bool:
 
 
 @callback(
-    Output('discard-samples', 'data'),
+    Output({'type': 'data-store', 'name': 'discard-samples-data-store'}, 'data'),
     Input('done-discarding-button', 'n_clicks'),
     State('checklist-select-samples-to-discard', 'value'),
     prevent_initial_call=True
@@ -196,10 +227,10 @@ def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'count-plot-div'},
-           'children'), Output('count-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'count-data-store'}, 'data'),
     Input('qc-area', 'children'),
-    State('upload-data-store',
-          'data'), State('replicate-colors-with-contaminants', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'},
+          'data'), State({'type': 'data-store', 'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
@@ -214,9 +245,9 @@ def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'coverage-plot-div'},
-           'children'), Output('coverage-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'coverage-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'count-plot-div'},
-          'children'), State('upload-data-store', 'data'),
+          'children'), State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def coverage_plot(_, data_dictionary: dict) -> tuple:
@@ -229,9 +260,9 @@ def coverage_plot(_, data_dictionary: dict) -> tuple:
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'reproducibility-plot-div'},
-           'children'), Output('reproducibility-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'reproducibility-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'coverage-plot-div'},
-          'children'), State('upload-data-store', 'data'),
+          'children'), State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def reproducibility_plot(_, data_dictionary: dict) -> tuple:
@@ -245,9 +276,10 @@ def reproducibility_plot(_, data_dictionary: dict) -> tuple:
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'missing-plot-div'},
-           'children'), Output('missing-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'missing-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'reproducibility-plot-div'}, 'children'),
-    State('upload-data-store', 'data'), State('replicate-colors', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
+        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def missing_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
@@ -261,9 +293,10 @@ def missing_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'sum-plot-div'},
-           'children'), Output('sum-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'sum-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'missing-plot-div'}, 'children'),
-    State('upload-data-store', 'data'), State('replicate-colors', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
+        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def sum_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
@@ -277,9 +310,10 @@ def sum_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'mean-plot-div'},
-           'children'), Output('mean-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'mean-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'sum-plot-div'}, 'children'),
-    State('upload-data-store', 'data'), State('replicate-colors', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
+        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def mean_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
@@ -293,9 +327,10 @@ def mean_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'distribution-plot-div'},
-           'children'), Output('distribution-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'distribution-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'mean-plot-div'}, 'children'),
-    State('upload-data-store', 'data'), State('replicate-colors', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
+        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
@@ -312,9 +347,9 @@ def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'commonality-plot-div'},
-           'children'), Output('commonality-data-store', 'data'),
+           'children'), Output({'type': 'data-store', 'name': 'commonality-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'distribution-plot-div'}, 'children'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def commonality_plot(_, data_dictionary: dict) -> tuple:
@@ -338,9 +373,9 @@ def qc_done(_) -> str:
 @callback(
     Output({'type': 'workflow-plot',
            'id': 'proteomics-filtering-plot-div'}, 'children'),
-    Output('proteomics-na-filtered-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
     Input('proteomics-loading-filtering', 'children'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State('proteomics-filter-minimum-percentage', 'value'),
     prevent_initial_call=True
 )
@@ -351,8 +386,9 @@ def proteomics_filtering_plot(_, uploaded_data: dict, filtering_percentage: int)
 @callback(
     Output({'type': 'workflow-plot',
            'id': 'proteomics-normalization-plot-div'}, 'children'),
-    Output('proteomics-normalization-data-store', 'data'),
-    Input('proteomics-na-filtered-data-store', 'data'),
+    Output({'type': 'data-store',
+           'name': 'proteomics-normalization-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
     Input('proteomics-normalization-radio-option', 'value'),
     prevent_initial_call=True
 )
@@ -365,8 +401,8 @@ def proteomics_normalization_plot(filtered_data: dict, normalization_option: str
 @callback(
     Output({'type': 'workflow-plot',
            'id': 'proteomics-imputation-plot-div'}, 'children'),
-    Output('proteomics-imputation-data-store', 'data'),
-    Input('proteomics-normalization-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
     Input('proteomics-imputation-radio-option', 'value'),
     prevent_initial_call=True
 )
@@ -378,9 +414,9 @@ def proteomics_imputation_plot(normalized_data: dict, imputation_option: str) ->
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-pca-plot-div'}, 'children'),
-    Output('proteomics-pca-data-store', 'data'),
-    Input('proteomics-imputation-data-store', 'data'),
-    State('upload-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'proteomics-pca-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def proteomics_pca_plot(imputed_data: dict, upload_dict: dict) -> html.Div:
@@ -390,9 +426,9 @@ def proteomics_pca_plot(imputed_data: dict, upload_dict: dict) -> html.Div:
 @callback(
     Output({'type': 'workflow-plot',
            'id': 'proteomics-clustermap-plot-div'}, 'children'),
-    Output('proteomics-clustermap-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'proteomics-clustermap-data-store'}, 'data'),
     Output('workflow-done-notifier', 'children'),
-    Input('proteomics-imputation-data-store', 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def proteomics_clustermap(imputed_data: dict) -> html.Div:
@@ -401,13 +437,13 @@ def proteomics_clustermap(imputed_data: dict) -> html.Div:
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-volcano-plot-div'}, 'children'),
-    Output('proteomics-volcano-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'proteomics-volcano-data-store'}, 'data'),
     Output('workflow-volcanoes-done-notifier', 'children'),
-    Input('proteomics-imputation-data-store', 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     Input('proteomics-control-dropdown', 'value'),
     Input('proteomics-comparison-table-upload', 'data'),
     Input('proteomics-comparison-table-upload', 'filename'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     Input('proteomics-fc-value-threshold', 'value'),
     Input('proteomics-p-value-threshold', 'value'),
     prevent_initial_call=True
@@ -461,13 +497,15 @@ def select_all_none_crapomes(all_selected, options) -> list:
 @callback(
     Output({'type': 'workflow-plot',
            'id': 'interactomics-saint-container'}, 'children'),
-    Output('interactomics-saint-input-data-store', 'data'),
-    Output('interactomics-saint-crapome-data-store', 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-input-data-store'}, 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-crapome-data-store'}, 'data'),
     Input('button-run-saint-analysis', 'n_clicks'),
     State('interactomics-choose-uploaded-controls', 'value'),
     State('interactomics-choose-additional-control-sets', 'value'),
     State('interactomics-choose-crapome-sets', 'value'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_controls: list, crapomes: list, uploaded_data: dict) -> html.Div:
@@ -479,9 +517,10 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
 
 
 @app.long_callback(
-    Output('interactomics-saint-output-data-store', 'data'),
-    Input('interactomics-saint-input-data-store', 'data'),
-    State('upload-data-store', 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-output-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-saint-input-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_run_saint(saint_input, data_dictionary):
@@ -495,9 +534,11 @@ def interactomics_run_saint(saint_input, data_dictionary):
 
 
 @callback(
-    Output('interactomics-saint-final-output-data-store', 'data'),
-    Input('interactomics-saint-output-data-store', 'data'),
-    State('interactomics-saint-crapome-data-store', 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-saint-output-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-crapome-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_add_crapome_to_saint(saint_output, crapome):
@@ -508,7 +549,8 @@ def interactomics_add_crapome_to_saint(saint_output, crapome):
 
 @callback(
     Output('interactomics-saint-filtering-container', 'children'),
-    Input('interactomics-saint-final-output-data-store', 'data'),
+    Input({'type': 'data-store',
+          'name': 'interactomics-saint-final-output-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_create_saint_filtering_container(saint_output_ready):
@@ -521,18 +563,21 @@ def interactomics_create_saint_filtering_container(saint_output_ready):
 @callback(
     Output('interactomics-saint-bfdr-histogram', 'figure'),
     Input('interactomics-saint-filtering-container', 'children'),
-    State('interactomics-saint-final-output-data-store', 'data')
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-final-output-data-store'}, 'data')
 )
 def interactomics_draw_saint_histogram(container_ready: list, saint_output: str):
     return interactomics.saint_histogram(saint_output, parameters['Figure defaults']['half-height'])
 
 
 @callback(
-    Output('interactomics-saint-filtered-output-data-store', 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     Input('interactomics-saint-bfdr-filter-threshold', 'value'),
     Input('interactomics-crapome-frequency-threshold', 'value'),
     Input('interactomics-crapome-rescue-threshold', 'value'),
-    State('interactomics-saint-final-output-data-store', 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-final-output-data-store'}, 'data'),
     # prevent_initial_call=True
 )
 def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentage: int, crapome_fc: int, saint_output: str):
@@ -541,8 +586,9 @@ def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentag
 
 @callback(
     Output('interactomics-saint-graph', 'figure'),
-    Input('interactomics-saint-filtered-output-data-store', 'data'),
-    State('replicate-colors', 'data'),
+    Input({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
@@ -553,7 +599,7 @@ def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
     Output({'type': 'analysis-div',
            'id': 'interactomics-analysis-post-saint-area'}, 'children'),
     Input('interactomics-button-done-filtering', 'n_clicks'),
-    # State('interactomics-saint-final-output-data-store','data'),
+    # State({'type': 'data-store', 'name': 'interactomics-saint-final-output-data-store'},'data'),
     prevent_initial_call=True
 )
 def interactomics_initiate_post_saint(_) -> html.Div:
@@ -561,10 +607,12 @@ def interactomics_initiate_post_saint(_) -> html.Div:
 
 
 @callback(
-    Output('interactomics-saint-filtered-and-intensity-mapped-output-data-store', 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-filtered-and-intensity-mapped-output-data-store'}, 'data'),
     Input('interactomics-button-done-filtering', 'n_clicks'),
-    State('interactomics-saint-filtered-output-data-store', 'data'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_callback=True
 )
 def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary) -> str:
@@ -577,9 +625,12 @@ def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary
 
 @callback(
     Output('interactomics-known-loading', 'children'),
-    Output('interactomics-saint-filt-int-known-output-data-store', 'data'),
-    Input('interactomics-saint-filtered-and-intensity-mapped-output-data-store', 'data'),
-    State('replicate-colors-with-contaminants', 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-filt-int-known-output-data-store'}, 'data'),
+    Input({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-and-intensity-mapped-output-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
@@ -588,9 +639,11 @@ def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
 
 @callback(
     Output('interactomics-pca-loading', 'children'),
-    Output('interactomics-pca-data-store', 'data'),
-    Input('interactomics-saint-filt-int-known-output-data-store', 'data'),
-    State('interactomics-saint-filtered-output-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'interactomics-pca-data-store'}, 'data'),
+    Input({'type': 'data-store',
+          'name': 'interactomics-saint-filt-int-known-output-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True
 
 )
@@ -603,10 +656,13 @@ def interactomics_pca_plot(_, saint_data) -> html.Div:
 
 @callback(
     Output('interactomics-enrichment-loading', 'children'),
-    Output('interactomics-enrichment-data-store', 'data'),
-    Output('interactomics-enrichment-information-data-store', 'data'),
-    Input('interactomics-pca-data-store', 'data'),
-    State('interactomics-saint-filtered-output-data-store', 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-enrichment-data-store'}, 'data'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-enrichment-information-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-pca-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     State('interactomics-choose-enrichments', 'value'),
     prevent_initial_call=True
 )
@@ -616,9 +672,10 @@ def interactomics_enrichment(_, saint_output, chosen_enrichments):
 
 @callback(
     Output('interactomics-network-loading', 'children'),
-    Output('interactomics-network-data-store', 'data'),
-    Input('interactomics-enrichment-data-store', 'data'),
-    State('interactomics-saint-filtered-output-data-store', 'data'),
+    Output({'type': 'data-store', 'name': 'interactomics-network-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-enrichment-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_network_plot(_, saint_input):
@@ -643,7 +700,7 @@ def table_of_contents(_, __, ___, main_div_contents: list) -> html.Div:
     Output('workflow-specific-div', 'children'),
     Input('qc-done-notifier', 'children'),
     State('workflow-dropdown', 'value'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True,
 )
 def workflow_area(_, workflow: str, data_dictionary: dict) -> html.Div:
@@ -673,14 +730,16 @@ def download_data_table_example(_) -> dict:
 @callback(
     Output('download-all-data', 'data'),
     Input('button-download-all-data', 'n_clicks'),
-    State('dcc-stores', 'children'),
+    State('input-stores', 'children'),
+    State('workflow-stores', 'children'),
     State({'type': 'analysis-div', 'id': ALL}, 'children'),
     State({'type': 'input-div', 'id': ALL}, 'children'),
-    State('upload-data-store', 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def download_all_data(nclicks, stores, analysis_divs, input_divs, main_data) -> dict:
+def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_data) -> dict:
     figure_output_formats = ['html', 'png', 'pdf']
+    stores: list = stores + stores2
     export_zip_name: str = prepare_download(
         stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats)
     return dcc.send_file(export_zip_name)

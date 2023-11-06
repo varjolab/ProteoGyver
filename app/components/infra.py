@@ -10,14 +10,14 @@ import pandas as pd
 
 
 data_store_export_configuration: dict = {
-    'uploaded-data-table-info': ['json', 'Debug', '', ''],
-    'uploaded-data-table': ['xlsx', 'Data', 'Input data tables', 'upload-split'],
-    'uploaded-sample-table-info': ['json', 'Debug', '', ''],
-    'uploaded-sample-table': ['xlsx', 'Data', 'Input data tables', 'Uploaded expdesign;Sheet 3'],
+    'uploaded-data-table-info-data-store': ['json', 'Debug', '', ''],
+    'uploaded-data-table-data-store': ['xlsx', 'Data', 'Input data tables', 'upload-split'],
+    'uploaded-sample-table-info-data-store': ['json', 'Debug', '', ''],
+    'uploaded-sample-table-data-store': ['xlsx', 'Data', 'Input data tables', 'Uploaded expdesign;Sheet 3'],
     'upload-data-store': ['json', 'Debug', '', ''],
-    'replicate-colors': ['json', 'Debug', '', ''],
-    'replicate-colors-with-contaminants': ['json', 'Debug', '', ''],
-    'discard-samples': ['json', 'Debug', '', ''],
+    'replicate-colors-data-store': ['json', 'Debug', '', ''],
+    'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
+    'discard-samples-data-store': ['json', 'Debug', '', ''],
     'count-data-store': ['xlsx', 'Data', 'Summary data', 'Protein counts;'],
     'coverage-data-store': ['xlsx', 'Data', 'Summary data', 'Protein coverage;'],
     'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
@@ -48,6 +48,8 @@ data_store_export_configuration: dict = {
 }
 
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
+# number of data stores minus the uploaded-data-store data store types (e.g. uploaded-data-table, which can not be cleared when pressing the begin analysis -button)
+NUM_DATA_STORES = len(DATA_STORE_IDS) - 4
 
 
 def save_data_stores(data_stores, export_dir) -> None:
@@ -60,13 +62,13 @@ def save_data_stores(data_stores, export_dir) -> None:
         file_name: str
         file_config: str
         export_format, export_subdir, file_name, file_config = data_store_export_configuration[
-            d['props']['id']]
+            d['props']['id']['name']]
         export_destination: str = os.path.join(export_dir, export_subdir)
         if not os.path.isdir(export_destination):
             os.makedirs(export_destination)
         if export_format == 'json':
             if file_name == '':
-                file_name = d['props']['id']
+                file_name = d['props']['id']['name']
             with open(os.path.join(export_destination, file_name+'.json'), 'w', encoding='utf-8') as fil:
                 json.dump(d['props']['data'], fil, indent=2)
         elif export_format == 'txt':
@@ -321,12 +323,25 @@ def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_
 
 def data_stores() -> html.Div:
     """Returns all the needed data store components"""
+    stores: list = []
+    for ID_STR in DATA_STORE_IDS:
+        if 'uploaded' in ID_STR:
+            stores.append(
+                dcc.Store(id={'type': 'uploaded-data-store', 'name': ID_STR}))
     return html.Div(
-        id='dcc-stores',
-        children=[
-            dcc.Store(id=ID_STR) for ID_STR in DATA_STORE_IDS
-        ]
+        id='input-stores',
+        children=stores
     )
+
+
+def working_data_stores() -> html.Div:
+    """Returns all the needed data store components"""
+    stores: list = []
+    for ID_STR in DATA_STORE_IDS:
+        if 'uploaded' in ID_STR:
+            continue
+        stores.append(dcc.Store(id={'type': 'data-store', 'name': ID_STR}))
+    return html.Div(id='workflow-stores', children=stores)
 
 
 def notifiers() -> html.Div:
@@ -334,6 +349,7 @@ def notifiers() -> html.Div:
     return html.Div(
         id='notifiers-div',
         children=[
+            html.Div(id='start-analysis-notifier'),
             html.Div(id='qc-done-notifier'),
             html.Div(id='workflow-done-notifier'),
             html.Div(id='workflow-volcanoes-done-notifier')
