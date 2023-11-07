@@ -454,6 +454,8 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
     if 'Bait uniprot' in filtered_saint_output.columns:
         print('removing baits')
         print(filtered_saint_output.shape)
+
+        # Immplement multiple baits per file, e.g. for fusions?
         filtered_saint_output = filtered_saint_output[
             filtered_saint_output['Prey'] != filtered_saint_output['Bait uniprot']
         ]

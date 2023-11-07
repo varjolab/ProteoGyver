@@ -7,6 +7,9 @@ from plotly import graph_objects as go
 import shutil
 import json
 import pandas as pd
+from datetime import datetime
+import logging
+logger = logging.getLogger(__name__)
 
 
 data_store_export_configuration: dict = {
@@ -52,9 +55,11 @@ data_store_export_configuration: dict = {
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
 
 
-def save_data_stores(data_stores, export_dir) -> None:
+def save_data_stores(data_stores, export_dir) -> dict:
     export_excels: dict = {}
     timestamps: dict = {}
+    prev_time: datetime = datetime.now()
+    logger.debug(f'save data stores - started: {prev_time}')
     for d in data_stores:
         if not 'data' in d['props']:
             continue
@@ -106,7 +111,8 @@ def save_data_stores(data_stores, export_dir) -> None:
                         'index': True
                     }
                 except ValueError:
-                    print('ValueError:', file_name, sheet_index, sheet_name)
+                    logger.debug(
+                        f'save data stores - ValueError: {file_name} {sheet_index} {sheet_name}: {prev_time}')
                     continue
             else:
                 if file_config == 'upload-split':
@@ -169,29 +175,58 @@ def save_data_stores(data_stores, export_dir) -> None:
                         export_excels[file_name] = {
                             i: df_dict for i, df_dict in enumerate(df_dicts)
                         }
+        logger.debug(
+            f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
+        prev_time: datetime = datetime.now()
+
     no_index: set = {'Uploaded expdesign'}
 
+    logger.debug(
+        f'save data stores - writing excels: {datetime.now() - prev_time}')
+    prev_time: datetime = datetime.now()
     for excel_name, excel_dict in export_excels.items():
+        start_excel_time: datetime = prev_time
         if len(excel_dict.keys()) == 0:
             print('No sheets', excel_name)
             continue
-        writer = pd.ExcelWriter(excel_name)
-        for df_dict_index in sorted(list(excel_dict.keys())):
-            if df_dict_index == 'config_info':
-                continue
-            dic: dict = excel_dict[df_dict_index]
-            index_bool = dic['index']
-            if (dic['name'] in no_index):
-                index_bool = False
-            dic['data'].to_excel(writer, sheet_name=dic['name'],
-                                 header=dic['headers'], index=index_bool)
-            # excel_dict[df_dict_index]['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'])
-        writer.close()
+        with pd.ExcelWriter(excel_name, engine="xlsxwriter") as writer:
+            # writer = pd.ExcelWriter(excel_name)
+            for df_dict_index in sorted(list(excel_dict.keys())):
+                if df_dict_index == 'config_info':
+                    continue
+                dic: dict = excel_dict[df_dict_index]
+                index_bool = dic['index']
+                if (dic['name'] in no_index):
+                    index_bool = False
+                logger.debug(
+                    f'save data stores - sheet {excel_name}: {dic["name"]} shape: {dic["data"].shape}: {datetime.now() - prev_time}')
+                logger.debug(
+                    f'save data stores - sheet {excel_name}: {dic["name"]} headers: {dic["headers"]}: {datetime.now() - prev_time}')
+                logger.debug(
+                    f'save data stores - sheet {excel_name}: {dic["name"]} index: {index_bool}: {datetime.now() - prev_time}')
+                dic['data'].to_csv(excel_name.replace(
+                    '.xlsx', f'_{dic["name"]}.tsv'), sep='\t')
+                dic['data'].fillna('').to_excel(writer, sheet_name=dic['name'],
+                                                header=dic['headers'], index=index_bool)
+                logger.debug(
+                    f'save data stores - sheet {excel_name}: {dic["name"]} done: {datetime.now() - prev_time}')
+                prev_time: datetime = datetime.now()
+
+                # excel_dict[df_dict_index]['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'])
+            logger.debug(
+                f'save data stores - closing writer {excel_name}: {datetime.now() - start_excel_time}')
+            prev_time: datetime = datetime.now()
+        # writer.close()
+        logger.debug(
+            f'save data stores - finished with {excel_name}. Took: {datetime.now() - start_excel_time}')
+        prev_time: datetime = datetime.now()
     print(json.dumps(timestamps, indent=2))
     return timestamps
 
 
-def get_all_props(elements, marker_key, match_partial=True):
+def get_all_props(elements, marker_key, match_partial=True) -> list:
+    logger.debug(f'fetching props {elements}: {datetime.now()}')
+    prev_time: datetime = datetime.now()
     ret: list = []
     if isinstance(elements, dict):
         mkey: str = None
@@ -209,10 +244,14 @@ def get_all_props(elements, marker_key, match_partial=True):
     elif isinstance(elements, list):
         for e in elements:
             ret.extend(get_all_props(e, marker_key, match_partial))
+    logger.debug(
+        f'fetching props {elements} - done: {datetime.now() - prev_time}')
     return ret
 
 
-def get_all_types(elements, get_types):
+def get_all_types(elements, get_types) -> list:
+    logger.debug(f'fetching types {elements}: {datetime.now()}')
+    prev_time: datetime = datetime.now()
     ret = []
     if isinstance(elements, dict):
         # return [elements]
@@ -229,10 +268,14 @@ def get_all_types(elements, get_types):
     elif isinstance(elements, list):
         for e in elements:
             ret.extend(get_all_types(e, get_types))
+    logger.debug(
+        f'fetching types {elements} - done: {datetime.now() - prev_time}')
     return ret
 
 
 def save_figures(analysis_divs, export_dir, output_formats) -> None:
+    logger.debug(f'saving figures: {datetime.now()}')
+    prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
         analysis_divs, ['h4', 'graph', 'P'])
     figure_names_and_figures: list = []
@@ -247,6 +290,9 @@ def save_figures(analysis_divs, export_dir, output_formats) -> None:
                         figure, config=graph['props']['config'])
                     figure_names_and_figures.append(
                         [header['props']['children'], legend['props']['children'], figure_html, figure])
+    logger.debug(
+        f'saving figures - figures identified: {len(figure_names_and_figures)}: {datetime.now() - prev_time}')
+    prev_time: datetime = datetime.now()
 
     for name, legend, fig_html, fig in figure_names_and_figures:
         if 'html' in output_formats:
@@ -269,6 +315,10 @@ def save_figures(analysis_divs, export_dir, output_formats) -> None:
                 continue
             go.Figure(fig).write_image(os.path.join(
                 export_dir, f'{name}.{output_format}'))
+        logger.debug(
+            f'saving figures - writing: {name}.{output_format}: {datetime.now() - prev_time}')
+        prev_time: datetime = datetime.now()
+    logger.debug(f'saving figures - done: {datetime.now() - prev_time}')
 
 
 def format_nested_list(input_list: list):
@@ -284,6 +334,8 @@ def format_nested_list(input_list: list):
 
 
 def save_input_information(input_divs, export_dir) -> None:
+    logger.debug(f'saving input info: {datetime.now()}')
+    prev_time: datetime = datetime.now()
     these: list = [
         'Slider',
         'Select',
@@ -309,9 +361,12 @@ def save_input_information(input_divs, export_dir) -> None:
             if len(val_str) == 0:
                 val_str = 'None'
             fil.write(f'{name} {val_str}\n')
+    logger.debug(f'saving input info - done: {datetime.now() - prev_time}')
 
 
 def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats) -> str:
+    logger.debug(f'preparing download: {datetime.now()}')
+    prev_time: datetime = datetime.now()
     export_dir: str = os.path.join(*cache_dir, session_name)
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
@@ -319,11 +374,18 @@ def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_
     timestamps: dict = save_data_stores(data_stores, export_dir)
     save_figures(analysis_divs, export_dir, figure_output_formats)
     save_input_information(input_divs, export_dir)
+    logger.debug(
+        f'preparing download - finished exporting, making zip now: {datetime.now() - prev_time}')
+    prev_time: datetime = datetime.now()
     export_zip_name: str = export_dir.rstrip(os.sep) + '.zip'
     if os.path.isfile(export_zip_name):
         os.remove(export_zip_name)
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
+    logger.debug(
+        f'preparing download - zip made, removing leftover data: {datetime.now() - prev_time}')
+    prev_time: datetime = datetime.now()
     shutil.rmtree(export_dir)
+    logger.debug(f'preparing download - done: {datetime.now() - prev_time}')
     return export_zip_name
 
 

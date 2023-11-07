@@ -55,9 +55,8 @@ COPY jupyterhub.py /etc/jupyterhub/
 # Unpack database
 WORKDIR /proteogyver/data
 RUN unxz proteogyver.db.xz
-RUN mkdir /etc
-RUN mkdir /etc/supervisor
-RUN mkdir /etc/supervisor/conf.d
+
+RUN mkdir -p /etc/supervisor/conf.d
 RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
 
 # Python installs

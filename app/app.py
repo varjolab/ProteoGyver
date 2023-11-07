@@ -60,7 +60,10 @@ def clear_data_stores(begin_clicks):
 
 
 def main() -> None:
-    logging.basicConfig(filename='proteogyver.log', level=logging.DEBUG)
+    if not os.path.isdir('logs'):
+        os.makedirs('logs')
+    logging.basicConfig(filename=os.path.join(
+        'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.DEBUG)
     logging.debug(f'Proteogyver started: {datetime.now()}')
     app.run(debug=True)
 
