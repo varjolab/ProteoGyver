@@ -68,7 +68,7 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
                 html.H4(id='interactomics-known-header',
                         children='Identified known interactions'),
                 bar_graph.make_graph(
-                    'qc-count-plot',
+                    'interactomics-saint-filt-int-known-graph',
                     figure_defaults,
                     figure_data,
                     '', color_discrete_map=True, y_name='Prey count', x_label='Bait'
@@ -230,7 +230,10 @@ def map_intensity(saint_output_json: str, intensity_table_json: str, sample_grou
 def saint_histogram(saint_output_json: str, figure_defaults):
     saint_output: pd.DataFrame = pd.read_json(
         saint_output_json, orient='split')
-    return histogram.make_figure(saint_output, 'BFDR', '', figure_defaults)
+    return (
+        histogram.make_figure(saint_output, 'BFDR', '', figure_defaults),
+        saint_output.to_json(orient='split')
+    )
 
 
 def add_bait_column(saint_output, bait_uniprot_dict) -> pd.DataFrame:
@@ -465,10 +468,13 @@ def saint_counts(filtered_output_json, figure_defaults, replicate_colors):
     count_df['Color'] = [
         replicate_colors['sample groups'][index] for index in count_df.index.values
     ]
-    return bar_graph.bar_plot(
-        figure_defaults,
-        count_df,
-        title='',
-        hide_legend=True,
-        x_label='Sample group'
+    return (
+        bar_graph.bar_plot(
+            figure_defaults,
+            count_df,
+            title='',
+            hide_legend=True,
+            x_label='Sample group'
+        ),
+        count_df.to_json(orient='split')
     )

@@ -35,6 +35,8 @@ data_store_export_configuration: dict = {
     'proteomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
     'interactomics-saint-input-data-store': ['xlsx', 'Data', 'SAINT input', 'saint-split'],
     'interactomics-enrichment-data-store': ['xlsx', 'Data', 'Enrichment', 'enrichment-split'],
+    'interactomics-saint-bfdr-histogram-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-saint-graph-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'interactomics-network-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Network data;Sheet 8'],
     'interactomics-pca-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'PCA;Sheet 7'],
     'interactomics-imputed-and-normalized-intensity': ['xlsx', 'Data', 'Interactomics data tables', 'ImpNorm intensities;Sheet 6'],
@@ -43,26 +45,28 @@ data_store_export_configuration: dict = {
     'interactomics-saint-final-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Saint output with crapome;Sheet 3'],
     'interactomics-saint-filtered-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filtered saint output;Sheet 2'],
     'interactomics-saint-filtered-and-intensity-mapped-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt saint w intensities;Sheet 1'],
-    'interactomics-saint-filt-int-known-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt int saint w knowns;Sheet 0'],
+    'interactomics-saint-filt-int-known-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt int saint w knowns;Sheet 0'],
     'interactomics-enrichment-information-data-store': ['txt', 'Data', 'Enrichment information', 'enrich-split']
 }
 
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
-# number of data stores minus the uploaded-data-store data store types (e.g. uploaded-data-table, which can not be cleared when pressing the begin analysis -button)
-NUM_DATA_STORES = len(DATA_STORE_IDS) - 4
 
 
 def save_data_stores(data_stores, export_dir) -> None:
     export_excels: dict = {}
+    timestamps: dict = {}
     for d in data_stores:
         if not 'data' in d['props']:
             continue
+        timestamps[d['props']['id']['name']] = d['props']['modified_timestamp']
         export_format: str
         export_subdir: str
         file_name: str
         file_config: str
         export_format, export_subdir, file_name, file_config = data_store_export_configuration[
             d['props']['id']['name']]
+        if export_format == 'NO EXPORT':
+            continue
         export_destination: str = os.path.join(export_dir, export_subdir)
         if not os.path.isdir(export_destination):
             os.makedirs(export_destination)
@@ -183,6 +187,8 @@ def save_data_stores(data_stores, export_dir) -> None:
                                  header=dic['headers'], index=index_bool)
             # excel_dict[df_dict_index]['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'])
         writer.close()
+    print(json.dumps(timestamps, indent=2))
+    return timestamps
 
 
 def get_all_props(elements, marker_key, match_partial=True):
@@ -310,7 +316,7 @@ def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
-    save_data_stores(data_stores, export_dir)
+    timestamps: dict = save_data_stores(data_stores, export_dir)
     save_figures(analysis_divs, export_dir, figure_output_formats)
     save_input_information(input_divs, export_dir)
     export_zip_name: str = export_dir.rstrip(os.sep) + '.zip'

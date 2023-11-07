@@ -328,7 +328,7 @@ def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
                 dcc.Loading(
                     id='proteomics-loading-filtering',
                     children=html.Div(
-                        id={'type': 'workflow-plot', 'id': 'proteomics-filtering-plot-div'}),
+                        id={'type': 'workflow-plot', 'id': 'proteomics-na-filtered-plot-div'}),
                     type='default'
                 ),
                 dcc.Loading(

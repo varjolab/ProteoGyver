@@ -568,8 +568,6 @@ def remove_from_table(table_name, table, discard_samples):
 
 
 def delete_samples(discard_samples, data_dictionary) -> dict:
-    print(
-        f'Implement sample deletion. Selected samples: {", ".join(discard_samples)}')
     for table_name, table_json in data_dictionary['data tables'].items():
         if table_name == 'table to use':
             continue
