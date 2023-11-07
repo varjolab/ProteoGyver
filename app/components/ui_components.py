@@ -299,7 +299,13 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
                     dcc.RadioItems([0.001, 0.01, 0.05], 0.01,
                                    id='proteomics-p-value-threshold'),
                 ], width=6)
-            ])
+            ]),
+            dbc.Row(
+                [
+                    dbc.Button('Run proteomics analysis',
+                               id='proteomics-recalculate-button'),
+                ]
+            )
         ])
     )
 

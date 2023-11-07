@@ -86,6 +86,14 @@ def handle_uploaded_data_table(file_contents, file_name, mod_date, current_uploa
 
 
 @callback(
+    Input({'type': 'uploaded-data-store',
+          'name': 'uploaded-sample-table-info-data-store'}, 'modified_timestamp')
+)
+def do(one):
+    print(one)
+
+
+@callback(
     Output('upload-sample_table-file-success', 'style'),
     Output({'type': 'uploaded-data-store',
            'name': 'uploaded-sample-table-info-data-store'}, 'data'),
@@ -374,7 +382,8 @@ def qc_done(_) -> str:
     Output({'type': 'workflow-plot',
            'id': 'proteomics-filtering-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
-    Input('proteomics-loading-filtering', 'children'),
+    # Input('proteomics-loading-filtering', 'children'),
+    Input('proteomics-recalculate-button', 'n_clicks'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State('proteomics-filter-minimum-percentage', 'value'),
     prevent_initial_call=True
