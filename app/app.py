@@ -8,7 +8,7 @@ from dash.long_callback import CeleryLongCallbackManager
 from dash import html, callback, Dash, no_update, ALL, dcc
 from dash.dependencies import Input, Output, State
 from components import ui_components as ui
-from components.infra import data_stores, notifiers, prepare_download, NUM_DATA_STORES, working_data_stores
+from components.infra import data_stores, notifiers, prepare_download, working_data_stores
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
 import plotly.io as pio
@@ -83,14 +83,6 @@ def handle_uploaded_data_table(file_contents, file_name, mod_date, current_uploa
         return parsing.parse_data_file(
             file_contents, file_name, mod_date, current_upload_style, parameters['file loading']
         )
-
-
-@callback(
-    Input({'type': 'uploaded-data-store',
-          'name': 'uploaded-sample-table-info-data-store'}, 'modified_timestamp')
-)
-def do(one):
-    print(one)
 
 
 @callback(
@@ -380,7 +372,7 @@ def qc_done(_) -> str:
 
 @callback(
     Output({'type': 'workflow-plot',
-           'id': 'proteomics-filtering-plot-div'}, 'children'),
+           'id': 'proteomics-na-filtered-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
     # Input('proteomics-loading-filtering', 'children'),
     Input('proteomics-recalculate-button', 'n_clicks'),
@@ -571,6 +563,8 @@ def interactomics_create_saint_filtering_container(saint_output_ready):
 
 @callback(
     Output('interactomics-saint-bfdr-histogram', 'figure'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-bfdr-histogram-data-store'}, 'data'),
     Input('interactomics-saint-filtering-container', 'children'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-final-output-data-store'}, 'data')
@@ -595,6 +589,8 @@ def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentag
 
 @callback(
     Output('interactomics-saint-graph', 'figure'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-saint-graph-data-store'}, 'data'),
     Input({'type': 'data-store',
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
@@ -635,7 +631,7 @@ def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary
 @callback(
     Output('interactomics-known-loading', 'children'),
     Output({'type': 'data-store',
-           'name': 'interactomics-saint-filt-int-known-output-data-store'}, 'data'),
+           'name': 'interactomics-saint-filt-int-known-data-store'}, 'data'),
     Input({'type': 'data-store',
           'name': 'interactomics-saint-filtered-and-intensity-mapped-output-data-store'}, 'data'),
     State({'type': 'data-store',
@@ -650,7 +646,7 @@ def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
     Output('interactomics-pca-loading', 'children'),
     Output({'type': 'data-store', 'name': 'interactomics-pca-data-store'}, 'data'),
     Input({'type': 'data-store',
-          'name': 'interactomics-saint-filt-int-known-output-data-store'}, 'data'),
+          'name': 'interactomics-saint-filt-int-known-data-store'}, 'data'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True
