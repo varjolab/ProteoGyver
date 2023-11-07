@@ -657,6 +657,8 @@ def rename_columns_and_update_expdesign(
                                                  for _ in range(len(tables))]
             sample_group_columns[newname][table_ind].append(col)
         if len(intermediate_renaming.keys()) > 0:
+            table.drop(
+                columns=[c for c in table.columns if c not in intermediate_renaming.keys()])
             table.rename(columns=intermediate_renaming, inplace=True)
         rev_intermediate_renaming[-1] = {value: key for key,
                                          value in intermediate_renaming.items()}
