@@ -2,12 +2,12 @@
 
 mkdir ../prod
 mkdir ../develop
-git checkout master
+git checkout main
 git pull
-mv * ../prod/
+cp -r * ../prod/
 git checkout develop
 git pull
-mv * ../develop
+cp -r  * ../develop
 
 cd ../prod
 docker build -t pgtesting:prod -f dockerfile .
