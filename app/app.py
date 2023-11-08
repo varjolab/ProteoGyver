@@ -570,9 +570,13 @@ def interactomics_create_saint_filtering_container(saint_output_ready):
            'name': 'interactomics-saint-bfdr-histogram-data-store'}, 'data'),
     Input('interactomics-saint-filtering-container', 'children'),
     State({'type': 'data-store',
-          'name': 'interactomics-saint-final-output-data-store'}, 'data')
+          'name': 'interactomics-saint-final-output-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data')
 )
-def interactomics_draw_saint_histogram(container_ready: list, saint_output: str):
+def interactomics_draw_saint_histogram(container_ready: list, saint_output: str, saint_output_filtered: str):
+    if saint_output_filtered is not None:
+        saint_output = saint_output_filtered
     return interactomics.saint_histogram(saint_output, parameters['Figure defaults']['half-height'])
 
 
