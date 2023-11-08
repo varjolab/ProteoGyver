@@ -11,11 +11,6 @@ ENV R_BASE_VERSION 3.6.1
 
 # First steps
 USER root
-WORKDIR /
-RUN mkdir /proteogyver
-COPY docker_entrypoint.sh /
-COPY app/update.sh /update.sh
-COPY app /proteogyver
 
 # Install and setup R and other software
 # Updates and packages
@@ -37,40 +32,25 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
     redis
 
 RUN npm install -g configurable-http-proxy
+
 # User management
 RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
     echo "kamms:kamms" | chpasswd
-
-# Make SAINT executable
-WORKDIR /proteogyver/external/SAINTexpress
-RUN chmod 777 SAINTexpress-spc
-RUN chmod 777 SAINTexpress-int
-
-
 WORKDIR /
-# JupyterHub
-RUN mkdir /etc/jupyterhub
-COPY jupyterhub.py /etc/jupyterhub/
-
-# Unpack database
-WORKDIR /proteogyver/data
-RUN unxz proteogyver.db.xz
-
-RUN mkdir -p /etc/supervisor/conf.d
-RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
-
+COPY app /proteogyver
+COPY app/resources /proteogyver/resources
 # Python installs
 WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
-RUN pip3 install --ignore-installed -r requirements.txt
+RUN pip3 install -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 # R things
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
 RUN Rscript R_requirements.R
+COPY docker_entrypoint.sh /
+COPY app/update.sh /update.sh
 
-# Expose ports (dash)
-EXPOSE 8050
 
 # Finished.
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
