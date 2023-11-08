@@ -43,7 +43,7 @@ COPY app/resources /proteogyver/resources
 WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
-RUN pip3 install -r requirements.txt
+RUN pip3 install --ignore-installed -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 # R things
 RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
