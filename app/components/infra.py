@@ -204,10 +204,8 @@ def save_data_stores(data_stores, export_dir) -> dict:
                     f'save data stores - sheet {excel_name}: {dic["name"]} headers: {dic["headers"]}: {datetime.now() - prev_time}')
                 logger.debug(
                     f'save data stores - sheet {excel_name}: {dic["name"]} index: {index_bool}: {datetime.now() - prev_time}')
-                dic['data'].to_csv(excel_name.replace(
-                    '.xlsx', f'_{dic["name"]}.tsv'), sep='\t')
-                dic['data'].fillna('').to_excel(writer, sheet_name=dic['name'],
-                                                header=dic['headers'], index=index_bool)
+                dic['data'].to_excel(writer, sheet_name=dic['name'],
+                                     header=dic['headers'], index=index_bool)
                 logger.debug(
                     f'save data stores - sheet {excel_name}: {dic["name"]} done: {datetime.now() - prev_time}')
                 prev_time: datetime = datetime.now()
@@ -225,7 +223,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
 
 
 def get_all_props(elements, marker_key, match_partial=True) -> list:
-    logger.debug(f'fetching props {elements}: {datetime.now()}')
+    logger.debug(f'fetching props {marker_key}: {datetime.now()}')
     prev_time: datetime = datetime.now()
     ret: list = []
     if isinstance(elements, dict):
@@ -245,12 +243,12 @@ def get_all_props(elements, marker_key, match_partial=True) -> list:
         for e in elements:
             ret.extend(get_all_props(e, marker_key, match_partial))
     logger.debug(
-        f'fetching props {elements} - done: {datetime.now() - prev_time}')
+        f'fetching props {marker_key} - done: {datetime.now() - prev_time}')
     return ret
 
 
 def get_all_types(elements, get_types) -> list:
-    logger.debug(f'fetching types {elements}: {datetime.now()}')
+    logger.debug(f'fetching types {get_types}: {datetime.now()}')
     prev_time: datetime = datetime.now()
     ret = []
     if isinstance(elements, dict):
@@ -269,7 +267,7 @@ def get_all_types(elements, get_types) -> list:
         for e in elements:
             ret.extend(get_all_types(e, get_types))
     logger.debug(
-        f'fetching types {elements} - done: {datetime.now() - prev_time}')
+        f'fetching types {get_types} - done: {datetime.now() - prev_time}')
     return ret
 
 

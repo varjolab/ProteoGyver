@@ -313,9 +313,15 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
     sample_groups: dict = input_data_dict['sample groups']['norm']
     spc_table: pd.DataFrame = pd.read_json(
         input_data_dict['data tables']['spc'], orient='split')
-    controls: list = [
-        db_functions.get_full_table_as_pd(db_conn, tablename, index_col='protein_id') for tablename in additional_controls
-    ]
+    controls = []
+    for control_name in additional_controls:
+        ctable = db_functions.get_full_table_as_pd(
+            db_conn, control_name, index_col='protein_id')
+        ctable.drop(
+            columns=[c for c in ctable.columns if c != 'spc_avg'], inplace=True)
+        ctable.rename(columns={'spc_avg': control_name}, inplace=True)
+        ctable.index.name = ''
+        controls.append(ctable)
     control_cols: list = []
     for cg in uploaded_controls:
         control_cols.extend(sample_groups[cg])
