@@ -1,13 +1,7 @@
 
 
-FROM ubuntu:22.04
+FROM pgbase:pgbase
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
-
-ENV DEBIAN_FRONTEND noninteractive
-ENV LC_CTYPE en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV R_BASE_VERSION 3.6.1
 
 # First steps
 USER root
@@ -21,38 +15,6 @@ COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver
 
-# Install and setup R and other software
-# Updates and packages
-RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
-    apt-get install -yq \
-    software-properties-common dirmngr wget libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
-    libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libcurl4-openssl-dev libnetcdf-dev
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-RUN apt-get install -yq apt-utils software-properties-common locales \
-    git python3 python3-pip nodejs npm  \
-    dos2unix ca-certificates nano  \
-    littler \
-    r-cran-littler \
-    r-base \
-    r-base-dev \
-    r-recommended 
-
-
-# Python installs
-WORKDIR /proteogyver/resources
-RUN pip3 install --upgrade pip
-RUN pip3 install setuptools
-RUN pip3 install -r requirements.txt
-RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
-# R things
-RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
-RUN Rscript R_requirements.R
-#RUN Rscript R_requirements.R
-RUN npm install -g configurable-http-proxy
-
-# User management
 RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
     echo "kamms:kamms" | chpasswd
 
@@ -60,19 +22,24 @@ RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms &
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
+
 WORKDIR /
 # JupyterHub
 RUN mkdir /etc/jupyterhub
 COPY jupyterhub.py /etc/jupyterhub/
 
-# Put additional data where it should be
-COPY additional/data.tar /proteogyver/data.tar
-COPY additional/external.tar /proteogyver/external.tar
+# Unpack database
+WORKDIR /proteogyver/data
+RUN unxz proteogyver.db.xz
+RUN mkdir -p /etc/supervisor/conf.d
+RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
+# Python installs
 WORKDIR /proteogyver
-RUN tar xf data.tar
-RUN tar xf external.tar
-RUN mkdir /proteogyver/debug
-
+RUN sed -i 's\"/mnt", "c", "DATA", "PG cache"\"/proteogyver", "cache"\g' parameters.json  
+RUN mkdir /proteogyver/cache
+WORKDIR /proteogyver/resources
+RUN pip3 install --upgrade pip
+RUN pip3 install --ignore-installed -r requirements.txt
 
 # Expose ports (jupyterHub. dash)
 EXPOSE 8090 8050

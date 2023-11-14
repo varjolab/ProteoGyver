@@ -1,0 +1,138 @@
+PMID- 36165955
+OWN - NLM
+STAT- MEDLINE
+DCOM- 20230113
+LR  - 20230113
+IS  - 1362-4962 (Electronic)
+IS  - 0305-1048 (Print)
+IS  - 0305-1048 (Linking)
+VI  - 51
+IP  - D1
+DP  - 2023 Jan 6
+TI  - qPTM: an updated database for PTM dynamics in human, mouse, rat and yeast.
+PG  - D479-D487
+LID - 10.1093/nar/gkac820 [doi]
+AB  - Post-translational modifications (PTMs) are critical molecular mechanisms that 
+      regulate protein functions temporally and spatially in various organisms. Since 
+      most PTMs are dynamically regulated, quantifying PTM events under different 
+      states is crucial for understanding biological processes and diseases. With the 
+      rapid development of high-throughput proteomics technologies, massive 
+      quantitative PTM proteome datasets have been generated. Thus, a comprehensive 
+      one-stop data resource for surfing big data will benefit the community. Here, we 
+      updated our previous phosphorylation dynamics database qPhos to the qPTM 
+      (http://qptm.omicsbio.info). In qPTM, 11 482 553 quantification events among six 
+      types of PTMs, including phosphorylation, acetylation, glycosylation, 
+      methylation, SUMOylation and ubiquitylation in four different organisms were 
+      collected and integrated, and the matched proteome datasets were included if 
+      available. The raw mass spectrometry based false discovery rate control and the 
+      recurrences of identifications among datasets were integrated into a scoring 
+      system to assess the reliability of the PTM sites. Browse and search functions 
+      were improved to facilitate users in swiftly and accurately acquiring specific 
+      information. The results page was revised with more abundant annotations, and 
+      time-course dynamics data were visualized in trend lines. We expected the qPTM 
+      database to be a much more powerful and comprehensive data repository for the PTM 
+      research community.
+CI  - © The Author(s) 2022. Published by Oxford University Press on behalf of Nucleic 
+      Acids Research.
+FAU - Yu, Kai
+AU  - Yu K
+AUID- ORCID: 0000-0003-3343-2902
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Wang, Ye
+AU  - Wang Y
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Zheng, Yongqiang
+AU  - Zheng Y
+AUID- ORCID: 0000-0003-3246-2800
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Liu, Zekun
+AU  - Liu Z
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Zhang, Qingfeng
+AU  - Zhang Q
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Wang, Siyu
+AU  - Wang S
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Zhao, Qi
+AU  - Zhao Q
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Zhang, Xiaolong
+AU  - Zhang X
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+FAU - Li, Xiaoxing
+AU  - Li X
+AD  - Precision Medicine Institute, First Affiliated Hospital, Sun Yat-sen University, 
+      Guangzhou 510080, China.
+FAU - Xu, Rui-Hua
+AU  - Xu RH
+AUID- ORCID: 0000-0001-9771-8534
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+AD  - Research Unit of Precision Diagnosis and Treatment for Gastrointestinal Cancer, 
+      Chinese Academy of Medical Sciences, Guangzhou 510060, China.
+FAU - Liu, Ze-Xian
+AU  - Liu ZX
+AUID- ORCID: 0000-0001-9698-0610
+AD  - State Key Laboratory of Oncology in South China, Collaborative Innovation Center 
+      for Cancer Medicine, Sun Yat-sen University Cancer Center, 
+      Guangzhou 510060, China.
+LA  - eng
+GR  - 2021YFA1302100/National Key Research and Development Program of China/
+GR  - 81972239/National Natural Science Foundation of China/
+GR  - 202206080011/Science and Technology Program of Guangzhou/
+GR  - 2017ZT07S096/Program for Guangdong Introducing Innovative and Entrepreneurial 
+      Teams/
+GR  - 2019TQ05Y351/Tip-top Scientific and Technical Innovative Youth Talents of 
+      Guangdong Special Support Program/
+GR  - 2019B020227002/Science and Technology Program of Guangdong/
+GR  - 2019A1515010634/Natural Science Foundation of Guangdong Province/
+GR  - 2019-I2M-5-036/CAMS Innovation Fund for Medical Sciences (CIFMS)/
+PT  - Journal Article
+PL  - England
+TA  - Nucleic Acids Res
+JT  - Nucleic acids research
+JID - 0411011
+RN  - 0 (Proteome)
+SB  - IM
+MH  - Animals
+MH  - Humans
+MH  - Mice
+MH  - Rats
+MH  - Phosphorylation
+MH  - *Protein Processing, Post-Translational
+MH  - *Proteome/metabolism
+MH  - Saccharomyces cerevisiae/metabolism
+MH  - Databases, Genetic
+PMC - PMC9825568
+EDAT- 2022/09/28 06:00
+MHDA- 2023/01/12 06:00
+CRDT- 2022/09/27 11:51
+PHST- 2022/09/14 00:00 [accepted]
+PHST- 2022/08/26 00:00 [revised]
+PHST- 2022/07/21 00:00 [received]
+PHST- 2022/09/28 06:00 [pubmed]
+PHST- 2023/01/12 06:00 [medline]
+PHST- 2022/09/27 11:51 [entrez]
+AID - 6723729 [pii]
+AID - gkac820 [pii]
+AID - 10.1093/nar/gkac820 [doi]
+PST - ppublish
+SO  - Nucleic Acids Res. 2023 Jan 6;51(D1):D479-D487. doi: 10.1093/nar/gkac820.

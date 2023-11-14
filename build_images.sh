@@ -2,20 +2,21 @@
 
 mkdir ../prod
 mkdir ../develop
+
+mkdir ../oldversion
 git checkout main
 git pull
-rsync -vu * ../prod/
-mkdir ../prod/additional
-rsync -vu ../additional/* ../prod/additional/
+cp -r * ../prod/
 git checkout develop
 git pull
-rsync -vu * ../develop
-mkdir ../develop/additional
-rsync -vu ../additional/* ../develop/additional/
-git checkout main
+cp -r * ../develop
+git checkout old_version
+git pull
+cp -r * ../oldversion
 
 cd ../prod
-sudo docker build -t pgtesting:production -f dockerfile . 
+sudo docker build -t pgtesting:prod -f dockerfile .
 cd ../develop
-mv dockerfile_testing dockerfile
 sudo docker build -t pgtesting:testing -f dockerfile .
+cd ../old_version
+sudo docker build -t pgtesting:oldversion -f dockerfile .

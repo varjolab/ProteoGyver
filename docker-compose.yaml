@@ -2,8 +2,8 @@ version: "3"
 
 services:
   pg:
-    image: pgtesting:production
-    container_name: pgprod
+    image: pgtesting:prod
+    container_name: pg
     ports:
       - 8090:8090
       - 8050:8050

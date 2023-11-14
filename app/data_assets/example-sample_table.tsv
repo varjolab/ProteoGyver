@@ -1,0 +1,13 @@
+Sample name	Sample group
+sample1_replicate1	1
+sample1_replicate2	1
+sample1_replicate3	1
+sample2_replicate1	2
+sample2_replicate2	2
+sample2_replicate3	2
+sample3_replicate1	3
+sample3_replicate2	3
+sample3_replicate3	3
+these_samples_without_sample_group_will_not_be_loaded	
+sample_without_sample_group_2	
+sample_without_sample_group_3	
