@@ -5,6 +5,7 @@ from math import ceil
 from components.tools import R_tools
 from sklearn.decomposition import PCA
 
+
 def filter_missing(data_table: DataFrame, sample_groups: dict, threshold: int = 60) -> DataFrame:
     """Discards rows with more than threshold percent of missing values in all sample groups"""
     threshold: float = float(threshold)/100
@@ -13,11 +14,29 @@ def filter_missing(data_table: DataFrame, sample_groups: dict, threshold: int = 
         keep: bool = False
         for _, sample_columns in sample_groups.items():
             keep = keep | (row[sample_columns].notna().sum()
-                        >= ceil(threshold*len(sample_columns)))
+                           >= ceil(threshold*len(sample_columns)))
             if keep:
                 break
         keeps.append(keep)
     return data_table[keeps].copy()
+
+
+def ranked_dist(main_df, supplemental_df):
+    filtered_main_df: DataFrame = main_df[main_df.index.isin(
+        supplemental_df.index.values)]
+    filtered_main_df.sort_index(inplace=True)
+    supplemental_df.sort_index(inplace=True)
+
+    dist_sums: list = []
+    for cc in supplemental_df.columns:
+        dist_sums.append([
+            cc,
+            sum([
+                np.linalg.norm(filtered_main_df[c].fillna(0)-supplemental_df[cc].fillna(0)) for c in filtered_main_df.columns
+            ])
+        ])
+    return sorted(dist_sums, key=lambda x: x[1])
+
 
 def count_per_sample(data_table: DataFrame, rev_sample_groups: dict) -> Series:
     """Counts non-zero values per sample (sample names from rev_sample_groups.keys()) and returns a series with sample names in index and counts as values."""
@@ -28,14 +47,15 @@ def count_per_sample(data_table: DataFrame, rev_sample_groups: dict) -> Series:
     )
     return retser
 
+
 def do_pca(data_df: DataFrame, rev_sample_groups: dict, n_components) -> tuple:
     data_df: DataFrame = data_df.T
     pca: PCA = PCA(n_components=n_components)
     pca_result: np.ndarray = pca.fit_transform(data_df)
-    
+
     pc1: float
     pc2: float
-    pc1,pc2 = pca.explained_variance_ratio_
+    pc1, pc2 = pca.explained_variance_ratio_
     pc1 = int(pc1*100)
     pc2 = int(pc2*100)
     pc1 = f'PC1 ({pc1}%)'
@@ -47,6 +67,7 @@ def do_pca(data_df: DataFrame, rev_sample_groups: dict, n_components) -> tuple:
     data_df['Sample name'] = data_df.index
 
     return (pc1, pc2, data_df)
+
 
 def median_normalize(data_frame: DataFrame) -> DataFrame:
     """
@@ -81,6 +102,7 @@ def quantile_normalize(dataframe: DataFrame) -> DataFrame:
     """
     return qnorm.quantile_normalize(dataframe, ncpus=8)
 
+
 def normalize(data_table, normalization_method) -> DataFrame:
     """Normalizes a given dataframe with the wanted method."""
     return_table: DataFrame = data_table
@@ -92,7 +114,8 @@ def normalize(data_table, normalization_method) -> DataFrame:
         return_table = quantile_normalize(data_table,)
     return return_table
 
-def impute(data_table:DataFrame, method:str='QRILC', tempdir:str='.', random_seed: int = 13) -> DataFrame:
+
+def impute(data_table: DataFrame, method: str = 'QRILC', tempdir: str = '.', random_seed: int = 13) -> DataFrame:
     """Imputes missing values into the dataframe with the specified method"""
     ret: DataFrame = data_table
     if method == 'minProb':
@@ -102,11 +125,11 @@ def impute(data_table:DataFrame, method:str='QRILC', tempdir:str='.', random_see
     elif method == 'gaussian':
         ret = impute_gaussian(data_table, random_seed)
     elif method == 'QRILC':
-        ret = R_tools.impute_qrilc(data_table, random_seed, tempdir = tempdir)
+        ret = R_tools.impute_qrilc(data_table, random_seed, tempdir=tempdir)
     return ret
 
 
-def impute_minval(dataframe: DataFrame, impute_zero:bool=False) -> DataFrame:
+def impute_minval(dataframe: DataFrame, impute_zero: bool = False) -> DataFrame:
     """Impute missing values in dataframe using minval method
 
     Input dataframe should only have numerical data with missing values.
@@ -120,10 +143,11 @@ def impute_minval(dataframe: DataFrame, impute_zero:bool=False) -> DataFrame:
     for column in dataframe.columns:
         newcol: Series = dataframe[column]
         if impute_zero:
-            newcol = newcol.replace(0,np.nan)
+            newcol = newcol.replace(0, np.nan)
         newcol = newcol.fillna(newcol.min())
         newdf.loc[:, column] = newcol
     return newdf
+
 
 def impute_gaussian(data_table: DataFrame, random_seed: int, dist_width: float = 0.15, dist_down_shift: float = 2,) -> DataFrame:
     """Impute missing values in dataframe using values from random numbers from normal distribution.
@@ -142,20 +166,22 @@ def impute_gaussian(data_table: DataFrame, random_seed: int, dist_width: float =
         newcol: Series = data_table[column]
         stdev: float = newcol.std()
         distribution: np.ndarray = np.random.normal(
-                loc = newcol.mean() - (dist_down_shift*stdev),
-                scale = dist_width*stdev,
-                size = column.shape[0]*100
-            )
+            loc=newcol.mean() - (dist_down_shift*stdev),
+            scale=dist_width*stdev,
+            size=column.shape[0]*100
+        )
         replace_values: Series = Series(
-            index = data_table.index,
-            data = np.random.choice(a=distribution,size=column.shape[0],replace=False)
+            index=data_table.index,
+            data=np.random.choice(
+                a=distribution, size=column.shape[0], replace=False)
         )
         newcol = newcol.fillna(replace_values)
         newdf.loc[:, column] = newcol
     return newdf
 
+
 def impute_minprob(series_to_impute: Series, random_seed: int, scale: float = 1.0,
-                tune_sigma: float = 0.01, impute_zero=True) -> Series:
+                   tune_sigma: float = 0.01, impute_zero=True) -> Series:
     """Imputes missing values with randomly selected entries from a distribution \
         centered around the lowest non-NA values of the series.
 
@@ -188,7 +214,8 @@ def impute_minprob(series_to_impute: Series, random_seed: int, scale: float = 1.
             output_series[index] = np.random.choice(distribution)
     return output_series
 
-def impute_minprob_df(dataframe: DataFrame,*args, **kwargs) -> DataFrame:
+
+def impute_minprob_df(dataframe: DataFrame, *args, **kwargs) -> DataFrame:
     """imputes whole dataframe with minprob imputation. Dataframe should only have numerical columns
 
     Parameters:
@@ -197,5 +224,6 @@ def impute_minprob_df(dataframe: DataFrame,*args, **kwargs) -> DataFrame:
     """
     newdf: DataFrame = DataFrame(index=dataframe.index)
     for column in dataframe.columns:
-        newdf.loc[:, column] = impute_minprob(dataframe[column], *args, **kwargs)
+        newdf.loc[:, column] = impute_minprob(
+            dataframe[column], *args, **kwargs)
     return newdf

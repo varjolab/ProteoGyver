@@ -11,7 +11,7 @@ from plotly.express import imshow
 from numpy import nan as NA
 
 
-def supervenn(group_sets: dict, id_str: str) -> Img:
+def supervenn(group_sets: dict, id_str: str) -> tuple:
     """Draws a super venn plot for the input data table.
 
     See https://github.com/gecko984/supervenn for details of the plot.
@@ -28,6 +28,7 @@ def supervenn(group_sets: dict, id_str: str) -> Img:
 
     # Buffer for use
     buffer: io.BytesIO = io.BytesIO()
+    buffer2: io.BytesIO = io.BytesIO()
     fig: mpl.figure
     axes: mpl.Axes
     fig, axes = plt.subplots()
@@ -50,12 +51,23 @@ def supervenn(group_sets: dict, id_str: str) -> Img:
     plt.xlabel('Shared proteins')
     plt.ylabel('Sample group')
     plt.savefig(buffer, format="png")
+    plt.savefig(buffer2, format="pdf")
     plt.close()
-    data: str = base64.b64encode(buffer.getbuffer()).decode("utf8")  # encode to html elements
+    data: str = base64.b64encode(buffer.getbuffer()).decode(
+        "utf8")  # encode to html elements
+    pdf_data: str = base64.b64encode(buffer2.getbuffer()).decode(
+        "utf8")  # encode to html elements
     buffer.close()
-    return Img(id=id_str, src=f'data:image/png;base64,{data}')
+    buffer2.close()
+    ret = (
+        Img(id=id_str, src=f'data:image/png;base64,{data}'),
+        pdf_data
+    )
+    t1, t2 = ret
+    return ret
 
-def common_heatmap(group_sets: dict, id_str: str, defaults) -> Graph:
+
+def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
     hmdata: list = []
     index: list = list(group_sets.keys())
     done = set()
@@ -65,21 +77,27 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> Graph:
             val: float
             if gname == gname2:
                 val = NA
-            nstr: str = ''.join(sorted([gname,gname2]))
+            nstr: str = ''.join(sorted([gname, gname2]))
             if nstr in done:
                 val = NA
             else:
                 val = len(group_sets[gname] & group_sets[gname2])
             hmdata[-1].append(val)
-    return Graph(id = id_str, figure = imshow(
-        DataFrame(data=hmdata,index=index,columns=index),
-        height=defaults['height'],
-        width=defaults['width']
+    return (
+        Graph(
+            id=id_str,
+            figure=imshow(
+                DataFrame(data=hmdata, index=index, columns=index),
+                height=defaults['height'],
+                width=defaults['width']
+            ),
+            config=defaults['config']
         ),
-        config=defaults['config']
-        )
+        ''
+    )
 
-def make_graph(group_sets: dict, id_str: str, defaults:dict) -> Img | Graph:
+
+def make_graph(group_sets: dict, id_str: str, defaults: dict) -> tuple:
     if len(group_sets.keys()) <= 6:
         return supervenn(group_sets, id_str)
     else:

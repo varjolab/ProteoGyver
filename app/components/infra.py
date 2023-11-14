@@ -5,8 +5,10 @@ import os
 from plotly import io as pio
 from plotly import graph_objects as go
 import shutil
+import re
 import json
 import pandas as pd
+from base64 import b64decode
 from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
@@ -29,6 +31,7 @@ data_store_export_configuration: dict = {
     'mean-data-store': ['xlsx', 'Data', 'Summary data', 'Value means;'],
     'distribution-data-store': ['xlsx', 'Data', 'Summary data', 'Value distribution;'],
     'commonality-data-store': ['json', 'Data', 'Commonality data', ''],
+    'commonality-figure-pdf-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'proteomics-na-filtered-data-store': ['xlsx', 'Data', 'Proteomics data tables', 'NA filtered data;Sheet 2'],
     'proteomics-normalization-data-store': ['xlsx', 'Data', 'Proteomics data tables', 'NA-Normalized data;Sheet 1'],
     'proteomics-imputation-data-store': ['xlsx', 'Data', 'Proteomics data tables', 'NA-Norm-Imputed data;Sheet 0'],
@@ -36,6 +39,7 @@ data_store_export_configuration: dict = {
     'proteomics-pca-data-store': ['xlsx', 'Data', 'Figure data', 'Proteomics PCA;'],
     'proteomics-clustermap-data-store': ['xlsx', 'Data', 'Figure data', 'Proteomics Clustermap;'],
     'proteomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
+    'proteomics-comparison-table-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'interactomics-saint-input-data-store': ['xlsx', 'Data', 'SAINT input', 'saint-split'],
     'interactomics-enrichment-data-store': ['xlsx', 'Data', 'Enrichment', 'enrichment-split'],
     'interactomics-saint-bfdr-histogram-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
@@ -52,6 +56,27 @@ data_store_export_configuration: dict = {
     'interactomics-enrichment-information-data-store': ['txt', 'Data', 'Enrichment information', 'enrich-split']
 }
 
+figure_export_directories: dict = {
+    'Filtered Prey counts per bait': 'Interactomics figures',
+    'Identified known interactions': 'Interactomics figures',
+    'Missing values per sample': 'QC figures',
+    'SPC PCA': 'Interactomics figures',
+    'Protein identification coverage': 'QC figures',
+    'Proteins per sample': 'QC figures',
+    'SAINT BFDR value distribution': 'Interactomics figures',
+    'Sample reproducibility': 'QC figures',
+    'Shared identifications': 'QC figures',
+    'Sum of values per sample': 'QC figures',
+    'Value distribution per sample': 'QC figures',
+    'Value mean': 'QC figures',
+    'Imputation': 'Proteomics figures',
+    'Missing value filtering': 'Proteomics figures',
+    'Normalization': 'Proteomics figures',
+    'PCA': 'Proteomics figures',
+    'Sample correlation clustering': 'Proteomics figures',
+}
+
+
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
 
 
@@ -60,6 +85,8 @@ def save_data_stores(data_stores, export_dir) -> dict:
     timestamps: dict = {}
     prev_time: datetime = datetime.now()
     logger.debug(f'save data stores - started: {prev_time}')
+    no_index: set = {'Uploaded expdesign', 'Filt saint w intensities', 'Filt int saint w knowns',
+                     'Filtered saint output', 'Saint output with crapome', 'Saint output', 'ImpNorm intensities', 'Network data'}
     for d in data_stores:
         if not 'data' in d['props']:
             continue
@@ -93,6 +120,9 @@ def save_data_stores(data_stores, export_dir) -> dict:
             if not 'split' in file_config:
                 sheet_name: str
                 sheet_name, sheet_index = file_config.split(';')
+                index_bool: bool = True
+                if (sheet_name in no_index):
+                    index_bool = False
                 try:
                     sheet_index: int = int(sheet_index.split()[-1])
                 except IndexError:
@@ -108,7 +138,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         'name': sheet_name,
                         'data': pd.read_json(d['props']['data'], orient='split'),
                         'headers': True,
-                        'index': True
+                        'index': index_bool
                     }
                 except ValueError:
                     logger.debug(
@@ -148,14 +178,29 @@ def save_data_stores(data_stores, export_dir) -> dict:
                     for _, s_c_row in df[['Sample', 'Control']].drop_duplicates().iterrows():
                         sample: str = s_c_row['Sample']
                         control: str = s_c_row['Control']
+                        compname: str = f'{sample} vs {control}'
+                        sig_comp: str = f'{compname} sig only'
+                        if len(sig_comp) > 31:
+                            compname = compname.replace(' ', '')
+                            replace = re.compile(
+                                re.escape('samplegroup'), re.IGNORECASE)
+                            compname = replace.sub('SG', compname)
+                            if 'samplegroup' in compname.lower():
+                                compname = compname.replace()
+                            sig_comp = f'{compname} sig only'
+                            needed: int = len(sig_comp) - 31
+                            if needed >= 7:
+                                sig_comp = sig_comp[:27] + 'Sigs'
+                            else:
+                                sig_comp = sig_comp.replace(' only', '')
                         df_dicts.append({
-                            'name': f'{sample} vs {control} significant only',
+                            'name': sig_comp,
                             'data': df[(df['Sample'] == sample) & (df['Control'] == control) & df['Significant']],
                             'headers': True,
                             'index': True
                         })
                         df_dicts_all.append({
-                            'name': f'{sample} vs {control}',
+                            'name': f'{compname}',
                             'data': df[(df['Sample'] == sample) & (df['Control'] == control)],
                             'headers': True,
                             'index': True
@@ -175,11 +220,23 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         export_excels[file_name] = {
                             i: df_dict for i, df_dict in enumerate(df_dicts)
                         }
+                elif 'enrichment-split' in file_config:
+                    for i, (enrichment_name, enrichment_dict) in enumerate(d['props']['data'].items()):
+                        result_df: pd.DataFrame = pd.read_json(
+                            enrichment_dict['result'], orient='split')
+                        res_dict = {
+                            'name': enrichment_name,
+                            'data': result_df,
+                            'headers': True,
+                            'index': False
+                        }
+                        export_excels[file_name][i] = res_dict
+
+                    # with open('enrichment data.json', 'w') as fil:
+                    #    json.dump(d['props']['data'], fil, indent=4)
         logger.debug(
             f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
-
-    no_index: set = {'Uploaded expdesign'}
 
     logger.debug(
         f'save data stores - writing excels: {datetime.now() - prev_time}')
@@ -198,12 +255,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
                 index_bool = dic['index']
                 if (dic['name'] in no_index):
                     index_bool = False
-                logger.debug(
-                    f'save data stores - sheet {excel_name}: {dic["name"]} shape: {dic["data"].shape}: {datetime.now() - prev_time}')
-                logger.debug(
-                    f'save data stores - sheet {excel_name}: {dic["name"]} headers: {dic["headers"]}: {datetime.now() - prev_time}')
-                logger.debug(
-                    f'save data stores - sheet {excel_name}: {dic["name"]} index: {index_bool}: {datetime.now() - prev_time}')
                 dic['data'].to_excel(writer, sheet_name=dic['name'],
                                      header=dic['headers'], index=index_bool)
                 logger.debug(
@@ -218,13 +269,10 @@ def save_data_stores(data_stores, export_dir) -> dict:
         logger.debug(
             f'save data stores - finished with {excel_name}. Took: {datetime.now() - start_excel_time}')
         prev_time: datetime = datetime.now()
-    print(json.dumps(timestamps, indent=2))
     return timestamps
 
 
 def get_all_props(elements, marker_key, match_partial=True) -> list:
-    logger.debug(f'fetching props {marker_key}: {datetime.now()}')
-    prev_time: datetime = datetime.now()
     ret: list = []
     if isinstance(elements, dict):
         mkey: str = None
@@ -242,14 +290,10 @@ def get_all_props(elements, marker_key, match_partial=True) -> list:
     elif isinstance(elements, list):
         for e in elements:
             ret.extend(get_all_props(e, marker_key, match_partial))
-    logger.debug(
-        f'fetching props {marker_key} - done: {datetime.now() - prev_time}')
     return ret
 
 
 def get_all_types(elements, get_types) -> list:
-    logger.debug(f'fetching types {get_types}: {datetime.now()}')
-    prev_time: datetime = datetime.now()
     ret = []
     if isinstance(elements, dict):
         # return [elements]
@@ -266,34 +310,72 @@ def get_all_types(elements, get_types) -> list:
     elif isinstance(elements, list):
         for e in elements:
             ret.extend(get_all_types(e, get_types))
-    logger.debug(
-        f'fetching types {get_types} - done: {datetime.now() - prev_time}')
     return ret
 
 
-def save_figures(analysis_divs, export_dir, output_formats) -> None:
+def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data) -> None:
     logger.debug(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
-        analysis_divs, ['h4', 'graph', 'P'])
+        analysis_divs, ['h4', 'h5', 'graph', 'img', 'P'])
     figure_names_and_figures: list = []
+    if len(commonality_pdf_data) > 0:
+        header: str = 'Shared identifications'
+        figure_names_and_figures.append([
+            figure_export_directories[header],
+            header,
+            '',
+            'NO HTML',
+            commonality_pdf_data,
+            'pdf_text'
+        ])
+
     for i, header in enumerate(headers_and_figures):
         if i < (len(headers_and_figures)-2):
             if header['type'].lower() == 'h4':
                 graph: dict = headers_and_figures[i+1]
+                if graph['type'].lower() not in {'graph', 'img'}:
+                    continue
                 legend: dict = headers_and_figures[i+2]
+                header_str: str = header['props']['children']
+                fdir: str = ''
+                if header_str in figure_export_directories:
+                    fdir = figure_export_directories[header_str]
+                elif 'volcano' in header_str.lower():
+                    fdir = 'Volcano plots'
                 if graph['type'].lower() == 'graph':
                     figure: dict = graph['props']['figure']
                     figure_html: str = pio.to_html(
                         figure, config=graph['props']['config'])
                     figure_names_and_figures.append(
-                        [header['props']['children'], legend['props']['children'], figure_html, figure])
+                        [fdir, header_str, legend['props']['children'], figure_html, figure, 'graph'])
+                elif graph['type'].lower() == 'img':
+                    img_str: str = graph['props']['src']
+                    figure_html = f'<Img id={graph["props"]["id"]}, src="{img_str}">'
+                    figure_names_and_figures.append(
+                        [fdir, header_str, legend['props']['children'], figure_html, graph, 'img'])
+            elif header['type'].lower() == 'h5':  # Only used in enrichment plots
+                graph: dict = headers_and_figures[i+1]
+                if graph['type'].lower() == 'p':  # Nothing enriched
+                    continue
+                figure: dict = graph['props']['figure']
+                legend: dict = headers_and_figures[i+2]
+                figure_html: str = pio.to_html(
+                    figure, config=graph['props']['config'])
+                figure_names_and_figures.append([
+                    'Enrichment figures', header['props']['children'], legend[
+                        'props']['children'], figure_html, figure, 'graph'
+                ])
+
     logger.debug(
         f'saving figures - figures identified: {len(figure_names_and_figures)}: {datetime.now() - prev_time}')
     prev_time: datetime = datetime.now()
 
-    for name, legend, fig_html, fig in figure_names_and_figures:
-        if 'html' in output_formats:
+    for subdir, name, legend, fig_html, fig, figtype in figure_names_and_figures:
+        target_dir: str = os.path.join(export_dir, subdir)
+        if not os.path.isdir(target_dir):
+            os.makedirs(target_dir)
+        if ('html' in output_formats) and (fig_html != 'NO HTML'):
             new_html: list = []
             split_html: list = fig_html.split('\n')
             add_header = False
@@ -306,13 +388,27 @@ def save_figures(analysis_divs, export_dir, output_formats) -> None:
                     add_header = False
             new_html.append(f'<div><p>{legend}')
             new_html.extend(split_html[-2:])
-            with open(os.path.join(export_dir, f'{name}.html'), 'w', encoding='utf-8') as fil:
+            with open(os.path.join(target_dir, f'{name}.html'), 'w', encoding='utf-8') as fil:
                 fil.write('\n'.join(new_html))
         for output_format in output_formats:
             if output_format == 'html':
                 continue
-            go.Figure(fig).write_image(os.path.join(
-                export_dir, f'{name}.{output_format}'))
+            if figtype == 'graph':
+                go.Figure(fig).write_image(os.path.join(
+                    target_dir, f'{name}.{output_format}'))
+            elif figtype == 'img':
+                if output_format == 'pdf':
+                    continue
+                with open(os.path.join(
+                        target_dir, f'{name}.{output_format}'), 'wb') as fil:
+                    fil.write(b64decode(fig['props']['src'].replace(
+                        'data:image/png;base64,', '')))
+            elif (figtype == 'pdf_text'):
+                if output_format != 'pdf':
+                    continue
+                with open(os.path.join(target_dir, f'{name}.{output_format}'), 'wb') as fil:
+                    fil.write(b64decode(fig))
+
         logger.debug(
             f'saving figures - writing: {name}.{output_format}: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
@@ -339,7 +435,8 @@ def save_input_information(input_divs, export_dir) -> None:
         'Select',
         'Label',
         'Checklist',
-        'RadioItems'
+        'RadioItems',
+        'Input'
     ]
     input_options: list = []
     labels_and_inputs: list = get_all_types(input_divs, these)
@@ -353,6 +450,17 @@ def save_input_information(input_divs, export_dir) -> None:
                 [label['props']['children'], labels_and_inputs[i+1]['props']['value']])
         except KeyError:
             continue
+    # Have to iterate over the inputs again to gather some trickier input options. Janky.
+    for i, input in enumerate(labels_and_inputs):
+        if not 'id' in input['props']:
+            continue
+        if input['props']['id'] == 'interactomics-nearest-control-filtering':
+            input_options.append(
+                ['Use only most-similar controls:', str(len(input['props']['value']) > 0)])
+        elif input['props']['id'] == 'interactomics-num-controls':
+            input_options.append(
+                ['Number of used controls:', input['props']['value']])
+
     with open(os.path.join(export_dir, 'Options used in analysis.txt'), 'w', encoding='utf-8') as fil:
         for name, values in input_options:
             val_str: str = format_nested_list(values)
@@ -362,7 +470,7 @@ def save_input_information(input_divs, export_dir) -> None:
     logger.debug(f'saving input info - done: {datetime.now() - prev_time}')
 
 
-def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats) -> str:
+def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats, commonality_pdf_data) -> str:
     logger.debug(f'preparing download: {datetime.now()}')
     prev_time: datetime = datetime.now()
     export_dir: str = os.path.join(*cache_dir, session_name)
@@ -370,7 +478,8 @@ def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
     timestamps: dict = save_data_stores(data_stores, export_dir)
-    save_figures(analysis_divs, export_dir, figure_output_formats)
+    save_figures(analysis_divs, export_dir,
+                 figure_output_formats, commonality_pdf_data)
     save_input_information(input_divs, export_dir)
     logger.debug(
         f'preparing download - finished exporting, making zip now: {datetime.now() - prev_time}')

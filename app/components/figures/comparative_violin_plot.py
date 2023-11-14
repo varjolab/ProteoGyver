@@ -56,9 +56,6 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
     figure: Figure = Figure()
     for sample_group in plot_df['Name'].unique():
         trace_df: DataFrame = plot_df[plot_df['Name'] == sample_group]
-        logger.debug(
-            f'trace: {sample_group}: {trace_df.shape} - {datetime.now()-previous_time}')
-        previous_time = datetime.now()
         figure.add_trace(
             Violin(
                 x=trace_df['Column'],

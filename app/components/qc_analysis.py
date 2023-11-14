@@ -18,9 +18,8 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
         pd_read_json(pandas_json, orient='split'),
         contaminant_list
     )
-    previous_time: datetime = datetime.now()
-    logger.debug(
-        f'count_plot - summary stats calculated: {previous_time - start_time}')
+
+    logger.debug(f'count_plot - summary stats calculated: {datetime.now()}')
     color_col: list = []
     for index, row in count_data.iterrows():
         if row['Is contaminant']:
@@ -30,8 +29,8 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
                 replicate_colors['non-contaminant']['samples'][index])
     count_data['Color'] = color_col
     logger.debug(
-        f'count_plot - color_added: {datetime.now() - previous_time }')
-    previous_time: datetime = datetime.now()
+        f'count_plot - color_added: {datetime.now() }')
+
     graph_div: html.Div = html.Div(
         id='qc-count-div',
         children=[
@@ -47,43 +46,42 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
         ]
     )
     logger.debug(
-        f'count_plot - graph drawn: {datetime.now() - previous_time }')
+        f'count_plot - graph drawn: {datetime.now() }')
     return (graph_div, count_data.to_json(orient='split'))
 
 
 def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
-    start_time: datetime = datetime.now()
-    logger.debug(f'coverage - started: {start_time}')
+    logger.debug(f'coverage - started: {datetime.now()}')
     coverage_data: DataFrame = summary_stats.get_coverage_data(
         pd_read_json(pandas_json, orient='split'))
-    previous_time: datetime = datetime.now()
+
     logger.debug(
-        f'coverage - summary stats calculated: {previous_time - start_time }')
+        f'coverage - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-coverage-div',
         children=[
             html.H4(id='qc-heading-id_coverage',
                     children='Protein identification coverage'),
             bar_graph.make_graph('qc-coverage-plot', defaults,
-                                 coverage_data, title, color=False),
+                                 coverage_data, title, color=False, sort_x=False, x_label='Protein identified in N samples'),
             legends['coverage-plot']
         ]
     )
     logger.debug(
-        f'coverage - graph drawn: {datetime.now() - previous_time }')
+        f'coverage - graph drawn: {datetime.now() }')
     return (graph_div, coverage_data.to_json(orient='split')
             )
 
 
-def reproducibility_plot(pandas_json: str, sample_groups: dict, defaults: dict, title: str = None) -> tuple:
+def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
     logger.debug(f'reproducibility_plot - started: {start_time}')
     data_table: DataFrame = pd_read_json(pandas_json, orient='split')
     repro_data: dict = reproducibility_graph.get_reproducibility_dataframe(
         data_table, sample_groups)
-    previous_time: datetime = datetime.now()
+
     logger.debug(
-        f'reproducibility_plot - summary stats calculated: {previous_time - start_time }')
+        f'reproducibility_plot - summary stats calculated: {datetime.now()}')
 
     graph_div: html.Div = html.Div(
         id='qc-reproducibility-div',
@@ -91,12 +89,12 @@ def reproducibility_plot(pandas_json: str, sample_groups: dict, defaults: dict, 
             html.H4(id='qc-heading-reproducibility',
                     children='Sample reproducibility'),
             reproducibility_graph.make_graph(
-                'qc-reproducibility-plot', defaults, repro_data, title),
+                'qc-reproducibility-plot', defaults, repro_data, title, table_type),
             legends['reproducibility-plot']
         ]
     )
     logger.debug(
-        f'reproducibility_plot - graph drawn: {datetime.now() - previous_time }')
+        f'reproducibility_plot - graph drawn: {datetime.now() }')
     return (graph_div,  json.dumps(repro_data))
 
 
@@ -108,9 +106,9 @@ def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title
     na_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in na_data.index.values
     ]
-    previous_time: datetime = datetime.now()
+
     logger.debug(
-        f'missing_plot - summary stats calculated: {previous_time - start_time }')
+        f'missing_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-missing-div',
         children=[
@@ -126,7 +124,7 @@ def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title
         ]
     )
     logger.debug(
-        f'missing_plot - graph drawn: {datetime.now() - previous_time }')
+        f'missing_plot - graph drawn: {datetime.now() }')
     return (graph_div, na_data.to_json(orient='split'))
 
 
@@ -138,9 +136,9 @@ def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: st
     sum_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in sum_data.index.values
     ]
-    previous_time: datetime = datetime.now()
+
     logger.debug(
-        f'sum_plot - summary stats calculated: {previous_time - start_time }')
+        f'sum_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-sum-div',
         children=[
@@ -156,7 +154,7 @@ def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: st
         ]
     )
     logger.debug(
-        f'sum_plot - graph drawn: {datetime.now() - previous_time }')
+        f'sum_plot - graph drawn: {datetime.now() }')
     return (graph_div, sum_data.to_json(orient='split'))
 
 
@@ -170,9 +168,9 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
     mean_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in mean_data.index.values
     ]
-    previous_time: datetime = datetime.now()
+
     logger.debug(
-        f'mean_plot - summary stats calculated: {previous_time - start_time }')
+        f'mean_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-mean-div',
         children=[
@@ -187,7 +185,7 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
         ]
     )
     logger.debug(
-        f'mean_plot - graph drawn: {datetime.now() - previous_time }')
+        f'mean_plot - graph drawn: {datetime.now() }')
     return (graph_div, mean_data.to_json(orient='split'))
 
 
@@ -200,9 +198,9 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
         pd_read_json(pandas_json, orient='split'),
         sample_groups
     )
-    previous_time: datetime = datetime.now()
+
     logger.debug(
-        f'distribution_plot - summary stats calculated: {previous_time - start_time }')
+        f'distribution_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-distribution-div',
         children=[
@@ -220,7 +218,7 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
         ]
     )
     logger.debug(
-        f'distribution_plot - graph drawn: {datetime.now() - previous_time }')
+        f'distribution_plot - graph drawn: {datetime.now() }')
     return (graph_div, pandas_json)
 
 
@@ -231,19 +229,19 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict) 
         pd_read_json(pandas_json, orient='split'),
         rev_sample_groups
     )
-    previous_time: datetime = datetime.now()
     logger.debug(
-        f'commonality_plot - summary stats calculated: {previous_time - start_time }')
+        f'commonality_plot - summary stats calculated: {datetime.now() }')
+    graph, image_str = commonality_graph.make_graph(
+        common_data, 'qc-commonality-plot', defaults)
     graph_div: html.Div = html.Div(
         id='qc-supervenn-div',
         children=[
             html.H4(id='qc-heading-shared_id',
                     children='Shared identifications'),
-            commonality_graph.make_graph(
-                common_data, 'qc-commonality-plot', defaults),
+            graph,
             legends['shared_id-plot']
         ])
     common_data = {gk: list(gs) for gk, gs in common_data.items()}
     logger.debug(
-        f'commonality_plot - graph drawn: {datetime.now() - previous_time }')
-    return (graph_div, json.dumps(common_data))
+        f'commonality_plot - graph drawn: {datetime.now() }')
+    return (graph_div, json.dumps(common_data), image_str)

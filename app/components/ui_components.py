@@ -30,7 +30,8 @@ def checklist(
         id_prefix: str = None,
         id_only: bool = False,
         prefix_list: list = None,
-        postfix_list: list = None
+        postfix_list: list = None,
+        style_override: dict = None
 ) -> dbc.Checklist:
     if disabled is None:
         disabled: set = set()
@@ -56,7 +57,8 @@ def checklist(
             ],
             value=default_choice,
             id=checklist_id,
-            switch=True
+            switch=True,
+            style=style_override
         )
     ]
     return prefix_list + retlist + postfix_list
@@ -97,13 +99,13 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
         [
             html.H2("Input", style={'textAlign': 'center'}),
             dbc.Button(
-                'Download sample table template',
+                'Download example sample table',
                 style=UPLOAD_BUTTON_STYLE,
                 id='button-download-sample_table-template',
                 className='btn-info',
             ),
             dbc.Button(
-                'Download Data file example',
+                'Download example data file',
                 style=UPLOAD_BUTTON_STYLE,
                 id='button-download-datafile-example',
                 className='btn-info',
@@ -161,6 +163,7 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
             html.Div(id='toc-div', style={'padding': '0px 10px 10px 30px'}),
             dcc.Download(id='download-sample_table-template'),
             dcc.Download(id='download-datafile-example'),
+            dcc.Download(id='download-proteomics-comparison-example'),
             dcc.Download(id='download-all-data'),
 
         ],
@@ -271,18 +274,27 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
                             required=True,
                             id='proteomics-control-dropdown',
                         ),
-                        ], width=5),
+                        ], width=4),
                 dbc.Col([
                     html.Div(
                         dbc.Label('Or'),
                         # 'padding': '50% 0px 0px 0px'} # top right bottom left
-                        style={'text-align': 'bottom', }
+                        style={'text-align': 'center', }
                     )
-                ], width=2),
+                ], width=1),
                 dbc.Col(
                     upload_area('proteomics-comparison-table-upload',
-                                'Comparison file', indicator=False),
-                    width=5,
+                                'Comparison file', indicator=True),
+                    width=4,
+                ),
+                dbc.Col(
+                    dbc.Button('Download example comparison file',
+                               id='download-proteomics-comparison-example-button'),
+                    width=2
+                ),
+                dbc.Col(
+                    '',
+                    width=1
                 )
             ], style={"display": "flex", "align-items": "bottom"},),
             dbc.Row([
@@ -303,7 +315,7 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
             dbc.Row(
                 [
                     dbc.Button('Run proteomics analysis',
-                               id='proteomics-recalculate-button'),
+                               id='proteomics-run-button'),
                 ]
             )
         ])
@@ -429,8 +441,19 @@ def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
                 id_only=True,
                 prefix_list=[dbc.Label('Choose additional control sets:')]
             )
-        )
+        ),
     ])
+
+
+def interactomics_nearest_control_row():
+    return dbc.Row(
+        [
+
+            dbc.Col([
+
+            ], width=3)
+        ]
+    )
 
 
 def interactomics_crapome_col(crapome_dict) -> dbc.Col:
@@ -486,10 +509,54 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
         children=[
             dbc.Row(
                 [
-                    interactomics_control_col(all_sample_groups, chosen),
-                    interactomics_inbuilt_control_col(parameters['controls']),
-                    interactomics_crapome_col(parameters['crapome']),
-                    interactomics_enrichment_col(parameters['enrichment'])
+                    dbc.Col([
+                        dbc.Row(
+                            [
+                                interactomics_control_col(
+                                    all_sample_groups, chosen),
+                                interactomics_inbuilt_control_col(
+                                    parameters['controls']),
+                                interactomics_crapome_col(
+                                    parameters['crapome']),
+                            ]
+                        ),
+                        dbc.Row([
+                            dbc.Col(width=2),
+                            dbc.Col([
+                                dbc.Row([
+                                    dbc.Col(
+                                        checklist(
+                                            'Nearest control filtering',
+                                            ['Select'],
+                                            ['Select'],
+                                            id_only=True,
+                                            id_prefix='interactomics',
+                                            style_override={
+                                                'margin': '5px', 'verticalAlign': 'center'
+                                            },
+                                        ), width=2
+                                    ),
+                                    dbc.Col([
+                                        dbc.Input(
+                                            id='interactomics-num-controls', type='number', value=30,
+                                            min=0, max=200, step=1, style={'margin': '5px', 'verticalAlign': 'center'}
+                                        ),
+                                        tooltips.interactomics_select_top_controls_tooltip()
+                                    ], width=2),
+                                    dbc.Col(
+                                        html.P('most similar inbuilt control runs',
+                                               style={'margin': '5px', 'verticalAlign': 'center'}),
+                                        width=7
+                                    )
+                                ])
+                            ], width=8),
+                            dbc.Col()
+                        ])
+                    ], width=9),
+                    dbc.Col(
+                        interactomics_enrichment_col(parameters['enrichment']),
+                        width=3
+                    )
                 ]
             ),
             dbc.Row(
@@ -668,10 +735,11 @@ def table_of_contents(main_div_children: list, itern=0) -> list:
                     if level > 6:
                         level = 6
                     html_component: Any = HEADER_DICT['component'][level]
-                    list_component: Any = html.Li
+                    # list_component: Any = html.Li
+                    list_component: Any = html.Div
                     style: dict = SIDEBAR_LIST_STYLES[level]
                     if level == 1:
-                        list_component = html.Div
+                        # list_component = html.Div
                         style['padding-left'] = '0%'
                     try:
                         idstr: str = element['props']['id']

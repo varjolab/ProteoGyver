@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None) -> tuple:
-    start_time: datetime = datetime.now()
-    logger.debug(f'nafilter - start: {start_time}')
+
+    logger.debug(f'nafilter - start: {datetime.now()}')
     data_table: DataFrame = pd_read_json(
         input_data_dict['data tables']['intensity'],
         orient='split'
@@ -20,23 +20,23 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
     original_counts: DataFrame = matrix_functions.count_per_sample(
         data_table, input_data_dict['sample groups']['rev'])
     logger.debug(
-        f'nafilter - counts per sample: {datetime.now()-start_time}')
-    previous_time: datetime = datetime.now()
+        f'nafilter - counts per sample: {datetime.now()}')
+
     filtered_data: DataFrame = matrix_functions.filter_missing(
         data_table,
         input_data_dict['sample groups']['norm'],
         filtering_percentage,
     )
     logger.debug(
-        f'nafilter - filtering done: {datetime.now()-previous_time}')
-    previous_time: datetime = datetime.now()
+        f'nafilter - filtering done: {datetime.now()}')
+
     filtered_counts: DataFrame = matrix_functions.count_per_sample(
         filtered_data, input_data_dict['sample groups']['rev'])
     figure_legend: html.P = legends['na_filter']
     figure_legend.children = figure_legend.children.replace(
         'FILTERPERC', f'{filtering_percentage}')
     logger.debug(
-        f'nafilter - only plot left: {datetime.now()-previous_time}')
+        f'nafilter - only plot left: {datetime.now()}')
     return (
         html.Div(
             id='proteomics-na-filter-plot-div',
@@ -53,15 +53,15 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
 
 
 def normalization(filtered_data_json, normalization_option, defaults, title: str = None) -> tuple:
-    start_time: datetime = datetime.now()
-    logger.debug(f'normalization - start: {start_time}')
+
+    logger.debug(f'normalization - start: {datetime.now()}')
 
     data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
     normalized_table: DataFrame = matrix_functions.normalize(
         data_table, normalization_option)
     logger.debug(
-        f'normalization - normalized: {datetime.now()-start_time}')
-    previous_time: datetime = datetime.now()
+        f'normalization - normalized: {datetime.now()}')
+
     sample_groups_rev: dict = {
         column_name: 'Before normalization' for column_name in data_table.columns
     }
@@ -71,16 +71,15 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
         sample_groups_rev[new_column_name] = 'After normalization'
 
     logger.debug(
-        f'normalization - normalized applied: {datetime.now()-previous_time}')
-    previous_time: datetime = datetime.now()
+        f'normalization - normalized applied: {datetime.now()}')
+
     names: list
     comparative_data: dict
     names, comparative_data = summary_stats.get_comparative_data(
         data_table, sample_groups_rev
     )
     logger.debug(
-        f'normalization - comparative data generated, only plotting left: {datetime.now()-previous_time}')
-    previous_time: datetime = datetime.now()
+        f'normalization - comparative data generated, only plotting left: {datetime.now()}')
 
     plot_colors: dict = {
         'sample groups': {
@@ -97,11 +96,11 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
         replicate_colors=plot_colors
     )
     logger.debug(
-        f'normalization - graph done, writing: {datetime.now()-previous_time}')
+        f'normalization - graph done, writing: {datetime.now()}')
     plot.figure.write_json('test.json', pretty=True)
     plot.figure.write_html('test.html', config=defaults['config'])
     logger.debug(
-        f'normalization - graph done, returning: {datetime.now()-previous_time}')
+        f'normalization - graph done, returning: {datetime.now()}')
     return (
         html.Div(
             id='proteomics-normalization-plot-div',
@@ -117,14 +116,14 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
 
 
 def imputation(filtered_data_json, imputation_option, defaults, title: str = None) -> tuple:
-    start_time: datetime = datetime.now()
-    logger.debug(f'imputation - start: {start_time}')
+
+    logger.debug(f'imputation - start: {datetime.now()}')
 
     data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
     imputed_table: DataFrame = matrix_functions.impute(
         data_table, imputation_option)
     logger.debug(
-        f'imputation - imputed, only plot left: {datetime.now()-start_time}')
+        f'imputation - imputed, only plot left: {datetime.now()}')
     return (
         html.Div(
             id='proteomics-imputation-plot-div',
@@ -147,8 +146,8 @@ def imputation(filtered_data_json, imputation_option, defaults, title: str = Non
 
 
 def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tuple:
-    start_time: datetime = datetime.now()
-    logger.debug(f'PCA - start: {start_time}')
+
+    logger.debug(f'PCA - start: {datetime.now()}')
     data_table: DataFrame = pd_read_json(imputed_data_json, orient='split')
     pc1: str
     pc2: str
@@ -158,7 +157,7 @@ def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tup
         data_table, sample_groups_rev, n_components=2)
     pca_result.sort_values(by=pc1, ascending=True, inplace=True)
     logger.debug(
-        f'PCA - done, only plotting left: {datetime.now()-start_time}')
+        f'PCA - done, only plotting left: {datetime.now()}')
 
     return (
         html.Div(
@@ -215,18 +214,18 @@ def clustermap(imputed_data_json: dict, defaults: dict) -> tuple:
 
 
 def volcano_plots(imputed_data_json: dict, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
-    start_time: datetime = datetime.now()
-    logger.debug(f'volcano - start: {start_time}')
+
+    logger.debug(f'volcano - start: {datetime.now()}')
     data: DataFrame = pd_read_json(imputed_data_json, orient='split')
     significant_data: DataFrame = stats.differential(
         data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr)
     logger.debug(
-        f'volcano - significants calculated: {datetime.now() - start_time }')
-    previous_time: datetime = datetime.now()
+        f'volcano - significants calculated: {datetime.now() }')
+
     graphs_div: html.Div = volcano_plot.generate_graphs(
         significant_data, defaults, fc_thr, p_thr, 'proteomics')
     logger.debug(
-        f'volcano - volcanoes generated: {previous_time - datetime.now()}')
+        f'volcano - volcanoes generated: {datetime.now()}')
     return ([
         html.H3(id='proteomics-volcano-header', children='Volcano plots'),
         graphs_div

@@ -201,7 +201,7 @@ def open_discard_samples_modal(_, count_plot: list, data_dictionary: dict) -> tu
     )
 
 
-@app.callback(
+@callback(
     Output('discard-samples-modal', 'is_open'),
     Input('discard-samples-button', 'n_clicks'),
     Input('done-discarding-button', 'n_clicks'),
@@ -273,6 +273,7 @@ def reproducibility_plot(_, data_dictionary: dict) -> tuple:
         data_dictionary['data tables'][data_dictionary['data tables']
                                        ['table to use']],
         data_dictionary['sample groups']['norm'],
+        data_dictionary['data tables']['table to use'],
         parameters['Figure defaults']['full-height']
     )
 
@@ -349,8 +350,9 @@ def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple
 
 
 @callback(
-    Output({'type': 'qc-plot', 'id': 'commonality-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'commonality-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'commonality-plot-div'}, 'children'),
+    Output({'type': 'data-store', 'name': 'commonality-data-store'}, 'data'),
+    Output({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'distribution-plot-div'}, 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
@@ -378,12 +380,16 @@ def qc_done(_) -> str:
            'id': 'proteomics-na-filtered-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
     # Input('proteomics-loading-filtering', 'children'),
-    Input('proteomics-recalculate-button', 'n_clicks'),
+    Input('proteomics-run-button', 'n_clicks'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State('proteomics-filter-minimum-percentage', 'value'),
     prevent_initial_call=True
 )
-def proteomics_filtering_plot(_, uploaded_data: dict, filtering_percentage: int):
+def proteomics_filtering_plot(nclicks, uploaded_data: dict, filtering_percentage: int) -> tuple:
+    if nclicks is None:
+        return (no_update, no_update)
+    if nclicks < 1:
+        return (no_update, no_update)
     return proteomics.na_filter(uploaded_data, filtering_percentage, parameters['Figure defaults']['full-height'])
 
 
@@ -431,7 +437,7 @@ def proteomics_pca_plot(imputed_data: dict, upload_dict: dict) -> html.Div:
     Output({'type': 'workflow-plot',
            'id': 'proteomics-clustermap-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-clustermap-data-store'}, 'data'),
-    Output('workflow-done-notifier', 'children'),
+    Output('workflow-done-notifier', 'children', allow_duplicate=True),
     Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     prevent_initial_call=True
 )
@@ -440,26 +446,50 @@ def proteomics_clustermap(imputed_data: dict) -> html.Div:
 
 
 @callback(
+    Output('proteomics-comparison-table-upload-success', 'style'),
+    Output({'type': 'data-store',
+           'name': 'proteomics-comparison-table-data-store'}, 'data'),
+    Input('proteomics-comparison-table-upload', 'contents'),
+    State('proteomics-comparison-table-upload', 'filename'),
+    State('proteomics-comparison-table-upload-success', 'style'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def proteomics_check_comparison_table(contents, filename, current_style, data_dictionary):
+    return parsing.check_comparison_file(contents, filename, data_dictionary['sample groups']['norm'], current_style)
+
+
+@callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-volcano-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-volcano-data-store'}, 'data'),
     Output('workflow-volcanoes-done-notifier', 'children'),
     Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     Input('proteomics-control-dropdown', 'value'),
-    Input('proteomics-comparison-table-upload', 'data'),
-    Input('proteomics-comparison-table-upload', 'filename'),
+    Input({'type': 'data-store',
+           'name': 'proteomics-comparison-table-data-store'}, 'data'),
+    Input('proteomics-comparison-table-upload-success', 'style'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     Input('proteomics-fc-value-threshold', 'value'),
     Input('proteomics-p-value-threshold', 'value'),
     prevent_initial_call=True
 )
-def proteomics_volcano_plots(imputed_data, control_group, comparison_file, comparison_file_name, data_dictionary, fc_thr, p_thr) -> tuple:
-    if (control_group is None) and (comparison_file is None):
+def proteomics_volcano_plots(imputed_data, control_group, comparison_data, comparison_upload_success_style, data_dictionary, fc_thr, p_thr) -> tuple:
+    if imputed_data is None:
         return no_update
-    else:
-        sgroups: dict = data_dictionary['sample groups']['norm']
-        comparisons: list = parsing.parse_comparisons(
-            control_group, comparison_file, comparison_file_name, sgroups)
-        return proteomics.volcano_plots(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height']) + ('',)
+    if control_group is None:
+        if (comparison_data is None):
+            print('no comparison data')
+            return no_update
+        if (len(comparison_data) == 0):
+            print('comparison data len')
+            return no_update
+        if comparison_upload_success_style['background-color'] in ('red', 'grey'):
+            print('failed validation')
+            return no_update
+    sgroups: dict = data_dictionary['sample groups']['norm']
+    comparisons: list = parsing.parse_comparisons(
+        control_group, comparison_data, sgroups)
+    return proteomics.volcano_plots(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height']) + ('',)
 
 # Need to implement:
 # GOBP mapping
@@ -510,14 +540,17 @@ def select_all_none_crapomes(all_selected, options) -> list:
     State('interactomics-choose-additional-control-sets', 'value'),
     State('interactomics-choose-crapome-sets', 'value'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    State('interactomics-nearest-control-filtering', 'value'),
+    State('interactomics-num-controls', 'value'),
     prevent_initial_call=True
 )
-def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_controls: list, crapomes: list, uploaded_data: dict) -> html.Div:
+def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_controls: list, crapomes: list, uploaded_data: dict, proximity_filtering_checklist: list, n_controls: int) -> html.Div:
     if nclicks is None:
         return (no_update, no_update, no_update)
     if nclicks < 1:
         return (no_update, no_update, no_update)
-    return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file)
+    do_proximity_filtering: bool = (len(proximity_filtering_checklist) > 0)
+    return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file, do_proximity_filtering, n_controls)
 
 
 @app.long_callback(
@@ -531,7 +564,6 @@ def interactomics_run_saint(saint_input, data_dictionary):
     return interactomics.run_saint(
         saint_input,
         parameters['External tools']['SAINT']['spc'],
-        parameters['Data paths']['Error log'],
         data_dictionary['other']['session name'],
         data_dictionary['other']['bait uniprots']
     )
@@ -683,6 +715,7 @@ def interactomics_enrichment(_, saint_output, chosen_enrichments):
 
 
 @callback(
+    Output('workflow-done-notifier', 'children', allow_duplicate=True),
     Output('interactomics-network-loading', 'children'),
     Output({'type': 'data-store', 'name': 'interactomics-network-data-store'}, 'data'),
     Input({'type': 'data-store', 'name': 'interactomics-enrichment-data-store'}, 'data'),
@@ -691,7 +724,7 @@ def interactomics_enrichment(_, saint_output, chosen_enrichments):
     prevent_initial_call=True
 )
 def interactomics_network_plot(_, saint_input):
-    return ('', '')
+    return ('', '', '')
 
 
 @callback(
@@ -725,8 +758,20 @@ def workflow_area(_, workflow: str, data_dictionary: dict) -> html.Div:
     prevent_initial_call=True,
 )
 def sample_table_example_download(_) -> dict:
-    # DB dependent function
-    pass
+    return dcc.send_file(os.path.join(*parameters['Data paths']['Example sample table file']))
+
+
+@callback(
+    Output('download-proteomics-comparison-example', 'data'),
+    Input('download-proteomics-comparison-example-button', 'n_clicks'),
+    prevent_initial_call=True
+)
+def download_example_comparison_file(n_clicks) -> dict:
+    if n_clicks is None:
+        return None
+    if n_clicks == 0:
+        return None
+    return dcc.send_file(os.path.join(*parameters['Data paths']['Example proteomics comparison file']))
 
 
 @callback(
@@ -735,8 +780,7 @@ def sample_table_example_download(_) -> dict:
     prevent_initial_call=True,
 )
 def download_data_table_example(_) -> dict:
-    # DB dependent function
-    pass
+    return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
 
 
 @callback(
@@ -747,13 +791,14 @@ def download_data_table_example(_) -> dict:
     State({'type': 'analysis-div', 'id': ALL}, 'children'),
     State({'type': 'input-div', 'id': ALL}, 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_data) -> dict:
+def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_data, commonality_pdf_data) -> dict:
     figure_output_formats = ['html', 'png', 'pdf']
     stores: list = stores + stores2
     export_zip_name: str = prepare_download(
-        stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats)
+        stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats, commonality_pdf_data)
     return dcc.send_file(export_zip_name)
     # DB dependent function
 

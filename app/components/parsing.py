@@ -1,5 +1,6 @@
 """File parsing functions for Proteogyver"""
 
+from ast import Attribute
 import base64
 import io
 import pandas as pd
@@ -8,7 +9,6 @@ from collections.abc import Mapping
 import os
 import json
 from components import db_functions
-from importlib import util as import_util
 from components import EnrichmentAdmin as ea
 
 
@@ -309,20 +309,14 @@ def guess_control_samples(sample_names: list) -> list:
     return possible_control_samples
 
 
-def parse_comparisons(control_group, comparison_file, comparison_file_name, sgroups) -> list:
+def parse_comparisons(control_group, comparison_data, sgroups) -> list:
     comparisons: list = []
-    if control_group is None:
-        dataframe: pd.DataFrame = read_df_from_content(
-            comparison_file, comparison_file_name, lowercase_columns=True)
-        scol: str = 'sample'
-        ccol: str = 'control'
-        if ('sample' not in dataframe.columns) or ('control' not in dataframe.columns):
-            scol, ccol = dataframe.columns[:2]
-        for _, row in dataframe.iterrows():
-            comparisons.append([row[scol], row[ccol]])
-    else:
-        comparisons = [(sample, control_group)
-                       for sample in sgroups.keys()if sample != control_group]
+    if control_group is not None:
+        comparisons.extend([(sample, control_group)
+                            for sample in sgroups.keys()if sample != control_group])
+    if comparison_data is not None:
+        if len(comparison_data) > 0:
+            comparisons.extend(comparison_data)
     return comparisons
 
 
@@ -535,8 +529,8 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
             'protein lengths': data_info['protein lengths'],
         }
     }
+    return_dict['other']['bait uniprots'] = {}
     if 'Bait uniprot' in expdesign.columns:
-        return_dict['other']['bait uniprots'] = {}
         for _, row in expdesign.iterrows():
             return_dict['other']['bait uniprots'][row['Sample group']
                                                   ] = check_bait(row['Bait uniprot'])
@@ -592,9 +586,11 @@ def delete_samples(discard_samples, data_dictionary) -> dict:
             )
     sg_dict: dict = {'norm': {}, 'rev': {}}
     for sample_group_name, sample_group_samples in data_dictionary['sample groups']['norm'].items():
-        sg_dict['norm'][sample_group_name] = [
-            s_name for s_name in sample_group_samples if s_name not in discard_samples
-        ]
+        group_samples: list = [
+            s_name for s_name in sample_group_samples if s_name not in discard_samples]
+        if len(group_samples) == 0:
+            continue
+        sg_dict['norm'][sample_group_name] = group_samples
     for group, samples in sg_dict['norm'].items():
         for sample in samples:
             sg_dict['rev'][sample] = group
@@ -649,7 +645,7 @@ def rename_columns_and_update_expdesign(
             newname: str = str(sample_group)
             # We expect replicates to not be specifically named; they will be named here.
             if newname[0].isdigit():
-                newname = f'Sample_{newname}'
+                newname = f'SampleGroup_{newname}'
             if newname not in sample_group_columns:
                 sample_group_columns[newname] = [[]
                                                  for _ in range(len(tables))]
@@ -702,12 +698,47 @@ def rename_columns_and_update_expdesign(
     return (sample_groups, discarded_columns, used_columns)
 
 
-def validate_basic_inputs(*args) -> bool:
+def check_comparison_file(file_contents, file_name, sgroups, new_upload_style) -> list:
+    indicator: str = 'green'
+    try:
+        comparisons: list = []
+        dataframe: pd.DataFrame = read_df_from_content(
+            file_contents, file_name, lowercase_columns=True)
+        scol: str = 'sample'
+        ccol: str = 'control'
+        if ('sample' not in dataframe.columns) or ('control' not in dataframe.columns):
+            scol, ccol = dataframe.columns[:2]
+        for _, row in dataframe.iterrows():
+            samplename: str = row[scol]
+            controlname: str = row[ccol]
+
+            # parse sample and control names based on the same rules as in parsing of the group names. Here we can do a lazier version and just try the SampleGroup_ format, if the group is not found to begin with.
+            if samplename not in sgroups:
+                samplename = f'SampleGroup_{samplename}'
+            if samplename not in sgroups:
+                continue
+            if controlname not in sgroups:
+                controlname = f'SampleGroup_{controlname}'
+            if controlname not in sgroups:
+                continue
+            comparisons.append([samplename, controlname])
+        if len(comparisons) == 0:
+            indicator = 'red'
+        elif len(comparisons) != dataframe.shape[0]:
+            indicator = 'yellow'
+    except AttributeError as e:  # If content is None, we get an attribute error.
+        indicator = 'grey'
+    new_upload_style['background-color'] = indicator
+    return (new_upload_style, comparisons)
+
+
+def validate_basic_inputs(*args, fail_on_None: bool = True) -> bool:
     """Validates the basic inputs of proteogyver"""
     not_valid: bool = False
-    for arg in args:
-        if arg is None:
-            not_valid = True
+    if fail_on_None:
+        for arg in args:
+            if arg is None:
+                not_valid = True
     for style_arg in args[-2:]:
         if style_arg['background-color'] == 'red':
             not_valid = True
