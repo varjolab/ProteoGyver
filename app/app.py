@@ -30,6 +30,12 @@ parameters = parsing.parse_parameters('parameters.json')
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: list = db_functions.get_contaminants(db_file)
 
+if not os.path.isdir('logs'):
+    os.makedirs('logs')
+logging.basicConfig(filename=os.path.join(
+    'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.DEBUG)
+logging.debug(f'Proteogyver started: {datetime.now()}')
+
 app.layout = html.Div([
     ui.main_sidebar(
         parameters['Possible values']['Figure templates'],
@@ -60,11 +66,6 @@ def clear_data_stores(begin_clicks):
 
 
 def main() -> None:
-    if not os.path.isdir('logs'):
-        os.makedirs('logs')
-    logging.basicConfig(filename=os.path.join(
-        'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.DEBUG)
-    logging.debug(f'Proteogyver started: {datetime.now()}')
     app.run(debug=True)
 
 
