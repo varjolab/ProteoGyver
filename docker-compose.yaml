@@ -3,7 +3,7 @@ version: "3"
 services:
   pg:
     image: pgtesting:prod
-    container_name: pg
+    container_name: pgyver
     ports:
       - 8090:8090
       - 8050:8050
@@ -15,7 +15,7 @@ services:
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
   pgtest:
     image: pgtesting:testing
-    container_name: pgtesting
+    container_name: pggyver_test
     ports:
       - 8060:8050
 #      - 8888:8888
