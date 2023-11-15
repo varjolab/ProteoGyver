@@ -6,7 +6,6 @@ LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 # First steps
 USER root
 WORKDIR /
-RUN mkdir /proteogyver
 # Create mounts for the data
 RUN mkdir /proteogyver/data
 RUN mkdir /proteogyver/data/Server_output
