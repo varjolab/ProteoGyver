@@ -59,12 +59,10 @@ def supervenn(group_sets: dict, id_str: str) -> tuple:
         "utf8")  # encode to html elements
     buffer.close()
     buffer2.close()
-    ret = (
+    return (
         Img(id=id_str, src=f'data:image/png;base64,{data}'),
         pdf_data
     )
-    t1, t2 = ret
-    return ret
 
 
 def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:

@@ -645,6 +645,10 @@ def rename_columns_and_update_expdesign(
             newname: str = str(sample_group)
             # We expect replicates to not be specifically named; they will be named here.
             if newname[0].isdigit():
+                try:
+                    newname = int(newname)
+                except ValueError:
+                    pass
                 newname = f'SampleGroup_{newname}'
             if newname not in sample_group_columns:
                 sample_group_columns[newname] = [[]

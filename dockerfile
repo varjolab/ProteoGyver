@@ -7,7 +7,7 @@ LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 USER root
 WORKDIR /
 # Create mounts for the data
-RUN mkdir /proteogyver/data
+#RUN mkdir /proteogyver/data
 RUN mkdir /proteogyver/data/Server_output
 RUN mkdir /proteogyver/data/MS_rundata
 COPY docker_entrypoint.sh /
