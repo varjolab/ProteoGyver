@@ -56,7 +56,7 @@ def supervenn(group_sets: dict, id_str: str) -> tuple:
     data: str = base64.b64encode(buffer.getbuffer()).decode(
         "utf8")  # encode to html elements
     pdf_data: str = base64.b64encode(buffer2.getbuffer()).decode(
-        "utf8")  # encode to html elements
+        "utf8")  # encode to html elements, this one will be used in PDF export later on.
     buffer.close()
     buffer2.close()
     return (

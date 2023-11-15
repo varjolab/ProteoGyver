@@ -83,9 +83,6 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
         figure.update_layout(title=title)
     logger.debug(
         f'returning graph: {datetime.now()-previous_time}')
-    figure.write_json('test1.json', pretty=True)
-    figure.write_html('test1.html', config=defaults['config'])
-    plot_df.to_csv('test plotdf.tsv', sep='\t')
     previous_time = datetime.now()
     return Graph(
         id=id_name,

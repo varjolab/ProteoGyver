@@ -28,6 +28,7 @@ class handler():
         'Panther pathway': 'ANNOT_TYPE_ID_PANTHER_PATHWAY',
         'Panther Reactome pathways': 'ANNOT_TYPE_ID_REACTOME_PATHWAY'
     }
+
     _datasets: dict = {}
     _nice_name: str = 'PantherDB'
     _names_rev: dict
@@ -36,17 +37,50 @@ class handler():
     def nice_name(self) -> str:
         return self._nice_name
 
-    def __init__(self, datasetfile: str = 'panther_datasets.json') -> None:
+    def __init__(self, get_datasets: bool = False) -> None:
         self._available = sorted(list(self._names.keys()))
         self._names_rev = {v: k for k, v in self._names.items()}
-        if datasetfile:
-            if os.path.isfile(datasetfile):
-                with open(datasetfile) as fil:
-                    datasets: dict = json.load(fil)
-            else:
-                datasets = self.get_pantherdb_datasets()
-                with open(datasetfile, 'w', encoding='utf-8') as fil:
-                    json.dump(datasets, fil)
+        if get_datasets:
+            datasets = self.get_pantherdb_datasets()
+        else:
+            datasets = {
+                "GO:0003674": [
+                    "molecular_function",
+                    "Gene Ontology Molecular Function annotations including both manually curated and electronic annotations."
+                ],
+                "GO:0008150": [
+                    "biological_process",
+                    "Gene Ontology Biological Process annotations including both manually curated and electronic annotations."
+                ],
+                "GO:0005575": [
+                    "cellular_component",
+                    "Gene Ontology Cellular Component annotations including both manually curated and electronic annotations."
+                ],
+                "ANNOT_TYPE_ID_PANTHER_GO_SLIM_MF": [
+                    "PANTHER GO Slim Molecular Function",
+                    "A molecular process that can be carried out by the action of a single macromolecular machine, usually via direct physical interactions with other molecular entities. Function in this sense denotes an action, or activity, that a gene product (or a complex) performs. These actions are described from two distinct but related perspectives: (1) biochemical activity, and (2) role as a component in a larger system/process."
+                ],
+                "ANNOT_TYPE_ID_PANTHER_GO_SLIM_BP": [
+                    "PANTHER GO Slim Biological Process",
+                    "A biological process represents a specific objective that the organism is genetically programmed to achieve. Biological processes are often described by their outcome or ending state, e.g., the biological process of cell division results in the creation of two daughter cells (a divided cell) from a single parent cell. A biological process is accomplished by a particular set of molecular functions carried out by specific gene products (or macromolecular complexes), often in a highly regulated manner and in a particular temporal sequence."
+                ],
+                "ANNOT_TYPE_ID_PANTHER_GO_SLIM_CC": [
+                    "PANTHER GO Slim Cellular Location",
+                    "A location, relative to cellular compartments and structures, occupied by a macromolecular machine when it carries out a molecular function. There are two ways in which the gene ontology describes locations of gene products: (1) relative to cellular structures (e.g., cytoplasmic side of plasma membrane) or compartments (e.g., mitochondrion), and (2) the stable macromolecular complexes of which they are parts (e.g., the ribosome)."
+                ],
+                "ANNOT_TYPE_ID_PANTHER_PC": [
+                    "protein class",
+                    ""
+                ],
+                "ANNOT_TYPE_ID_PANTHER_PATHWAY": [
+                    "ANNOT_TYPE_PANTHER_PATHWAY",
+                    "Panther Pathways"
+                ],
+                "ANNOT_TYPE_ID_REACTOME_PATHWAY": [
+                    "ANNOT_TYPE_REACTOME_PATHWAY",
+                    "Reactome Pathways"
+                ]
+            }
         for annotation, (name, description) in datasets.items():
             realname: str = self._names_rev[annotation]
             self._datasets[realname] = [annotation, name, description]

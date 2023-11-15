@@ -303,8 +303,6 @@ def run_saint(saint_input: dict, saint_path: list, session_uid: str, bait_unipro
             '\t'.join(x) for x in saint_input['bait']
         ]))
     print(f'run_saint written: {datetime.now()}')
-    with open(paths[2].replace('bait.dat', 'saint_data.json'), 'w') as fil:
-        json.dump(saint_input, fil)
     try:
         print(f'run_saint running: {datetime.now()}')
         subprocess.check_output(
@@ -395,8 +393,6 @@ def add_crapome(saint_output_json, crapome_json) -> str:
     saint_output: pd.DataFrame = pd.read_json(
         saint_output_json, orient='split')
     crapome: pd.DataFrame = pd.read_json(crapome_json, orient='split')
-    saint_output.to_csv('SAINT OUT.tsv', sep='\t')
-    crapome.to_csv('CRAPOME.tsv', sep='\t')
 
     return pd.merge(
         saint_output,
@@ -574,7 +570,6 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         f'saint filtering - bait removed filtered size: {filtered_saint_output.shape}')
     logger.debug(
         f'saint filtering - bait removed filtered size nodupes: {filtered_saint_output.drop_duplicates().shape}')
-    filtered_saint_output.to_csv('wattafakkia.tsv', sep='\t')
     return filtered_saint_output.reset_index().drop(columns=['index']).to_json(orient='split')
 
 

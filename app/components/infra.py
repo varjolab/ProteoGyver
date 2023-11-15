@@ -231,9 +231,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             'index': False
                         }
                         export_excels[file_name][i] = res_dict
-
-                    # with open('enrichment data.json', 'w') as fil:
-                    #    json.dump(d['props']['data'], fil, indent=4)
         logger.debug(
             f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()

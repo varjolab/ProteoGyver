@@ -97,8 +97,6 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
     )
     logger.debug(
         f'normalization - graph done, writing: {datetime.now()}')
-    plot.figure.write_json('test.json', pretty=True)
-    plot.figure.write_html('test.html', config=defaults['config'])
     logger.debug(
         f'normalization - graph done, returning: {datetime.now()}')
     return (

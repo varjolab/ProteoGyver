@@ -642,13 +642,14 @@ def rename_columns_and_update_expdesign(
             # (but sample column name is there for some reason), discard column
             if pd.isna(sample_group):
                 continue
-            newname: str = str(sample_group)
+            if isinstance(sample_group, np.number):
+                if sample_group == int(sample_group):
+                    sample_group = int(sample_group)
+                newname = f'SampleGroup_{sample_group}'
+            else:
+                newname: str = str(sample_group)
             # We expect replicates to not be specifically named; they will be named here.
             if newname[0].isdigit():
-                try:
-                    newname = int(newname)
-                except ValueError:
-                    pass
                 newname = f'SampleGroup_{newname}'
             if newname not in sample_group_columns:
                 sample_group_columns[newname] = [[]
@@ -715,7 +716,16 @@ def check_comparison_file(file_contents, file_name, sgroups, new_upload_style) -
         for _, row in dataframe.iterrows():
             samplename: str = row[scol]
             controlname: str = row[ccol]
-
+            if isinstance(samplename, np.number):
+                if samplename == int(samplename):
+                    samplename = int(samplename)
+                samplename = f'SampleGroup_{samplename}'
+            else:
+                samplename: str = str(samplename)
+            if isinstance(controlname, np.number):
+                controlname = f'SampleGroup_{controlname}'
+            else:
+                controlname: str = str(controlname)
             # parse sample and control names based on the same rules as in parsing of the group names. Here we can do a lazier version and just try the SampleGroup_ format, if the group is not found to begin with.
             if samplename not in sgroups:
                 samplename = f'SampleGroup_{samplename}'

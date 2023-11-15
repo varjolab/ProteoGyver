@@ -53,7 +53,6 @@
         "Example data file": ["data","example files","datafile.tsv"],
         "Example sample table file": ["data","example files","sampletable.tsv"],
         "Example proteomics comparison file": ["data","example files","proteomics comparisons.tsv"],
-        "Error log": "proteogyver_errors.log",
         "Cache dir": ["/mnt", "c", "DATA", "PG cache"]
     },
     "Module paths": {
