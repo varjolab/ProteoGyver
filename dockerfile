@@ -14,9 +14,6 @@ COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver
 
-RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
-    echo "kamms:kamms" | chpasswd
-
 # Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
