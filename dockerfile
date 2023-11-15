@@ -13,7 +13,7 @@ RUN mkdir /proteogyver/data/MS_rundata
 COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver
-
+COPY docker_entrypoint.sh /docker_entrypoint.sh
 # Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
