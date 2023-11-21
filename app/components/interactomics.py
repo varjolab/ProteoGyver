@@ -77,7 +77,7 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
         'Bait', 'Bait uniprot']].drop_duplicates().values if bu != 'No bait uniprot'}
 
     known_str: str = 'Known interactions found per bait (Known / All):'
-    no_knowns_found: set: set()
+    no_knowns_found: set = set()
     for bait in figure_data.index:
         bdata: pd.DataFrame = figure_data[figure_data.index == bait]
         known_sum: int = bdata[bdata["Known interaction"]]["Prey count"].sum()
