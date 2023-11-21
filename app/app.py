@@ -621,10 +621,13 @@ def interactomics_draw_saint_histogram(container_ready: list, saint_output: str,
     Input('interactomics-crapome-rescue-threshold', 'value'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
+    State('interactomics-rescue-filtered-out', 'value')
     # prevent_initial_call=True
 )
-def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentage: int, crapome_fc: int, saint_output: str):
-    return interactomics.saint_filtering(saint_output, bfdr_threshold, crapome_percentage, crapome_fc)
+def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentage: int, crapome_fc: int, saint_output: str, rescue: list):
+
+    print(rescue)
+    return interactomics.saint_filtering(saint_output, bfdr_threshold, crapome_percentage, crapome_fc, len(rescue) > 0)
 
 
 @callback(

@@ -197,13 +197,13 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             'name': sig_comp,
                             'data': df[(df['Sample'] == sample) & (df['Control'] == control) & df['Significant']],
                             'headers': True,
-                            'index': True
+                            'index': False
                         })
                         df_dicts_all.append({
                             'name': f'{compname}',
                             'data': df[(df['Sample'] == sample) & (df['Control'] == control)],
                             'headers': True,
-                            'index': True
+                            'index': False
                         })
                     if len(df_dicts) > 20:
                         for df_dict_index, df_dict in enumerate(df_dicts):
@@ -523,6 +523,19 @@ def notifiers() -> html.Div:
         children=[
             html.Div(id='start-analysis-notifier'),
             html.Div(id='qc-done-notifier'),
+
+            html.Div(id={'type': 'done-notifier',
+                     'name': 'proteomics-clustering-done-notifier'}),
+            html.Div(id={'type': 'done-notifier',
+                     'name': 'proteomics-volcanoes-done-notifier'}),
+            html.Div(id={'type': 'done-notifier',
+                     'name': 'interactomics-saint-done-notifier'}),
+            html.Div(id={'type': 'done-notifier',
+                     'name': 'interactomics-pre-enrich-done-notifier'}),
+            html.Div(id={'type': 'done-notifier',
+                     'name': 'interactomics-enrichment-done-notifier'}),
+
+            # Replace these two with the above
             html.Div(id='workflow-done-notifier'),
             html.Div(id='workflow-volcanoes-done-notifier')
         ],

@@ -77,15 +77,21 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
         'Bait', 'Bait uniprot']].drop_duplicates().values if bu != 'No bait uniprot'}
 
     known_str: str = 'Known interactions found per bait (Known / All):'
+    no_knowns_found: set: set()
     for bait in figure_data.index:
         bdata: pd.DataFrame = figure_data[figure_data.index == bait]
-        known_str += f'{bait}: {bdata[bdata["Known interaction"]]["Prey count"].sum()} / {bdata["Prey count"].sum()}, '
+        known_sum: int = bdata[bdata["Known interaction"]]["Prey count"].sum()
+        if known_sum == 0:
+            no_knowns_found.add(bait)
+        else:
+            known_str += f'{bait}: {known_sum} / {bdata["Prey count"].sum()}, '
     known_str = known_str.strip().strip(', ') + '. '
+    known_str += f'No known interactions found: {", ".join(sorted(list(no_knowns_found)))}. '
 
-    known_str += '<Br>Known preys available for these baits in the database: '
+    more_known = 'Known preys available for these baits in the database: '
     for index, value in knowns[upid_a_col].value_counts().items():
-        known_str += f'{bait_map[index]} ({value}), '
-    known_str = known_str.strip().strip(', ') + '. '
+        more_known += f'{bait_map[index]} ({value}), '
+    more_known = known_str.strip().strip(', ') + '. '
     return (
         html.Div(
             id='interactomics-saint-known-plot',
@@ -99,7 +105,9 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
                     '', color_discrete_map=True, y_name='Prey count', x_label='Bait'
                 ),
                 legends['known'],
-                html.P(known_str)
+                html.P(known_str),
+                html.Br(),
+                html.P(more_known)
             ]
         ),
         saint_output.to_json(orient='split')
@@ -274,8 +282,13 @@ def saint_histogram(saint_output_json: str, figure_defaults):
 
 
 def add_bait_column(saint_output, bait_uniprot_dict) -> pd.DataFrame:
-    saint_output['Bait uniprot'] = [bait_uniprot_dict[bait]
-                                    for bait in saint_output['Bait'].values]
+    bu_column: list = []
+    for _, row in saint_output.iterrows():
+        if row['Bait'] in bait_uniprot_dict:
+            bu_column.append(bait_uniprot_dict[row['Bait']])
+        else:
+            bu_column.append('No bait uniprot')
+    saint_output['Bait uniprot'] = bu_column
     return saint_output
 
 
@@ -514,7 +527,7 @@ def generate_saint_container(input_data_dict, uploaded_controls, additional_cont
     )
 
 
-def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapome_fc):
+def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapome_fc, do_rescue: bool = False):
     saint_output: pd.DataFrame = pd.read_json(
         saint_output_json, orient='split')
     logger.debug(f'saint filtering - beginning: {saint_output.shape}')
@@ -556,9 +569,14 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         keep_preys)
     logger.debug(
         f'saint filtering - Saint output pass filter with rescue: {saint_output["Passes filter with rescue"].value_counts()}')
+    if do_rescue:
+        use_col: str = 'Passes filter with rescue'
+    else:
+        use_col = 'Passes filter'
     filtered_saint_output: pd.DataFrame = saint_output[
-        saint_output['Passes filter with rescue']
+        saint_output[use_col]
     ].copy()
+
     logger.debug(
         f'saint filtering - filtered size: {filtered_saint_output.shape}')
     if 'Bait uniprot' in filtered_saint_output.columns:
@@ -566,6 +584,11 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         filtered_saint_output = filtered_saint_output[
             filtered_saint_output['Prey'] != filtered_saint_output['Bait uniprot']
         ]
+    colorder: list = ['Bait', 'Bait uniprot', 'Prey',
+                      'Passes filter', 'Passes filter with rescue', 'AvgSpec']
+    colorder.extend(
+        [c for c in filtered_saint_output.columns if c not in colorder])
+    filtered_saint_output = filtered_saint_output[colorder]
     logger.debug(
         f'saint filtering - bait removed filtered size: {filtered_saint_output.shape}')
     logger.debug(

@@ -256,8 +256,12 @@ def read_df_from_content(content, filename, lowercase_columns=False) -> pd.DataF
     elif f_end in ['tsv', 'tab', 'txt']:
         data: pd.DataFrame = pd.read_csv(io.StringIO(
             decoded_content.decode('utf-8')), sep='\t', index_col=False)
-    elif f_end in ['xlsx', 'xls']:
-        data: pd.DataFrame = pd.read_excel(io.StringIO(decoded_content))
+    elif f_end == 'xlsx':
+        data: pd.DataFrame = pd.read_excel(
+            io.BytesIO(decoded_content), engine='openpyxl')
+    elif f_end == 'xls':
+        data: pd.DataFrame = pd.read_excel(
+            io.BytesIO(decoded_content), engine='xlrd')
     if lowercase_columns:
         data.columns = [c.lower() for c in data.columns]
     return data
@@ -649,8 +653,6 @@ def rename_columns_and_update_expdesign(
             else:
                 newname: str = str(sample_group)
             # We expect replicates to not be specifically named; they will be named here.
-            if newname[0].isdigit():
-                newname = f'SampleGroup_{newname}'
             if newname not in sample_group_columns:
                 sample_group_columns[newname] = [[]
                                                  for _ in range(len(tables))]
@@ -667,7 +669,7 @@ def rename_columns_and_update_expdesign(
     for nname, list_of_all_table_columns in sample_group_columns.items():
         first_len: int = 0
         for table_index, table_columns in enumerate(list_of_all_table_columns):
-            if len(table_columns) < 2:
+            if len(table_columns) < 1:
                 continue
             if first_len == 0:
                 first_len = len(table_columns)
@@ -723,6 +725,8 @@ def check_comparison_file(file_contents, file_name, sgroups, new_upload_style) -
             else:
                 samplename: str = str(samplename)
             if isinstance(controlname, np.number):
+                if controlname == int(controlname):
+                    controlname = int(controlname)
                 controlname = f'SampleGroup_{controlname}'
             else:
                 controlname: str = str(controlname)

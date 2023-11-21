@@ -521,7 +521,19 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                             ]
                         ),
                         dbc.Row([
-                            dbc.Col(width=2),
+                            dbc.Col(width=1),
+                            dbc.Col(
+                                checklist(
+                                    'Rescue filtered out',
+                                    ['Rescue interactions that pass filter in any sample group'],
+                                    ['Rescue interactions that pass filter in any sample group'],
+                                    id_only=True,
+                                    id_prefix='interactomics',
+                                    style_override={
+                                        'margin': '5px', 'verticalAlign': 'center'
+                                    }
+                                ), width=4
+                            ),
                             dbc.Col([
                                 dbc.Row([
                                     dbc.Col(
@@ -549,8 +561,8 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                         width=7
                                     )
                                 ])
-                            ], width=8),
-                            dbc.Col()
+                            ], width=6),
+                            dbc.Col(width=1)
                         ])
                     ], width=9),
                     dbc.Col(

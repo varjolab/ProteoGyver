@@ -30,9 +30,6 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
             plot_data = np.append(plot_data, data_frame[col].values)
             plot_legend[0].extend([names[i]]*data_frame.shape[0])
             plot_legend[1].extend([f'{col} {names[i]}']*data_frame.shape[0])
-            logger.debug(
-                f'plot data: set {i}, dfshape {data_frame.shape}, column {col}, took: {datetime.now() - previous_time}')
-            previous_time = datetime.now()
     logger.debug(
         f'plot data done: {datetime.now() - previous_time}')
     logger.debug(
