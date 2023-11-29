@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list, defaults: dict, title: str = None) -> tuple:
     """Generates a bar plot of given data"""
     start_time: datetime = datetime.now()
-    logger.debug(f'count_plot - started: {start_time}')
+    logger.warn(f'count_plot - started: {start_time}')
     count_data: DataFrame = summary_stats.get_count_data(
         pd_read_json(pandas_json, orient='split'),
         contaminant_list
     )
 
-    logger.debug(f'count_plot - summary stats calculated: {datetime.now()}')
+    logger.warn(f'count_plot - summary stats calculated: {datetime.now()}')
     color_col: list = []
     for index, row in count_data.iterrows():
         if row['Is contaminant']:
@@ -28,7 +28,7 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
             color_col.append(
                 replicate_colors['non-contaminant']['samples'][index])
     count_data['Color'] = color_col
-    logger.debug(
+    logger.warn(
         f'count_plot - color_added: {datetime.now() }')
 
     graph_div: html.Div = html.Div(
@@ -45,17 +45,17 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
             legends['count-plot']
         ]
     )
-    logger.debug(
+    logger.warn(
         f'count_plot - graph drawn: {datetime.now() }')
     return (graph_div, count_data.to_json(orient='split'))
 
 
 def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
-    logger.debug(f'coverage - started: {datetime.now()}')
+    logger.warn(f'coverage - started: {datetime.now()}')
     coverage_data: DataFrame = summary_stats.get_coverage_data(
         pd_read_json(pandas_json, orient='split'))
 
-    logger.debug(
+    logger.warn(
         f'coverage - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-coverage-div',
@@ -67,7 +67,7 @@ def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
             legends['coverage-plot']
         ]
     )
-    logger.debug(
+    logger.warn(
         f'coverage - graph drawn: {datetime.now() }')
     return (graph_div, coverage_data.to_json(orient='split')
             )
@@ -75,12 +75,12 @@ def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
 
 def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
-    logger.debug(f'reproducibility_plot - started: {start_time}')
+    logger.warn(f'reproducibility_plot - started: {start_time}')
     data_table: DataFrame = pd_read_json(pandas_json, orient='split')
     repro_data: dict = reproducibility_graph.get_reproducibility_dataframe(
         data_table, sample_groups)
 
-    logger.debug(
+    logger.warn(
         f'reproducibility_plot - summary stats calculated: {datetime.now()}')
 
     graph_div: html.Div = html.Div(
@@ -93,21 +93,21 @@ def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str,
             legends['reproducibility-plot']
         ]
     )
-    logger.debug(
+    logger.warn(
         f'reproducibility_plot - graph drawn: {datetime.now() }')
     return (graph_div,  json.dumps(repro_data))
 
 
 def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
-    logger.debug(f'missing_plot - started: {start_time}')
+    logger.warn(f'missing_plot - started: {start_time}')
     na_data: DataFrame = summary_stats.get_na_data(
         pd_read_json(pandas_json, orient='split'))
     na_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in na_data.index.values
     ]
 
-    logger.debug(
+    logger.warn(
         f'missing_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-missing-div',
@@ -123,21 +123,21 @@ def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title
             legends['missing_values-plot']
         ]
     )
-    logger.debug(
+    logger.warn(
         f'missing_plot - graph drawn: {datetime.now() }')
     return (graph_div, na_data.to_json(orient='split'))
 
 
 def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
-    logger.debug(f'sum_plot - started: {start_time}')
+    logger.warn(f'sum_plot - started: {start_time}')
     sum_data: DataFrame = summary_stats.get_sum_data(
         pd_read_json(pandas_json, orient='split'))
     sum_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in sum_data.index.values
     ]
 
-    logger.debug(
+    logger.warn(
         f'sum_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-sum-div',
@@ -153,14 +153,14 @@ def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: st
             legends['value_sum-plot']
         ]
     )
-    logger.debug(
+    logger.warn(
         f'sum_plot - graph drawn: {datetime.now() }')
     return (graph_div, sum_data.to_json(orient='split'))
 
 
 def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
-    logger.debug(f'mean_plot - started: {start_time}')
+    logger.warn(f'mean_plot - started: {start_time}')
     if title is None:
         title = 'Value mean per sample'
     mean_data: DataFrame = summary_stats.get_mean_data(
@@ -169,7 +169,7 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
         replicate_colors['samples'][rep_name] for rep_name in mean_data.index.values
     ]
 
-    logger.debug(
+    logger.warn(
         f'mean_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-mean-div',
@@ -184,14 +184,14 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
             legends['value_mean-plot']
         ]
     )
-    logger.debug(
+    logger.warn(
         f'mean_plot - graph drawn: {datetime.now() }')
     return (graph_div, mean_data.to_json(orient='split'))
 
 
 def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: dict, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
-    logger.debug(f'distribution_plot - started: {start_time}')
+    logger.warn(f'distribution_plot - started: {start_time}')
     names: list
     comparative_data: list
     names, comparative_data = summary_stats.get_comparative_data(
@@ -199,7 +199,7 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
         sample_groups
     )
 
-    logger.debug(
+    logger.warn(
         f'distribution_plot - summary stats calculated: {datetime.now() }')
     graph_div: html.Div = html.Div(
         id='qc-distribution-div',
@@ -217,19 +217,19 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
             legends['value_dist-plot']
         ]
     )
-    logger.debug(
+    logger.warn(
         f'distribution_plot - graph drawn: {datetime.now() }')
     return (graph_div, pandas_json)
 
 
 def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict) -> tuple:
     start_time: datetime = datetime.now()
-    logger.debug(f'commonality_plot - started: {start_time}')
+    logger.warn(f'commonality_plot - started: {start_time}')
     common_data: dict = summary_stats.get_common_data(
         pd_read_json(pandas_json, orient='split'),
         rev_sample_groups
     )
-    logger.debug(
+    logger.warn(
         f'commonality_plot - summary stats calculated: {datetime.now() }')
     graph, image_str = commonality_graph.make_graph(
         common_data, 'qc-commonality-plot', defaults)
@@ -242,6 +242,6 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict) 
             legends['shared_id-plot']
         ])
     common_data = {gk: list(gs) for gk, gs in common_data.items()}
-    logger.debug(
+    logger.warn(
         f'commonality_plot - graph drawn: {datetime.now() }')
     return (graph_div, json.dumps(common_data), image_str)

@@ -34,7 +34,7 @@ if not os.path.isdir('logs'):
     os.makedirs('logs')
 logging.basicConfig(filename=os.path.join(
     'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.warn)
-logging.debug(f'Proteogyver started: {datetime.now()}')
+logging.warn(f'Proteogyver started: {datetime.now()}')
 
 app.layout = html.Div([
     ui.main_sidebar(
@@ -58,7 +58,7 @@ app.layout = html.Div([
 def clear_data_stores(begin_clicks):
     '''Clears all data stores before analysis begins'''
 
-    logging.debug(
+    logging.warn(
         f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
     # return (tuple(True for _ in range(NUM_DATA_STORES)), '')
     # return (working_data_stores(), '')

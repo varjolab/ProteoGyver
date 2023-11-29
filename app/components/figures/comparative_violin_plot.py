@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, replicate_colors: dict = None, points_visible: str = False, title: str = None, showbox: bool = False) -> Graph:
     start_time = datetime.now()
-    logger.debug(
+    logger.warn(
         f'started: {start_time}')
     if id_name is None:
         id_name: str = 'comparative-violin-plot'
@@ -22,7 +22,7 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
             names.append(f'Set {i+1}')
     plot_data: np.array = np.array([])
     plot_legend: list = [[], []]
-    logger.debug(
+    logger.warn(
         f'things initialized: {datetime.now() - start_time}')
     previous_time = datetime.now()
     for i, data_frame in enumerate(sets):
@@ -30,11 +30,11 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
             plot_data = np.append(plot_data, data_frame[col].values)
             plot_legend[0].extend([names[i]]*data_frame.shape[0])
             plot_legend[1].extend([f'{col} {names[i]}']*data_frame.shape[0])
-    logger.debug(
+    logger.warn(
         f'plot data done: {datetime.now() - previous_time}')
-    logger.debug(
+    logger.warn(
         f'plot data {plot_data.shape}')
-    logger.debug(
+    logger.warn(
         f'plot legend {len(plot_legend[0])} {len(plot_legend[1])}')
     previous_time = datetime.now()
     plot_df: DataFrame = DataFrame(
@@ -44,9 +44,9 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
             'Name': plot_legend[0]
         }
     )
-    logger.debug(
+    logger.warn(
         f'only plot left: {datetime.now()-previous_time}')
-    logger.debug(
+    logger.warn(
         f'plot df {plot_df.shape}')
     previous_time = datetime.now()
 
@@ -61,14 +61,14 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
                 line_color=replicate_colors['sample groups'][sample_group]
             )
         )
-    logger.debug(
+    logger.warn(
         f'updating traces: {datetime.now()-previous_time}')
     previous_time = datetime.now()
     figure.update_traces(
         box_visible=showbox,
         points=points_visible,
         meanline_visible=True)
-    logger.debug(
+    logger.warn(
         f'updating layout: {datetime.now()-previous_time}')
     previous_time = datetime.now()
     figure.update_layout(
@@ -78,7 +78,7 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
     )
     if title is not None:
         figure.update_layout(title=title)
-    logger.debug(
+    logger.warn(
         f'returning graph: {datetime.now()-previous_time}')
     previous_time = datetime.now()
     return Graph(

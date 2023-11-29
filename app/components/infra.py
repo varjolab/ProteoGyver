@@ -87,7 +87,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
     export_excels: dict = {}
     timestamps: dict = {}
     prev_time: datetime = datetime.now()
-    logger.debug(f'save data stores - started: {prev_time}')
+    logger.warn(f'save data stores - started: {prev_time}')
     no_index: set = {'Uploaded expdesign', 'Filt saint w intensities', 'Filt int saint w knowns',
                      'Filtered saint output', 'Saint output with crapome', 'Saint output', 'ImpNorm intensities', 'Network data'}
     for d in data_stores:
@@ -144,7 +144,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         'index': index_bool
                     }
                 except ValueError:
-                    logger.debug(
+                    logger.warn(
                         f'save data stores - ValueError: {file_name} {sheet_index} {sheet_name}: {prev_time}')
                     continue
             else:
@@ -234,11 +234,11 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             'index': False
                         }
                         export_excels[file_name][i] = res_dict
-        logger.debug(
+        logger.warn(
             f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
 
-    logger.debug(
+    logger.warn(
         f'save data stores - writing excels: {datetime.now() - prev_time}')
     prev_time: datetime = datetime.now()
     for excel_name, excel_dict in export_excels.items():
@@ -257,16 +257,16 @@ def save_data_stores(data_stores, export_dir) -> dict:
                     index_bool = False
                 dic['data'].to_excel(writer, sheet_name=dic['name'],
                                      header=dic['headers'], index=index_bool)
-                logger.debug(
+                logger.warn(
                     f'save data stores - sheet {excel_name}: {dic["name"]} done: {datetime.now() - prev_time}')
                 prev_time: datetime = datetime.now()
 
                 # excel_dict[df_dict_index]['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'])
-            logger.debug(
+            logger.warn(
                 f'save data stores - closing writer {excel_name}: {datetime.now() - start_excel_time}')
             prev_time: datetime = datetime.now()
         # writer.close()
-        logger.debug(
+        logger.warn(
             f'save data stores - finished with {excel_name}. Took: {datetime.now() - start_excel_time}')
         prev_time: datetime = datetime.now()
     return timestamps
@@ -314,7 +314,7 @@ def get_all_types(elements, get_types) -> list:
 
 
 def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data) -> None:
-    logger.debug(f'saving figures: {datetime.now()}')
+    logger.warn(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
         analysis_divs, ['h4', 'h5', 'graph', 'img', 'P'])
@@ -370,7 +370,7 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                         'props']['children'], figure_html, figure, 'graph'
                 ])
 
-    logger.debug(
+    logger.warn(
         f'saving figures - figures identified: {len(figure_names_and_figures)}: {datetime.now() - prev_time}')
     prev_time: datetime = datetime.now()
 
@@ -412,10 +412,10 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                 with open(os.path.join(target_dir, f'{name}.{output_format}'), 'wb') as fil:
                     fil.write(b64decode(fig))
 
-        logger.debug(
+        logger.warn(
             f'saving figures - writing: {name}.{output_format}: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
-    logger.debug(f'saving figures - done: {datetime.now() - prev_time}')
+    logger.warn(f'saving figures - done: {datetime.now() - prev_time}')
 
 
 def format_nested_list(input_list: list):
@@ -431,7 +431,7 @@ def format_nested_list(input_list: list):
 
 
 def save_input_information(input_divs, export_dir) -> None:
-    logger.debug(f'saving input info: {datetime.now()}')
+    logger.warn(f'saving input info: {datetime.now()}')
     prev_time: datetime = datetime.now()
     these: list = [
         'Slider',
@@ -470,11 +470,11 @@ def save_input_information(input_divs, export_dir) -> None:
             if len(val_str) == 0:
                 val_str = 'None'
             fil.write(f'{name} {val_str}\n')
-    logger.debug(f'saving input info - done: {datetime.now() - prev_time}')
+    logger.warn(f'saving input info - done: {datetime.now() - prev_time}')
 
 
 def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats, commonality_pdf_data) -> str:
-    logger.debug(f'preparing download: {datetime.now()}')
+    logger.warn(f'preparing download: {datetime.now()}')
     prev_time: datetime = datetime.now()
     export_dir: str = os.path.join(*cache_dir, session_name)
     if os.path.isdir(export_dir):
@@ -484,18 +484,18 @@ def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_
     save_figures(analysis_divs, export_dir,
                  figure_output_formats, commonality_pdf_data)
     save_input_information(input_divs, export_dir)
-    logger.debug(
+    logger.warn(
         f'preparing download - finished exporting, making zip now: {datetime.now() - prev_time}')
     prev_time: datetime = datetime.now()
     export_zip_name: str = export_dir.rstrip(os.sep) + '.zip'
     if os.path.isfile(export_zip_name):
         os.remove(export_zip_name)
     shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
-    logger.debug(
+    logger.warn(
         f'preparing download - zip made, removing leftover data: {datetime.now() - prev_time}')
     prev_time: datetime = datetime.now()
     shutil.rmtree(export_dir)
-    logger.debug(f'preparing download - done: {datetime.now() - prev_time}')
+    logger.warn(f'preparing download - done: {datetime.now() - prev_time}')
     return export_zip_name
 
 

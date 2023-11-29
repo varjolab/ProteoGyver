@@ -12,14 +12,14 @@ logger = logging.getLogger(__name__)
 
 def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None) -> tuple:
 
-    logger.debug(f'nafilter - start: {datetime.now()}')
+    logger.warn(f'nafilter - start: {datetime.now()}')
     data_table: DataFrame = pd_read_json(
         input_data_dict['data tables']['intensity'],
         orient='split'
     )
     original_counts: DataFrame = matrix_functions.count_per_sample(
         data_table, input_data_dict['sample groups']['rev'])
-    logger.debug(
+    logger.warn(
         f'nafilter - counts per sample: {datetime.now()}')
 
     filtered_data: DataFrame = matrix_functions.filter_missing(
@@ -27,7 +27,7 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
         input_data_dict['sample groups']['norm'],
         filtering_percentage,
     )
-    logger.debug(
+    logger.warn(
         f'nafilter - filtering done: {datetime.now()}')
 
     filtered_counts: DataFrame = matrix_functions.count_per_sample(
@@ -35,7 +35,7 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
     figure_legend: html.P = legends['na_filter']
     figure_legend.children = figure_legend.children.replace(
         'FILTERPERC', f'{filtering_percentage}')
-    logger.debug(
+    logger.warn(
         f'nafilter - only plot left: {datetime.now()}')
     return (
         html.Div(
@@ -54,12 +54,12 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
 
 def normalization(filtered_data_json, normalization_option, defaults, title: str = None) -> tuple:
 
-    logger.debug(f'normalization - start: {datetime.now()}')
+    logger.warn(f'normalization - start: {datetime.now()}')
 
     data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
     normalized_table: DataFrame = matrix_functions.normalize(
         data_table, normalization_option)
-    logger.debug(
+    logger.warn(
         f'normalization - normalized: {datetime.now()}')
 
     sample_groups_rev: dict = {
@@ -70,7 +70,7 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
         data_table[new_column_name] = normalized_table[column_name]
         sample_groups_rev[new_column_name] = 'After normalization'
 
-    logger.debug(
+    logger.warn(
         f'normalization - normalized applied: {datetime.now()}')
 
     names: list
@@ -78,7 +78,7 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
     names, comparative_data = summary_stats.get_comparative_data(
         data_table, sample_groups_rev
     )
-    logger.debug(
+    logger.warn(
         f'normalization - comparative data generated, only plotting left: {datetime.now()}')
 
     plot_colors: dict = {
@@ -95,9 +95,9 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
         title=title,
         replicate_colors=plot_colors
     )
-    logger.debug(
+    logger.warn(
         f'normalization - graph done, writing: {datetime.now()}')
-    logger.debug(
+    logger.warn(
         f'normalization - graph done, returning: {datetime.now()}')
     return (
         html.Div(
@@ -115,12 +115,12 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
 
 def imputation(filtered_data_json, imputation_option, defaults, title: str = None) -> tuple:
 
-    logger.debug(f'imputation - start: {datetime.now()}')
+    logger.warn(f'imputation - start: {datetime.now()}')
 
     data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
     imputed_table: DataFrame = matrix_functions.impute(
         data_table, imputation_option)
-    logger.debug(
+    logger.warn(
         f'imputation - imputed, only plot left: {datetime.now()}')
     return (
         html.Div(
@@ -145,7 +145,7 @@ def imputation(filtered_data_json, imputation_option, defaults, title: str = Non
 
 def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tuple:
 
-    logger.debug(f'PCA - start: {datetime.now()}')
+    logger.warn(f'PCA - start: {datetime.now()}')
     data_table: DataFrame = pd_read_json(imputed_data_json, orient='split')
     pc1: str
     pc2: str
@@ -154,7 +154,7 @@ def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tup
     pc1, pc2, pca_result = matrix_functions.do_pca(
         data_table, sample_groups_rev, n_components=2)
     pca_result.sort_values(by=pc1, ascending=True, inplace=True)
-    logger.debug(
+    logger.warn(
         f'PCA - done, only plotting left: {datetime.now()}')
 
     return (
@@ -189,7 +189,7 @@ def clustermap(imputed_data_json: dict, defaults: dict) -> tuple:
     """
     corrdata: DataFrame = pd_read_json(
         imputed_data_json, orient='split').corr()
-    logger.debug(
+    logger.warn(
         f'clustermap - only plotting left: {datetime.now()}')
     return (
         html.Div(
@@ -213,16 +213,16 @@ def clustermap(imputed_data_json: dict, defaults: dict) -> tuple:
 
 def volcano_plots(imputed_data_json: dict, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
 
-    logger.debug(f'volcano - start: {datetime.now()}')
+    logger.warn(f'volcano - start: {datetime.now()}')
     data: DataFrame = pd_read_json(imputed_data_json, orient='split')
     significant_data: DataFrame = stats.differential(
         data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr)
-    logger.debug(
+    logger.warn(
         f'volcano - significants calculated: {datetime.now() }')
 
     graphs_div: html.Div = volcano_plot.generate_graphs(
         significant_data, defaults, fc_thr, p_thr, 'proteomics')
-    logger.debug(
+    logger.warn(
         f'volcano - volcanoes generated: {datetime.now()}')
     return ([
         html.H3(id='proteomics-volcano-header', children='Volcano plots'),

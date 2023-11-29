@@ -34,7 +34,7 @@ def count_knowns(saint_output, replicate_colors) -> pd.DataFrame:
 
 
 def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_defaults, isoform_agnostic=False) -> tuple:
-    logger.debug(f'known_plot - started: {datetime.now()}')
+    logger.warn(f'known_plot - started: {datetime.now()}')
     upid_a_col: str = 'uniprot_id_a'
     upid_b_col: str = 'uniprot_id_b'
     if isoform_agnostic:
@@ -56,7 +56,7 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
         how='left'
     )
     saint_output['Known interaction'] = saint_output['update_time'].notna()
-    logger.debug(
+    logger.warn(
         f'known_plot - knowns: {saint_output["Known interaction"].value_counts()}')
     db_conn.close()
     col_order.append('Known interaction')
@@ -364,8 +364,8 @@ def prepare_crapome(db_conn, crapomes: list) -> pd.DataFrame:
     return crapome_table
 
 def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db_conn, do_proximity_filtering: bool = True, top_n: int = 30) -> tuple:
-    logger.debug(f'preparing uploaded controls: {uploaded_controls}')
-    logger.debug(f'preparing additional controls: {additional_controls}')
+    logger.warn(f'preparing uploaded controls: {uploaded_controls}')
+    logger.warn(f'preparing additional controls: {additional_controls}')
     sample_groups: dict = input_data_dict['sample groups']['norm']
     spc_table: pd.DataFrame = pd.read_json(
         input_data_dict['data tables']['spc'], orient='split')
@@ -375,7 +375,7 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
             db_conn, control_name, index_col='PROTID')
         ctable.index.name = ''
         controls.append(ctable)
-        logger.debug(f'control {control_name} shape: {ctable.shape}')
+        logger.warn(f'control {control_name} shape: {ctable.shape}')
 
     if (len(controls) > 0) and do_proximity_filtering:
         # groupby to merge possible duplicate columns that are annotated in multiple sets
@@ -420,7 +420,7 @@ def add_crapome(saint_output_json, crapome_json) -> str:
 
 def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) -> dict:
     protein_lenghts_and_names = {}
-    logger.debug(
+    logger.warn(
         f'make_saint_dict: start: {datetime.now()}')
     for _, row in protein_table.iterrows():
         protein_lenghts_and_names[row['uniprot_id']] = {
@@ -436,9 +436,9 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
             bait.append([col, rev_sample_groups[col], 'C'])
         else:
             bait.append([col, 'inbuilt_ctrl', 'C'])
-    logger.debug(
+    logger.warn(
         f'make_saint_dict: Baits prepared: {datetime.now()}')
-    logger.debug(
+    logger.warn(
         f'make_saint_dict: Control table shape: {control_table.shape}')
     control_melt: pd.DataFrame = pd.melt(
         control_table, ignore_index=False).replace(0, np.nan).dropna().reset_index()
@@ -446,28 +446,28 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
     control_melt = control_melt.reindex(
         columns=['variable', 'sgroup', 'index', 'value'])
     inter.extend(control_melt.values.astype(str).tolist())
-    logger.debug(
+    logger.warn(
         f'make_saint_dict: Control table melted: {control_melt.shape}: {datetime.now()}')
-    logger.debug(
+    logger.warn(
         f'make_saint_dict: Control interactions prepared: {datetime.now()}')
     for uniprot, srow in pd.melt(spc_table, ignore_index=False).replace(0, np.nan).dropna().iterrows():
         sgroup: str = 'inbuilt_ctrl'
         if srow['variable'] in rev_sample_groups:
             sgroup = rev_sample_groups[srow['variable']]
         inter.append([srow['variable'], sgroup, uniprot, str(srow['value'])])
-    logger.debug(
+    logger.warn(
         f'make_saint_dict: SPC table interactions prepared: {datetime.now()}')
     for uniprotid in (set(control_table.index.values) | set(spc_table.index.values)):
         try:
             plen: str = str(protein_lenghts_and_names[uniprotid]['length'])
             gname: str = str(protein_lenghts_and_names[uniprotid]['gene name'])
         except KeyError:
-            logger.debug(
+            logger.warn(
                 f'make_saint_dict: No length found for uniprot: {uniprotid}')
             plen = '200'
             gname = str(uniprotid)
         prey.append([str(uniprotid), plen, gname])
-    logger.debug(
+    logger.warn(
         f'make_saint_dict: Preys prepared: {datetime.now()}')
 
     return {'bait': bait, 'prey': prey, 'int': inter}
@@ -547,19 +547,19 @@ def do_ms_microscopy(saint_output_json:str, db_file: str, figure_defaults: dict,
 def generate_saint_container(input_data_dict, uploaded_controls, additional_controls: list, crapomes: list, db_file: str, do_proximity_filtering: bool, n_controls: int) -> tuple:
     if '["No data"]' in input_data_dict['data tables']['spc']:
         return html.Div(['No spectral count data in input, cannot run SAINT.'])
-    logger.debug(
+    logger.warn(
         f'generate_saint_container: preparations started: {datetime.now()}')
     db_conn = db_functions.create_connection(db_file)
     additional_controls = [
         f'control_{ctrl_name[0].lower().replace(" ","_")}' for ctrl_name in additional_controls]
     crapomes = [
         f'crapome_{crap_name[0].lower().replace(" ","_")}' for crap_name in crapomes]
-    logger.debug(f'generate_saint_container: DB connected')
+    logger.warn(f'generate_saint_container: DB connected')
     spc_table: pd.DataFrame
     control_table: pd.DataFrame
     spc_table, control_table = prepare_controls(
         input_data_dict, uploaded_controls, additional_controls, db_conn, do_proximity_filtering, n_controls)
-    logger.debug(f'generate_saint_container: Controls prepared')
+    logger.warn(f'generate_saint_container: Controls prepared')
     protein_list: list = list(
         set(spc_table.index.values) | set(control_table.index))
 
@@ -573,7 +573,7 @@ def generate_saint_container(input_data_dict, uploaded_controls, additional_cont
         ],
         as_pandas=True
     )
-    logger.debug(f'generate_saint_container: Protein table retrieved')
+    logger.warn(f'generate_saint_container: Protein table retrieved')
     protein_table = protein_table[protein_table['uniprot_id'].isin(
         protein_list)]
     if len(crapomes) > 0:
@@ -586,7 +586,7 @@ def generate_saint_container(input_data_dict, uploaded_controls, additional_cont
 
     saint_dict: dict = make_saint_dict(
         spc_table, input_data_dict['sample groups']['rev'], control_table, protein_table)
-    logger.debug(
+    logger.warn(
         f'generate_saint_container: SAINT dict done: {datetime.now()}')
     return (
         html.Div(
@@ -603,8 +603,8 @@ def generate_saint_container(input_data_dict, uploaded_controls, additional_cont
 def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapome_fc, do_rescue: bool = False):
     saint_output: pd.DataFrame = pd.read_json(
         saint_output_json, orient='split')
-    logger.debug(f'saint filtering - beginning: {saint_output.shape}')
-    logger.debug(
+    logger.warn(f'saint filtering - beginning: {saint_output.shape}')
+    logger.warn(
         f'saint filtering - beginning nodupes: {saint_output.drop_duplicates().shape}')
     saint_output = saint_output.drop_duplicates()
     crapome_columns: list = []
@@ -633,14 +633,14 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
             keep_preys.add(row['Prey'])
         keep_col.append(keep)
 
-    logger.debug(
+    logger.warn(
         f'saint filtering - Preys pass filter: {len(keep_preys)}')
     saint_output['Passes filter'] = keep_col
-    logger.debug(
+    logger.warn(
         f'saint filtering - Saint output pass filter: {saint_output["Passes filter"].value_counts()}')
     saint_output['Passes filter with rescue'] = saint_output['Prey'].isin(
         keep_preys)
-    logger.debug(
+    logger.warn(
         f'saint filtering - Saint output pass filter with rescue: {saint_output["Passes filter with rescue"].value_counts()}')
     if do_rescue:
         use_col: str = 'Passes filter with rescue'
@@ -650,7 +650,7 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         saint_output[use_col]
     ].copy()
 
-    logger.debug(
+    logger.warn(
         f'saint filtering - filtered size: {filtered_saint_output.shape}')
     if 'Bait uniprot' in filtered_saint_output.columns:
         # Immplement multiple baits per file, e.g. for fusions?
@@ -662,9 +662,9 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
     colorder.extend(
         [c for c in filtered_saint_output.columns if c not in colorder])
     filtered_saint_output = filtered_saint_output[colorder]
-    logger.debug(
+    logger.warn(
         f'saint filtering - bait removed filtered size: {filtered_saint_output.shape}')
-    logger.debug(
+    logger.warn(
         f'saint filtering - bait removed filtered size nodupes: {filtered_saint_output.drop_duplicates().shape}')
     return filtered_saint_output.reset_index().drop(columns=['index']).to_json(orient='split')
 
