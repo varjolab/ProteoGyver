@@ -33,7 +33,7 @@ contaminant_list: list = db_functions.get_contaminants(db_file)
 if not os.path.isdir('logs'):
     os.makedirs('logs')
 logging.basicConfig(filename=os.path.join(
-    'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.DEBUG)
+    'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.warn)
 logging.debug(f'Proteogyver started: {datetime.now()}')
 
 app.layout = html.Div([
