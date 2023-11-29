@@ -53,7 +53,10 @@ data_store_export_configuration: dict = {
     'interactomics-saint-filtered-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filtered saint output;Sheet 2'],
     'interactomics-saint-filtered-and-intensity-mapped-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt saint w intensities;Sheet 1'],
     'interactomics-saint-filt-int-known-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt int saint w knowns;Sheet 0'],
-    'interactomics-enrichment-information-data-store': ['txt', 'Data', 'Enrichment information', 'enrich-split']
+    'interactomics-enrichment-information-data-store': ['txt', 'Data', 'Enrichment information', 'enrich-split'],
+    'interactomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
+    'interactomics-network-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-msmic-data-store': ['xlsx', 'Data', 'MS microscopy results', 'MS microscopy results;Sheet 0'],
 }
 
 figure_export_directories: dict = {
@@ -359,8 +362,11 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                 legend: dict = headers_and_figures[i+2]
                 figure_html: str = pio.to_html(
                     figure, config=graph['props']['config'])
+                fig_subdir: str = 'Enrichment figures'
+                if 'microscopy' in legend['props']['children'].lower():
+                    fig_subdir = 'MS-microscopy'
                 figure_names_and_figures.append([
-                    'Enrichment figures', header['props']['children'], legend[
+                    fig_subdir, header['props']['children'], legend[
                         'props']['children'], figure_html, figure, 'graph'
                 ])
 

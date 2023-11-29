@@ -61,7 +61,7 @@ class handler():
         for bait, preylist in data_lists:
             for data_type_key, results_df in self.run_david_overrepresentation_analysis(datasets, preylist).items():
                 if data_type_key not in results:
-                    results[data_type_key] = []
+                    results[data_type_key] = [pd.DataFrame(), bait, preylist]
                 results_df.insert(1, 'Bait', bait)
                 results[data_type_key].append((results_df, bait, preylist))
         result_names: list = []

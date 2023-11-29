@@ -27,7 +27,7 @@
         "full-height": {
             "config": {
                 "toImageButtonOptions": {
-                    "format": "svg"
+                    "format": "png"
                 }
             },
             "width": 1000,
@@ -36,7 +36,7 @@
         "half-height": {
             "config": {
                 "toImageButtonOptions": {
-                    "format": "svg"
+                    "format": "png"
                 }
             },
             "width": 1000,
@@ -53,7 +53,7 @@
         "Example data file": ["data","example files","datafile.tsv"],
         "Example sample table file": ["data","example files","sampletable.tsv"],
         "Example proteomics comparison file": ["data","example files","proteomics comparisons.tsv"],
-        "Cache dir": ["/mnt", "c", "DATA", "PG cache"]
+        "Cache dir": ["/home", "kmsaloka", "Documents", "PG cache"]
     },
     "Module paths": {
         "Enrichers": ["components", "enrichment"]

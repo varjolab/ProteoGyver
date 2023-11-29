@@ -22,7 +22,9 @@ leg_dict: dict = {
         'pca': 'Spectral count -based PCA. Missing values have been imputed with zeroes. This is not a publication-worthy plot, but does indicate how similar baits are to one another.',
         'saint-histo': 'Distribution of SAINT BFDR values. There should be a spike on the high end of the range, and a smaller one on the low end.',
         'filtered-saint-counts': 'Preys have been filtered based on the selected thresholds. Preys that passed through the filter in at least one bait were also rescued from other baits. Bait-bait interactions have been discarded, IF bait uniprots are in the input file.',
-        'known': 'Known interactor preys (if any) are shown in a darker color on the bottom of each bar, previously unidentified HCIs make up the rest of the bar.'
+        'known': 'Known interactor preys (if any) are shown in a darker color on the bottom of each bar, previously unidentified HCIs make up the rest of the bar.',
+        'ms-microscopy-single': 'MS microscopy results for BAITSTRING. Values are not "real", but instead 100 = best match, and the rest are scaled appropriately based on how much of shared signal originates from Preys specific to each localization.',
+        'ms-microscopy-all': 'MS microscopy results for all baits. Values are not "real", but instead 100 = best match, and the rest are scaled appropriately based on how much of shared signal originates from Preys specific to each localization.',
     }
 }
 
@@ -33,6 +35,8 @@ PROTEOMICS_LEGENDS: dict = {key: P(id=f'proteomics-legend-{key}', children=val)
 INTERACTOMICS_LEGENDS: dict = {key: P(id=f'interactomics-legend-{key}', children=val)
                                for key, val in leg_dict['interactomics'].items()}
 
+def leg_rep(legend, replace, rep_with) -> P:
+    return P(id=legend.id, children = legend.children.replace(replace, rep_with))
 
 def volcano_plot_legend(sample, control, id_prefix) -> P:
     return P(id=f'{id_prefix}-volcano-plot-{sample}-{control}', children=f'{sample} vs {control} volcano plot. Significant values are marked with the name and different color, and the lines represent significance thresholds in fold change and q-value dimensions.')

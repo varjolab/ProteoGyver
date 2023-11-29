@@ -93,7 +93,6 @@ def upload_area(id_text, upload_id, indicator=True) -> html.Div:
         )
     return html.Div(ret)
 
-
 def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Div:
     return html.Div(
         [
@@ -116,6 +115,10 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
             dcc.Checklist(
                 id='sidebar-remove-common-contaminants',
                 options=['Remove common contaminants'], value=['Remove common contaminants']
+            ),
+            dcc.Checklist(
+                id='sidebar-rename-replicates',
+                options=['Rename replicates'], value=[]
             ),
             html.H4('Select workflow:'),
             dbc.Select(
@@ -617,9 +620,10 @@ def post_saint_cointainer() -> list:
             children=[
                 dcc.Loading(id='interactomics-known-loading'),
                 dcc.Loading(id='interactomics-pca-loading'),
-                dcc.Loading(id='interactomics-enrichment-loading'),
                 dcc.Loading(id='interactomics-network-loading'),
-                dcc.Loading(id='interactomics-volcano-loading')
+                dcc.Loading(id='interactomics-volcano-loading'),
+                dcc.Loading(id='interactomics-msmic-loading'),
+                dcc.Loading(id='interactomics-enrichment-loading'),
             ]
         ),
     ]
@@ -643,6 +647,7 @@ def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
                 dcc.Loading(
                     id='interactomics-saint-container-loading',
                     children=html.Div(id={'type': 'workflow-plot', 'id': 'interactomics-saint-container'})),
+                dcc.Loading(id='interactomics-saint-running-loading'),
                 html.Div(id={'type': 'analysis-div',
                          'id': 'interactomics-analysis-post-saint-area'},)
             ]

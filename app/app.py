@@ -122,20 +122,23 @@ def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upl
           'name': 'uploaded-sample-table-info-data-store'}, 'data'),
     State('figure-theme-dropdown', 'value'),
     State('sidebar-remove-common-contaminants', 'value'),
+    State('sidebar-rename-replicates', 'value'),
     prevent_initial_call=True
 )
-def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_template, remove_contaminants) -> tuple:
+def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_template, remove_contaminants, replace_names) -> tuple:
     """Sets the figure template, and \
         sends data to preliminary analysis and returns the resulting dictionary.
     """
     cont: list = []
     if len(remove_contaminants) > 0:
         cont = contaminant_list
+    repnames: bool = False
+    if len(replace_names) > 0:
+        repnames = True
     pio.templates.default = figure_template
     return (parsing.format_data(
         f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
-        data_tables, data_info, expdes_table, expdes_info, cont), False)
-
+        data_tables, data_info, expdes_table, expdes_info, cont, repnames), False)
 
 @callback(
     Output({'type': 'data-store', 'name': 'upload-data-store'},
@@ -557,17 +560,18 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
 @app.long_callback(
     Output({'type': 'data-store',
            'name': 'interactomics-saint-output-data-store'}, 'data'),
+    Output('interactomics-saint-running-loading', 'children'),
     Input({'type': 'data-store', 'name': 'interactomics-saint-input-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def interactomics_run_saint(saint_input, data_dictionary):
-    return interactomics.run_saint(
+    return (interactomics.run_saint(
         saint_input,
         parameters['External tools']['SAINT']['spc'],
         data_dictionary['other']['session name'],
         data_dictionary['other']['bait uniprots']
-    )
+    ), '')
 
 
 @callback(
@@ -625,8 +629,6 @@ def interactomics_draw_saint_histogram(container_ready: list, saint_output: str,
     # prevent_initial_call=True
 )
 def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentage: int, crapome_fc: int, saint_output: str, rescue: list):
-
-    print(rescue)
     return interactomics.saint_filtering(saint_output, bfdr_threshold, crapome_percentage, crapome_fc, len(rescue) > 0)
 
 
@@ -701,28 +703,45 @@ def interactomics_pca_plot(_, saint_data) -> html.Div:
         parameters['Figure defaults']['full-height']
     )
 
+                #dcc.Loading(id='interactomics-network-loading'),
+                #dcc.Loading(id='interactomics-volcano-loading'),
+                
+@callback(
+    Output('interactomics-msmic-loading', 'children'),
+    Output({'type': 'data-store',
+           'name': 'interactomics-msmic-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-pca-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def interactomics_ms_microscopy_plots(_, saint_output) -> tuple:
+    res =  interactomics.do_ms_microscopy(saint_output, db_file, parameters['Figure defaults']['full-height'], version='v1.0')
+    print(res[1])
+    return res
 
 @callback(
+    Output('workflow-done-notifier', 'children', allow_duplicate=True),
     Output('interactomics-enrichment-loading', 'children'),
     Output({'type': 'data-store',
            'name': 'interactomics-enrichment-data-store'}, 'data'),
     Output({'type': 'data-store',
            'name': 'interactomics-enrichment-information-data-store'}, 'data'),
-    Input({'type': 'data-store', 'name': 'interactomics-pca-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-network-data-store'}, 'data'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     State('interactomics-choose-enrichments', 'value'),
     prevent_initial_call=True
 )
 def interactomics_enrichment(_, saint_output, chosen_enrichments):
-    return interactomics.enrich(saint_output, chosen_enrichments, parameters['Figure defaults']['full-height'])
+    return ('',) + interactomics.enrich(saint_output, chosen_enrichments, parameters['Figure defaults']['full-height'])
 
 
 @callback(
     Output('workflow-done-notifier', 'children', allow_duplicate=True),
     Output('interactomics-network-loading', 'children'),
     Output({'type': 'data-store', 'name': 'interactomics-network-data-store'}, 'data'),
-    Input({'type': 'data-store', 'name': 'interactomics-enrichment-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-msmic-data-store'}, 'data'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True

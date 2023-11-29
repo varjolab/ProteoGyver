@@ -459,7 +459,7 @@ def guess_controls(sample_groups: dict) -> tuple:
     return (control_groups, control_samples)
 
 
-def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list) -> dict:
+def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list, replace_replicate_names: bool) -> dict:
     """Formats data formats into usable form and produces a data dictionary for later use"""
 
     intensity_table: pd.DataFrame = pd.read_json(
@@ -472,7 +472,8 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
     used_columns: list
     sample_groups, discarded_columns, used_columns = rename_columns_and_update_expdesign(
         expdesign,
-        [intensity_table, spc_table]
+        [intensity_table, spc_table],
+        replace_names = replace_replicate_names
     )
     spc_table = spc_table[sorted(list(spc_table.columns))]
 
@@ -606,7 +607,8 @@ def delete_samples(discard_samples, data_dictionary) -> dict:
 
 def rename_columns_and_update_expdesign(
         expdesign: pd.DataFrame,
-        tables: list) -> tuple:
+        tables: list,
+        replace_names: bool = True) -> tuple:
     """Modified expdes and data tables to discard samples not mentioned in the sample table.
 
     :returns: tuple of (sample_groups, discarded columns, used_columns)
@@ -677,10 +679,21 @@ def rename_columns_and_update_expdesign(
                 # Should have same number of columns/replicates for SPC and intensity tables
                 assert len(table_columns) == first_len
             for column_name in table_columns:
-                i: int = 1
-                while f'{nname}_Rep_{i}' in column_renames[table_index]:
-                    i += 1
-                newname_to_use: str = f'{nname}_Rep_{i}'
+                if replace_names:
+                    i: int = 1
+                    while f'{nname}_Rep_{i}' in column_renames[table_index]:
+                        i += 1
+                    newname_to_use: str = f'{nname}_Rep_{i}'
+                else:
+                    column_name = column_name.split('\\')[-1].split('/')[-1]
+                    basename = column_name
+                    i = 0
+                    while basename in column_renames[table_index]:
+                        basename = f'{column_name}_{i}'
+                        i += 1
+                    newname_to_use = basename
+
+                    
                 if nname not in sample_groups:
                     sample_groups[nname] = set()
                 sample_groups[nname].add(newname_to_use)

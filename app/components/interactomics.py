@@ -5,11 +5,10 @@ import numpy as np
 import shutil
 import os
 import subprocess
-import json
 from components.figures import histogram, bar_graph, scatter, heatmaps
-from components import matrix_functions, db_functions
+from components import matrix_functions, db_functions, ms_microscopy
 from components.figures.figure_legends import INTERACTOMICS_LEGENDS as legends
-from components.figures.figure_legends import enrichment_legend
+from components.figures.figure_legends import enrichment_legend, leg_rep
 from components.text_handling import replace_accent_and_special_characters
 from components import EnrichmentAdmin as ea
 from dash_bootstrap_components import Card, CardBody, Tab, Tabs
@@ -91,7 +90,7 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
     more_known = 'Known preys available for these baits in the database: '
     for index, value in knowns[upid_a_col].value_counts().items():
         more_known += f'{bait_map[index]} ({value}), '
-    more_known = known_str.strip().strip(', ') + '. '
+    more_known = more_known.strip().strip(', ') + '. '
     return (
         html.Div(
             id='interactomics-saint-known-plot',
@@ -112,6 +111,7 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
         ),
         saint_output.to_json(orient='split')
     )
+
 
 
 def pca(saint_output_data: dict, defaults: dict) -> tuple:
@@ -154,6 +154,9 @@ def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, si
     enrichment_names: list
     enrichment_results: list
     enrichment_information: list
+    saint_output.to_csv('ENRICHMENT_DEBUG.TSV',sep='\t')
+    with open('ENRICHMENT_DEBUG.txt','w') as fil:
+        fil.write(f'{chosen_enrichments}')
     enrichment_names, enrichment_results, enrichment_information = e_admin.enrich_all(
         saint_output,
         chosen_enrichments,
@@ -360,7 +363,6 @@ def prepare_crapome(db_conn, crapomes: list) -> pd.DataFrame:
         axis=1)
     return crapome_table
 
-
 def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db_conn, do_proximity_filtering: bool = True, top_n: int = 30) -> tuple:
     logger.debug(f'preparing uploaded controls: {uploaded_controls}')
     logger.debug(f'preparing additional controls: {additional_controls}')
@@ -470,6 +472,77 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
 
     return {'bait': bait, 'prey': prey, 'int': inter}
 
+def do_ms_microscopy(saint_output_json:str, db_file: str, figure_defaults: dict, version: str = 'v1.0') -> tuple:
+    saint_output: pd.DataFrame = pd.read_json(
+    saint_output_json, orient='split')
+    db_file = os.path.join('data','proteogyver.db')
+    db_conn = db_functions.create_connection(db_file)
+    msmic_reference = db_functions.get_full_table_as_pd(
+        db_conn, 'msmicroscopy', index_col='Interaction'
+    )
+    db_conn.close()
+    msmic_results: pd.DataFrame = ms_microscopy.generate_msmic_dataframes(saint_output, msmic_reference, )
+
+    polar_plots: list = [
+        (bait, ms_microscopy.localization_graph(f'interactomics-msmic-{bait}',figure_defaults, 'polar', data_row))
+        for bait, data_row in msmic_results.iterrows()
+    ]
+    msmic_heatmap = ms_microscopy.localization_graph(f'interactomics-msmic-heatmap', figure_defaults, 'heatmap', msmic_results)
+
+    tablist: list = [
+        Tab(
+            Card(
+                CardBody(
+                    [
+                        html.H5('MS-microscopy heatmap'),
+                        msmic_heatmap, 
+                        legends['ms-microscopy-all']
+                    ],
+                    style={'width': '98%'}
+                ),
+                style={'width': '98%'}
+            ),
+        label = 'Overall results',
+        style={'width': '98%'}
+        )
+    ]
+
+    for bait, polar_graph in polar_plots:
+        tablist.append(
+            Tab(
+                Card(
+                    CardBody(
+                        [
+                            html.H5(f'MS-microscopy for {bait}'),
+                            polar_graph,
+                            leg_rep(
+                                legends['ms-microscopy-single'],
+                                'BAITSTRING',
+                                bait
+                            )
+                        ],
+                        style={'width': '98%'}
+                    ),
+                style={'width': '98%'}
+                ),
+                label = bait,
+                style={'width': '98%'}
+            )
+        )
+    return(
+        html.Div(
+            id='interactomics-pca-plot-div',
+            children=[
+                html.H4(id='interactomics-msmic-header', children='MS-microscopy'),
+                Tabs(
+                    id = 'interactomics-msmicroscopy-tabs',
+                    children = tablist,
+                    style = {'width': '98%'}
+                ),
+            ]
+        ),
+        msmic_results.to_dict(orient='split')
+    )
 
 def generate_saint_container(input_data_dict, uploaded_controls, additional_controls: list, crapomes: list, db_file: str, do_proximity_filtering: bool, n_controls: int) -> tuple:
     if '["No data"]' in input_data_dict['data tables']['spc']:
