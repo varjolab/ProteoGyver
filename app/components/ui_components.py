@@ -112,6 +112,7 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
             html.H4('Upload files:'),
             upload_area('upload-data-file', 'Data file'),
             upload_area('upload-sample_table-file', 'Sample table'),
+            html.Br(),
             dcc.Checklist(
                 id='sidebar-remove-common-contaminants',
                 options=['Remove common contaminants'], value=['Remove common contaminants']
@@ -156,18 +157,27 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 disabled=True,
             ),
             dbc.Button(
-                'Download all data',
+                children = [
+                    dbc.Spinner(
+                        children = html.Div(id='button-download-all-data-spinner-output'),
+                        size = 'sm',
+                        show_initially = False,
+                        delay_show = 10,
+                        delay_hide = 10,
+                    ), ' Download all data'
+                ],
                 style=UPLOAD_BUTTON_STYLE,
                 id='button-download-all-data',
                 className='btn-info',
-                disabled=True
+                disabled=True,
             ),
             # top right bottom left
             html.Div(id='toc-div', style={'padding': '0px 10px 10px 30px'}),
             dcc.Download(id='download-sample_table-template'),
             dcc.Download(id='download-datafile-example'),
             dcc.Download(id='download-proteomics-comparison-example'),
-            dcc.Download(id='download-all-data'),
+            dcc.Download(id='download-all-data')
+            
 
         ],
         className='card text-white bg-primary mb-3',

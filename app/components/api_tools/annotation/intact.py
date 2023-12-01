@@ -4,6 +4,8 @@ import zipfile
 from datetime import datetime
 import pandas as pd
 import ftplib
+import numpy as np
+import shutil
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -11,10 +13,13 @@ sys.path.append(parent)
 import apitools
 
 # super inefficient, but run rarely, so good enough.
-def generate_pandas(file_path:str, output_name:str) -> None:
+def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set) -> None:
     with zipfile.ZipFile(file_path, 'r') as zip_ref:
-        zip_ref.extractall('intact_temp')
-    df = pd.read_csv(os.path.join('intact_temp','intact.xt'))
+        zip_ref.extractall(file_path.replace('.zip',''))
+    df = pd.read_csv(os.path.join(file_path.replace('.zip',''),'intact.txt'),sep='\t')
+    shutil.rmtree(file_path.replace('.zip',''))
+    for c in df.columns:
+        df[c] = [str(v).replace(';',',') for v in df[c].values]
     ndata = {}
     cols = {
         'Biological role(s) interactor A',
@@ -33,6 +38,10 @@ def generate_pandas(file_path:str, output_name:str) -> None:
         ids_a = [i.split(':')[1] for i in ids_a if 'uniprotkb' in i]
         ids_b = [row['ID(s) interactor B']] + row['Alt. ID(s) interactor B'].split('|')
         ids_b = [i.split(':')[1] for i in ids_b if 'uniprotkb' in i]
+        ids_a = [i for i in ids_a if i in uniprots_to_get]
+        ids_b = [i for i in ids_b if i in uniprots_to_get]
+        if len(ids_a) == 0:continue
+        if len(ids_b) == 0:continue
         for i in ids_a:
             if i not in ndata:
                 ndata[i] = {}
@@ -52,7 +61,6 @@ def generate_pandas(file_path:str, output_name:str) -> None:
                     if c.endswith(' B'):
                         flipped_c = c.replace(' B',' A')
                     ndata[i][j][flipped_c].append(row[c])
-
     dodata = []
     for id1, idi in ndata.items():
         if '-' in id1:
@@ -75,7 +83,7 @@ def generate_pandas(file_path:str, output_name:str) -> None:
                     except AttributeError:
                         cval.append(val)
                 try:
-                    dodata[-1].append('|'.join(cval))
+                    dodata[-1].append(';'.join(cval))
                 except TypeError:
                     vs = set(cval)
                     dodata[-1].append(list(vs)[0])
@@ -83,7 +91,7 @@ def generate_pandas(file_path:str, output_name:str) -> None:
     findf = pd.DataFrame(data=dodata, columns=docols)
     findf['source_database'] = 'IntAct'
     findf['notes'] = ''
-    findf['update_time'] = str(datetime.today()).split()[0]
+    findf['update_time'] = 'IntAct:'+str(datetime.today()).split()[0]
     id1c = []
     id2c = []
     iso1c = []
@@ -110,21 +118,44 @@ def generate_pandas(file_path:str, output_name:str) -> None:
     findf['isoform_a'] = iso1c
     findf['isoform_b'] = iso2c
     findf['interaction'] = findf['uniprot_id_a'] + '_-_' + findf['uniprot_id_b']
-    findf.to_csv(output_name, sep='\t')
+    findf = findf[[
+        'interaction','uniprot_id_a', 'uniprot_id_b', 'uniprot_id_a_noiso', 'uniprot_id_b_noiso',
+        'isoform_a', 'isoform_b', 'publication_identifier', 
+        'interaction_detection_method', 'interaction_type', 'confidence_value',
+        'source_database', 'experimental_role_interactor_a','experimental_role_interactor_b',
+        'biological_role_interactor_a', 'biological_role_interactor_b','annotation_interactor_a',
+        'annotation_interactor_b', 'notes', 'update_time'
+    ]]
+    for c in findf.columns:
+        for repchar in ['|','__']:
+            tmp = [v for v in findf[c].values if repchar in str(v)]
+            if len(tmp)>0:
+                findf[c] = [str(v).replace(repchar,';') for v in findf[c].values]
+    for c in findf.columns:
+        findf[c] = [str(v).replace('nan','').replace('None','').replace('-|-','|') for v in findf[c].values]
+    for c in findf.columns:
+        nvals = findf[c].values
+        for nullval in  ['-',';','_','|','',' ','0']:
+            nvals = [str(v).strip(nullval).strip() for v in nvals]
+        if sum([len(v)==0 for v in nvals]) > 0:
+            findf[c] = nvals
+    findf = findf.replace('',np.nan)
+    findf['publication_identifier'] = findf['publication_identifier'].str.lower()
+    findf.to_csv(output_name, sep='\t', index=False)
 
-def do_update(save_file) -> None:
+def do_update(save_file, uniprots_to_get: set) -> None:
     ftpurl: str = 'ftp.ebi.ac.uk'
     ftpdir: str = '/pub/databases/intact/current/psimitab'
     ftpfilename: str = 'intact.zip'
     ftp: ftplib.FTP = ftplib.FTP(ftpurl)
     ftp.login()
     ftp.cwd(ftpdir)
-    with open(save_file,'wb',encoding = 'utf-8') as fil:
+    with open(save_file,'wb') as fil:
         ftp.retrbinary(f'RETR {ftpfilename}',fil.write)
     ftp.quit()
-    generate_pandas(save_file, save_file.replace('.zip','.tsv'))
+    generate_pandas(save_file, save_file.replace('.zip','.tsv'),uniprots_to_get)
 
-def update() -> None:
+def update(uniprots_to_get: set) -> None:
     ftpurl: str = 'ftp.ebi.ac.uk'
     ftpdir: str = '/pub/databases/intact/current/'
     ftp: ftplib.FTP = ftplib.FTP(ftpurl)
@@ -132,10 +163,23 @@ def update() -> None:
     ftp.cwd(ftpdir)
     latest = datetime.strptime(ftp.pwd().rsplit('/',maxsplit=1)[1], '%Y-%m-%d').date()
     current_version: str = apitools.get_newest_file(apitools.get_save_location('IntAct')).split('_')[0]
-    current_version = apitools.parse_timestamp_from_str(current_version)
-    if latest > current_version:
-        do_update(os.path.join(apitools.get_save_location('IntAct'),f'{apitools.get_timestamp()}_intact.zip'))
-        
+    should_update: bool = False
+    try:
+        should_update = latest > apitools.parse_timestamp_from_str(current_version)
+    except ValueError:
+        should_update = True
+    if should_update:
+        do_update(os.path.join(apitools.get_save_location('IntAct'),f'{apitools.get_timestamp()}_intact.zip'), uniprots_to_get)
+
+def get_latest() -> pd.DataFrame:
+    current_version: str = apitools.get_newest_file(apitools.get_save_location('IntAct'),namefilter='.tsv')
+    return pd.read_csv(
+        os.path.join(apitools.get_save_location('IntAct'), current_version),
+        index_col = 'interaction',
+        sep = '\t',
+        low_memory=False
+    )
+
 def get_version_info() -> str:
     nfile: str = apitools.get_newest_file(apitools.get_save_location('IntAct'))
     return f'Downloaded ({nfile.split("_")[0]})'

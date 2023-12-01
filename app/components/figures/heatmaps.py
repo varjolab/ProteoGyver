@@ -30,11 +30,13 @@ def draw_clustergram(plot_data, defaults, color_map:list = None, **kwargs) -> Cl
         **kwargs
     )
 
-def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict) -> Graph:
+def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict, cmap: str) -> Graph:
     figure: go.Figure = px.imshow(matrix_df,
                                     aspect='auto',
                                     labels=dict(
                                     x=matrix_df.columns.name,
                                     y=matrix_df.index.name,
-                                    color=value_name))
+                                    color=value_name),
+                                    color_continuous_scale=cmap,
+                                    zmin = 0)
     return Graph(config=defaults['config'], figure=figure, id=f'heatmap-{plot_name}')

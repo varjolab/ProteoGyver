@@ -33,8 +33,8 @@ contaminant_list: list = db_functions.get_contaminants(db_file)
 if not os.path.isdir('logs'):
     os.makedirs('logs')
 logging.basicConfig(filename=os.path.join(
-    'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.warn)
-logging.warn(f'Proteogyver started: {datetime.now()}')
+    'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), level=logging.WARNING)
+logging.warning(f'Proteogyver started: {datetime.now()}')
 
 app.layout = html.Div([
     ui.main_sidebar(
@@ -57,8 +57,8 @@ app.layout = html.Div([
 )
 def clear_data_stores(begin_clicks):
     '''Clears all data stores before analysis begins'''
-
-    logging.warn(
+# TODO: implement data clear operation.
+    logging.warning(
         f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
     # return (tuple(True for _ in range(NUM_DATA_STORES)), '')
     # return (working_data_stores(), '')
@@ -129,6 +129,7 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
     """Sets the figure template, and \
         sends data to preliminary analysis and returns the resulting dictionary.
     """
+    logging.warning(f'Validating data: {datetime.now()}')
     cont: list = []
     if len(remove_contaminants) > 0:
         cont = contaminant_list
@@ -589,6 +590,7 @@ def interactomics_add_crapome_to_saint(saint_output, crapome):
 
 
 @callback(
+    Output('workflow-done-notifier', 'children', allow_duplicate=True),
     Output('interactomics-saint-filtering-container', 'children'),
     Input({'type': 'data-store',
           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
@@ -596,9 +598,9 @@ def interactomics_add_crapome_to_saint(saint_output, crapome):
 )
 def interactomics_create_saint_filtering_container(saint_output_ready):
     if 'SAINT failed.' in saint_output_ready:
-        return html.Div(id='saint-failed', children=saint_output_ready)
+        return ('',html.Div(id='saint-failed', children=saint_output_ready))
     else:
-        return ui.saint_filtering_container(parameters['Figure defaults']['half-height'])
+        return ('',ui.saint_filtering_container(parameters['Figure defaults']['half-height']))
 
 
 @callback(
@@ -717,7 +719,6 @@ def interactomics_pca_plot(_, saint_data) -> html.Div:
 )
 def interactomics_ms_microscopy_plots(_, saint_output) -> tuple:
     res =  interactomics.do_ms_microscopy(saint_output, db_file, parameters['Figure defaults']['full-height'], version='v1.0')
-    print(res[1])
     return res
 
 @callback(
@@ -808,6 +809,7 @@ def download_data_table_example(_) -> dict:
 
 @callback(
     Output('download-all-data', 'data'),
+    Output('button-download-all-data-spinner-output','children'),
     Input('button-download-all-data', 'n_clicks'),
     State('input-stores', 'children'),
     State('workflow-stores', 'children'),
@@ -822,7 +824,7 @@ def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_
     stores: list = stores + stores2
     export_zip_name: str = prepare_download(
         stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats, commonality_pdf_data)
-    return dcc.send_file(export_zip_name)
+    return (dcc.send_file(export_zip_name),'')
     # DB dependent function
 
 

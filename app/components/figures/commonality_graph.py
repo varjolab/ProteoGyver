@@ -79,7 +79,7 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
             if nstr in done:
                 val = NA
             else:
-                val = len(group_sets[gname] & group_sets[gname2])
+                val = len(group_sets[gname] & group_sets[gname2]) / len(group_sets[gname] | group_sets[gname2])
             hmdata[-1].append(val)
     return (
         Graph(
@@ -87,7 +87,10 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
             figure=imshow(
                 DataFrame(data=hmdata, index=index, columns=index),
                 height=defaults['height'],
-                width=defaults['width']
+                width=defaults['width'],
+                zmin=0,
+                zmax=1,
+                color_continuous_scale = 'Blues'
             ),
             config=defaults['config']
         ),

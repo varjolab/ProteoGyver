@@ -6,7 +6,7 @@ def get_timestamp() -> str:
     return datetime.now().strftime('%Y-%m-%d')
 
 def parse_timestamp_from_str(stamp_text:str) -> str:
-    return datetime.strptime(stamp_text,'%Y-%m-%d')
+    return datetime.strptime(stamp_text,'%Y-%m-%d').date()
 
 
 def is_newer(reference:str, new_date:str) -> bool:
@@ -19,7 +19,6 @@ def get_save_location(databasename) -> str:
         os.path.dirname(os.path.realpath(__file__)),
         'api_data'
     )
-    print(base_location)
     dir_name: str = os.path.join(base_location, databasename)
     if not os.path.isdir(dir_name):
         os.makedirs(dir_name)

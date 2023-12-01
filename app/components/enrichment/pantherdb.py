@@ -190,9 +190,9 @@ class handler():
         datasets = [self._datasets[d] for d in datasets]
         results: dict = {}
         legends: dict = {}
-        logger.warn(f'Enrich: {len(datasets)}')
+        logger.warning(f'Enrich: {len(datasets)}')
         for bait, preylist in data_lists:
-            logger.warn(f'Enrich for {bait}: {len(preylist)}')
+            logger.warning(f'Enrich for {bait}: {len(preylist)}')
             for data_type_key, result in self.run_panther_overrepresentation_analysis(datasets, preylist, bait).items():
                 results_df: pd.DataFrame = result['Results']
                 results_df.insert(1, 'Bait', bait)
@@ -201,7 +201,7 @@ class handler():
                     legends[data_type_key] = []
                 results[data_type_key].append(results_df)
                 legends[data_type_key].append(result['Reference information'])
-            logger.warn(f'Enrich for {bait}: done')
+            logger.warning(f'Enrich for {bait}: done')
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
@@ -211,7 +211,7 @@ class handler():
                 ('fold_enrichment', 'fdr', 'label', pd.concat(result_dfs)))
             result_legends.append(
                 (annokey, '\n\n'.join(list(set(legends[annokey])))))
-        logger.warn(f'Enrich done')
+        logger.warning(f'Enrich done')
         return (result_names, result_dataframes, result_legends)
 
     def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list, data_set_name: str,
@@ -260,20 +260,20 @@ class handler():
             final_url = final_url.strip('&')
             reference_string: str = f'PANTHER overrepresentation analysis for {data_set_name} with {name}\n----------\n'
             success: bool = False
-            logger.warn(f'Run enrichment: {data_set_name} {name}')
+            logger.warning(f'Run enrichment: {data_set_name} {name}')
             for i in range(20, 100, 20):
                 try:
                     request: requests.Response = requests.post(
                         final_url, timeout=i)
                     req_json: dict = json.loads(request.text)
                     success = True
-                    logger.warn(f'Run enrichment: success')
+                    logger.warning(f'Run enrichment: success')
                     break
                 except requests.exceptions.ReadTimeout as e:
-                    logger.warn(f'Run enrichment: fail-ReadTimeOut - {e}')
+                    logger.warning(f'Run enrichment: fail-ReadTimeOut - {e}')
                     continue
                 except requests.exceptions.ConnectionError as e:
-                    logger.warn(f'Run enrichment: fail-ConnectionError - {e}')
+                    logger.warning(f'Run enrichment: fail-ConnectionError - {e}')
                     continue
             if not success:
                 ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': pd.DataFrame(),
@@ -283,7 +283,7 @@ class handler():
                 reference_string += f'PANTHERDB reference information:\nTool release date: \
                     {req_json["results"]["tool_release_date"]}\nAnalysis run: {datetime.now()}\n'
             except KeyError as exc:
-                logger.warn(f'Run enrichment: fail-KeyError - {exc}')
+                logger.warning(f'Run enrichment: fail-KeyError - {exc}')
                 raise exc
             reference_string += (
                 f'Enrichment test type: '

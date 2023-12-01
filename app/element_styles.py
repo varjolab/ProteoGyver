@@ -11,7 +11,7 @@ SIDEBAR_STYLE: dict = {
     'padding': '0px 10px 10px 0px', # top right bottom left
     #'background-color': '#f8f9fa',
   #  'display': 'inline-block',
-    'overflow': 'auto'
+  #  'overflow': 'auto'
 }
 # the styles for the main content position it to the right of the sidebar and
 # add some padding.
