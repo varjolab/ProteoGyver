@@ -1,26 +1,14 @@
 version: "3"
 
 services:
-  pgyver:
-    image: pgtesting:prod
-    container_name: pgyver
-    ports:
-      - 8090:8090
-      - 8050:8050
-#      - 8888:8888
-    environment:
-      - TZ=Europe/Helsinki
-    volumes:
-      - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
-      - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
-  pg_testing:
-    image: pgtesting:testing
-    container_name: pggyver_test
+  pgyver_testing:
+    image: pgtesting:v1.102
+    container_name: pgyver_v1.102
     ports:
       - 8060:8050
-#      - 8888:8888
     environment:
       - TZ=Europe/Helsinki
 
-#    volumes:
-#      - /srv/mergerfs/Grand/Shared/Dockertesting:/test
+    volumes:
+      - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
+      - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output

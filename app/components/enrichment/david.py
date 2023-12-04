@@ -11,9 +11,6 @@ class handler():
     def __init__(self) -> None:
         self._defaults: list = [
                 'DAVID GOBP Direct',
-                'DAVID GOCC Direct',
-                'DAVID GOMF Direct',
-                'DAVID KEGG',
                 'DAVID Reactome',
                 'DAVID Wikipathway',
             ]
