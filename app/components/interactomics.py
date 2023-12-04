@@ -384,12 +384,7 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
     if (len(controls) > 0) and do_proximity_filtering:
         # groupby to merge possible duplicate columns that are annotated in multiple sets
         # mean grouping should have no effect, since PSM values SHOULD be the same in any case.
-        control_table: pd.DataFrame = pd.concat(
-            controls, axis=1).groupby(level=0, axis=1).mean()
-        controls_ranked_by_similarity: list = matrix_functions.ranked_dist(
-            spc_table, control_table)
-        control_table = control_table[[s[0]
-                                       for s in controls_ranked_by_similarity[:top_n]]]
+        control_table = filter_controls(spc_table, controls, top_n)
         controls = [control_table]
     control_cols: list = []
     for cg in uploaded_controls:
@@ -405,6 +400,21 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
 
     return (spc_table, control_table)
 
+def filter_controls(spc_table, controls, top_n):
+    control_table: pd.DataFrame = pd.concat(
+        controls, axis=1).groupby(level=0, axis=1).mean()
+    controls_ranked_by_similarity: list = matrix_functions.ranked_dist(
+        spc_table, control_table)
+    control_table = control_table[[s[0] for s in controls_ranked_by_similarity[:top_n]]]
+    return control_table
+
+def filter_controls2(control_table, spc_table, controls, n_per_run = 2):
+    control_table: pd.DataFrame = pd.concat(
+        controls, axis=1).groupby(level=0, axis=1).mean()
+    controls_ranked_by_similarity: list = matrix_functions.ranked_dist_n_per_run(
+        spc_table, control_table, n_per_run)
+    control_table = control_table[controls_ranked_by_similarity]
+    return control_table
 
 def add_crapome(saint_output_json, crapome_json) -> str:
     if 'Saint failed.' in saint_output_json:
@@ -525,12 +535,12 @@ def do_ms_microscopy(saint_output_json:str, db_file: str, figure_defaults: dict,
                                 bait
                             )
                         ],
-                        style={'width': '98%'}
+                #        style={'width': '98%'}
                     ),
-                style={'width': '98%'}
+                #style={'width': '98%'}
                 ),
                 label = bait,
-                style={'width': '98%'}
+                #style={'width': '98%'}
             )
         )
     return(

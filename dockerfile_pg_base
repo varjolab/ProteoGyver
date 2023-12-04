@@ -29,7 +29,7 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
     r-base \
     r-base-dev \
     r-recommended \
-    redis
+    redis psmisc
 
 RUN npm install -g configurable-http-proxy
 

@@ -38,6 +38,20 @@ def ranked_dist(main_df, supplemental_df):
     return sorted(dist_sums, key=lambda x: x[1])
 
 
+def ranked_dist_n_per_run(main_df, supplemental_df, per_run):
+    filtered_main_df: DataFrame = main_df[main_df.index.isin(
+        supplemental_df.index.values)]
+    filtered_main_df.sort_index(inplace=True)
+    supplemental_df.sort_index(inplace=True)
+
+    chosen_runs: list = []
+    for column in filtered_main_df:
+        per_run_ranking: list = sorted([
+            [c, np.linalg.norm(filtered_main_df[column].fillna(0), supplemental_df[c].fillna(0))] for c in supplemental_df.columns
+            ], key=lambda x: x[1])
+        chosen_runs.extend([s[0] for s in per_run_ranking[:per_run]])
+    return sorted(list(set(chosen_runs)))
+
 def count_per_sample(data_table: DataFrame, rev_sample_groups: dict) -> Series:
     """Counts non-zero values per sample (sample names from rev_sample_groups.keys()) and returns a series with sample names in index and counts as values."""
     index: list = list(rev_sample_groups.keys())

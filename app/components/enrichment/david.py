@@ -58,24 +58,34 @@ class handler():
             datasets = options.split(';')
         datasets = [self._names[dataname] for dataname in datasets]
         results: dict = {}
+        legends: dict = {}
         for bait, preylist in data_lists:
             for data_type_key, results_df in self.run_david_overrepresentation_analysis(datasets, preylist).items():
                 if data_type_key not in results:
-                    results[data_type_key] = [pd.DataFrame(), bait, preylist]
+                    results[data_type_key] = [(pd.DataFrame(), bait, preylist)]
+                    legends[data_type_key] = []
                 results_df.insert(1, 'Bait', bait)
                 results[data_type_key].append((results_df, bait, preylist))
+                legends[data_type_key].append((bait,preylist))
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
-        for annokey, (results_df, bait, preylist) in results.items():
-            if annokey in self._names:
-                result_names.append(annokey)
-                result_df: pd.DataFrame = pd.concat(result_dfs)
-                with np.errstate(divide='ignore'):
-                    result_df.loc[:, 'log2_foldEnrichment'] = np.log2(
-                        result_df['foldEnrichment'])
-                result_dataframes.append(('foldEnrichment', 'afdr', 'termName', result_df))
-                result_legends.append((annokey, f'Analysis completed through DAVID API. Annotation: {annokey}, Bait: {bait}, preylist: {", ".join(preylist)}'))
+        
+        for annokey, res_list in results.items():
+            result_dfs = []
+            legend = []
+            for (results_df, bait, preylist)  in res_list:
+                results_df['Bait'] = bait
+                result_dfs.append(results_df)
+                legend.append(f'DAVID enrichment analysis for {bait} with {annokey}\nAnalysis completed through DAVID API.\nUsed input list: {",".join(preylist)}\n-----\n')
+            result_names.append(annokey)
+            result_df: pd.DataFrame = pd.concat(result_dfs)
+            with np.errstate(divide='ignore'):
+                result_df.loc[:, 'log2_foldEnrichment'] = np.log2(
+                    result_df['foldEnrichment'])
+            result_dataframes.append(('foldEnrichment', 'afdr', 'termName', result_df))
+            result_legends.append((annokey, '\n\n'.join(legend)))
+        
         return (result_names, result_dataframes, result_legends)
 
     def suds_to_dict(self, suds_item: Any) -> dict:

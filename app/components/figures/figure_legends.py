@@ -9,7 +9,7 @@ leg_dict: dict = {
         'value_sum-plot': 'The total intensity sum (or sum of spectral counts, depending on the data) should be roughly equal across sample groups for comparable data.',
         'value_mean-plot': 'The mean intensity (or spectral counts, depending on the data) should be roughly equal across sample groups for comparable data.',
         'value_dist-plot': 'Value distribution of the identifications. The specifics can be different across sample groups, but especially replicates should look very similar.',
-        'shared_id-plot': 'Shared identifications across samples. The color corresponds to the number of shared identifications between row and column divided yb the number of unique proteins identified across the two sample groups.',
+        'shared_id-plot': 'Shared identifications across samples. The color corresponds to the number of shared identifications between row and column divided by the number of unique proteins identified across the two sample groups.',
     },
     'proteomics': {
         'na_filter': 'Unfiltered and filtered protein counts in samples. Proteins identified in fewer than FILTERPERC percent of the samples of at least one sample group were discarded as low-quality identifications, contaminants, or one-hit wonders.',

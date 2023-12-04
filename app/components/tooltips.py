@@ -15,7 +15,7 @@ def na_tooltip(target='filtering-label') -> Tooltip:
 def interactomics_select_top_controls_tooltip(target='interactomics-num-controls') -> Tooltip:
     return Tooltip(
         children=[
-            'Limit the number of inbuilt control runs to a specified number of most-similar runs (by euclidean distance). There is rarely a benefit to using more than 25 control runs in SAINTexpress. Increasing the number of control runs increases the SAINT running time, sometimes massively, sometimes barely.'
+            'Limit the number of inbuilt control runs to a specified number of most-similar runs (by euclidean distance). Increasing the number of control runs increases the SAINT running time, sometimes massively, sometimes barely, but does result in lower number of HCIs.'
         ],
         target=target,
         placement='top',

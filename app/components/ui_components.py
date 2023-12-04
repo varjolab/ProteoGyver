@@ -553,7 +553,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                         checklist(
                                             'Nearest control filtering',
                                             ['Select'],
-                                            ['Select'],
+                                            [''],
                                             id_only=True,
                                             id_prefix='interactomics',
                                             style_override={
