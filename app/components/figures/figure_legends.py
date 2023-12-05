@@ -44,3 +44,6 @@ def volcano_plot_legend(sample, control, id_prefix) -> P:
 
 def enrichment_legend(clean_enrichment_name, enrichment_name, fc_threshold, fc_col, p_value_name, p_threshold):
     return P(id=f'{clean_enrichment_name}-enrichment-legend', children=f'{enrichment_name} enrichment using {fc_col} filter of {fc_threshold} and {p_value_name} filter of {p_threshold}.')
+
+def volcano_heatmap_legend(control, id_prefix) -> P:
+    return P(id=f'{id_prefix}-volcano-heatmap-{control}', children=f'All comparisons vs vs {control} volcano plot. Only significantly different proteins shown')

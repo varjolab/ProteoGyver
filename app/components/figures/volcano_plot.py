@@ -3,7 +3,8 @@ from dash import html, dcc
 import numpy as np
 from plotly import graph_objects as go
 from plotly import express as px
-from components.figures.figure_legends import volcano_plot_legend
+from components.figures.figure_legends import volcano_plot_legend, volcano_heatmap_legend
+from components.figures import heatmaps
 
 
 def volcano_plot(
@@ -67,6 +68,29 @@ def volcano_plot(
 
 def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, p_thr: float, id_prefix: str) -> html.Div:
     return_div_contents: list = []
+    significant_data = significant_data.sort_values(by=['Sample','Control'])
+    for control in significant_data['Control'].unique():
+        sigs = significant_data[significant_data['Control']==control]
+        sigs = sigs[sigs['p_value_adj']<p_thr]
+        sigs = sigs[abs(sigs['fold_change'])>fc_thr]
+        sigs = sigs.pivot_table(columns='Name',index='Sample',values='fold_change')
+        print(sigs.shape)
+        if sigs.shape[0] > 1:
+            return_div_contents.extend([
+                html.H4(id=f'{id_prefix}-volcano-header-heatmap-{control}',
+                        children=f'All significant differences vs {control}'),
+                heatmaps.make_heatmap_graph(
+                    sigs,
+                    plot_name=f'volcano-significant-vs-{control.lower().strip()}',
+                    value_name='log2 fold change',
+                    defaults=defaults,
+                    cmap='balance',
+                    autorange=True,
+                    symmetrical=True
+                ),
+                volcano_heatmap_legend(control, id_prefix)
+            ])
+    significant_data.to_csv('SIGDATA.tsv',sep='\t')
     for _, row in significant_data[['Sample', 'Control']].drop_duplicates().iterrows():
         sample: str = row['Sample']
         control: str = row['Control']

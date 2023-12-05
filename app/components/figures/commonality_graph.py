@@ -27,6 +27,7 @@ def supervenn(group_sets: dict, id_str: str) -> tuple:
     """
 
     # Buffer for use
+    mpl.use('agg')
     buffer: io.BytesIO = io.BytesIO()
     buffer2: io.BytesIO = io.BytesIO()
     fig: mpl.figure

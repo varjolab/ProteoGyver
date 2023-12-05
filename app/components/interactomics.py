@@ -229,15 +229,15 @@ def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, ke
                     html.P(f'{enrichment_names[i]} data table'),
                     table
                 ],
-                style={'width': '98%'}
+             #   style={'width': '98%'}
             ),
-            style={'width': '98%'}
+            #style={'width': '98%'}
         )
 
         tablist.append(
             Tab(
                 enrichment_tab, label=enrichment_names[i],
-                style={'width': '98%'}
+               # style={'width': '98%'}
             )
         )
     if len(enrichment_results) > 0:
@@ -512,12 +512,12 @@ def do_ms_microscopy(saint_output_json:str, db_file: str, figure_defaults: dict,
                         msmic_heatmap, 
                         legends['ms-microscopy-all']
                     ],
-                    style={'width': '98%'}
+          #          style={'width': '98%'}
                 ),
-                style={'width': '98%'}
+         #       style={'width': '98%'}
             ),
         label = 'Overall results',
-        style={'width': '98%'}
+        #style={'width': '98%'}
         )
     ]
 
@@ -545,7 +545,7 @@ def do_ms_microscopy(saint_output_json:str, db_file: str, figure_defaults: dict,
         )
     return(
         html.Div(
-            id='interactomics-pca-plot-div',
+            id='interactomics-msmicroscopy-plot-div',
             children=[
                 html.H4(id='interactomics-msmic-header', children='MS-microscopy'),
                 Tabs(

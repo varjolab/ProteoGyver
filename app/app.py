@@ -442,7 +442,7 @@ def proteomics_pca_plot(imputed_data: dict, upload_dict: dict) -> html.Div:
     Output({'type': 'workflow-plot',
            'id': 'proteomics-clustermap-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-clustermap-data-store'}, 'data'),
-    Output('workflow-done-notifier', 'children', allow_duplicate=True),
+    Output({'type': 'done-notifier','name': 'proteomics-clustering-done-notifier'}, 'children', allow_duplicate=True),
     Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     prevent_initial_call=True
 )
@@ -755,11 +755,12 @@ def interactomics_network_plot(_, saint_input):
     Output('toc-div', 'children'),
     Input('qc-done-notifier', 'children'),
     Input('workflow-done-notifier', 'children'),
+    Input({'type': 'done-notifier', 'name': 'proteomics-clustering-done-notifier'}, 'children'),
     Input('workflow-volcanoes-done-notifier', 'children'),
     State('main-content-div', 'children'),
     prevent_initial_call=True
 )
-def table_of_contents(_, __, ___, main_div_contents: list) -> html.Div:
+def table_of_contents(_, __, ___, ____, main_div_contents: list) -> html.Div:
     """updates table of contents to reflect the main div"""
     return ui.table_of_contents(main_div_contents)
 
