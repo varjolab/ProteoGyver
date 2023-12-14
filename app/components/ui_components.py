@@ -220,8 +220,7 @@ def main_content_div() -> html.Div:
                 ]
             ),
             html.Div(id='workflow-specific-div')
-        ],
-        style=CONTENT_STYLE
+        ]
     )
 
 

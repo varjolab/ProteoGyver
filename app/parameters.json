@@ -63,5 +63,9 @@
             "spc": ["external", "SAINTexpress", "SAINTexpress-spc"],
             "int": ["external", "SAINTexpress", "SAINTexpress-int"]
         }
+    },
+    "Config": {
+        "TIC information refresh interval in seconds": 900,
+        "Time format": "%Y-%m-%d_%H:%M:%S"
     }
 }

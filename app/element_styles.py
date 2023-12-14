@@ -4,7 +4,7 @@
 _upload_height: int = 50
 SIDEBAR_STYLE: dict = {
     'position': 'fixed',
-    'top': 0,
+    'top': 72,
     'left': 0,
     'bottom': 0,
     'width': '20%',
@@ -17,8 +17,11 @@ SIDEBAR_STYLE: dict = {
 # add some padding.
 CONTENT_STYLE: dict = {
     'margin-left': '22%',
+    #'margin-top': ,
     'margin-right': '2%',
-    'padding': '1% 1%',
+    'paddingTop': 72,
+    'paddingBottom': '1%',
+    #'padding': '5% 1%',
     'width': '75%',
   #  'display': 'inline-block',
     'overflow': 'auto'
@@ -76,7 +79,7 @@ SIDEBAR_LIST_STYLES: dict = {
 
 UPLOAD_INDICATOR_STYLE: dict = {
     'background-color': 'gray',
-    'opacity': '50%',
+    'opacity': '100%',
     'width': '23%',
     'height': f'{_upload_height}px',
     'border':'2px black solid',

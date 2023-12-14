@@ -5,7 +5,7 @@ import numpy as np
 import shutil
 import os
 import subprocess
-from components.figures import histogram, bar_graph, scatter, heatmaps
+from components.figures import histogram, bar_graph, scatter, heatmaps, network_plot
 from components import matrix_functions, db_functions, ms_microscopy
 from components.figures.figure_legends import INTERACTOMICS_LEGENDS as legends
 from components.figures.figure_legends import enrichment_legend, leg_rep
@@ -15,7 +15,6 @@ from dash_bootstrap_components import Card, CardBody, Tab, Tabs
 from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
-
 
 def count_knowns(saint_output, replicate_colors) -> pd.DataFrame:
     data: pd.DataFrame = saint_output[['Bait', 'Known interaction']].\
@@ -32,6 +31,32 @@ def count_knowns(saint_output, replicate_colors) -> pd.DataFrame:
     data['Color'] = color_col
     return data
 
+
+def do_network(saint_output_json, plot_height):
+    saint_output: pd.DataFrame = pd.read_json(
+        saint_output_json, orient='split')
+    cyto_elements, interactions = network_plot.get_cytoscape_elements_and_ints(saint_output)
+    plot_container = network_plot.get_cytoscape_container(cyto_elements, full_height=plot_height)
+    return (plot_container, cyto_elements, interactions)
+
+
+def network_display_data(node_data, int_data, table_height) -> list:
+    ret = [['Bait','Prey', 'PreyGene','AvgSpec']]
+    for e in node_data['edgesData']: 
+        ret.append([e['source'], e["target"]])
+        ret[-1].extend(int_data[e['source']][e['target']])
+    
+    df = pd.DataFrame(data=ret[1:], columns=ret[0])
+    div_contents = [
+        html.Label('Selected node connections:'),
+        dash_table.DataTable(
+            df.to_dict('records'), 
+            [{"name": i, "id": i} for i in df.columns],
+            fixed_rows={'headers': True},
+            style_table={'height': table_height}  # defaults to 500
+        )
+    ]
+    return div_contents
 
 def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_defaults, isoform_agnostic=False) -> tuple:
     logger.warning(f'known_plot - started: {datetime.now()}')
@@ -144,7 +169,6 @@ def pca(saint_output_data: dict, defaults: dict) -> tuple:
         ),
         pca_result.to_json(orient='split')
     )
-
 
 def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, keep_all: bool = False, sig_threshold: float = 0.01) -> tuple:
     e_admin = ea.EnrichmentAdmin()
