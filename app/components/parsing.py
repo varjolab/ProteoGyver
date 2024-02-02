@@ -1,6 +1,5 @@
 """File parsing functions for Proteogyver"""
 
-from ast import Attribute
 import base64
 import io
 import pandas as pd
@@ -470,7 +469,7 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
     sample_groups: dict
     discarded_columns: list
     used_columns: list
-    sample_groups, discarded_columns, used_columns = rename_columns_and_update_expdesign(
+    sample_groups, discarded_columns, used_columns, expdesign = rename_columns_and_update_expdesign(
         expdesign,
         [intensity_table, spc_table],
         replace_names = replace_replicate_names
@@ -499,7 +498,6 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
     experiment_type = 'Proteomics/Phosphoproteomics'
     if 'bait uniprot' in expdes_info:
         experiment_type = 'Interactomics'
-
     return_dict: dict = {
         'sample groups': sample_groups,
         'data tables': {
@@ -614,11 +612,16 @@ def rename_columns_and_update_expdesign(
     :returns: tuple of (sample_groups, discarded columns, used_columns)
     """
     # Get rid of file paths and timstof .d -file extension, if present:
-    expdesign['Sample name'] = [
-        oldvalue.rsplit('\\', maxsplit=1)[-1]
-        .rsplit('/', maxsplit=1)[-1]
-        .rstrip('.d') for oldvalue in expdesign['Sample name'].values
-    ]
+    newnames = []
+    expdesign = expdesign[expdesign['Sample name'].notna()]
+    expdesign = expdesign[expdesign['Sample group'].notna()]
+    for i, oldvalue in enumerate(expdesign['Sample name'].values):
+        oldvalue = oldvalue.rsplit('\\', maxsplit=1)[-1]
+        oldvalue = oldvalue.rsplit('/', maxsplit=1)[-1]
+        newnames.append(oldvalue)
+    expdesign['Sample name'] = newnames
+    for col in expdesign.columns:
+        expdesign.loc[:,col] = expdesign[col].astype(str).apply(str.strip)
     discarded_columns: list = []
     sample_groups: dict = {}
     sample_group_columns: dict = {}
@@ -638,9 +641,13 @@ def rename_columns_and_update_expdesign(
                 if col not in expdesign['Sample name'].values:
                     col = col.rsplit('.d', maxsplit=1)[0]
                     if col not in expdesign['Sample name'].values:
+                        for sname in expdesign['Sample name'].values:
+                            if col.startswith(sname) and (abs(len(col)-len(sname)) < 10):
+                                col = sname
+                        if not col in expdesign['Sample name'].values:
                         # Discard column if not found
-                        discarded_columns.append(col)
-                        continue
+                            discarded_columns.append(col)
+                            continue
             intermediate_renaming[column_name] = col
             sample_group: str = expdesign[expdesign['Sample name']
                                           == col].iloc[0]['Sample group']
@@ -714,8 +721,8 @@ def rename_columns_and_update_expdesign(
             inplace=True
         )
         table.rename(columns=rename_columns, inplace=True)
-
-    return (sample_groups, discarded_columns, used_columns)
+    expdesign.to_csv('debug_expdes.tsv',sep='\t')
+    return (sample_groups, discarded_columns, used_columns, expdesign)
 
 
 def check_comparison_file(file_contents, file_name, sgroups, new_upload_style) -> list:

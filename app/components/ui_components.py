@@ -2,6 +2,7 @@
 
 
 import dash_bootstrap_components as dbc
+from itertools import chain
 from dash import dcc, html
 from element_styles import SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES, UPLOAD_INDICATOR_STYLE
 from typing import Any
@@ -31,16 +32,20 @@ def checklist(
         id_only: bool = False,
         prefix_list: list = None,
         postfix_list: list = None,
+        clean_id = True,
         style_override: dict = None
 ) -> dbc.Checklist:
     if disabled is None:
         disabled: set = set()
     else:
         disabled: set = set(disabled)
-    checklist_id: str
-    checklist_id = text_handling.replace_special_characters(
-        f'{id_prefix}-{label}',
-        '-', stripresult=True, remove_duplicates=True)
+    if clean_id:
+        checklist_id: str
+        checklist_id = text_handling.replace_special_characters(
+            f'{id_prefix}-{label}',
+            '-', stripresult=True, remove_duplicates=True)
+    else:
+        checklist_id = label
     if id_only:
         label = ''
     if prefix_list is None:
@@ -63,6 +68,22 @@ def checklist(
     ]
     return prefix_list + retlist + postfix_list
 
+
+def range_input(label, min, max, id_str, typestr = 'number'):
+    pad = {
+        'padding': '0px 5px 0px 5px', 'margin': 'auto','margin-left': 'auto', 'margin-right': 'auto'
+    }
+    return html.Div(
+        children = [
+            html.P(label, style=pad|{'width': '50%'}),
+            dcc.Input(id=f'{id_str}-min', type=typestr,value=min,style=pad|{'width': '20%'}),
+            html.P('-', style=pad|{'width': '10%'}),
+            dcc.Input(id=f'{id_str}-max', type=typestr,value=max,style=pad|{'width': '20%'}),
+        ],
+        style={'display': 'flex', 'width': '100%', 'height': '20px',
+                'float': 'center', 'height': '20px'},
+        id = id_str
+    )
 
 def upload_area(id_text, upload_id, indicator=True) -> html.Div:
     ret: list = [
@@ -333,6 +354,126 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
         ])
     )
 
+def windowmaker_input_options( offered_equations):
+    premade_eqs = [dbc.Label('Load pre-defined line equation:')]
+    for equation, eqname in offered_equations:
+        premade_eqs.append(
+            html.Div(
+                dbc.Button(
+                    equation, 
+                    id={'type': 'PREDEFEQBUTTON', 'name':eqname},
+                    style={'padding': '5px 5px 5px 5px'}, disabled=True
+                ),style = {'display': 'block','padding': '5px 5px 5px 5px'}
+            )
+        )
+    input_row_list = [
+        dbc.Row([
+            dbc.Col([
+                range_input('MZ Range: ', 400, 1200, 'windowmaker-mz-input')
+            ]),
+            dbc.Col([
+                range_input('IM Range: ', 0.8, 1.4, 'windowmaker-mob-input')
+            ]),
+            html.Hr(style={'margin-top': '25px'})
+        ],style={'padding': '5px 5px 5px 5px'}),
+        dbc.Row([
+            dbc.Col(
+                premade_eqs
+            ),
+            dbc.Col([
+                dcc.Input(id='windowmaker-line-equation-input',type='text',placeholder='input line equation',style={'padding': '5px 5px 5px 5px'}),
+                html.Div([dbc.Button('Add line', id='windowmaker-add-line-button', disabled=True)], style={'padding': '15px 5px 5px 5px'})
+            ]),
+            dbc.Col([
+                dbc.Label('Enabled filters:'),
+                html.Ul(id='enabled-filters-list')
+            ]),
+            dbc.Col(id='windowmaker-filter-col'),
+            html.Hr(style={'margin-top': '25px'})
+        ],style={'padding': '5px 5px 5px 5px'})
+    ]
+    input_row_list.append(
+        dbc.Row([
+            html.Br(),
+            html.Div(id='windowmaker-equations-list-group',children=[], style={'width': '100%', 'display': 'block'}),
+            dbc.Button('Calculate windows', id='windowmaker-calculate-windows-button', style={'padding': '5px 5px 5px 5px'}, disabled=True)
+        ],style={'padding': '5px 5px 5px 5px'})
+    )
+    return input_row_list
+
+def windowmaker_interface(wmstyle, offered_equations) -> html.Div:
+    return html.Div([
+        html.Div(id='infra',children=[
+            dcc.Store(id='windowmaker-full-data-store'),
+            dcc.Store(id='windowmaker-filtered-data-store'),
+            dcc.Store(id='windowmaker-prev-clicks-data-store', data={}),
+            dcc.Store(id='windowmaker-filter-columns',data={}),
+            html.Div(id='placeholder'),
+            dcc.Download(id='windowmaker-download-method')
+        ]),
+        dbc.Row(
+            id='windowmaker-input-row',
+            children=[
+                dbc.Card([
+                    dbc.Row([
+                        dbc.Col(
+                            html.Div([
+                                html.H3('Upload an MGF file or a spectral library'),
+                                html.P('Library MUST be in a text format (tsv, txt, csv, xlsx)'),
+                                dcc.Checklist(
+                                    id='windowmaker-play-notification-sound-when-done',
+                                    options=['Play notification sound when done'], value=['Play notification sound when done']
+                                ),
+                            ]), width=6
+                        ),
+                        dbc.Col(
+                            [
+                                html.Div(
+                                    upload_area('windowmaker-mgf-file-upload',
+                                            'MGF/library file', indicator=True),
+                                    style={'padding': '15px 0px 0px 0px'}
+                                ),
+                                html.P(id='windowmaker-input-file-info-text', style={'text-align': 'left'})
+                            ],
+                            width=6
+                        )
+                    ])
+                ], body=True)
+            ]
+        ),
+        dbc.Row(
+            id='windowmaker-mod-row',
+            children=[
+                dbc.Col(
+                    children=[
+                        dbc.Card(
+                            dcc.Loading(
+                                html.Div(id='windowmaker-pre-plot-area')
+                            ),body=True
+                        ),
+                        dbc.Card(
+                            dcc.Loading(
+                                html.Div(id='windowmaker-ch-plot-area')
+                            ),body=True
+                        )
+                    ],
+                    width=6
+                ),
+                dbc.Col(
+                    dbc.Card(windowmaker_input_options(offered_equations), body=True),
+                    width=6
+                )
+            ]
+        ),
+        dbc.Row(
+            id='windowmaker-output-row',
+            children=[
+                dbc.Card([
+                    dcc.Loading(html.Div(id='windowmaker-post-plot-area'))
+                ], body=True)
+            ]
+        )
+    ],style=wmstyle)
 
 def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
 
@@ -456,17 +597,44 @@ def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
         ),
     ])
 
+def get_windowmaker_filcol_id(filname): 
+    return 'exclude-'+text_handling.replace_special_characters(filname,'-', stripresult=True, remove_duplicates=True)
 
-def interactomics_nearest_control_row():
-    return dbc.Row(
-        [
-
-            dbc.Col([
-
-            ], width=3)
-        ]
-    )
-
+def generate_filter_group(data, filcols):
+    dropdown = dcc.Dropdown(filcols, id='windowmaker-filter-col-dropdown',value=filcols[0])
+    checklists = []
+    checklist_target_cols = []
+    for fcol in filcols:
+        if fcol == 'Modifications':
+            values = sorted(
+                list(
+                    set(
+                        chain.from_iterable([
+                            mods.split(';') for mods in data[fcol]
+                        ])
+                    )
+                )
+            )
+        else:
+            values = sorted(list(data[fcol].unique()))
+        values = [str(x) for x in values]
+        f = text_handling.replace_special_characters(fcol,'-', stripresult=True, remove_duplicates=True)
+        checklist_target_cols.append(fcol)
+        checklists.append(
+            html.Div(
+                id={'type': 'windowmaker-filter-div', 'name': f'exclude-{f}'},
+                children = checklist(
+                    {'type': 'windowmaker-filter-checklist', 'name': f},
+                    values,
+                    [],
+                    id_only=True,
+                    clean_id=False,
+                    prefix_list = [dbc.Label(f'Exclude values:')]
+                ),
+                hidden=True
+            )
+        )
+    return dropdown, checklists, checklist_target_cols
 
 def interactomics_crapome_col(crapome_dict) -> dbc.Col:
     return dbc.Col([
@@ -673,6 +841,12 @@ def qc_area() -> html.Div:
         id='qc-area',
         children=[
             html.H1(id='qc-main-header', children='Quality control'),
+            dcc.Loading(
+                id='qc-loading-tic',
+                children=html.Div(
+                    id={'type': 'qc-plot', 'id': 'tic-plot-div'}),
+                type='default'
+            ),
             dcc.Loading(
                 id='qc-loading-count',
                 children=html.Div(

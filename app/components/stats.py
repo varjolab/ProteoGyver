@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 from statsmodels.stats import multitest
@@ -6,7 +7,7 @@ from typing import Any
 
 
 
-def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: list, data_is_log2_transformed: bool = True, adj_p_thr: float = 0.01, fc_thr:float = 1.0) -> pd.DataFrame:
+def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: list, data_is_log2_transformed: bool = True, namemap: dict = None, adj_p_thr: float = 0.01, fc_thr:float = 1.0) -> pd.DataFrame:
     sig_data: list = []
     for sample, control in comparisons:
         sample_columns: list = sample_groups[sample]
@@ -36,7 +37,11 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
                 'p_value': p_value,
                 'sample_mean_value': sample_mean_val,
                 'control_mean_value': control_mean_val})
-        result['Name'] = data_table.index.values
+        if namemap:
+            result['Name'] = [namemap[i] for i in data_table.index.values]
+            result['Identifier'] = data_table.index
+        else:
+            result['Name'] = data_table.index.values
         result['Sample'] = sample
         result['Control'] = control
         result['Significant'] = ((result['p_value_adj']<adj_p_thr) & (result['fold_change'].abs() > fc_thr))
@@ -55,3 +60,5 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
          'sample_mean_value',
          'control_mean_value'
          ]]
+
+

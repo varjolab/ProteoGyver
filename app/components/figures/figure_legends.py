@@ -10,6 +10,7 @@ leg_dict: dict = {
         'value_mean-plot': 'The mean intensity (or spectral counts, depending on the data) should be roughly equal across sample groups for comparable data.',
         'value_dist-plot': 'Value distribution of the identifications. The specifics can be different across sample groups, but especially replicates should look very similar.',
         'shared_id-plot': 'Shared identifications across samples. The color corresponds to the number of shared identifications between row and column divided by the number of unique proteins identified across the two sample groups.',
+        'tic': '''Chromatogram of the input MS runs. Check your curves, and consider if they're comparable. TIC is usually enough to identify problems, but you can also choose different data types to check different chromatograms.'''
     },
     'proteomics': {
         'na_filter': 'Unfiltered and filtered protein counts in samples. Proteins identified in fewer than FILTERPERC percent of the samples of at least one sample group were discarded as low-quality identifications, contaminants, or one-hit wonders.',
@@ -21,7 +22,7 @@ leg_dict: dict = {
     'interactomics': {
         'pca': 'Spectral count -based PCA. Missing values have been imputed with zeroes. This is not a publication-worthy plot, but does indicate how similar baits are to one another.',
         'saint-histo': 'Distribution of SAINT BFDR values. There should be a spike on the high end of the range, and a smaller one on the low end.',
-        'filtered-saint-counts': 'Preys have been filtered based on the selected thresholds. Preys that passed through the filter in at least one bait were also rescued from other baits. Bait-bait interactions have been discarded, IF bait uniprots are in the input file.',
+        'filtered-saint-counts': 'Preys have been filtered based on the selected thresholds. BFDR threshold means anything with the selected value or lower passes the filter. Preys that passed through the filter in at least one bait were also rescued from other baits. Bait-bait interactions have been discarded, IF bait uniprots are in the input file.',
         'known': 'Known interactor preys (if any) are shown in a darker color on the bottom of each bar, previously unidentified HCIs make up the rest of the bar.',
         'ms-microscopy-single': 'MS microscopy results for BAITSTRING. Values are not "real", but instead 100 = best match per bait, and the rest are scaled appropriately based on how much of shared signal originates from Preys specific to each localization.',
         'ms-microscopy-all': 'MS microscopy results for all baits. Values are not "real", but instead 100 = best match per bait, and the rest are scaled appropriately based on how much of shared signal originates from Preys specific to each localization.',

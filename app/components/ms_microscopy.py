@@ -45,7 +45,7 @@ def generate_msmic_dataframes(saint_data:pd.DataFrame, reference_data: pd.DataFr
     #        data_rows[-1].append(loc_max)
             data_rows_sum[-1].append(loc_sum)
     #bd_max = pd.DataFrame(index=index,columns=cols,data=data_rows)
-    bd_sum = pd.DataFrame(index=index,columns=cols,data=data_rows_sum)
+    bd_sum = pd.DataFrame(index=index,columns=cols,data=data_rows_sum).fillna(0)
     #bd_max = bd_max.div(bd_max.max(axis=1),axis=0)*plot_max
     bd_sum = bd_sum.div(bd_sum.max(axis=1),axis=0)*plot_max
     #bd_max = bd_max.apply(round).astype(int)

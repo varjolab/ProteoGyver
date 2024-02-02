@@ -1,16 +1,22 @@
 import numpy as np
 from pandas import DataFrame
 from dash.dcc import Graph
-from plotly.graph_objects import Figure, Violin
+from plotly.graph_objects import Figure, Violin, Box
 from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
 
-def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, replicate_colors: dict = None, points_visible: str = False, title: str = None, showbox: bool = False) -> Graph:
-    start_time = datetime.now()
-    logger.warning(
-        f'started: {start_time}')
+def make_graph(
+        id_name: str, 
+        sets: list, 
+        defaults: dict, 
+        names: list = None, 
+        replicate_colors: dict = None, 
+        points_visible: str = False, 
+        title: str = None, 
+        showbox: bool = False, 
+        plot_type: str = 'violin') -> Graph:
     if id_name is None:
         id_name: str = 'comparative-violin-plot'
     if isinstance(names, list):
@@ -22,21 +28,11 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
             names.append(f'Set {i+1}')
     plot_data: np.array = np.array([])
     plot_legend: list = [[], []]
-    logger.warning(
-        f'things initialized: {datetime.now() - start_time}')
-    previous_time = datetime.now()
     for i, data_frame in enumerate(sets):
         for col in data_frame.columns:
             plot_data = np.append(plot_data, data_frame[col].values)
             plot_legend[0].extend([names[i]]*data_frame.shape[0])
             plot_legend[1].extend([f'{col} {names[i]}']*data_frame.shape[0])
-    logger.warning(
-        f'plot data done: {datetime.now() - previous_time}')
-    logger.warning(
-        f'plot data {plot_data.shape}')
-    logger.warning(
-        f'plot legend {len(plot_legend[0])} {len(plot_legend[1])}')
-    previous_time = datetime.now()
     plot_df: DataFrame = DataFrame(
         {
             'Values': plot_data,
@@ -44,42 +40,41 @@ def make_graph(id_name: str, sets: list, defaults: dict, names: list = None, rep
             'Name': plot_legend[0]
         }
     )
-    logger.warning(
-        f'only plot left: {datetime.now()-previous_time}')
-    logger.warning(
-        f'plot df {plot_df.shape}')
-    previous_time = datetime.now()
-
+    trace_args: dict = dict()
+    layout_args: dict = {
+        'height': defaults['height'],
+        'width': defaults['width']
+    }
+    if title is not None:
+        layout_args['title'] = title
+    if plot_type == 'violin': 
+        plot_func = Violin
+        trace_args['box_visible'] = showbox
+        trace_args['meanline_visible'] = True
+        trace_args['points'] = points_visible
+        layout_args['violinmode'] = 'group'
+    elif plot_type == 'box':
+        plot_func = Box
+        trace_args['boxpoints'] = points_visible
+        trace_args['boxmean'] = True
+        trace_args['boxpoints'] = points_visible
+        layout_args['boxmode'] = 'group'
     figure: Figure = Figure()
     for sample_group in plot_df['Name'].unique():
         trace_df: DataFrame = plot_df[plot_df['Name'] == sample_group]
         figure.add_trace(
-            Violin(
+            plot_func(
                 x=trace_df['Column'],
                 y=trace_df['Values'],
                 name=sample_group,
                 line_color=replicate_colors['sample groups'][sample_group]
             )
         )
+    figure.update_traces(**trace_args)
+    figure.update_layout(**layout_args)
+    
     logger.warning(
-        f'updating traces: {datetime.now()-previous_time}')
-    previous_time = datetime.now()
-    figure.update_traces(
-        box_visible=showbox,
-        points=points_visible,
-        meanline_visible=True)
-    logger.warning(
-        f'updating layout: {datetime.now()-previous_time}')
-    previous_time = datetime.now()
-    figure.update_layout(
-        violinmode='group',
-        height=defaults['height'],
-        width=defaults['width']
-    )
-    if title is not None:
-        figure.update_layout(title=title)
-    logger.warning(
-        f'returning graph: {datetime.now()-previous_time}')
+        f'returning graph: {datetime.now()}')
     previous_time = datetime.now()
     return Graph(
         id=id_name,

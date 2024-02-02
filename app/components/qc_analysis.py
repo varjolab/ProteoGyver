@@ -2,11 +2,13 @@ import json
 from pandas import DataFrame
 from pandas import read_json as pd_read_json
 from dash import html
-from components.figures import bar_graph, comparative_violin_plot, commonality_graph, reproducibility_graph
+from components.figures import bar_graph, comparative_plot, commonality_graph, reproducibility_graph
 from components import summary_stats
 from components.figures.figure_legends import QC_LEGENDS as legends
 from datetime import datetime
+from dash.dcc import Graph, Dropdown
 import logging
+from components import db_functions
 logger = logging.getLogger(__name__)
 
 
@@ -49,6 +51,42 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
         f'count_plot - graph drawn: {datetime.now() }')
     return (graph_div, count_data.to_json(orient='split'))
 
+def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,defaults: dict) -> tuple:
+    expdesign = pd_read_json(expdesign_json, orient='split')
+    expdesign['color'] = [replicate_colors['samples'][rep_name] for rep_name in expdesign['Sample name']]
+    expdesign['Sampleid'] = [s.split('_')[0] for s in expdesign['Sample name']]
+    db_conn = db_functions.create_connection(db_file)
+    ms_runs = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_runs','run_id',expdesign['Sampleid'].values)
+    db_conn.close()
+    dtypes: list = ['TIC','BPC','MSn']
+    tic_dic: dict = {t_type.lower(): {'traces': [] } for t_type in dtypes}
+    for trace_type in dtypes:
+        trace_type = trace_type.lower()
+        max_x: float = 2000.0
+        max_y: float = 2000.0
+        for _,row in ms_runs.iterrows():
+            sample_row = expdesign[expdesign['Sampleid']==row['run_id']].iloc[0]
+            trace = json.loads(row[f'{trace_type}_trace'])
+            max_x = max(max_x, max(trace['x']))
+            max_y = max(max_y, max(trace['y']))
+            trace['line'] = {'color': sample_row['color'], 'width': 1}
+            tic_dic[trace_type]['traces'].append(trace)
+        tic_dic[trace_type]['max_x'] = max_x
+        tic_dic[trace_type]['max_y'] = max_y
+    if ms_runs.shape[0] == 0:
+        return (html.Div(),{})
+    else:
+        graph_div: html.Div = html.Div(
+            id = 'qc-tic-div',
+            children = [
+                html.H4(id='qc-heading-tic-graph',
+                        children='Sample run TICs'),
+                Graph(id='qc-tic-plot', config=defaults['config']),
+                legends['tic'],
+                Dropdown(id='qc-tic-dropdown',options=dtypes, value='TIC')
+            ]
+        )
+        return (graph_div, tic_dic)
 
 def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
     logger.warning(f'coverage - started: {datetime.now()}')
@@ -206,13 +244,14 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
         children=[
             html.H4(id='qc-heading-value_dist',
                     children='Value distribution per sample'),
-            comparative_violin_plot.make_graph(
+            comparative_plot.make_graph(
                 'qc-value_distribution-plot',
                 comparative_data,
                 defaults,
                 names=names,
                 title=title,
-                replicate_colors=replicate_colors
+                replicate_colors=replicate_colors,
+                plot_type='box'
             ),
             legends['value_dist-plot']
         ]

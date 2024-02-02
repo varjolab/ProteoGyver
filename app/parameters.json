@@ -16,6 +16,7 @@
             "normalization methods": {
                 "Median": "Median",
                 "Quantile": "Quantile",
+                "Vsn": "Vsn",
                 "No normalization": "no_normalization"
             },
             "default normalization method": "Median"        
@@ -53,7 +54,7 @@
         "Example data file": ["data","example files","datafile.tsv"],
         "Example sample table file": ["data","example files","sampletable.tsv"],
         "Example proteomics comparison file": ["data","example files","proteomics comparisons.tsv"],
-        "Cache dir": ["/home", "kmsaloka", "Documents", "PG cache"]
+        "Cache dir": ["/home", "kmsaloka", "Documents", "PG_cache"]
     },
     "Module paths": {
         "Enrichers": ["components", "enrichment"]
@@ -66,6 +67,10 @@
     },
     "Config": {
         "TIC information refresh interval in seconds": 900,
-        "Time format": "%Y-%m-%d_%H:%M:%S"
+        "Time format": "%Y-%m-%d_%H:%M:%S",
+        "Local debug": true,
+        "LogDir": "logs",
+        "LogLevel": 20,
+        "R error file": "R_errors.log"
     }
 }

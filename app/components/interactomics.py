@@ -140,32 +140,36 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
 
 def pca(saint_output_data: dict, defaults: dict) -> tuple:
     data_table: pd.DataFrame = pd.read_json(saint_output_data, orient='split')
-    data_table = data_table.pivot_table(
-        index='Prey', columns='Bait', values='AvgSpec')
-    pc1: str
-    pc2: str
-    pca_result: pd.DataFrame
-    # Compute PCA of the data
-    spoofed_sample_groups: dict = {i: i for i in data_table.columns}
-    pc1, pc2, pca_result = matrix_functions.do_pca(
-        data_table.fillna(0), spoofed_sample_groups, n_components=2)
-    pca_result.sort_values(by=pc1, ascending=True, inplace=True)
+    if len(data_table['Bait'].unique()) < 2:
+        gdiv = ['Too few samle groups for PCA']
+    else:
+        data_table = data_table.pivot_table(
+            index='Prey', columns='Bait', values='AvgSpec')
+        pc1: str
+        pc2: str
+        pca_result: pd.DataFrame
+        # Compute PCA of the data
+        spoofed_sample_groups: dict = {i: i for i in data_table.columns}
+        pc1, pc2, pca_result = matrix_functions.do_pca(
+            data_table.fillna(0), spoofed_sample_groups, n_components=2)
+        pca_result.sort_values(by=pc1, ascending=True, inplace=True)
+        gdiv = [
+            html.H4(id='interactomics-pca-header', children='SPC PCA'),
+            scatter.make_graph(
+                'interactomics-pca-plot',
+                defaults,
+                pca_result,
+                pc1,
+                pc2,
+                'Sample group'
+            ),
+            legends['pca']
+        ]
 
     return (
         html.Div(
             id='interactomics-pca-plot-div',
-            children=[
-                html.H4(id='interactomics-pca-header', children='SPC PCA'),
-                scatter.make_graph(
-                    'interactomics-pca-plot',
-                    defaults,
-                    pca_result,
-                    pc1,
-                    pc2,
-                    'Sample group'
-                ),
-                legends['pca']
-            ]
+            children=gdiv
         ),
         pca_result.to_json(orient='split')
     )
@@ -299,7 +303,7 @@ def map_intensity(saint_output_json: str, intensity_table_json: str, sample_grou
                     intensity_table[sample_groups[row['Bait']]].loc[row['Prey']].mean())
             except KeyError:
                 intensity_column.append(np.nan)
-    saint_output['Averaged intensity'] = intensity_column
+        saint_output['Averaged intensity'] = intensity_column
     return saint_output.to_json(orient='split')
 
 
@@ -656,7 +660,7 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
     keep_preys: set = set()
     for _, row in saint_output.iterrows():
         keep: bool = True
-        if row['BFDR'] >= bfdr_threshold:
+        if row['BFDR'] > bfdr_threshold:
             keep = False
             bfdr_disc += 1
         elif 'Max crapome frequency' in saint_output.columns:

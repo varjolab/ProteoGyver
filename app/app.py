@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 from dash_bootstrap_components.themes import FLATLY
 import logging
 import os
+import json
 from celery import Celery
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
@@ -16,16 +17,25 @@ long_callback_manager = CeleryLongCallbackManager(celery_app)
 app = Dash(__name__, use_pages=True, external_stylesheets=[
            FLATLY], suppress_callback_exceptions=True, long_callback_manager=long_callback_manager)
 
-
 app.title = 'Data analysis alpha version'
 app.enable_dev_tools(debug=True)
 #app.config.from_pyfile('app_config.py')
 server = app.server
 if not os.path.isdir('logs'):
     os.makedirs('logs')
+with open('parameters.json') as fil:
+    parameters = json.load(fil)
+    
+# Logging levels:
+#    NOTSET=0.
+#    DEBUG=10.
+#    INFO=20.
+#    WARN=30.
+#    ERROR=40.
+#    CRITICAL=50.
 logfilename:str = os.path.join(
-    'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log')
-logging.basicConfig(filename=logfilename, level=logging.WARNING)
+    parameters['Config']['LogDir'], f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log')
+logging.basicConfig(filename=logfilename, level=parameters['Config']['LogLevel'])
 
 #log_handler = logging.handlers.RotatingFileHandler(os.path.join(
     #'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), maxBytes=1000000000, backupCount=1)

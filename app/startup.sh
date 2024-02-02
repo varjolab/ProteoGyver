@@ -1,3 +1,8 @@
+#cd ..
+#rsync -avh --exclude logs . ~/appdev
+#cd ~/appdev
+#source bin/activate
+#cd app
 redis-cli shutdown
 killall celery
 redis-server --daemonize yes

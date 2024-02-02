@@ -5,9 +5,10 @@ from datetime import datetime
 from dash import html, callback, no_update, ALL, dcc, register_page
 from dash.dependencies import Input, Output, State
 from components import ui_components as ui
-from components.infra import data_stores, notifiers, prepare_download, working_data_stores
+from components.infra import invisible_utilities, prepare_download
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
+from components.figures import tic_graph
 import plotly.io as pio
 import logging
 from element_styles import CONTENT_STYLE
@@ -27,9 +28,7 @@ layout = html.Div([
             parameters['Possible values']['Implemented workflows']),
         ui.modals(),
         ui.main_content_div(),
-        data_stores(),
-        notifiers(),
-        working_data_stores()
+        invisible_utilities()
     ],
     style=CONTENT_STYLE
 )
@@ -216,11 +215,41 @@ def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
 
 
 @callback(
-    Output({'type': 'qc-plot', 'id': 'count-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'count-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'tic-plot-div'},
+           'children'), 
+    Output({'type': 'data-store', 'name': 'tic-data-store'}, 'data'),
     Input('qc-area', 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'},
-          'data'), State({'type': 'data-store', 'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
+          'data'), State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def parse_tic_data(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+    """Calls qc_analysis.count_plot function to generate a count plot from the samples."""
+    return qc_analysis.parse_tic_data(
+        data_dictionary['data tables']['experimental design'],
+        replicate_colors,
+        db_file,
+        parameters['Figure defaults']['full-height']
+    )
+
+@callback(
+    Output('qc-tic-plot','figure'),
+    State({'type': 'data-store', 'name': 'tic-data-store'}, 'data'),
+    Input('qc-tic-dropdown','value')
+)
+def plot_tic(tic_data, graph_type):
+    return tic_graph.tic_figure(parameters['Figure defaults']['full-height'], tic_data, graph_type)
+    
+
+@callback(
+    Output({'type': 'qc-plot', 'id': 'count-plot-div'},
+           'children'), 
+    Output({'type': 'data-store', 'name': 'count-data-store'}, 'data'),
+    Input({'type': 'qc-plot', 'id': 'tic-plot-div'},
+          'children'), 
+    State({'type': 'data-store', 'name': 'upload-data-store'},
+          'data'), 
+    State({'type': 'data-store', 'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
@@ -392,7 +421,7 @@ def proteomics_filtering_plot(nclicks, uploaded_data: dict, filtering_percentage
 def proteomics_normalization_plot(filtered_data: dict, normalization_option: str) -> html.Div:
     if filtered_data is None:
         return no_update
-    return proteomics.normalization(filtered_data, normalization_option, parameters['Figure defaults']['full-height'])
+    return proteomics.normalization(filtered_data, normalization_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
 
 
 @callback(
@@ -406,7 +435,7 @@ def proteomics_normalization_plot(filtered_data: dict, normalization_option: str
 def proteomics_imputation_plot(normalized_data: dict, imputation_option: str) -> html.Div:
     if normalized_data is None:
         return no_update
-    return proteomics.imputation(normalized_data, imputation_option, parameters['Figure defaults']['full-height'])
+    return proteomics.imputation(normalized_data, imputation_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
 
 
 @callback(
@@ -465,13 +494,13 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_data, compa
         return no_update
     if control_group is None:
         if (comparison_data is None):
-            print('no comparison data')
+            logger.warning(f'Proteomics volcano: no comparison data: {datetime.now()}')
             return no_update
         if (len(comparison_data) == 0):
-            print('comparison data len')
+            logger.warning(f'Proteomics volcano: Comparison data len 0: {datetime.now()}')
             return no_update
         if comparison_upload_success_style['background-color'] in ('red', 'grey'):
-            print('failed validation')
+            logger.warning(f'Proteomics volcano: comparison data failed validation: {datetime.now()}')
             return no_update
     sgroups: dict = data_dictionary['sample groups']['norm']
     comparisons: list = parsing.parse_comparisons(
@@ -547,7 +576,7 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
     Input({'type': 'data-store', 'name': 'interactomics-saint-input-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True,
-    background=False
+    background=True
 )
 def interactomics_run_saint(saint_input, data_dictionary):
     return (interactomics.run_saint(
@@ -728,7 +757,8 @@ def interactomics_network_plot(_, saint_output):
     State({'type': 'data-store',
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     State('interactomics-choose-enrichments', 'value'),
-    prevent_initial_call=True
+    prevent_initial_call=True,
+    background=True
 )
 def interactomics_enrichment(_, saint_output, chosen_enrichments):
     return ('',) + interactomics.enrich(saint_output, chosen_enrichments, parameters['Figure defaults']['full-height'])
@@ -811,8 +841,11 @@ def download_example_comparison_file(n_clicks) -> dict:
     Output('download-datafile-example', 'data'),
     Input('button-download-datafile-example', 'n_clicks'),
     prevent_initial_call=True,
+    background=True
 )
 def download_data_table_example(_) -> dict:
+    logger.warning(f'received DT download request at {datetime.now()}')
+
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
 
 
@@ -826,12 +859,15 @@ def download_data_table_example(_) -> dict:
     State({'type': 'input-div', 'id': ALL}, 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
-    prevent_initial_call=True
+    prevent_initial_call=True,
+    background=True    
 )
 def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_data, commonality_pdf_data) -> dict:
+    logger.warning(f'received download request at {datetime.now()}')
     figure_output_formats = ['html', 'png', 'pdf']
     stores: list = stores + stores2
     export_zip_name: str = prepare_download(
-        stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats, commonality_pdf_data)
+        stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats, commonality_pdf_data, parameters['Config']['Local debug'])
+    logger.warning(f'sending file: {export_zip_name} at {datetime.now()}')
     return (dcc.send_file(export_zip_name),'')
     # DB dependent function

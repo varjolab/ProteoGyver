@@ -1,7 +1,7 @@
 
 from plotly import express as px
 import pandas as pd
-from dash import dcc
+from dash.dcc import Graph
 
 
 def bar_plot(
@@ -95,7 +95,7 @@ def bar_plot(
 
 
 def make_graph(graph_id: str, defaults: dict, *args, **kwargs) -> None:
-    return dcc.Graph(
+    return Graph(
         id=graph_id,
         config=defaults['config'],
         figure=bar_plot(

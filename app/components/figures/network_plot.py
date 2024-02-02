@@ -4,7 +4,6 @@ import dash_cytoscape as cyto
 # Load extra layouts
 cyto.load_extra_layouts()
 
-# ################################# APP LAYOUT ################################
 def get_cytoscape_elements_and_ints(interaction_data):
     cy_edges = []
     cy_nodes = []

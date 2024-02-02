@@ -23,6 +23,7 @@ data_store_export_configuration: dict = {
     'replicate-colors-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
     'discard-samples-data-store': ['json', 'Debug', '', ''],
+    'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'count-data-store': ['xlsx', 'Data', 'Summary data', 'Protein counts;'],
     'coverage-data-store': ['xlsx', 'Data', 'Summary data', 'Protein coverage;'],
     'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
@@ -51,8 +52,8 @@ data_store_export_configuration: dict = {
     'interactomics-saint-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Saint output;Sheet 4'],
     'interactomics-saint-final-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Saint output with crapome;Sheet 3'],
     'interactomics-saint-filtered-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filtered saint output;Sheet 2'],
-    'interactomics-saint-filtered-and-intensity-mapped-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt saint w intensities;Sheet 1'],
-    'interactomics-saint-filt-int-known-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt int saint w knowns;Sheet 0'],
+    'interactomics-saint-filtered-and-intensity-mapped-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filtered with intensities;Sheet 1|rename-int'],
+    'interactomics-saint-filt-int-known-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt int with knowns;Sheet 0|rename-int'],
     'interactomics-enrichment-information-data-store': ['txt', 'Data', 'Enrichment information', 'enrich-split'],
     'interactomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
     'interactomics-network-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
@@ -124,6 +125,14 @@ def save_data_stores(data_stores, export_dir) -> dict:
             if not 'split' in file_config:
                 sheet_name: str
                 sheet_name, sheet_index = file_config.split(';')
+                pdsheet = pd.read_json(d['props']['data'], orient='split')
+                if '|rename-int' in sheet_index:
+                    sheet_index = sheet_index.split('|')[0]
+                    if not 'Averaged intensity' in pdsheet.columns:
+                        if sheet_name == 'Filtered with intensities': # skip intensity sheet if no intensity present
+                            continue
+                        elif sheet_name == 'Filt int with knowns': # Rename sheet with knowns, if no intensity present.
+                            sheet_name = 'Filtered with knowns'
                 index_bool: bool = True
                 if (sheet_name in no_index):
                     index_bool = False
@@ -140,7 +149,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                 try:
                     export_excels[file_name][sheet_index] = {
                         'name': sheet_name,
-                        'data': pd.read_json(d['props']['data'], orient='split'),
+                        'data': pdsheet,
                         'headers': True,
                         'index': index_bool
                     }
@@ -197,12 +206,16 @@ def save_data_stores(data_stores, export_dir) -> dict:
                                 sig_comp = sig_comp[:27] + 'Sigs'
                             else:
                                 sig_comp = sig_comp.replace(' only', '')
-                        df_dicts.append({
-                            'name': sig_comp,
-                            'data': df[(df['Sample'] == sample) & (df['Control'] == control) & df['Significant']],
-                            'headers': True,
-                            'index': False
-                        })
+                        if len(sig_comp) > 31:
+                            sig_comp = sample[:14] + 'vs' + control[:14]
+                        sig_df = df[(df['Sample'] == sample) & (df['Control'] == control) & df['Significant']]
+                        if sig_df.shape[0] > 0:
+                            df_dicts.append({
+                                'name': sig_comp,
+                                'data': sig_df,
+                                'headers': True,
+                                'index': False
+                            })
                         df_dicts_all.append({
                             'name': f'{compname}',
                             'data': df[(df['Sample'] == sample) & (df['Control'] == control)],
@@ -256,10 +269,14 @@ def save_data_stores(data_stores, export_dir) -> dict:
                 index_bool = dic['index']
                 if (dic['name'] in no_index):
                     index_bool = False
-                dic['data'].to_excel(writer, sheet_name=dic['name'],
-                                     header=dic['headers'], index=index_bool)
-                logger.warning(
-                    f'save data stores - sheet {excel_name}: {dic["name"]} done: {datetime.now() - prev_time}')
+                if dic['data'].shape[0]>0:
+                    dic['data'].to_excel(writer, sheet_name=dic['name'],
+                                        header=dic['headers'], index=index_bool)
+                    logger.warning(
+                        f'save data stores - sheet {excel_name}: {dic["name"]} done: {datetime.now() - prev_time}')
+                else:
+                    logger.warning(
+                        f'save data stores - sheet {excel_name}: {dic["name"]} not written: no rows to write: {datetime.now() - prev_time}')
                 prev_time: datetime = datetime.now()
 
                 # excel_dict[df_dict_index]['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'])
@@ -314,13 +331,13 @@ def get_all_types(elements, get_types) -> list:
     return ret
 
 
-def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data) -> None:
+def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, local_debug:bool=False) -> None:
     logger.warning(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
         analysis_divs, ['h4', 'h5', 'graph', 'img', 'P'])
     figure_names_and_figures: list = []
-    if len(commonality_pdf_data) > 0:
+    if (commonality_pdf_data is not None) and (len(commonality_pdf_data) > 0):
         header: str = 'Shared identifications'
         figure_names_and_figures.append([
             figure_export_directories[header],
@@ -394,23 +411,28 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
             new_html.extend(split_html[-2:])
             with open(os.path.join(target_dir, f'{name}.html'), 'w', encoding='utf-8') as fil:
                 fil.write('\n'.join(new_html))
+        plotly_engine: str = 'kaleido'
         for output_format in output_formats:
+            fig_path:str = os.path.join(target_dir, f'{name.replace(" ","_")}.{output_format}')
+            print(fig_path)
             if output_format == 'html':
                 continue
             if figtype == 'graph':
-                go.Figure(fig).write_image(os.path.join(
-                    target_dir, f'{name}.{output_format}'))
+                try:
+                    go.Figure(fig).write_image(fig_path,engine = plotly_engine)
+                except Exception as e:
+                    with open(fig_path.replace(f'.{output_format}', ' ERROR.txt'),'w',encoding='utf-8') as fil:
+                        fil.write(f'Error Message:\n{e}')
             elif figtype == 'img':
                 if output_format == 'pdf':
                     continue
-                with open(os.path.join(
-                        target_dir, f'{name}.{output_format}'), 'wb') as fil:
+                with open(fig_path, 'wb') as fil:
                     fil.write(b64decode(fig['props']['src'].replace(
                         'data:image/png;base64,', '')))
             elif (figtype == 'pdf_text'):
                 if output_format != 'pdf':
                     continue
-                with open(os.path.join(target_dir, f'{name}.{output_format}'), 'wb') as fil:
+                with open(fig_path, 'wb') as fil:
                     fil.write(b64decode(fig))
 
         logger.warning(
@@ -474,7 +496,7 @@ def save_input_information(input_divs, export_dir) -> None:
     logger.warning(f'saving input info - done: {datetime.now() - prev_time}')
 
 
-def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats, commonality_pdf_data) -> str:
+def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats, commonality_pdf_data, local_debug:bool=False) -> str:
     logger.warning(f'preparing download: {datetime.now()}')
     prev_time: datetime = datetime.now()
     export_dir: str = os.path.join(*cache_dir, session_name)
@@ -483,7 +505,7 @@ def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_
     os.makedirs(export_dir)
     timestamps: dict = save_data_stores(data_stores, export_dir)
     save_figures(analysis_divs, export_dir,
-                 figure_output_formats, commonality_pdf_data)
+                 figure_output_formats, commonality_pdf_data, local_debug)
     save_input_information(input_divs, export_dir)
     logger.warning(
         f'preparing download - finished exporting, making zip now: {datetime.now() - prev_time}')
@@ -496,11 +518,11 @@ def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_
         f'preparing download - zip made, removing leftover data: {datetime.now() - prev_time}')
     prev_time: datetime = datetime.now()
     shutil.rmtree(export_dir)
-    logger.warning(f'preparing download - done: {datetime.now() - prev_time}')
+    logger.warning(f'preparing download - done: {datetime.now() - prev_time}, {datetime.now()}')
     return export_zip_name
 
 
-def data_stores() -> html.Div:
+def upload_data_stores() -> html.Div:
     """Returns all the needed data store components"""
     stores: list = []
     for ID_STR in DATA_STORE_IDS:
@@ -522,6 +544,15 @@ def working_data_stores() -> html.Div:
         stores.append(dcc.Store(id={'type': 'data-store', 'name': ID_STR}))
     return html.Div(id='workflow-stores', children=stores)
 
+def invisible_utilities() -> html.Div:
+    return html.Div(
+        id='utils-div',
+        #children=[
+           # html.Div(id=id_dict) for id_dict in [{'type': 'utils','name':'interactomics-has-intensity'}]
+       # ],
+        children = [notifiers(),working_data_stores(),upload_data_stores()],
+        hidden=True
+    )
 
 def notifiers() -> html.Div:
     """Returns divs used for various callbacks only."""

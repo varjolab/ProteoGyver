@@ -2,7 +2,7 @@ from pandas import DataFrame
 from pandas import read_json as pd_read_json
 from dash import html
 from dash.dcc import Graph
-from components.figures import before_after_plot, comparative_violin_plot, imputation_histogram, scatter, heatmaps, volcano_plot
+from components.figures import before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot
 from components import matrix_functions, summary_stats, stats
 from components.figures.figure_legends import PROTEOMICS_LEGENDS as legends
 from datetime import datetime
@@ -52,13 +52,13 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
     )
 
 
-def normalization(filtered_data_json, normalization_option, defaults, title: str = None) -> tuple:
+def normalization(filtered_data_json: str, normalization_option: str, defaults: dict, errorfile: str, title: str = None) -> tuple:
 
     logger.warning(f'normalization - start: {datetime.now()}')
 
     data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
     normalized_table: DataFrame = matrix_functions.normalize(
-        data_table, normalization_option)
+        data_table, normalization_option, errorfile)
     logger.warning(
         f'normalization - normalized: {datetime.now()}')
 
@@ -87,13 +87,14 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
             'After normalization': 'rgb(50,100,235)'
         }
     }
-    plot: Graph = comparative_violin_plot.make_graph(
+    plot: Graph = comparative_plot.make_graph(
         'proteomics-normalization-plot',
         comparative_data,
         defaults,
         names=names,
         title=title,
-        replicate_colors=plot_colors
+        replicate_colors=plot_colors,
+        plot_type='box'
     )
     logger.warning(
         f'normalization - graph done, writing: {datetime.now()}')
@@ -113,13 +114,13 @@ def normalization(filtered_data_json, normalization_option, defaults, title: str
     )
 
 
-def imputation(filtered_data_json, imputation_option, defaults, title: str = None) -> tuple:
+def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, title: str = None) -> tuple:
 
     logger.warning(f'imputation - start: {datetime.now()}')
 
     data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
     imputed_table: DataFrame = matrix_functions.impute(
-        data_table, imputation_option)
+        data_table, errorfile, imputation_option)
     logger.warning(
         f'imputation - imputed, only plot left: {datetime.now()}')
     return (

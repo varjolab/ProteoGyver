@@ -6,7 +6,7 @@ def remove_accent_characters(text:str) -> str:
     """Replaces accented characters with a unaccented equivalents in string."""
     return unidecode.unidecode(text)
 
-def replace_special_characters(text:str,replacewith:str='.', replacement_dict: dict=None, stripresult: bool=True, remove_duplicates:bool = False, make_lowercase: bool = True) -> str:
+def replace_special_characters(text:str,replacewith:str='.', dict_and_re:bool = False, replacement_dict: dict=None, stripresult: bool=True, remove_duplicates:bool = False, make_lowercase: bool = True) -> str:
     """Replaces special(e.g. -,_,/,},(,\,)) characters with a given character or replacement dict in string.
     Replacement dict can be used to replace specific special characters with user input, \
         while all others will be replaced by replacewith
@@ -16,15 +16,21 @@ def replace_special_characters(text:str,replacewith:str='.', replacement_dict: d
     if not replacement_dict:
         ret = re.sub(r'[^a-zA-Z0-9]', replacewith, text)
     else:
-        new_text = []
-        for character in text:
-            if character in replacement_dict:
-                new_text.append(replacement_dict[character])
-            elif not character.isalnum():
-                new_text.append(replacewith)
-            else:
-                new_text.append(character)
-        ret =  ''.join(new_text)
+        for key in sorted(list(replacement_dict.keys()),key=lambda x: len(x),reverse=True):
+            if key in text:
+                text = text.replace(key, replacement_dict[key])
+        if dict_and_re:
+            ret = re.sub(r'[^a-zA-Z0-9]', replacewith, text)
+        else:
+            new_text = []
+            for character in text:
+                if not character.isalnum():
+                    new_text.append(replacewith)
+                else:
+                    new_text.append(character)
+            ret =  ''.join(new_text)
+
+
     if stripresult:
         curlen: int = -1
         while len(ret) != curlen:

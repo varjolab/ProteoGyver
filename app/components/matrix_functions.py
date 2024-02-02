@@ -116,8 +116,10 @@ def quantile_normalize(dataframe: DataFrame) -> DataFrame:
     """
     return qnorm.quantile_normalize(dataframe, ncpus=8)
 
+def reverse_log2(value):
+    return 2**value
 
-def normalize(data_table, normalization_method) -> DataFrame:
+def normalize(data_table, normalization_method, errorfile: str, random_seed: int = 13) -> DataFrame:
     """Normalizes a given dataframe with the wanted method."""
     return_table: DataFrame = data_table
     if not normalization_method:
@@ -125,11 +127,14 @@ def normalize(data_table, normalization_method) -> DataFrame:
     if normalization_method == 'Median':
         return_table = median_normalize(data_table)
     elif normalization_method == 'Quantile':
-        return_table = quantile_normalize(data_table,)
+        return_table = quantile_normalize(data_table)
+    elif normalization_method == 'Vsn':
+        data_table = data_table.applymap(reverse_log2)
+        return_table = R_tools.vsn(data_table, random_seed, errorfile)
     return return_table
 
 
-def impute(data_table: DataFrame, method: str = 'QRILC', tempdir: str = '.', random_seed: int = 13) -> DataFrame:
+def impute(data_table: DataFrame, errorfile: str, method: str = 'QRILC', random_seed: int = 13) -> DataFrame:
     """Imputes missing values into the dataframe with the specified method"""
     ret: DataFrame = data_table
     if method == 'minProb':
@@ -137,9 +142,9 @@ def impute(data_table: DataFrame, method: str = 'QRILC', tempdir: str = '.', ran
     elif method == 'minValue':
         ret = impute_minval(data_table)
     elif method == 'gaussian':
-        ret = impute_gaussian(data_table, random_seed)
+        ret = impute_gaussian(data_table, random_seed,errorfile)
     elif method == 'QRILC':
-        ret = R_tools.impute_qrilc(data_table, random_seed, tempdir=tempdir)
+        ret = R_tools.impute_qrilc(data_table, random_seed, errorfile)
     return ret
 
 

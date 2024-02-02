@@ -31,7 +31,8 @@ RUN mkdir -p /etc/supervisor/conf.d
 RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
 # Python installs
 WORKDIR /proteogyver
-RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG cache"\"/proteogyver", "cache"\g' parameters.json  
+RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.json  
+RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json  
 RUN mkdir /proteogyver/cache
 WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
