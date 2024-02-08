@@ -627,7 +627,6 @@ def handle_mgf(mgf_file_name, current_style):
     if mgf_file_name is None:
         return [no_update for _ in range(6)]
     mgf_df, osize = wu.handle_file(mgf_file_name)
-    mgf_df.to_csv('DEBUG.tsv',sep='\t')
     os.remove(mgf_file_name)
     if slim_testing_factor:
         mgf_df = mgf_df.loc[random.sample(list(mgf_df.index.values), max(100, int(mgf_df.shape[0]/slim_testing_factor)))]
