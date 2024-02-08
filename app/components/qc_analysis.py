@@ -92,16 +92,14 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
                 plot_data.append([
                     c, groupname, ','.join(in_both), col_data.loc[list(in_both)].sum(), len(in_both) 
                 ])
-        
+
         remaining_proteins = remaining_proteins[~remaining_proteins.index.isin(additional_proteins)]
         plot_data.append([
             c, 'None', ','.join(remaining_proteins.index.values), remaining_proteins.sum(), remaining_proteins.shape[0]
         ])
     plot_frame: DataFrame = DataFrame(data=plot_data,columns=plot_headers)
     plot_frame.sort_values(by='Protein class',ascending=False)
-    with open('debug_figdefaults.json','w') as fil:
-        import json
-        json.dump(figure_defaults,fil)
+    
     return (
         html.Div(
             id='qc-common-proteins-plot',

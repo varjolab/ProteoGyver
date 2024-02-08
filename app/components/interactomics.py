@@ -116,6 +116,8 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
     for index, value in knowns[upid_a_col].value_counts().items():
         more_known += f'{bait_map[index]} ({value}), '
     more_known = more_known.strip().strip(', ') + '. '
+    if len(no_knowns_found) == len(figure_data.index.values):
+        more_known = ''
     return (
         html.Div(
             id='interactomics-saint-known-plot',
@@ -415,7 +417,6 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
         ctable.index.name = ''
         controls.append(ctable)
         logger.debug(f'control {control_name} shape: {ctable.shape}, indexvals: {list(ctable.index)[:5]}')
-        ctable.to_csv(f'debug_{control_name}.tsv',sep='\t')
 
     if (len(controls) > 0) and do_proximity_filtering:
         # groupby to merge possible duplicate columns that are annotated in multiple sets
