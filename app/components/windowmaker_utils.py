@@ -2,14 +2,13 @@ from datetime import datetime
 from uuid import uuid4
 import ahocorasick
 import pandas as pd
-import io
-import base64
 import numpy as np
 from random import sample
 from components.text_handling import replace_special_characters
 from components.mathparser import MathParser
 from zipfile import BadZipFile
 from xlrd import XLRDError
+from components.parsing import unmix_dtypes
 
 class TreeNode:
     def __init__(self, idn, mobility_value, window_index,  prev_num_covered_ions, num_ions, windows, mob_increment_perc, mob_ranges, parent=None):
@@ -196,6 +195,7 @@ def handle_spreadsheet(filename, f_end):
     pepseq_col = None
     masscol = ['']
     modcol  = None
+    fill_with_na = []
     for c in data.columns:
         if 'mobility' in c.lower():
             mobcol.append(c)
@@ -228,7 +228,9 @@ def handle_spreadsheet(filename, f_end):
                 sc = '()'
             if sc is not None:
                 for chunk in row[modcol].split(sc[0])[1:]:
-                    mstr.append(chunk.split(sc[1])[0])
+                    chunk = chunk.split(sc[1])[0].strip()
+                    if len(chunk) > 0:
+                        mstr.append(chunk)
             if len(mstr)>0:
                 modvals.append(';'.join(mstr))
             else:
@@ -239,23 +241,31 @@ def handle_spreadsheet(filename, f_end):
     if len(mobcol) > 1:
         mobcol = check_for(mobcol, ['precursor','peptide'])
     else:
-        mobcol = mobcol[0]
+        mobcol = 'Mobility'#mobcol[0]
+        fill_with_na.append(mobcol)
     if len(mzcol) > 1:
         mzcol = check_for(mzcol, ['precursor','peptide'])
     else:
-        mzcol = mzcol[0]
+        mzcol = 'Mz'#mzcol[0]
+        fill_with_na.append(mzcol)
     if len(chargecol) > 1:
         chargecol = check_for(chargecol, ['precursor','peptide'])
     else:
-        chargecol = chargecol[0]
+        chargecol = 'Charge'#chargecol[0]
+        fill_with_na.append(chargecol)
     if len(rtcol) > 1:
         rtcol = check_for(rtcol, ['precursor','peptide'])
     else:
-        rtcol = rtcol[0]
+        rtcol = 'RT'#rtcol[0]
+        fill_with_na.append(rtcol)
     if len(masscol) > 1:
         masscol = check_for(masscol, ['precursor','peptide'])
     else:
-        masscol = masscol[0]
+        masscol = 'Pepmass'#masscol[0]
+        fill_with_na.append(masscol)
+    for fcol in fill_with_na:
+        data[fcol] = np.nan
+    data[chargecol].fillna('undefined',inplace=True)
     return (data, [mobcol, mzcol, chargecol, masscol, rtcol])
 
 def check_for(vals, tocheck):
@@ -296,8 +306,10 @@ def handle_file(filename):
     else:
         retdf = pd.DataFrame(columns=colnames)
         retcols = colnames
+    unmix_dtypes(retdf)
     ogsize = retdf.shape[0]
-    retdf.rename(columns={c: colnames[i] for i, c in enumerate(retcols)},inplace=True)
+    renames = {c: colnames[i] for i, c in enumerate(retcols)}
+    retdf.rename(columns=renames,inplace=True)
     cols_to_drop = ['RT']
     banned_words = ['intensity','fragment','product','annotation','qvalue']
     for c in retdf.columns:
@@ -316,6 +328,7 @@ def get_potential_filcols(data: pd.DataFrame):
     if 'Modifications' in data.columns:
         retlist.append('Modifications')
     for c in data.columns:
+        if c == 'Modifications': continue
         uvals = len([v for v in data[c].unique() if (pd.notna(v) & (str(v) != ''))])
         if uvals > 1:
             if uvals < 15:
@@ -430,7 +443,7 @@ def remove_from_long(df, equation_to_criteria, mzbins, mobbins):
             keep_rows.add(row_index)
     df.drop(index=list(set(df.index.values)-keep_rows), inplace=True)
 
-def process_iteration(start_mob, use_windows, adj_mob_perc, window_mob_ranges, best_tree, windows):
+def process_iteration(start_mob, use_windows, adj_mob_perc, window_mob_ranges, best_tree):
     best = TreeNode(
         uuid4(),
         start_mob,
@@ -443,7 +456,7 @@ def process_iteration(start_mob, use_windows, adj_mob_perc, window_mob_ranges, b
     )
     bp = best.get_full_tree()
     ret = (None, None)
-    if len(bp) < len(windows):
+    if len(bp) < len(use_windows):
         ret = (None,'None1')
     elif (best_tree is None):
         ret = (best, bp)
@@ -641,17 +654,17 @@ def ahocorasick_mask(column: pd.Series, exclude: list):
     mask = column.apply(lambda x: bool(list(A.iter(x))))
     return mask
 
-def filter_col(df, col, remove_these, inplace=True):
-    rem_vals = set()
-    for r in remove_these:
+def filter_col(df, col, only_include, inplace=True):
+    include_vals = set()
+    for r in only_include:
         try:
-            rem_vals.add(df[col].dtype.type(r))
+            include_vals.add(df[col].dtype.type(r))
         except ValueError:
             continue
     if col == 'Modifications':
-        mask = ahocorasick_mask(df[col], remove_these)
+        mask = ~ahocorasick_mask(df[col], only_include)
     else:
-        mask = df[col].isin(rem_vals)
+        mask = ~df[col].isin(include_vals)
     if inplace:
         df.drop(df.loc[mask].index, inplace=True)
     else:

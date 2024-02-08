@@ -437,13 +437,16 @@ def windowmaker_interface(offered_equations) -> html.Div:
             html.Div(id='infra',children=[
                 dcc.Store(id='windowmaker-full-data-store'),
                 dcc.Store(id='windowmaker-filtered-data-store'),
+                dcc.Store(id='windowmaker-best-windows'),
+                html.Div(id='windowmaker-windowgeneration-data-stores'),
+                dcc.Store(id='windowmaker-filtered-pdata'),
                 dcc.Store(id='windowmaker-prev-clicks-data-store', data={}),
                 dcc.Store(id='windowmaker-filter-columns',data={}),
-                html.Div(id='windowmaker-mgf-file-saved', hidden=True),
+                html.Div(id='windowmaker-mgf-file-saved'),
                 html.Div(id='placeholder'),
                 dcc.Store(id='windowmaker-session-id',data={'session-id': session_id}),
                 dcc.Download(id='windowmaker-download-method')
-            ]),
+            ], hidden=True),
             dbc.Row(
                 id='windowmaker-input-row',
                 children=[
@@ -512,6 +515,10 @@ def windowmaker_interface(offered_equations) -> html.Div:
                 id='windowmaker-output-row',
                 children=[
                     dbc.Card([
+                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-illu')),
+                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-genwin')),
+                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-bestwin')),
+                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-process')),
                         dcc.Loading(html.Div(id='windowmaker-post-plot-area'))
                     ], body=True)
                 ],style={'alignContent': 'center'}
@@ -647,9 +654,6 @@ def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
         ),
     ])
 
-def get_windowmaker_filcol_id(filname): 
-    return 'exclude-'+text_handling.replace_special_characters(filname,'-', stripresult=True, remove_duplicates=True)
-
 def generate_filter_group(data, filcols):
     dropdown = dcc.Dropdown(filcols, id='windowmaker-filter-col-dropdown',value=filcols[0])
     checklists = []
@@ -672,14 +676,14 @@ def generate_filter_group(data, filcols):
         checklist_target_cols.append(fcol)
         checklists.append(
             html.Div(
-                id={'type': 'windowmaker-filter-div', 'name': f'exclude-{f}'},
+                id={'type': 'windowmaker-filter-div', 'name': f'include-{f}'},
                 children = checklist(
                     {'type': 'windowmaker-filter-checklist', 'name': f},
                     values,
                     [],
                     id_only=True,
                     clean_id=False,
-                    prefix_list = [dbc.Label(f'Exclude values:')]
+                    prefix_list = [dbc.Label(f'Only consider values:')]
                 ),
                 hidden=True
             )
@@ -846,6 +850,7 @@ def post_saint_cointainer() -> list:
             id={'type': 'workflow-area', 'id': 'interactomcis-count-plot-div'},
             children=[
                 dcc.Loading(id='interactomics-known-loading'),
+                dcc.Loading(id='interactomics-common-loading'),
                 dcc.Loading(id='interactomics-pca-loading'),
                 dcc.Loading(id='interactomics-network-loading'),
                 dcc.Loading(id='interactomics-volcano-loading'),

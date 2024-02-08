@@ -5,6 +5,7 @@ import io
 import pandas as pd
 import numpy as np
 from collections.abc import Mapping
+from typing import Union
 import os
 import json
 from components import db_functions
@@ -18,6 +19,35 @@ def update_nested_dict(base_dict, update_dict) -> dict:
         else:
             base_dict[key] = value
     return base_dict
+
+def _to_str(val: Union[type(np.nan), float, int, str]) -> Union[type(pd.NA), str]:
+    """Return a string representation of the given integer, rounded float, or otherwise a string.
+
+    `np.nan` values are returned as empty strings.
+
+    It can be useful to call `df[col].fillna(value=np.nan, inplace=True)` before calling this function.
+    """
+    if val is np.nan:
+        return ''
+    if isinstance(val, float) and (val % 1 == 0.0):
+        return str(int(val))
+    if isinstance(val, int):
+        return str(val)
+    assert isinstance(val, str)
+    return val
+
+def unmix_dtypes(df: pd.DataFrame) -> None:
+    """Convert mixed dtype columns in the given dataframe to strings.
+
+    Ref: https://stackoverflow.com/a/61826020/
+    """
+    for col in df.columns:
+        if not (orig_dtype := pd.api.types.infer_dtype(df[col])).startswith("mixed"):
+            continue
+        df[col].fillna(value=np.nan, inplace=True)
+        df[col] = df[col].apply(_to_str)
+        if (new_dtype := pd.api.types.infer_dtype(df[col])).startswith("mixed"):
+            raise TypeError(f"Unable to convert {col} to a non-mixed dtype. Its previous dtype was {orig_dtype} and new dtype is {new_dtype}.")
 
 
 def parse_parameters(parameters_file: str) -> dict:

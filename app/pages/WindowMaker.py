@@ -1,7 +1,7 @@
 """ Restructured frontend for proteogyver app"""
 import os
 import dash_bootstrap_components as dbc
-from dash import html, callback, dcc, register_page, no_update, ctx,ALL, dash_table, get_app
+from dash import html, callback, dcc, register_page, no_update, ctx,ALL, dash_table, get_app, MATCH
 from components.parsing import parse_parameters
 from dash.dependencies import Input, Output, State
 import logging
@@ -104,12 +104,12 @@ def generate_chplot(data):
             for ch in sorted_charges:
                 ch_dfs = data['charge_states'][ch]
                 pdf = pd.read_json(ch_dfs[1],orient='split')
+                mgf_df = pd.read_json(ch_dfs[0],orient = 'split')
                 ch_fig = px.imshow(pdf,origin='lower',aspect='equal',width=ch_width, height=ch_height)
-                #ch_fig.update_traces(name='mgfplot')
                 ch_fig.update_layout(coloraxis_showscale=False, margin={'t':0,'l':0,'b':0,'r':0})
-                #ch_fig.update_layout(autosize=True)
                 ch_graph = dcc.Graph(id=f'windowmaker-pre-plot-{ch}',figure=ch_fig, style={'padding': '0px 0px 0px 0px','float': 'left','display': 'flex'})
-                charge_graphs.append(dbc.Col([html.H4(f'Charge {ch}'), ch_graph], width=6,style={'float': 'left','display': 'block'}))
+                ion_count = mgf_df.shape[0]
+                charge_graphs.append(dbc.Col([html.H4(f'Charge {ch} ({int(ion_count)} ions)'), ch_graph], width=6,style={'float': 'left','display': 'block'}))
         if len(charge_graphs) % 2 != 0:
             charge_graphs.append('')
         retkids = [
@@ -191,7 +191,7 @@ def get_eq_group_div(equation, eqname):
     return html.Div(
         [
             dbc.Button(equation, id={'type': 'EQBUTTON', 'name':eqname}, style={'padding': '5px 5px 5px 5px'}),
-            html.P('Exclude: ', style={'padding': '5px 5px 5px 5px','align-items': 'center'}),
+            html.P('Include only: ', style={'padding': '5px 5px 5px 5px','align-items': 'center'}),
             dcc.RadioItems(abvals, ab_guess, id={'type': 'eq-radioitems', 'name': eqname}, style={'padding': '5px 5px 5px 5px'})
         ], style = {'width': '100%', 'display': 'inline-flex','padding': '5px 5px 5px 5px'}, id = eqname
     )
@@ -320,101 +320,63 @@ def generate_filter_groups(full_data):
     fcol = [dropdown] + checklists
     return fcol, checklist_target_cols
 
+
 @callback(
-    Output('windowmaker-post-plot-area','children'),
-    Input('windowmaker-calculate-windows-button','n_clicks'),
-    State('windowmaker-filtered-data-store','data'),
-    State({'type': 'EQBUTTON', 'name': ALL}, 'children'),
-    State({'type': 'eq-radioitems', 'name': ALL}, 'value'),
-    State('windowmaker-mz-input-min', 'value'),
-    State('windowmaker-mz-input-max', 'value'),
+    Output({'type': 'iteration-data-store', 'name': MATCH}, 'data'),
+    Output({'type': 'indicator-div','name': MATCH},'children'),
+    Input({'type': 'iteration-data-store', 'name': MATCH}, 'data'),
     State('windowmaker-mob-input-min', 'value'),
     State('windowmaker-mob-input-max', 'value'),
-    State('windowmaker-peplen-input-min', 'value'),
-    State('windowmaker-peplen-input-max', 'value'),
-    State('windowmaker-play-notification-sound-when-done','value'),
-    prevent_initial_call=True,
     background=True
 )
-def generate_windows(n_clicks, full_data, eqs, eq_criteria, mzmin, mzmax, mobmin, mobmax, lenmin, lenmax, notify):
-    if n_clicks is None: 
-        return no_update
-    if n_clicks == 0:
-        return no_update
-    mgfdata = pd.read_json(full_data['mgf'], orient='split')
-    mgfdata = wu.filter_mgf_df(mgfdata, [mzmin, mzmax], [mobmin, mobmax], [lenmin, lenmax])
-    pdata = wu.make_pdata(mgfdata)
-    
-    if len(eqs) > 0:
-        equation_to_criteria = {eq: eq_criteria[i] for i, eq in enumerate(eqs)}
-        wu.remove_from_matrix(pdata, equation_to_criteria)
-        wu.remove_from_long(mgfdata, equation_to_criteria, pdata.columns, pdata.index)
+def process_todo_item(data_store: dict, mobmin, mobmax):
+    print('processing')
+    start_todo, windows, adj_mob_perc, window_mob_ranges = data_store['work_data']
 
-    # TODO: num_windows from parameters
-    num_windows = 12
-    mgfdata = mgfdata.sort_values(by='Peptide mass')
-    target_per_window = mgfdata.shape[0]/(num_windows*2)
-    windows = [
-        ([],[])
-    ]
-    for _,row in mgfdata.iterrows():
-        if len(windows[-1][0]) >= target_per_window:
-            windows.append(([],[]))
-        windows[-1][0].append(round(row['Peptide mass'], 2))
-        windows[-1][1].append(round(row['Mobility'],2))
-    windows = wu.count_windows(windows)
-    windows = wu.pair_windows(windows)
-    window_mob_ranges = []
-    window_mz_ranges = []
-    for i, w in enumerate(windows):
-        window_mz_ranges.append(w[0][:3])
-        if i == 0:
-            window_mob_ranges.append([w[0][3][0], max(0.01, w[0][3][-1])])
-        else:
-            w1 = max(w[0][3][0], window_mob_ranges[i-1][1]+0.01)
-            w2 = max(w[0][3][-1], w1+0.01)
-            window_mob_ranges.append([w1,w2])
     best_tree = None
     best_path = None
     prev_adj_perc = -1
     all_adjmobs = []
 
-    rnd = True
     start = datetime.now()
+    adj_mob = max(0.01, round((window_mob_ranges[0][1]-window_mob_ranges[0][0]) * adj_mob_perc,2))
     for i in range(0, 100):
-        if best_tree is None:
-            if rnd:
-                adj_mob_perc = 0.5
-                adj_mob = round((window_mob_ranges[0][1]-window_mob_ranges[0][0]) * adj_mob_perc,2)
-                rnd_range = list(np.arange(window_mob_ranges[0][0], window_mob_ranges[0][1]+0.01, 0.01))
-                todo = random.sample(rnd_range,min(10, len(rnd_range)))
-            else:
-                adj_mob_perc = 1
-                adj_mob = max(0.01, round((window_mob_ranges[0][1]-window_mob_ranges[0][0]) * adj_mob_perc,2))
-                todo = np.arange(window_mob_ranges[0][0], window_mob_ranges[0][1]+adj_mob, adj_mob)
-        else:
+        if i > 0:
+            if best_path is None:
+                print('no path')
+                break
             adj_mob_perc = round(adj_mob_perc/2,2)
             adj_mob = max(0.01, round((window_mob_ranges[0][1]-window_mob_ranges[0][0]) * adj_mob_perc,2))
             if adj_mob == prev_adj_mob:
                 break
             if adj_mob < 0.01:
                 break
-            todo = np.arange(best_path[0].mobility_value - adj_mob, best_path[0].mobility_value + adj_mob, adj_mob)
-        if adj_mob_perc == prev_adj_perc:
-            break
-        all_adjmobs.append(adj_mob)
-        todo = sorted(list(set([round(t, 2) for t in todo])))
+            if adj_mob_perc == prev_adj_perc:
+                break
+            all_adjmobs.append(adj_mob)
+            todo = sorted(
+                list(
+                    set(
+                        [
+                            round(t, 2) for t in np.arange(
+                                best_path[0].mobility_value - adj_mob,
+                                best_path[0].mobility_value + adj_mob,
+                                adj_mob
+                            )
+                        ]
+                    )
+                )
+            )
+        else:
+            todo = [start_todo]
         prev_adj_mob = adj_mob
         prev_adj_perc = adj_mob_perc
-        num_processes = multiprocessing.cpu_count()
-        pool = multiprocessing.Pool(processes=num_processes)
         for start_mob in todo:
-            result = wu.process_iteration(start_mob, windows, adj_mob_perc, window_mob_ranges, best_tree, windows)
+            result = wu.process_iteration(start_mob, windows, adj_mob_perc, window_mob_ranges, best_tree)
             if result[0]: 
                 best_tree, best_path = result
-        pool.close()
-        pool.join()
         print('iteration', (datetime.now()-start))
+    
     print('optimizing', (datetime.now()-start))
     wu.optimize_window_position(best_tree, windows)
     print('done', (datetime.now()-start))
@@ -435,6 +397,45 @@ def generate_windows(n_clicks, full_data, eqs, eq_criteria, mzmin, mzmax, mobmin
             'coverage1': wu.get_covered_ions(coordinates1[:2], window1), 
             'coverage2': wu.get_covered_ions(coordinates2[:2], window2)
         })
+    return ({
+        'windows': finished_windows,
+        'full coverage': sum([
+            fw['coverage1'] + fw['coverage2'] for fw in finished_windows
+        ]),
+        'done': True
+    },'')
+
+@callback(
+    Output('windowmaker-best-windows', 'data'),
+    Output('windowmaker-buttonload-output-bestwin','children'),
+    Input({'type': 'iteration-data-store', 'name': ALL}, 'data'),
+    prevent_initial_call = True
+)
+def check_if_done(stores):
+    print('check if done')
+    all_done = True
+    for store in stores:
+        all_done &= ('done' in store)
+    if all_done:
+        best_windows = [None,0]
+        for dstore in stores:
+            if dstore['full coverage'] > best_windows[1]:
+                best_windows = [dstore['windows'], dstore['full coverage']]
+        return (best_windows[0],'')
+    else:
+        return (no_update, no_update)
+  
+@callback(
+    Output('windowmaker-post-plot-area','children'),
+    Output('windowmaker-buttonload-output-illu','children'),
+    Input('windowmaker-best-windows', 'data'),
+    State('windowmaker-filtered-pdata','data'),
+    State('windowmaker-play-notification-sound-when-done','value'),
+    prevent_initial_call = True,
+    background=True
+)
+def illustrate(finished_windows, filtered_pdata, notify):
+    pdata = pd.read_json(filtered_pdata,orient='split')
     # TODO: figure size from parameters
     fig = px.imshow(pdata,width=750, height=370,origin='lower',aspect='equal')
     #fig.update_layout(yaxis=dict(autorange=True))
@@ -459,9 +460,8 @@ def generate_windows(n_clicks, full_data, eqs, eq_criteria, mzmin, mzmax, mobmin
         )
         cycle_id += 1
     fig.update_layout(shapes=window_rects)
-    #fig.show()
     notify = len(notify)>0
-    return [
+    return ([
         dbc.Row([ 
             html.Div([
                 html.Audio(id='windowmaker-music', controls=True,src=notification_music,children='',autoPlay=notify),
@@ -480,8 +480,90 @@ def generate_windows(n_clicks, full_data, eqs, eq_criteria, mzmin, mzmax, mobmin
                 editable=True
             ),
         ]),
-    ]
+    ],'')
     #fig.write_html(f'Final windows plo {ln}.html')
+
+@callback(
+    Output('windowmaker-windowgeneration-data-stores', 'children'),
+    Output('windowmaker-buttonload-output-process','children'),
+    Output('windowmaker-filtered-pdata','data'),
+    Output('windowmaker-buttonload-output-genwin','children'),
+    Input('windowmaker-calculate-windows-button','n_clicks'),
+    State('windowmaker-filtered-data-store','data'),
+    State({'type': 'EQBUTTON', 'name': ALL}, 'children'),
+    State({'type': 'eq-radioitems', 'name': ALL}, 'value'),
+    State('windowmaker-mz-input-min', 'value'),
+    State('windowmaker-mz-input-max', 'value'),
+    State('windowmaker-mob-input-min', 'value'),
+    State('windowmaker-mob-input-max', 'value'),
+    State('windowmaker-peplen-input-min', 'value'),
+    State('windowmaker-peplen-input-max', 'value'),
+    prevent_initial_call=True,
+    background=True
+)
+def generate_windows(n_clicks, full_data, eqs, eq_criteria, mzmin, mzmax, mobmin, mobmax, lenmin, lenmax):
+    print('generating windows')
+    if n_clicks is None: 
+        return no_update
+    if n_clicks == 0:
+        return no_update
+    mgfdata = pd.read_json(full_data['mgf'], orient='split')
+    mgfdata = wu.filter_mgf_df(mgfdata, [mzmin, mzmax], [mobmin, mobmax], [lenmin, lenmax])
+    pdata = wu.make_pdata(mgfdata)
+    
+    if len(eqs) > 0:
+        equation_to_criteria = {eq: eq_criteria[i] for i, eq in enumerate(eqs)}
+        wu.remove_from_matrix(pdata, equation_to_criteria)
+        wu.remove_from_long(mgfdata, equation_to_criteria, pdata.columns, pdata.index)
+
+    # TODO: num_windows from parameters
+    num_windows = 12
+    print(mgfdata.head())
+    mgfdata = mgfdata.sort_values(by='Mz')
+    target_per_window = mgfdata.shape[0]/(num_windows*2)
+    windows = [
+        ([],[])
+    ]
+    for _,row in mgfdata.iterrows():
+        if len(windows[-1][0]) >= target_per_window:
+            windows.append(([],[]))
+        windows[-1][0].append(round(row['Mz'], 2))
+        windows[-1][1].append(round(row['Mobility'],2))
+    windows = wu.count_windows(windows)
+    windows = wu.pair_windows(windows)
+    window_mob_ranges = []
+    window_mz_ranges = []
+    for i, w in enumerate(windows):
+        window_mz_ranges.append(w[0][:3])
+        if i == 0:
+            window_mob_ranges.append([w[0][3][0], max(0.01, w[0][3][-1])])
+        else:
+            w1 = max(w[0][3][0], window_mob_ranges[i-1][1]+0.01)
+            w2 = max(w[0][3][-1], w1+0.01)
+            window_mob_ranges.append([w1,w2])
+    all_adjmobs = []
+
+    rnd = True
+    if rnd:
+        adj_mob_perc = 0.5
+        adj_mob = round((window_mob_ranges[0][1]-window_mob_ranges[0][0]) * adj_mob_perc,2)
+        rnd_range = list(np.arange(window_mob_ranges[0][0], window_mob_ranges[0][1]+0.01, 0.01))
+        todo = random.sample(rnd_range,min(10, len(rnd_range)))
+    else:
+        adj_mob_perc = 1
+        adj_mob = max(0.01, round((window_mob_ranges[0][1]-window_mob_ranges[0][0]) * adj_mob_perc,2))
+        todo = np.arange(window_mob_ranges[0][0], window_mob_ranges[0][1]+adj_mob, adj_mob)
+    all_adjmobs.append(adj_mob)
+    todo = sorted(list(set([round(t, 2) for t in todo])))
+    loading_outputs = [
+        html.Div(id={'type': 'indicator-div','name': f'winstore-{i}'}) for i in range(len(todo))
+    ]
+    generated_inputs_for_window_opts = [
+        dcc.Store(
+            id={'type': 'iteration-data-store', 'name': f'winstore-{i}'},
+            data={'work_data': [start_mob, windows, adj_mob_perc, window_mob_ranges]}
+        ) for i, start_mob in enumerate(todo)]
+    return (generated_inputs_for_window_opts,loading_outputs,pdata.to_json(orient='split'),'')
 
 @callback(
     Output('windowmaker-download-method', 'data'),
@@ -545,6 +627,7 @@ def handle_mgf(mgf_file_name, current_style):
     if mgf_file_name is None:
         return [no_update for _ in range(6)]
     mgf_df, osize = wu.handle_file(mgf_file_name)
+    mgf_df.to_csv('DEBUG.tsv',sep='\t')
     os.remove(mgf_file_name)
     if slim_testing_factor:
         mgf_df = mgf_df.loc[random.sample(list(mgf_df.index.values), max(100, int(mgf_df.shape[0]/slim_testing_factor)))]
@@ -557,8 +640,12 @@ def handle_mgf(mgf_file_name, current_style):
         mgf_json = mgf_df.to_json(orient='split')
         current_style['background-color'] = 'green'
         does_not_have_peplen = ('Peptide length' not in mgf_df.columns)
-        peplen_min = mgf_df['Peptide length'].min()
-        peplen_max = mgf_df['Peptide length'].max()
+        if does_not_have_peplen:
+            peplen_min = np.nan
+            peplen_max = np.nan
+        else:
+            peplen_min = mgf_df['Peptide length'].min()
+            peplen_max = mgf_df['Peptide length'].max()
     return (
         {'mgf': mgf_json},
         current_style,

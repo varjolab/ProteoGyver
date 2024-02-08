@@ -65,7 +65,6 @@ pages_in_order = [
     'windowmaker',
 ]
 pages_in_order.extend(sorted([p for p in pages.keys() if p not in pages_in_order]))
-print(pages.keys())
 navbar_items = [pages[p] for p in pages_in_order]
 
 def main() -> None:

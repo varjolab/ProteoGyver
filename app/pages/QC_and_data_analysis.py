@@ -275,6 +275,7 @@ def common_proteins_plot(_, data_dictionary: dict) -> tuple:
         parameters['Figure defaults']['full-height']
     )
 
+
 @callback(
     Output({'type': 'qc-plot', 'id': 'coverage-plot-div'},
            'children'), Output({'type': 'data-store', 'name': 'coverage-data-store'}, 'data'),
@@ -690,6 +691,21 @@ def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
 def interactomics_initiate_post_saint(_) -> html.Div:
     return ui.post_saint_cointainer()
 
+""" @callback(
+    Output('interactomics-common-loading','children'),
+    Output({'type': 'data-store', 'name': 'interactomics-common-protein-data-store'}, 'data'),
+    Input('interactomics-button-done-filtering', 'n_clicks'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def interactomics_common_proteins_plot(_, data_dictionary: dict) -> tuple:
+    return ''
+    return qc_analysis.common_proteins(
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
+        db_file,
+        parameters['Figure defaults']['full-height']
+    ) """
 
 @callback(
     Output({'type': 'data-store',
