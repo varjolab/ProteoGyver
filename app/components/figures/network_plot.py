@@ -1,5 +1,5 @@
-import pandas as pd
-from dash import Input, Output, State, dcc, html, callback, dash_table
+from dash import dcc, html, callback
+import dash_bootstrap_components as dbc
 import dash_cytoscape as cyto
 # Load extra layouts
 cyto.load_extra_layouts()

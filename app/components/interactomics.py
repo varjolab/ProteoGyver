@@ -175,14 +175,20 @@ def pca(saint_output_data: dict, defaults: dict) -> tuple:
     )
 
 def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, keep_all: bool = False, sig_threshold: float = 0.01) -> tuple:
+    div_contents:list = []
+    enrichment_data: dict = {}
+    enrichment_information: list = []
     if len(chosen_enrichments) == 0:
-        return ''
+        return (
+            div_contents,
+            enrichment_data,
+            enrichment_information
+        )
     e_admin = ea.EnrichmentAdmin()
     saint_output: pd.DataFrame = pd.read_json(
         saint_output_json, orient='split')
     enrichment_names: list
     enrichment_results: list
-    enrichment_information: list
     enrichment_names, enrichment_results, enrichment_information = e_admin.enrich_all(
         saint_output,
         chosen_enrichments,
@@ -191,7 +197,6 @@ def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, ke
         split_name='Bait'
     )
 
-    enrichment_data: dict = {}
 
     tablist: list = []
     for i, (rescol, sigcol, namecol, result) in enumerate(enrichment_results):
@@ -278,8 +283,6 @@ def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, ke
                 children=tablist,
                 style={'width': '98%'}
             )]
-    else:
-        div_contents = []
     return (div_contents,
         enrichment_data,
         enrichment_information
@@ -718,6 +721,9 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         f'saint filtering - bait removed filtered size nodupes: {filtered_saint_output.drop_duplicates().shape}')
     return filtered_saint_output.reset_index().drop(columns=['index']).to_json(orient='split')
 
+def get_saint_matrix(saint_data_json: str):
+    df = pd.read_json(saint_data_json, orient='split')
+    return df.pivot_table(index='Prey',columns='Bait',values='AvgSpec')
 
 def saint_counts(filtered_output_json, figure_defaults, replicate_colors):
     count_df: pd.DataFrame = pd.read_json(filtered_output_json, orient='split')['Bait'].\

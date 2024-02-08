@@ -691,22 +691,6 @@ def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
 def interactomics_initiate_post_saint(_) -> html.Div:
     return ui.post_saint_cointainer()
 
-""" @callback(
-    Output('interactomics-common-loading','children'),
-    Output({'type': 'data-store', 'name': 'interactomics-common-protein-data-store'}, 'data'),
-    Input('interactomics-button-done-filtering', 'n_clicks'),
-    State({'type': 'data-store',
-          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
-    prevent_initial_call=True
-)
-def interactomics_common_proteins_plot(_, data_dictionary: dict) -> tuple:
-    return ''
-    return qc_analysis.common_proteins(
-        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
-        db_file,
-        parameters['Figure defaults']['full-height']
-    ) """
-
 @callback(
     Output({'type': 'data-store',
            'name': 'interactomics-saint-filtered-and-intensity-mapped-output-data-store'}, 'data'),
@@ -723,8 +707,7 @@ def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary
         return no_update
     return interactomics.map_intensity(unfiltered_saint_data, data_dictionary['data tables']['intensity'], data_dictionary['sample groups']['norm'])
 
-
-@callback(
+@callback( 
     Output('interactomics-known-loading', 'children'),
     Output({'type': 'data-store',
            'name': 'interactomics-saint-filt-int-known-data-store'}, 'data'),
@@ -737,12 +720,29 @@ def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary
 def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
     return interactomics.known_plot(saint_output, db_file, rep_colors_with_cont, parameters['Figure defaults']['half-height'])
 
-
+@callback(
+    Output('interactomics-common-loading','children'),
+    Output({'type': 'data-store', 'name': 'interactomics-common-protein-data-store'}, 'data'),
+    Input({'type': 'data-store',
+           'name': 'interactomics-saint-filt-int-known-data-store'}, 'data'),
+    State({'type': 'data-store',
+          'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def interactomics_common_proteins_plot(_, saint_data: dict) -> tuple:
+    saint_data = interactomics.get_saint_matrix(saint_data)
+    return qc_analysis.common_proteins(
+        saint_data.to_json(orient='split'),
+        db_file,
+        parameters['Figure defaults']['full-height'],
+        additional_groups = {
+            'Other contaminants': contaminant_list
+        }
+    )
 @callback(
     Output('interactomics-pca-loading', 'children'),
     Output({'type': 'data-store', 'name': 'interactomics-pca-data-store'}, 'data'),
-    Input({'type': 'data-store',
-          'name': 'interactomics-saint-filt-int-known-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'interactomics-common-protein-data-store'}, 'data'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True
@@ -823,7 +823,14 @@ def display_tap_node(node_data, int_data):
     Input("dropdown-layout", "value")
 )
 def update_cytoscape_layout(layout):
-    return {"name": layout}
+    ret_dic =  {"name": layout}
+    if layout in parameters['Cytoscape layout parameters']:
+        for k, v in parameters['Cytoscape layout parameters'][layout]:
+            ret_dic[k] = v
+
+
+        
+    return ret_dic
 ########################################
 
 @callback(

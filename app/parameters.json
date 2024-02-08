@@ -72,5 +72,12 @@
         "LogDir": "logs",
         "LogLevel": 20,
         "R error file": "R_errors.log"
+    },
+    "Cytoscape layout parameters":{
+        "maxSimulationTime": 12000,
+        "padding": 10,
+        "randomize": true,
+        "nodeSpacing": 15
+
     }
 }

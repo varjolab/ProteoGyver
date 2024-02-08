@@ -51,16 +51,33 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
         f'count_plot - graph drawn: {datetime.now() }')
     return (graph_div, count_data.to_json(orient='split'))
 
-def common_proteins(data_table: str, db_file: str, figure_defaults: dict) -> tuple:
+def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additional_groups: dict = None) -> tuple:
     table: DataFrame = pd_read_json(data_table,orient='split')
     db_conn = db_functions.create_connection(db_file)
     common_proteins: DataFrame = db_functions.get_from_table_by_list_criteria(db_conn, 'common_proteins','uniprot_id',list(table.index))
     common_proteins.index = common_proteins['uniprot_id']
-
+    if additional_groups is None:
+        additional_groups = {}
+    print(additional_groups.keys())
+    additional_proteins = {}
+    for k, plist in additional_groups.items():
+        plist = [p for p in plist if p not in common_proteins.index.values]
+        for p in plist:
+            if p not in additional_proteins:
+                additional_proteins[p] = []
+            additional_proteins[p].append(k)
+    additional_groups = {}
+    for protid, groups in additional_proteins.items():
+        gk = ','.join(groups)
+        if gk not in additional_groups: additional_groups[gk] = set()
+        additional_groups[gk].add(protid)
+    print(additional_groups.keys())
+    
     plot_headers: list = ['Sample name','Protein class','Proteins', 'ValueSum','Count']
     plot_data: list = []
     for c in table.columns:
         col_data: Series = table[c]
+        print(c)
         col_data = col_data[col_data.notna()]
         com_for_col: DataFrame = common_proteins.loc[common_proteins.index.isin(col_data.index)]
         for pclass in com_for_col['protein'].unique():
@@ -69,6 +86,14 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict) -> tup
                 c, pclass, ','.join(class_prots), col_data.loc[class_prots].sum(), len(class_prots)
             ])
         remaining_proteins: Series = col_data[~col_data.index.isin(com_for_col.index)]
+        for groupname, group_prots in additional_groups.items():
+            in_both = group_prots & set(remaining_proteins.index.values)
+            if len(in_both) > 0:
+                plot_data.append([
+                    c, groupname, ','.join(in_both), col_data.loc[list(in_both)].sum(), len(in_both) 
+                ])
+        
+        remaining_proteins = remaining_proteins[~remaining_proteins.index.isin(additional_proteins)]
         plot_data.append([
             c, 'None', ','.join(remaining_proteins.index.values), remaining_proteins.sum(), remaining_proteins.shape[0]
         ])
