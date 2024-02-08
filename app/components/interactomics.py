@@ -175,6 +175,8 @@ def pca(saint_output_data: dict, defaults: dict) -> tuple:
     )
 
 def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, keep_all: bool = False, sig_threshold: float = 0.01) -> tuple:
+    if len(chosen_enrichments) == 0:
+        return ''
     e_admin = ea.EnrichmentAdmin()
     saint_output: pd.DataFrame = pd.read_json(
         saint_output_json, orient='split')
@@ -375,6 +377,7 @@ def run_saint(saint_input: dict, saint_path: list, session_uid: str, bait_unipro
 
 
 def prepare_crapome(db_conn, crapomes: list) -> pd.DataFrame:
+    crapomes = [c.rsplit('_(',maxsplit=1)[0] for c in crapomes]
     crapome_tables: list = [
         db_functions.get_full_table_as_pd(db_conn, tablename, index_col='protein_id') for tablename in crapomes
     ]
@@ -396,8 +399,9 @@ def prepare_crapome(db_conn, crapomes: list) -> pd.DataFrame:
     return crapome_table
 
 def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db_conn, do_proximity_filtering: bool = True, top_n: int = 30) -> tuple:
-    logger.warning(f'preparing uploaded controls: {uploaded_controls}')
-    logger.warning(f'preparing additional controls: {additional_controls}')
+    additional_controls = [c.rsplit('_(',maxsplit=1)[0] for c in additional_controls]
+    logger.debug(f'preparing uploaded controls: {uploaded_controls}')
+    logger.debug(f'preparing additional controls: {additional_controls}')
     sample_groups: dict = input_data_dict['sample groups']['norm']
     spc_table: pd.DataFrame = pd.read_json(
         input_data_dict['data tables']['spc'], orient='split')
@@ -407,7 +411,8 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
             db_conn, control_name, index_col='PROTID')
         ctable.index.name = ''
         controls.append(ctable)
-        logger.warning(f'control {control_name} shape: {ctable.shape}')
+        logger.debug(f'control {control_name} shape: {ctable.shape}, indexvals: {list(ctable.index)[:5]}')
+        ctable.to_csv(f'debug_{control_name}.tsv',sep='\t')
 
     if (len(controls) > 0) and do_proximity_filtering:
         # groupby to merge possible duplicate columns that are annotated in multiple sets
@@ -422,9 +427,12 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
         c for c in spc_table.columns if c not in control_cols]]
     control_table: pd.DataFrame = pd.concat(
         controls, axis=1).groupby(level=0, axis=1).mean()
+    logger.debug(f'Controls concatenated: {control_table.shape}, indexvals: {list(control_table.index)[:5]}')
+    logger.debug(f'SPC table index: {list(spc_table.index)[:5]}')
     # Discard any control preys that are not identified in baits. It will not affect SAINT results.
     control_table.drop(index=set(control_table.index) -
                        set(spc_table.index), inplace=True)
+    logger.debug(f'non-detected preys dropped: {control_table.shape}')
 
     return (spc_table, control_table)
 

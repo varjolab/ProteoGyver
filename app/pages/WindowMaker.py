@@ -1,7 +1,7 @@
 """ Restructured frontend for proteogyver app"""
 import os
 import dash_bootstrap_components as dbc
-from dash import html, callback, clientside_callback, dcc, register_page, no_update, ctx,ALL, dash_table
+from dash import html, callback, dcc, register_page, no_update, ctx,ALL, dash_table, get_app
 from components.parsing import parse_parameters
 from dash.dependencies import Input, Output, State
 import logging
@@ -16,6 +16,7 @@ from uuid import uuid4
 from plotly import graph_objects as go
 from components import windowmaker_utils as wu
 from datetime import datetime
+import dash_uploader as du
 
 random.seed(123)
 
@@ -36,20 +37,29 @@ offered_equations = [
 parameters = parse_parameters('parameters.json')
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 notification_music = '/assets/sound/bmm_shortest.mp3'
-wmstyle = {
-    #'margin-top': ,
-    'margin-right': '2%',
-    'paddingTop': 72,
-    'paddingBottom': '1%',
-    #'padding': '5% 1%',
-    'width': '100%',
-  #  'display': 'inline-block',
-    'overflow': 'auto',
-}
+
 pasef_method_table_columns = [
     'MS Type','Cycle Id','1/K0 Begin [Vs/cm2]','1/K0 End [Vs/cm2]','Start Mass [m/z]','End Mass [m/z]','CE [eV]'
 ]
-layout = ui.windowmaker_interface(wmstyle,offered_equations)
+layout = ui.windowmaker_interface(offered_equations)
+
+
+upload_dir:str = os.path.join(*parameters['Data paths']['Cache dir'])
+upload_dir = os.path.join(upload_dir, 'uploads')
+if not os.path.isdir(upload_dir): os.makedirs(upload_dir)
+du.configure_upload(
+    get_app(),
+    upload_dir,
+    use_upload_id=True,
+)    
+@du.callback(
+    output=Output('windowmaker-mgf-file-saved', 'children'),
+    id='windowmaker-mgf-file-upload',
+)
+def check_upload_status(upload_status):
+    if os.path.isfile(upload_status[0]):
+        return upload_status[0]
+    return None
 
 @callback(
     Output('windowmaker-ch-plot-area', 'children'),
@@ -266,7 +276,7 @@ def set_visible_filter_col(leave_visible, options):
     return retlist
 
 @callback(
-    Output('enabled-filters-list','children'),
+    Output('windowmaker-enabled-filters-list','children'),
     Input({'type': 'windowmaker-filter-checklist', 'name':ALL}, 'value'),
     State('windowmaker-filter-columns','data')
 )
@@ -281,6 +291,7 @@ def add_enabled_filters_to_list(all_filter_values, filcol_names):
 
 @callback(
     Output('windowmaker-filtered-data-store','data'),
+    Output('windowmaker-remaining-ions','children'),
     State('windowmaker-filter-columns','data'),
     Input('windowmaker-full-data-store','data'),
     Input({'type': 'windowmaker-filter-checklist', 'name':ALL}, 'value'),
@@ -291,7 +302,10 @@ def filter_data(column_names_for_filters, data, chosen_filters):
     for i, colname in enumerate(column_names_for_filters):
         if len(chosen_filters[i]) > 0:
             wu.filter_col(mgf_df, colname, chosen_filters[i], inplace=True)
-    return {'mgf': mgf_df.to_json(orient='split'), 'plot': wu.make_pdata(mgf_df).to_json(orient='split'), 'charge_states': wu.do_charges(mgf_df)}
+    return (
+        {'mgf': mgf_df.to_json(orient='split'), 'plot': wu.make_pdata(mgf_df).to_json(orient='split'), 'charge_states': wu.do_charges(mgf_df)},
+        f'{mgf_df.shape[0]} ions left'
+    )
     
 @callback(
     Output('windowmaker-filter-col','children'),
@@ -316,16 +330,19 @@ def generate_filter_groups(full_data):
     State('windowmaker-mz-input-max', 'value'),
     State('windowmaker-mob-input-min', 'value'),
     State('windowmaker-mob-input-max', 'value'),
+    State('windowmaker-peplen-input-min', 'value'),
+    State('windowmaker-peplen-input-max', 'value'),
     State('windowmaker-play-notification-sound-when-done','value'),
-    prevent_initial_call=True
+    prevent_initial_call=True,
+    background=True
 )
-def test(n_clicks, full_data, eqs, eq_criteria, mzmin, mzmax, mobmin, mobmax, notify):
+def generate_windows(n_clicks, full_data, eqs, eq_criteria, mzmin, mzmax, mobmin, mobmax, lenmin, lenmax, notify):
     if n_clicks is None: 
         return no_update
     if n_clicks == 0:
         return no_update
     mgfdata = pd.read_json(full_data['mgf'], orient='split')
-    mgfdata = wu.filter_mob_and_mz(mgfdata, [mzmin, mzmax], [mobmin, mobmax])
+    mgfdata = wu.filter_mgf_df(mgfdata, [mzmin, mzmax], [mobmin, mobmax], [lenmin, lenmax])
     pdata = wu.make_pdata(mgfdata)
     
     if len(eqs) > 0:
@@ -494,21 +511,6 @@ def download_pasef_method(clicks, table_data, input_filename):
     return dict(content='\n'.join(output), filename=f'{timestamp}-{input_filename}_diaPASEFmethod.txt')
 
 @callback(
-    Output('windowmaker-music', 'src'),
-    Output('windowmaker-music','children'),
-    Input('windowmaker-change-music-button', 'n_clicks'),
-    State('windowmaker-music','children')
-)
-def change_music(click, current) -> html.Div:
-    if current == '':
-        newnum = 0
-    else:
-        newnum = current + 1
-    if newnum >= len(music_choices):
-        newnum = 0
-    return (music_choices[newnum], newnum)
-
-@callback(
     Output({'type': 'PREDEFEQBUTTON', 'name':ALL}, 'disabled'),
     Output('windowmaker-add-line-button', 'disabled'),
     Output('windowmaker-calculate-windows-button','disabled'),
@@ -526,13 +528,14 @@ def enabled_buttons_if_successful_upload(upload_style, eq_buttons):
     Output('windowmaker-full-data-store','data'),
     Output('windowmaker-mgf-file-upload-success', 'style'),
     Output('windowmaker-input-file-info-text','children'),
-    Input('windowmaker-mgf-file-upload', 'filename'),
-    State('windowmaker-mgf-file-upload', 'contents'),
+    Output('windowmaker-peplen-input','hidden'),
+    Output('windowmaker-peplen-input-min','value'),
+    Output('windowmaker-peplen-input-max','value'),
+    Input('windowmaker-mgf-file-saved', 'children'),
     State('windowmaker-mgf-file-upload-success', 'style'),
     prevent_initial_call=True
 )
-def handle_mgf(mgf_file_name, mgf_file_contents, current_style):
-
+def handle_mgf(mgf_file_name, current_style):
     mgf_json = 'Error in MGF handling'
 
     #if ctx.triggered_id == 'windowmaker-run-number-inputted-button':
@@ -540,16 +543,30 @@ def handle_mgf(mgf_file_name, mgf_file_contents, current_style):
         # TODO: pre-check after button press whether the run number is in the database. If not, open a modal and present closest five in both directions to choose from. Save value into windowmaker-run-id, and use that to trigger.
      #   return {'mgf': mgf_json, 'plot': pdf_json},current_style
     if mgf_file_name is None:
-        return no_update, no_update
-    mgf_df, osize = wu.handle_file(mgf_file_name, mgf_file_contents)
+        return [no_update for _ in range(6)]
+    mgf_df, osize = wu.handle_file(mgf_file_name)
+    os.remove(mgf_file_name)
     if slim_testing_factor:
         mgf_df = mgf_df.loc[random.sample(list(mgf_df.index.values), max(100, int(mgf_df.shape[0]/slim_testing_factor)))]
     current_style['background-color'] = 'red'
-    file_info: str = f'{mgf_file_name}: {osize} rows of ions slimmed down to {mgf_df.shape[0]} unique rows'
+    file_info: str = f'{mgf_file_name.split(os.sep)[-1]}: {osize} rows of ions slimmed down to {mgf_df.shape[0]} unique rows'
+    does_not_have_peplen: bool = True
+    peplen_min: int = 0
+    peplen_max: int = 50
     if mgf_df.shape[0] > 0:
         mgf_json = mgf_df.to_json(orient='split')
         current_style['background-color'] = 'green'
-    return {'mgf': mgf_json}, current_style, file_info
+        does_not_have_peplen = ('Peptide length' not in mgf_df.columns)
+        peplen_min = mgf_df['Peptide length'].min()
+        peplen_max = mgf_df['Peptide length'].max()
+    return (
+        {'mgf': mgf_json},
+        current_style,
+        file_info,
+        does_not_have_peplen,
+        peplen_min,
+        peplen_max
+    )
         #pdf_json = wu.make_pdata(mgf_df).to_json(orient='split')
         # Only done once for charge plots:
         # Hacky shit to produce a prettier plot

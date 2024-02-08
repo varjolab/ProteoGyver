@@ -3,21 +3,24 @@ from dash.html import P
 leg_dict: dict = {
     'qc': {
         'count-plot': 'Protein counts per sample. Replicates (both biological and technical) should have similar numbers of proteins. Darker area at the bottom of each bar is the proportion of contaminants identified inthe sample.',
+        'common-protein-plot': 'Some proteins are often copurified due to sample handling or workflow in general. These are expected, and if samples were handled in a robust way, the signal we get from these proteins should be rather stable across all samples and sample groups.',
         'coverage-plot': 'Most proteins should be identified in all of your samples. In interactomics, these are (depending on the bait set) common contaminants, and possibly common interactors. In interactomics, we expect to see relatively high values on both ends of the scale. Common contaminants/interactors on the left, and highly-specific interactors on the right. In proteomics, we expect a peak on the left, and a descending series towards the right.',
         'reproducibility-plot': 'The plot describes how far from the average of the sample group values of individual runs are. With some exceptions, all values should be very nearly identical between biological and especially technical replicates, regardless of what kind of an experiment is happening.',
         'missing_values-plot': 'Missing values are mostly a problem in proteomics and phosphoproteomics workflows. In interactomics, depending on your specific bait set, we can expect to see either very few or very many of them. In particular, if you include controls, e.g. GFP, in your analysis set (as you should), it will inevitably raise the number of missing values. Missing values in interactomics only matter, if comparing protein abundance between different baits.',
         'value_sum-plot': 'The total intensity sum (or sum of spectral counts, depending on the data) should be roughly equal across sample groups for comparable data.',
         'value_mean-plot': 'The mean intensity (or spectral counts, depending on the data) should be roughly equal across sample groups for comparable data.',
         'value_dist-plot': 'Value distribution of the identifications. The specifics can be different across sample groups, but especially replicates should look very similar.',
-        'shared_id-plot': 'Shared identifications across samples. The color corresponds to the number of shared identifications between row and column divided by the number of unique proteins identified across the two sample groups.',
+        'shared_id-plot-hm': 'Shared identifications across samples. The color corresponds to the number of shared identifications between row and column divided by the number of unique proteins identified across the two sample groups.',
+        'shared_id-plot-sv': 'Supervenn diagram of the shared identifications. One row is one sample group. Numbers on the left show the number of identifications (no filtering) in each sample group. One figure "column" shows how many proteins are shared by each combination of sample gorups, and the number on the bottom shows the number of proteins in the shared group, while the number on top shows the number of sample groups in the shared group.',
         'tic': '''Chromatogram of the input MS runs. Check your curves, and consider if they're comparable. TIC is usually enough to identify problems, but you can also choose different data types to check different chromatograms.'''
     },
     'proteomics': {
         'na_filter': 'Unfiltered and filtered protein counts in samples. Proteins identified in fewer than FILTERPERC percent of the samples of at least one sample group were discarded as low-quality identifications, contaminants, or one-hit wonders.',
-        'comparative-violin-plot': '',
-        'imputation': '',
-        'pca': '',
-        'clustermap': ''
+        'normalization': 'Runs were normalized with the chosen method, in order to reduce the effects of run-to-run variation, stemming from e.g. LC performance, MS performance, and especially variation in protein concentration measurements.',
+        'missing-in-other-samples': 'This plot shows the distribution of intensities for all of the proteins that had missing values in any sample, and intensities of proteins without any missing values. It should be very similar to the imputation histogram. Proteins at the low-end of the value range are most likely low abundance proteins that are either under detection threshold or missing due to expectable losses. Proteins with missing values on the high end of the range are most likely either differentially expressed, errors in sample prep, or chance events.',
+        'imputation': 'Missing values were imputated using the chosen imputation method. This is important, because otherwise calculating p-values for detected changes is impossible. With missing values, it means that either the protein is not in the sample, or the level in the sample is below the detection method. We do not know which of these is the case, so we assume their values are around the low end of the detection range.',
+        'pca': 'PCA of the individual sample runs. Sample groups should cluster nicely. If there are large gaps between replicates, check how much of each axis explains of the variation between the samples, and how similar the samples are otherwise (TIC, protein counts, etc).',
+        'clustermap': 'Correlation is another metric for how similar samples are. Similarly to above, samples should form clusters of each sample group.'        
     },
     'interactomics': {
         'pca': 'Spectral count -based PCA. Missing values have been imputed with zeroes. This is not a publication-worthy plot, but does indicate how similar baits are to one another.',

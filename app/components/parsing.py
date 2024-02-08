@@ -651,6 +651,11 @@ def rename_columns_and_update_expdesign(
             intermediate_renaming[column_name] = col
             sample_group: str = expdesign[expdesign['Sample name']
                                           == col].iloc[0]['Sample group']
+            
+            try_num = check_numeric(sample_group)
+            if try_num['success']:
+                sample_group = f'SampleGroup_{try_num["value"]}'
+
             # If no value is available for sample in the expdesign
             # (but sample column name is there for some reason), discard column
             if pd.isna(sample_group):
@@ -721,9 +726,35 @@ def rename_columns_and_update_expdesign(
             inplace=True
         )
         table.rename(columns=rename_columns, inplace=True)
-    expdesign.to_csv('debug_expdes.tsv',sep='\t')
+    
+    #Remove samples from expdesign that are not present in the data.
+    common_cols = set()
+    for table in tables:
+        if len(table.columns) == 0:
+            continue
+        common_cols |= set(table.columns)
+    expdesign = expdesign[expdesign['Sample name'].isin(common_cols)]
+    for table in tables:
+        table.drop(columns=[c for c in table.columns if c not in common_cols], inplace=True)
     return (sample_groups, discarded_columns, used_columns, expdesign)
 
+def check_numeric(st: str):
+    if isinstance(st, np.number):
+        return {'success': True, 'value': st}
+    val = None
+    try:
+        sts = st.split('.')
+        if len(sts) > 1:
+            if sts[-1]=='0':
+                val = int(sts[0])
+        if val is None:
+            val = int(st)
+    except ValueError:
+        try:
+            val = float(st)
+        except ValueError:
+            return {'success': False, 'value': st}
+    return {'success': True, 'value': val}
 
 def check_comparison_file(file_contents, file_name, sgroups, new_upload_style) -> list:
     indicator: str = 'green'
@@ -738,16 +769,13 @@ def check_comparison_file(file_contents, file_name, sgroups, new_upload_style) -
         for _, row in dataframe.iterrows():
             samplename: str = row[scol]
             controlname: str = row[ccol]
-            if isinstance(samplename, np.number):
-                if samplename == int(samplename):
-                    samplename = int(samplename)
-                samplename = f'SampleGroup_{samplename}'
-            else:
-                samplename: str = str(samplename)
-            if isinstance(controlname, np.number):
-                if controlname == int(controlname):
-                    controlname = int(controlname)
-                controlname = f'SampleGroup_{controlname}'
+            try_num = check_numeric(samplename)
+            if try_num['success']:
+                samplename = f'SampleGroup_{try_num["value"]}'
+                
+            try_num = check_numeric(controlname)
+            if try_num['success']:
+                controlname = f'SampleGroup_{try_num["value"]}'
             else:
                 controlname: str = str(controlname)
             # parse sample and control names based on the same rules as in parsing of the group names. Here we can do a lazier version and just try the SampleGroup_ format, if the group is not found to begin with.

@@ -1,11 +1,13 @@
 
 from dash import Dash, html, page_registry, page_container
 import dash_bootstrap_components as dbc
+from dash.dependencies import Output
 from dash_bootstrap_components.themes import FLATLY
 import logging
 import os
 import json
 from celery import Celery
+import dash_uploader as du
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
 
@@ -25,7 +27,7 @@ if not os.path.isdir('logs'):
     os.makedirs('logs')
 with open('parameters.json') as fil:
     parameters = json.load(fil)
-    
+
 # Logging levels:
 #    NOTSET=0.
 #    DEBUG=10.
@@ -48,12 +50,23 @@ logger = logging.getLogger(__name__)
 logger.warning('Site pages:')
 for page in page_registry.values():
     logger.warning(page['name'])
-navbar_items = [
-        dbc.NavItem(
-            dbc.NavLink(page['name'].upper(), href=page['relative_path'])
+pages = {
+    page['name'].lower(): dbc.NavItem(
+        dbc.NavLink(
+            page['name'].upper(),
+            href=page['relative_path']
         )
-        for page in page_registry.values()
-    ]
+    ) for page in page_registry.values()
+}
+
+pages_in_order = [
+    'qc and data analysis',
+    'ms analytics dashboard',
+    'windowmaker',
+]
+pages_in_order.extend(sorted([p for p in pages.keys() if p not in pages_in_order]))
+print(pages.keys())
+navbar_items = [pages[p] for p in pages_in_order]
 
 def main() -> None:
     logger.warning(f'Proteogyver started: {datetime.now()}')
@@ -70,10 +83,8 @@ navbar: dbc.NavbarSimple = dbc.NavbarSimple(
     brand='ProteoGyver',
     color='primary',
     dark=True,
-    style={'zIndex':2147483647, 'position': 'fixed', 'width': '100%', 'Top': 0}
-    #style={
-     #   'position': 'fixed',
-    #}
+    style={'zIndex':2147483647, 'position': 'fixed', 'width': '100%', 'Top': 0},
+    fluid=True
 )
 
 app.layout = html.Div([

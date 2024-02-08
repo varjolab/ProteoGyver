@@ -1,8 +1,7 @@
-from pandas import DataFrame
-from pandas import read_json as pd_read_json
+import pandas as pd
 from dash import html
 from dash.dcc import Graph
-from components.figures import before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot
+from components.figures import before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot, histogram
 from components import matrix_functions, summary_stats, stats
 from components.figures.figure_legends import PROTEOMICS_LEGENDS as legends
 from datetime import datetime
@@ -13,16 +12,16 @@ logger = logging.getLogger(__name__)
 def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None) -> tuple:
 
     logger.warning(f'nafilter - start: {datetime.now()}')
-    data_table: DataFrame = pd_read_json(
+    data_table: pd.DataFrame = pd.read_json(
         input_data_dict['data tables']['intensity'],
         orient='split'
     )
-    original_counts: DataFrame = matrix_functions.count_per_sample(
+    original_counts: pd.DataFrame = matrix_functions.count_per_sample(
         data_table, input_data_dict['sample groups']['rev'])
     logger.warning(
         f'nafilter - counts per sample: {datetime.now()}')
 
-    filtered_data: DataFrame = matrix_functions.filter_missing(
+    filtered_data: pd.DataFrame = matrix_functions.filter_missing(
         data_table,
         input_data_dict['sample groups']['norm'],
         filtering_percentage,
@@ -30,7 +29,7 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
     logger.warning(
         f'nafilter - filtering done: {datetime.now()}')
 
-    filtered_counts: DataFrame = matrix_functions.count_per_sample(
+    filtered_counts: pd.DataFrame = matrix_functions.count_per_sample(
         filtered_data, input_data_dict['sample groups']['rev'])
     figure_legend: html.P = legends['na_filter']
     figure_legend.children = figure_legend.children.replace(
@@ -56,8 +55,8 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
 
     logger.warning(f'normalization - start: {datetime.now()}')
 
-    data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
-    normalized_table: DataFrame = matrix_functions.normalize(
+    data_table: pd.DataFrame = pd.read_json(filtered_data_json, orient='split')
+    normalized_table: pd.DataFrame = matrix_functions.normalize(
         data_table, normalization_option, errorfile)
     logger.warning(
         f'normalization - normalized: {datetime.now()}')
@@ -107,19 +106,59 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
                 html.H4(id='proteomics-normalization-header',
                         children='Normalization'),
                 plot,
-                legends['comparative-violin-plot']
+                legends['normalization']
             ]
         ),
         normalized_table.to_json(orient='split')
     )
 
+def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
+    data_table: pd.DataFrame = pd.read_json(filtered_data_json, orient='split')
+    missing_series: pd.Series = pd.Series(data_table.loc[data_table.isna().sum(axis=1)>0].values.flatten())
+    valid_series: pd.Series = pd.Series(data_table.loc[data_table.isna().sum(axis=1)==0].values.flatten())
+    missing_series = missing_series[missing_series.notna()]
+    missing_data: pd.DataFrame = pd.DataFrame({'Protein intensity in all samples': missing_series})
+    valid_data: pd.DataFrame = pd.DataFrame({'Protein intensity in all samples': valid_series})
+    plot_data = pd.concat([missing_data, valid_data],ignore_index=True)
+    plot_data['Protein'] = [
+        'has missing values' if i < missing_data.shape[0] else 'present in all samples' \
+        for i in range(plot_data.shape[0])
+    ]
+    plot_data.sort_values(by='Protein',ascending=False,inplace=True)
+    figure = histogram.make_figure(
+        plot_data,
+        x_column = 'Protein intensity in all samples',
+        title = '',
+        color='Protein',
+        defaults = defaults
+    )
+    figure.update_layout(
+        barmode='overlay'
+    )
+    figure.update_traces(opacity=0.75)
+    return html.Div(
+        id='proteomics-missing-in-other-samples-graph-div',
+        children = [
+            html.H4(
+                id='proteomics-missing-in-other-samples-header',
+                children='Intensity of proteins with missing values in other samples'
+            ),
+            Graph(
+                config=defaults['config'],
+                id='proteomics-missing-in-other-samples-graph',
+                figure=figure
+            ),
+            legends['missing-in-other-samples']
+        ]
+    )
+    return None
 
 def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, title: str = None) -> tuple:
 
     logger.warning(f'imputation - start: {datetime.now()}')
 
-    data_table: DataFrame = pd_read_json(filtered_data_json, orient='split')
-    imputed_table: DataFrame = matrix_functions.impute(
+    data_table: pd.DataFrame = pd.read_json(filtered_data_json, orient='split')
+    imputed_table: pd.DataFrame = matrix_functions.impute(
         data_table, errorfile, imputation_option)
     logger.warning(
         f'imputation - imputed, only plot left: {datetime.now()}')
@@ -147,10 +186,10 @@ def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, t
 def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tuple:
 
     logger.warning(f'PCA - start: {datetime.now()}')
-    data_table: DataFrame = pd_read_json(imputed_data_json, orient='split')
+    data_table: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
     pc1: str
     pc2: str
-    pca_result: DataFrame
+    pca_result: pd.DataFrame
     # Compute PCA of the data
     pc1, pc2, pca_result = matrix_functions.do_pca(
         data_table, sample_groups_rev, n_components=2)
@@ -188,7 +227,7 @@ def clustermap(imputed_data_json: dict, defaults: dict) -> tuple:
     Returns: 
     dcc.Graph containing a dash_bio.Clustergram describing correlation between samples.
     """
-    corrdata: DataFrame = pd_read_json(
+    corrdata: pd.DataFrame = pd.read_json(
         imputed_data_json, orient='split').corr()
     logger.warning(
         f'clustermap - only plotting left: {datetime.now()}')
@@ -215,8 +254,8 @@ def clustermap(imputed_data_json: dict, defaults: dict) -> tuple:
 def volcano_plots(imputed_data_json: dict, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
 
     logger.warning(f'volcano - start: {datetime.now()}')
-    data: DataFrame = pd_read_json(imputed_data_json, orient='split')
-    significant_data: DataFrame = stats.differential(
+    data: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
+    significant_data: pd.DataFrame = stats.differential(
         data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr)
     logger.warning(
         f'volcano - significants calculated: {datetime.now() }')

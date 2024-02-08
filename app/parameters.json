@@ -47,7 +47,7 @@
     "Possible values": {
         "Figure-config-toImageButtonOptions-format": ["png", "svg", "jpeg", "webp"],
         "Implemented workflows": ["Proteomics","Interactomics"],
-        "Figure templates": ["plotly_white", "simple_white"]
+        "Figure templates": ["plotly_white", "simple_white", "plotly_dark"]
     },
     "Data paths": {
         "Database file": ["data", "proteogyver.db"],
@@ -67,7 +67,7 @@
     },
     "Config": {
         "TIC information refresh interval in seconds": 900,
-        "Time format": "%Y-%m-%d_%H:%M:%S",
+        "Time format": "%Y-%m-%d %H:%M:%S",
         "Local debug": true,
         "LogDir": "logs",
         "LogLevel": 20,

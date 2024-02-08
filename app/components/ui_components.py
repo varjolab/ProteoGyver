@@ -4,10 +4,12 @@
 import dash_bootstrap_components as dbc
 from itertools import chain
 from dash import dcc, html
-from element_styles import SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES, UPLOAD_INDICATOR_STYLE
+from element_styles import GENERIC_PAGE, SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES, UPLOAD_INDICATOR_STYLE
 from typing import Any
 from components import tooltips, text_handling
 from numpy import log2
+import uuid
+import dash_uploader as du
 from components.parsing import guess_control_samples
 from components.figures.figure_legends import INTERACTOMICS_LEGENDS as interactomics_legends
 
@@ -69,21 +71,46 @@ def checklist(
     return prefix_list + retlist + postfix_list
 
 
-def range_input(label, min, max, id_str, typestr = 'number'):
+def range_input(label, min, max, id_str, typestr = 'number', style_float: str = 'center', stepsize = 1):
     pad = {
         'padding': '0px 5px 0px 5px', 'margin': 'auto','margin-left': 'auto', 'margin-right': 'auto'
     }
     return html.Div(
         children = [
             html.P(label, style=pad|{'width': '50%'}),
-            dcc.Input(id=f'{id_str}-min', type=typestr,value=min,style=pad|{'width': '20%'}),
+            dcc.Input(id=f'{id_str}-min', type=typestr,value=min,style=pad|{'width': '20%'},step=stepsize),
             html.P('-', style=pad|{'width': '10%'}),
-            dcc.Input(id=f'{id_str}-max', type=typestr,value=max,style=pad|{'width': '20%'}),
+            dcc.Input(id=f'{id_str}-max', type=typestr,value=max,style=pad|{'width': '20%'},step=stepsize),
         ],
-        style={'display': 'flex', 'width': '100%', 'height': '20px',
-                'float': 'center', 'height': '20px'},
+        style={'display': 'inline-flex', 'width': '100%', 'height': '20px',
+                'float': style_float, 'height': '20px'},
         id = id_str
     )
+
+def make_du_uploader(id_str: str, message):
+    session_id = str(uuid.uuid1())
+    asty = {k: v for k, v in UPLOAD_INDICATOR_STYLE.items()}
+    asty['height'] = '100px'
+    return html.Div(
+        children = [
+            html.Div(
+                du.Upload(
+                        id=id_str,
+                        text=message,
+                        max_file_size=20000,  # 50 Mb
+                        chunk_size=4,  # 4 MB
+                        upload_id=session_id,  # Unique session id,
+                        default_style = UPLOAD_STYLE
+                ),
+                style={'display': 'inline-block', 'width': '75%',
+                    'float': 'left', 'height': '25px'},
+                ),
+            html.Div(
+                id = f'{id_str}-success',
+                style=asty,
+            )
+        ],  
+    ), session_id
 
 def upload_area(id_text, upload_id, indicator=True) -> html.Div:
     ret: list = [
@@ -94,7 +121,8 @@ def upload_area(id_text, upload_id, indicator=True) -> html.Div:
                     children=html.Div([
                         'Drag and drop or ',
                         html.A('select', style=UPLOAD_A_STYLE),
-                        f' {upload_id}'
+                        f' {upload_id}',
+                        dcc.Loading(html.P(id=f'{id_text}-spinner'))
                     ]
                     ),
                     style=UPLOAD_STYLE,
@@ -178,15 +206,9 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 disabled=True,
             ),
             dbc.Button(
-                children = [
-                    dbc.Spinner(
-                        children = html.Div(id='button-download-all-data-spinner-output'),
-                        size = 'sm',
-                        show_initially = False,
-                        delay_show = 10,
-                        delay_hide = 10,
-                    ), ' Download all data'
-                ],
+                children = dcc.Loading(
+                            html.Div(id='button-download-all-data-text', children='Download all data')
+                ),
                 style=UPLOAD_BUTTON_STYLE,
                 id='button-download-all-data',
                 className='btn-info',
@@ -369,13 +391,19 @@ def windowmaker_input_options( offered_equations):
     input_row_list = [
         dbc.Row([
             dbc.Col([
-                range_input('MZ Range: ', 400, 1200, 'windowmaker-mz-input')
+                range_input('MZ Range: ',  400, 1200, 'windowmaker-mz-input'),
+                html.P(),
+                range_input('Peptide length: ', 0, 50, 'windowmaker-peplen-input'),
             ]),
             dbc.Col([
-                range_input('IM Range: ', 0.8, 1.4, 'windowmaker-mob-input')
+                range_input('IM Range: ', 0.8, 1.4, 'windowmaker-mob-input', stepsize=0.1)
             ]),
-            html.Hr(style={'margin-top': '25px'})
         ],style={'padding': '5px 5px 5px 5px'}),
+        dbc.Row([
+            dbc.Col(id = 'windowmaker-peplen-col', children = [
+                html.Hr(style={'margin-top': '10px'})
+            ],style={'padding': '5px 5px 5px 5px'})
+        ]),
         dbc.Row([
             dbc.Col(
                 premade_eqs
@@ -386,7 +414,7 @@ def windowmaker_input_options( offered_equations):
             ]),
             dbc.Col([
                 dbc.Label('Enabled filters:'),
-                html.Ul(id='enabled-filters-list')
+                html.Ul(id='windowmaker-enabled-filters-list')
             ]),
             dbc.Col(id='windowmaker-filter-col'),
             html.Hr(style={'margin-top': '25px'})
@@ -396,84 +424,100 @@ def windowmaker_input_options( offered_equations):
         dbc.Row([
             html.Br(),
             html.Div(id='windowmaker-equations-list-group',children=[], style={'width': '100%', 'display': 'block'}),
+            html.P(id='windowmaker-remaining-ions'),
             dbc.Button('Calculate windows', id='windowmaker-calculate-windows-button', style={'padding': '5px 5px 5px 5px'}, disabled=True)
         ],style={'padding': '5px 5px 5px 5px'})
     )
     return input_row_list
 
-def windowmaker_interface(wmstyle, offered_equations) -> html.Div:
-    return html.Div([
-        html.Div(id='infra',children=[
-            dcc.Store(id='windowmaker-full-data-store'),
-            dcc.Store(id='windowmaker-filtered-data-store'),
-            dcc.Store(id='windowmaker-prev-clicks-data-store', data={}),
-            dcc.Store(id='windowmaker-filter-columns',data={}),
-            html.Div(id='placeholder'),
-            dcc.Download(id='windowmaker-download-method')
-        ]),
-        dbc.Row(
-            id='windowmaker-input-row',
-            children=[
-                dbc.Card([
-                    dbc.Row([
-                        dbc.Col(
-                            html.Div([
-                                html.H3('Upload an MGF file or a spectral library'),
-                                html.P('Library MUST be in a text format (tsv, txt, csv, xlsx)'),
-                                dcc.Checklist(
-                                    id='windowmaker-play-notification-sound-when-done',
-                                    options=['Play notification sound when done'], value=['Play notification sound when done']
-                                ),
-                            ]), width=6
-                        ),
-                        dbc.Col(
-                            [
-                                html.Div(
-                                    upload_area('windowmaker-mgf-file-upload',
-                                            'MGF/library file', indicator=True),
-                                    style={'padding': '15px 0px 0px 0px'}
-                                ),
-                                html.P(id='windowmaker-input-file-info-text', style={'text-align': 'left'})
-                            ],
-                            width=6
+def windowmaker_interface(offered_equations) -> html.Div:
+    du_uploader, session_id = make_du_uploader('windowmaker-mgf-file-upload', 'Upload speclib or MGF file')
+    return html.Div(
+        [
+            html.Div(id='infra',children=[
+                dcc.Store(id='windowmaker-full-data-store'),
+                dcc.Store(id='windowmaker-filtered-data-store'),
+                dcc.Store(id='windowmaker-prev-clicks-data-store', data={}),
+                dcc.Store(id='windowmaker-filter-columns',data={}),
+                html.Div(id='windowmaker-mgf-file-saved', hidden=True),
+                html.Div(id='placeholder'),
+                dcc.Store(id='windowmaker-session-id',data={'session-id': session_id}),
+                dcc.Download(id='windowmaker-download-method')
+            ]),
+            dbc.Row(
+                id='windowmaker-input-row',
+                children=[
+                    dbc.Card([
+                        dbc.Row([
+                            dbc.Col(
+                                html.Div([
+                                    html.H3('Upload an MGF file or a spectral library'),
+                                    html.P('Library MUST be in a text format (tsv, txt, csv, xlsx). DIA-NN in-silico libraries are not compatible, or a good idea.'),
+                                    dcc.Checklist(
+                                        id='windowmaker-play-notification-sound-when-done',
+                                        options=['Play notification sound when done'], value=['Play notification sound when done']
+                                    ),
+                                ]), width=6
+                            ),
+                            dbc.Col(
+                                [
+                                    html.Div(
+                                        du_uploader,
+                                        style={'padding': '15px 0px 0px 0px'}
+                                    ),
+                                ],
+                                width=6
+                            )
+                        ]),
+                        dbc.Row(
+                            html.Div(
+                                dcc.Loading(
+                                    html.P(id='windowmaker-input-file-info-text', style={'text-align': 'left'})
+                                ),style={
+                                    'textAlign': 'center',
+                                    'alignContent': 'center',
+                                    'margin': 'auto'
+                                }
+                            )
                         )
-                    ])
-                ], body=True)
-            ]
-        ),
-        dbc.Row(
-            id='windowmaker-mod-row',
-            children=[
-                dbc.Col(
-                    children=[
+                    ], body=True)
+                ],style={'alignContent': 'center'}
+            ),
+            dbc.Row(
+                id='windowmaker-mod-row',
+                children=[
+                    dbc.Col(
+                        children=[
+                            dbc.Card(
+                                dcc.Loading(
+                                    html.Div(id='windowmaker-pre-plot-area')
+                                ),body=True, style={'width': '90%'}
+                            ),
+                            dbc.Card(
+                                dcc.Loading(
+                                    html.Div(id='windowmaker-ch-plot-area')
+                                ),body=True, style={'width': '90%'}
+                            )
+                        ],
+                        width=6,style={'alignContent': 'center'}
+                    ),
+                    dbc.Col(
                         dbc.Card(
-                            dcc.Loading(
-                                html.Div(id='windowmaker-pre-plot-area')
-                            ),body=True
-                        ),
-                        dbc.Card(
-                            dcc.Loading(
-                                html.Div(id='windowmaker-ch-plot-area')
-                            ),body=True
-                        )
-                    ],
-                    width=6
-                ),
-                dbc.Col(
-                    dbc.Card(windowmaker_input_options(offered_equations), body=True),
-                    width=6
-                )
-            ]
-        ),
-        dbc.Row(
-            id='windowmaker-output-row',
-            children=[
-                dbc.Card([
-                    dcc.Loading(html.Div(id='windowmaker-post-plot-area'))
-                ], body=True)
-            ]
-        )
-    ],style=wmstyle)
+                            dcc.Loading(windowmaker_input_options(offered_equations)), body=True, style={'width': '90%'}
+                        ),width=6,style={'alignContent': 'center'}
+                    )
+                ],style={'alignContent': 'center'}
+            ),
+            dbc.Row(
+                id='windowmaker-output-row',
+                children=[
+                    dbc.Card([
+                        dcc.Loading(html.Div(id='windowmaker-post-plot-area'))
+                    ], body=True)
+                ],style={'alignContent': 'center'}
+            )
+        ],style=GENERIC_PAGE
+    )
 
 def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
 
@@ -500,6 +544,12 @@ def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
                     id='proteomics-loading-normalization',
                     children=html.Div(
                         id={'type': 'workflow-plot', 'id': 'proteomics-normalization-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-loading-missing-in-other',
+                    children=html.Div(
+                        id={'type': 'workflow-plot', 'id': 'proteomics-missing-in-other-plot-div'}),
                     type='default'
                 ),
                 dcc.Loading(
@@ -851,6 +901,12 @@ def qc_area() -> html.Div:
                 id='qc-loading-count',
                 children=html.Div(
                     id={'type': 'qc-plot', 'id': 'count-plot-div'}),
+                type='default'
+            ),
+            dcc.Loading(
+                id='qc-loading-common-protein',
+                children=html.Div(
+                    id={'type': 'qc-plot', 'id': 'common-protein-plot-div'}),
                 type='default'
             ),
             dcc.Loading(

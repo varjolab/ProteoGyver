@@ -13,7 +13,7 @@ def make_graph(
         defaults: dict, 
         names: list = None, 
         replicate_colors: dict = None, 
-        points_visible: str = False, 
+        points_visible: str = 'outliers', 
         title: str = None, 
         showbox: bool = False, 
         plot_type: str = 'violin') -> Graph:
@@ -55,7 +55,6 @@ def make_graph(
         layout_args['violinmode'] = 'group'
     elif plot_type == 'box':
         plot_func = Box
-        trace_args['boxpoints'] = points_visible
         trace_args['boxmean'] = True
         trace_args['boxpoints'] = points_visible
         layout_args['boxmode'] = 'group'

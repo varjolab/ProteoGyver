@@ -8,6 +8,8 @@ import numpy as np
 from random import sample
 from components.text_handling import replace_special_characters
 from components.mathparser import MathParser
+from zipfile import BadZipFile
+from xlrd import XLRDError
 
 class TreeNode:
     def __init__(self, idn, mobility_value, window_index,  prev_num_covered_ions, num_ions, windows, mob_increment_perc, mob_ranges, parent=None):
@@ -113,8 +115,9 @@ class TreeNode:
         self.num_ions = best[1]
 
 
-def handle_mgf(decoded_content):
-    content_list: list = decoded_content.decode(encoding='utf-8').split('\n')
+def handle_mgf(filename):
+    with open(filename) as fil:
+        content_list: list = fil.readlines()
     mgf_df = pd.DataFrame()
     try:
         mgflibname = f'mgf_file_name'
@@ -165,23 +168,32 @@ def handle_mgf(decoded_content):
         print(f'IndexError: {mgflibname}')
     return (mgf_df, ['Mobility','Mz','Charge', 'Peptide mass','RT'])
 
-def handle_spreadsheet(decoded_content, f_end):
+def handle_spreadsheet(filename, f_end):
+    read_tsv = False
     if f_end == 'csv':
-        data: pd.DataFrame = pd.read_csv(io.StringIO(
-            decoded_content.decode('utf-8')), index_col=False)
+        data: pd.DataFrame = pd.read_csv(filename, index_col=False)
+        if len(data.columns) == 1:
+            read_tsv = True
     elif f_end in ['tsv', 'tab', 'txt']:
-        data: pd.DataFrame = pd.read_csv(io.StringIO(
-            decoded_content.decode('utf-8')), sep='\t', index_col=False)
+        read_tsv = True
     elif f_end == 'xlsx':
-        data: pd.DataFrame = pd.read_excel(
-            io.BytesIO(decoded_content), engine='openpyxl')
+        # Libraries from certain labs have .xlsx or especially .xls endings, while the content is a tab-separated text file. Hence the weird error handling.
+        try:
+            data: pd.DataFrame = pd.read_excel(filename, engine='openpyxl')
+        except BadZipFile:
+            read_tsv = True
     elif f_end == 'xls':
-        data: pd.DataFrame = pd.read_excel(
-            io.BytesIO(decoded_content), engine='xlrd')
+        try:
+            data: pd.DataFrame = pd.read_excel(filename, engine='xlrd')
+        except XLRDError:
+            read_tsv = True
+    if read_tsv:
+        data: pd.DataFrame = pd.read_csv(filename, sep='\t', index_col=False)
     mobcol = ['']
     mzcol = ['']
     rtcol = ['']
     chargecol = ['']
+    pepseq_col = None
     masscol = ['']
     modcol  = None
     for c in data.columns:
@@ -203,6 +215,8 @@ def handle_spreadsheet(decoded_content, f_end):
             if 'peptide' in c.lower():
                 if not 'int' in c.lower():
                     modcol = c
+        if (c == 'StrippedPeptide') or (c=='PeptideSequence'):
+            pepseq_col = c
     if modcol is not None:
         modvals = []
         for _,row in data.iterrows():
@@ -220,6 +234,8 @@ def handle_spreadsheet(decoded_content, f_end):
             else:
                 modvals.append('No modifications')
         data['Modifications'] = modvals
+    if pepseq_col is not None:
+        data['Peptide length'] = data[pepseq_col].apply(len)
     if len(mobcol) > 1:
         mobcol = check_for(mobcol, ['precursor','peptide'])
     else:
@@ -270,15 +286,13 @@ def do_charges(mgf_df):
     return ch_dic
             
 
-def handle_file(filename, file_contents):
+def handle_file(filename):
     ext = filename.split('.')[-1].lower()
-    _, content_string = file_contents.split(',')
-    decoded_content: bytes = base64.b64decode(content_string)
     colnames = ['Mobility','Mz','Charge', 'Peptide mass','RT']
     if ext == 'mgf':
-        retdf, retcols = handle_mgf(decoded_content)
+        retdf, retcols = handle_mgf(filename)
     elif ext in ('xlsx','xls','txt','tsv','csv'):
-        retdf, retcols = handle_spreadsheet(decoded_content,ext)
+        retdf, retcols = handle_spreadsheet(filename,ext)
     else:
         retdf = pd.DataFrame(columns=colnames)
         retcols = colnames
@@ -610,7 +624,9 @@ def filter_mob_and_mz_matrix(data, mz_bounds, mob_bounds):
     data = data.dropna(how='all',axis=1).dropna(how='all',axis=0)
     return data
 
-def filter_mob_and_mz(data, mz_bounds, mob_bounds):
+def filter_mgf_df(data, mz_bounds, mob_bounds, lenbounds):
+    if 'Peptide length' in data.columns:
+        data = data[data['Peptide length'].between(*lenbounds, inclusive='both')]
     return data[
         (data['Mz'].between(*mz_bounds, inclusive='both')) & 
         (data['Mobility'].between(*mob_bounds, inclusive = 'both'))

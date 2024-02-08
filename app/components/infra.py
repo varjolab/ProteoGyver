@@ -25,6 +25,7 @@ data_store_export_configuration: dict = {
     'discard-samples-data-store': ['json', 'Debug', '', ''],
     'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'count-data-store': ['xlsx', 'Data', 'Summary data', 'Protein counts;'],
+    'common-protein-data-store': ['xlsx', 'Data', 'Summary data', 'Common proteins;'],
     'coverage-data-store': ['xlsx', 'Data', 'Summary data', 'Protein coverage;'],
     'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
     'missing-data-store': ['xlsx', 'Data', 'Summary data', 'Missing counts;'],

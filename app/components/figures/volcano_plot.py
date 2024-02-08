@@ -74,7 +74,6 @@ def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, 
         sigs = sigs[sigs['p_value_adj']<p_thr]
         sigs = sigs[abs(sigs['fold_change'])>fc_thr]
         sigs = sigs.pivot_table(columns='Name',index='Sample',values='fold_change')
-        print(sigs.shape)
         if sigs.shape[0] > 1:
             return_div_contents.extend([
                 html.H4(id=f'{id_prefix}-volcano-header-heatmap-{control}',
@@ -90,7 +89,6 @@ def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, 
                 ),
                 volcano_heatmap_legend(control, id_prefix)
             ])
-    significant_data.to_csv('SIGDATA.tsv',sep='\t')
     for _, row in significant_data[['Sample', 'Control']].drop_duplicates().iterrows():
         sample: str = row['Sample']
         control: str = row['Control']

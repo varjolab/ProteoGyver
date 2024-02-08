@@ -1,5 +1,5 @@
 import json
-from pandas import DataFrame
+from pandas import DataFrame, Series
 from pandas import read_json as pd_read_json
 from dash import html
 from components.figures import bar_graph, comparative_plot, commonality_graph, reproducibility_graph
@@ -51,6 +51,52 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
         f'count_plot - graph drawn: {datetime.now() }')
     return (graph_div, count_data.to_json(orient='split'))
 
+def common_proteins(data_table: str, db_file: str, figure_defaults: dict) -> tuple:
+    table: DataFrame = pd_read_json(data_table,orient='split')
+    db_conn = db_functions.create_connection(db_file)
+    common_proteins: DataFrame = db_functions.get_from_table_by_list_criteria(db_conn, 'common_proteins','uniprot_id',list(table.index))
+    common_proteins.index = common_proteins['uniprot_id']
+
+    plot_headers: list = ['Sample name','Protein class','Proteins', 'ValueSum','Count']
+    plot_data: list = []
+    for c in table.columns:
+        col_data: Series = table[c]
+        col_data = col_data[col_data.notna()]
+        com_for_col: DataFrame = common_proteins.loc[common_proteins.index.isin(col_data.index)]
+        for pclass in com_for_col['protein'].unique():
+            class_prots = com_for_col[com_for_col['protein']==pclass].index.values
+            plot_data.append([
+                c, pclass, ','.join(class_prots), col_data.loc[class_prots].sum(), len(class_prots)
+            ])
+        remaining_proteins: Series = col_data[~col_data.index.isin(com_for_col.index)]
+        plot_data.append([
+            c, 'None', ','.join(remaining_proteins.index.values), remaining_proteins.sum(), remaining_proteins.shape[0]
+        ])
+    plot_frame: DataFrame = DataFrame(data=plot_data,columns=plot_headers)
+    plot_frame.sort_values(by='Protein class',ascending=False)
+    with open('debug_figdefaults.json','w') as fil:
+        import json
+        json.dump(figure_defaults,fil)
+    return (
+        html.Div(
+            id='qc-common-proteins-plot',
+            children=[
+                html.H4(id='qc-common-proteins-header',
+                        children='Common proteins in data'),
+                bar_graph.make_graph(
+                    'qc-common-proteins-graph',
+                    figure_defaults,
+                    plot_frame,
+                    '', color_col='Protein class',y_name='ValueSum', x_name='Sample name'
+                ),
+                legends['common-protein-plot'],
+            ]
+        ),
+        plot_frame.to_json(orient='split')
+    )
+
+
+
 def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,defaults: dict) -> tuple:
     expdesign = pd_read_json(expdesign_json, orient='split')
     expdesign['color'] = [replicate_colors['samples'][rep_name] for rep_name in expdesign['Sample name']]
@@ -58,7 +104,7 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
     db_conn = db_functions.create_connection(db_file)
     ms_runs = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_runs','run_id',expdesign['Sampleid'].values)
     db_conn.close()
-    dtypes: list = ['TIC','BPC','MSn']
+    dtypes: list = ['TIC','MSn_unfiltered']
     tic_dic: dict = {t_type.lower(): {'traces': [] } for t_type in dtypes}
     for trace_type in dtypes:
         trace_type = trace_type.lower()
@@ -272,13 +318,17 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict) 
         f'commonality_plot - summary stats calculated: {datetime.now() }')
     graph, image_str = commonality_graph.make_graph(
         common_data, 'qc-commonality-plot', defaults)
+    if image_str == '':
+        legend = legends['shared_id-plot-hm']
+    else:
+        legend = legends['shared_id-plot-sv']
     graph_div: html.Div = html.Div(
         id='qc-supervenn-div',
         children=[
             html.H4(id='qc-heading-shared_id',
                     children='Shared identifications'),
             graph,
-            legends['shared_id-plot']
+            legend
         ])
     common_data = {gk: list(gs) for gk, gs in common_data.items()}
     logger.warning(

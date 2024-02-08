@@ -1,0 +1,43 @@
+/*  when using Bootstrap, this will add row borders to the table in dcc.Markdown
+ *   Table
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+.md-table th{
+    padding: 5px 15px;
+    text-align: left;
+    border: 1px solid; 
+}
+.md-table td{
+    padding: 5px 15px;
+    text-align: left;
+    border: 1px solid; 
+}
+.md-table h1{
+    font-size: 45pt;
+}
+.md-table h2{
+    font-size: 30pt;
+    text-decoration-line: overline underline;
+    font-weight: bold;
+}
+.md-table h3{
+    font-size: 25pt;
+    text-decoration-line: underline;
+    font-weight: bold;
+}
+.md-table h4{
+    font-size: 20pt;
+    font-weight: bold;
+}
+.md-table h5{
+    font-size: 15pt;
+    font-weight: bold;
+}
+.md-table h6{
+    font-size: 12pt;
+    font-weight: bold;
+}
+.md-table h7{
+    font-size: 12pt;
+    font-style: italic;
+}

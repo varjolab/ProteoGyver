@@ -26,6 +26,18 @@ CONTENT_STYLE: dict = {
   #  'display': 'inline-block',
     'overflow': 'auto'
 }
+
+GENERIC_PAGE = {
+    #'margin-top': ,
+    'margin-right': '2%',
+    'paddingTop': 72,
+    'paddingBottom': '1%',
+    #'padding': '5% 1%',
+    'width': '100%',
+  #  'display': 'inline-block',
+    'overflow': 'auto',
+}
+
 UPLOAD_A_STYLE: dict = {
     'color': '#1EAEDB',
     'cursor': 'pointer',

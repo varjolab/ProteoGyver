@@ -28,10 +28,11 @@ def bar_plot(
     :param: defaults: dictionary of default values for the figure.
     :param: value_df: dataframe containing the plot data
     :param: title: title for the figure
-    :param: x_name: name of the column to use for x-axis values
-    :param: x_label: label to use for X axis irregardless of what x_name is
+    :param: x_name: name of the column to use for x-axis values. If none, index will be used
+    :param: x_label: label to use for X axis regardless of what x_name is
     :param: sort_x: Sort values by x-axis name. If True, sort ascending, if False, sort descending. If None, default sorting will be used.
     :param: y_name: name of the column to use for y-axis values
+    :param: y_label: label to use for Y axis regardless of what y_name or y_idx are.
     :param: y_idx: index of the column to use for y-axis values
     :param: barmode: see https://plotly.com/python-api-reference/generated/plotly.express.bar
     :param: color: True(default) if a column called "Color" contains color values for the plot

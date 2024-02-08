@@ -261,11 +261,24 @@ def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
         parameters['Figure defaults']['full-height'],
     )
 
+@callback(
+    Output({'type': 'qc-plot', 'id': 'common-protein-plot-div'},
+           'children'), Output({'type': 'data-store', 'name': 'common-protein-data-store'}, 'data'),
+    Input({'type': 'qc-plot', 'id': 'count-plot-div'}, 'children'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def common_proteins_plot(_, data_dictionary: dict) -> tuple:
+    return qc_analysis.common_proteins(
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
+        db_file,
+        parameters['Figure defaults']['full-height']
+    )
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'coverage-plot-div'},
            'children'), Output({'type': 'data-store', 'name': 'coverage-data-store'}, 'data'),
-    Input({'type': 'qc-plot', 'id': 'count-plot-div'},
+    Input({'type': 'qc-plot', 'id': 'common-protein-plot-div'},
           'children'), State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
@@ -343,7 +356,6 @@ def mean_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
         replicate_colors,
         parameters['Figure defaults']['half-height']
     )
-
 
 @callback(
     Output({'type': 'qc-plot', 'id': 'distribution-plot-div'},
@@ -423,6 +435,15 @@ def proteomics_normalization_plot(filtered_data: dict, normalization_option: str
         return no_update
     return proteomics.normalization(filtered_data, normalization_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
 
+
+@callback(
+    Output({'type': 'workflow-plot',
+           'id': 'proteomics-missing-in-other-plot-div'}, 'children'),
+    Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def proteomics_missing_in_other_samples(normalized_data: dict) -> html.Div:
+    return proteomics.missing_values_in_other_samples(normalized_data, parameters['Figure defaults']['half-height'])
 
 @callback(
     Output({'type': 'workflow-plot',
@@ -851,7 +872,7 @@ def download_data_table_example(_) -> dict:
 
 @callback(
     Output('download-all-data', 'data'),
-    Output('button-download-all-data-spinner-output','children'),
+    Output('button-download-all-data-text','children'),
     Input('button-download-all-data', 'n_clicks'),
     State('input-stores', 'children'),
     State('workflow-stores', 'children'),
@@ -859,15 +880,16 @@ def download_data_table_example(_) -> dict:
     State({'type': 'input-div', 'id': ALL}, 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
+    State('button-download-all-data-text','children'),
     prevent_initial_call=True,
     background=True    
 )
-def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_data, commonality_pdf_data) -> dict:
+def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_data, commonality_pdf_data, button_text) -> dict:
     logger.warning(f'received download request at {datetime.now()}')
     figure_output_formats = ['html', 'png', 'pdf']
     stores: list = stores + stores2
     export_zip_name: str = prepare_download(
         stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats, commonality_pdf_data, parameters['Config']['Local debug'])
     logger.warning(f'sending file: {export_zip_name} at {datetime.now()}')
-    return (dcc.send_file(export_zip_name),'')
+    return (dcc.send_file(export_zip_name),button_text)
     # DB dependent function

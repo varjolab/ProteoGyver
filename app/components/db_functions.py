@@ -36,7 +36,7 @@ def create_connection(db_file, error_file: str = None) -> Union[sqlite3.Connecti
                 fil.write(str(e)+'\n')
 
     return conn
-def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False) -> Union[list, pd.DataFrame]:
+def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False, pandas_index_col:str = None, operator:str = '=') -> Union[list, pd.DataFrame]:
     """"""
     cursor: sqlite3.Cursor = conn.cursor()
     if select_col is None:
@@ -44,15 +44,15 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = 
     assert (((criteria is not None) & (criteria_col is not None)) |\
              ((criteria is None) & (criteria_col is None))),\
              'Both criteria and criteria_col must be supplied, or both need to be none.'
-    
+
     if isinstance(select_col, list):
         select_col = ', '.join(select_col)
     if criteria_col is not None:
-        selection_string: str = f"SELECT {select_col} FROM {table_name} WHERE {criteria_col}='{criteria}'"            
+        selection_string: str = f'SELECT {select_col} FROM {table_name} WHERE {criteria_col} {operator} {criteria}'
     else:
         selection_string = f'SELECT {select_col} FROM {table_name}'
     if as_pandas:
-        ret = pd.read_sql_query(selection_string, conn)
+        ret = pd.read_sql_query(selection_string, conn,index_col=pandas_index_col)
     else:
         cursor.execute(selection_string)
         ret: list = cursor.fetchall()
