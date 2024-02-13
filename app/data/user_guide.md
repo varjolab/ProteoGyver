@@ -123,6 +123,8 @@ Crapome filtering is calculated for each crapome. Protein is considered junk, if
 
 Interactors that pass all of the filters are considered high-confidence interactions.
 
+If bait uniprot is supplied, the bait is removed from the preys prior to any analysis. The bait will still be kept in the "Saint output" -sheet of the output excel.
+
 ## MS Analytics dashboard
 The analytics dashboard is meant for inspection of MS performance over a series of runs. You can choose runs based on dates and sample types, or input a list of run ID numbers (the number in the beginning of the name of each run file) (this feature will be implemented soon hopefully). The TIC graph is generally what you would be looking at, but MSn graphs can be useful as well. The supplementary metrics, AUC, mean, and max intensity, can be used to judge the progress of a sample series, and things like gradual changes in MS performance.
 

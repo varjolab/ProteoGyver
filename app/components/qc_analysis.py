@@ -58,7 +58,6 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
     common_proteins.index = common_proteins['uniprot_id']
     if additional_groups is None:
         additional_groups = {}
-    print(additional_groups.keys())
     additional_proteins = {}
     for k, plist in additional_groups.items():
         plist = [p for p in plist if p not in common_proteins.index.values]
@@ -71,13 +70,11 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
         gk = ','.join(groups)
         if gk not in additional_groups: additional_groups[gk] = set()
         additional_groups[gk].add(protid)
-    print(additional_groups.keys())
     
     plot_headers: list = ['Sample name','Protein class','Proteins', 'ValueSum','Count']
     plot_data: list = []
     for c in table.columns:
         col_data: Series = table[c]
-        print(c)
         col_data = col_data[col_data.notna()]
         com_for_col: DataFrame = common_proteins.loc[common_proteins.index.isin(col_data.index)]
         for pclass in com_for_col['protein'].unique():

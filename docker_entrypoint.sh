@@ -6,6 +6,8 @@ redis-cli shutdown
 killall celery
 redis-server --daemonize yes
 sleep 5
+#Start cron:
+cron & 
 #supervisorctl start celery
 celery -A app.celery_app worker --loglevel=DEBUG &
 sleep 15

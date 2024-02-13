@@ -1,4 +1,5 @@
 """ Restructured frontend for proteogyver app"""
+import json
 import os
 import dash_bootstrap_components as dbc
 from dash import html, callback, dcc, register_page, no_update, ctx,ALL, dash_table, get_app, MATCH
@@ -109,7 +110,7 @@ def generate_chplot(data):
                 ch_fig.update_layout(coloraxis_showscale=False, margin={'t':0,'l':0,'b':0,'r':0})
                 ch_graph = dcc.Graph(id=f'windowmaker-pre-plot-{ch}',figure=ch_fig, style={'padding': '0px 0px 0px 0px','float': 'left','display': 'flex'})
                 ion_count = mgf_df.shape[0]
-                charge_graphs.append(dbc.Col([html.H4(f'Charge {ch} ({int(ion_count)} ions)'), ch_graph], width=6,style={'float': 'left','display': 'block'}))
+                charge_graphs.append(dbc.Col([html.H5(f'Charge {ch} ({int(ion_count)} ions)'), ch_graph], width=6,style={'float': 'left','display': 'block'}))
         if len(charge_graphs) % 2 != 0:
             charge_graphs.append('')
         retkids = [
@@ -142,7 +143,10 @@ def generate_initial_plot(data):
     fig.update_xaxes(automargin=True)
     #fig.update_layout(autosize=True)
     graph = dcc.Graph(id='windowmaker-pre-plot',figure=fig)
-    return graph
+    return html.Div([
+        html.H4('All ions'),
+        graph
+    ])
 
 @callback(
     Output('windowmaker-pre-plot','figure'),
@@ -278,12 +282,13 @@ def set_visible_filter_col(leave_visible, options):
 @callback(
     Output('windowmaker-enabled-filters-list','children'),
     Input({'type': 'windowmaker-filter-checklist', 'name':ALL}, 'value'),
+    Input({'type': 'windowmaker-filter-checklist', 'name':ALL}, 'options'),
     State('windowmaker-filter-columns','data')
 )
-def add_enabled_filters_to_list(all_filter_values, filcol_names):
+def add_enabled_filters_to_list(all_filter_values, filcol_possibles, filcol_names):
     to_add = []
     for i, fv in enumerate(all_filter_values):
-        if len(fv) > 0:
+        if len(fv) < len(filcol_possibles[i]):
             to_add.append(filcol_names[i])
     return [html.Li(filcol) for filcol in to_add]
 
@@ -302,8 +307,13 @@ def filter_data(column_names_for_filters, data, chosen_filters):
     for i, colname in enumerate(column_names_for_filters):
         if len(chosen_filters[i]) > 0:
             wu.filter_col(mgf_df, colname, chosen_filters[i], inplace=True)
+    ret_dict = {
+        'mgf': mgf_df.to_json(orient='split'),
+        'plot': wu.make_pdata(mgf_df).to_json(orient='split'),
+        'charge_states': wu.do_charges(mgf_df)
+    }
     return (
-        {'mgf': mgf_df.to_json(orient='split'), 'plot': wu.make_pdata(mgf_df).to_json(orient='split'), 'charge_states': wu.do_charges(mgf_df)},
+        ret_dict,
         f'{mgf_df.shape[0]} ions left'
     )
     

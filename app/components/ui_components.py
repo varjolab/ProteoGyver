@@ -414,7 +414,7 @@ def windowmaker_input_options( offered_equations):
             ]),
             dbc.Col([
                 dbc.Label('Enabled filters:'),
-                html.Ul(id='windowmaker-enabled-filters-list')
+                dcc.Loading(html.Ul(id='windowmaker-enabled-filters-list'))
             ]),
             dbc.Col(id='windowmaker-filter-col'),
             html.Hr(style={'margin-top': '25px'})
@@ -506,7 +506,7 @@ def windowmaker_interface(offered_equations) -> html.Div:
                     ),
                     dbc.Col(
                         dbc.Card(
-                            dcc.Loading(windowmaker_input_options(offered_equations)), body=True, style={'width': '90%'}
+                            windowmaker_input_options(offered_equations), body=True, style={'width': '90%'}
                         ),width=6,style={'alignContent': 'center'}
                     )
                 ],style={'alignContent': 'center'}
@@ -680,7 +680,7 @@ def generate_filter_group(data, filcols):
                 children = checklist(
                     {'type': 'windowmaker-filter-checklist', 'name': f},
                     values,
-                    [],
+                    values,
                     id_only=True,
                     clean_id=False,
                     prefix_list = [dbc.Label(f'Only consider values:')]

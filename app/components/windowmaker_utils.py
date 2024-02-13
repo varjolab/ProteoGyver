@@ -8,7 +8,7 @@ from components.text_handling import replace_special_characters
 from components.mathparser import MathParser
 from zipfile import BadZipFile
 from xlrd import XLRDError
-from components.parsing import unmix_dtypes
+from components.parsing import unmix_dtypes, make_nice_str_out_of_numbers
 
 class TreeNode:
     def __init__(self, idn, mobility_value, window_index,  prev_num_covered_ions, num_ions, windows, mob_increment_perc, mob_ranges, parent=None):
@@ -265,7 +265,6 @@ def handle_spreadsheet(filename, f_end):
         fill_with_na.append(masscol)
     for fcol in fill_with_na:
         data[fcol] = np.nan
-    data[chargecol].fillna('undefined',inplace=True)
     return (data, [mobcol, mzcol, chargecol, masscol, rtcol])
 
 def check_for(vals, tocheck):
@@ -283,16 +282,15 @@ def do_charges(mgf_df):
     ch_dic = {}
     ion_threshold = 10
     for ch in mgf_df['Charge'].unique():
-        if pd.isna(ch):
-            ch_mgf_df = mgf_df[mgf_df['Charge'].isna()]
-            ch = 'undefined'
-        else:
-            ch_mgf_df = mgf_df[mgf_df['Charge']==ch]
-            ch = int(ch)
+        ch_mgf_df = mgf_df[mgf_df['Charge']==ch]
         if ch_mgf_df.shape[0] < ion_threshold:
             continue
         ch_pdf = make_pdata(ch_mgf_df)
-        ch_dic[ch] = (ch_mgf_df.to_json(orient='split'), ch_pdf.to_json(orient='split'))
+        try:
+            chkey = int(ch)
+        except ValueError:
+            chkey = str(ch)
+        ch_dic[chkey] = (ch_mgf_df.to_json(orient='split'), ch_pdf.to_json(orient='split'))
     return ch_dic
             
 
@@ -306,10 +304,13 @@ def handle_file(filename):
     else:
         retdf = pd.DataFrame(columns=colnames)
         retcols = colnames
-    unmix_dtypes(retdf)
     ogsize = retdf.shape[0]
     renames = {c: colnames[i] for i, c in enumerate(retcols)}
     retdf.rename(columns=renames,inplace=True)
+    unmix_dtypes(retdf)
+    for c in colnames:
+        retdf[c].fillna(np.nan,inplace=True)
+    retdf['Charge'] = make_nice_str_out_of_numbers(retdf['Charge'],inplace=False,repnan='Undefined')
     cols_to_drop = ['RT']
     banned_words = ['intensity','fragment','product','annotation','qvalue']
     for c in retdf.columns:

@@ -187,12 +187,12 @@ def impute_gaussian(data_table: DataFrame, random_seed: int, dist_width: float =
         distribution: np.ndarray = np.random.normal(
             loc=newcol.mean() - (dist_down_shift*stdev),
             scale=dist_width*stdev,
-            size=column.shape[0]*100
+            size=data_table.shape[0]*100
         )
         replace_values: Series = Series(
             index=data_table.index,
             data=np.random.choice(
-                a=distribution, size=column.shape[0], replace=False)
+                a=distribution, size=data_table.shape[0], replace=False)
         )
         newcol = newcol.fillna(replace_values)
         newdf.loc[:, column] = newcol

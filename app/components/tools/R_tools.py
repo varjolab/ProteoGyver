@@ -1,7 +1,4 @@
-import os
-import subprocess
-import platform
-import textwrap
+from datetime import datetime
 import uuid
 import pandas as pd
 import tempfile
@@ -34,7 +31,6 @@ def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_nam
             try:
                 sh.Rscript(scriptfile.name)
             except Exception as e:
-                from datetime import datetime
                 datestr = str(datetime.now()).split()[0] # quick n dirty way to get just the date without time
                 with open(f'{errorfile}.txt','a') as fil:
                     fil.write(f'===================\n{datestr}\n\n{e}\n\n{str(e.stderr)}\n-----------------------\n')

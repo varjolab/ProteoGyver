@@ -10,6 +10,10 @@ RUN mkdir /proteogyver
 COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 COPY app /proteogyver
+COPY app/Utilities/cron_maintenance_jobs /etc/cron.d/cron_maintenance_jobs
+RUN chmod 0644 /etc/cron.d/cron_maintenance_jobs
+RUN crontab /etc/cron.d/cron_maintenance_jobs
+RUN touch /var/log/cron.log
 
 RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
     echo "kamms:kamms" | chpasswd

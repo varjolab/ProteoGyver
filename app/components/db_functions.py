@@ -18,6 +18,58 @@ def dump_full_database_to_csv(database_file, output_directory) -> None:
     cursor.close()
     conn.close()
 
+def add_column(db_conn, tablename, colname, coltype):
+    sql_str: str = f"""
+        ALTER TABLE {tablename} 
+        ADD COLUMN {colname} '{coltype}'
+        """
+    try:
+        db_conn.cursor().execute(sql_str)
+    except sqlite3.Error as error:
+        print("Failed to add column to sqlite table", error, sql_str)
+        raise
+
+def modify_record(db_conn, table, criteria_col, criteria, columns, values):
+    try:
+        add_str = f'UPDATE {table} SET {" = ?, ".join(columns)} = ? WHERE {criteria_col} = ?'
+        add_data = values.copy()
+        add_data.append(criteria)
+        db_conn.cursor().execute(add_str, add_data)
+        return add_str
+    except sqlite3.Error as error:
+        print("Failed to modify sqlite table", error, add_str)
+        raise
+
+def remove_column(db_conn, tablename, colname):
+    sql_str: str = f"""
+        ALTER TABLE {tablename} 
+        DROP COLUMN {colname}
+        """
+    try:
+        # Create a cursor object
+        db_conn.cursor().execute(sql_str)
+    except sqlite3.Error as error:
+        print("Failed to remove column from sqlite table", error, sql_str)
+        raise
+    
+def delete_record(db_conn, tablename, criteria_col, criteria):
+    sql_str: str = f"""DELETE from {tablename} where {criteria_col} = ?"""
+    try:
+        db_conn.cursor().execute(sql_str, [criteria])
+    except sqlite3.Error as error:
+        print("Failed to delete record from sqlite table", error, sql_str)
+        raise
+
+def add_record(db_conn, tablename, column_names, values):
+    sql_str: str = f"""
+        INSERT INTO {tablename} ({", ".join(column_names)}) VALUES ({", ".join(["?" for _ in column_names])})
+        """
+    try:
+        db_conn.cursor().execute(sql_str, values)
+    except sqlite3.Error as error:
+        print("Failed to add record to sqlite table", error, sql_str)
+        raise
+        
 def create_connection(db_file, error_file: str = None) -> Union[sqlite3.Connection , None]:
     """ create a database connection to the SQLite database
         specified by the db_file
@@ -34,8 +86,8 @@ def create_connection(db_file, error_file: str = None) -> Union[sqlite3.Connecti
         else:
             with open(error_file,'a') as fil:
                 fil.write(str(e)+'\n')
-
     return conn
+
 def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False, pandas_index_col:str = None, operator:str = '=') -> Union[list, pd.DataFrame]:
     """"""
     cursor: sqlite3.Cursor = conn.cursor()

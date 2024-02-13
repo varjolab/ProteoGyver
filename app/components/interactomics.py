@@ -4,7 +4,8 @@ from components import db_functions
 import numpy as np
 import shutil
 import os
-import subprocess
+import tempfile
+import sh
 from components.figures import histogram, bar_graph, scatter, heatmaps, network_plot
 from components import matrix_functions, db_functions, ms_microscopy
 from components.figures.figure_legends import INTERACTOMICS_LEGENDS as legends
@@ -144,6 +145,7 @@ def pca(saint_output_data: dict, defaults: dict) -> tuple:
     data_table: pd.DataFrame = pd.read_json(saint_output_data, orient='split')
     if len(data_table['Bait'].unique()) < 2:
         gdiv = ['Too few samle groups for PCA']
+        pca_data = ''
     else:
         data_table = data_table.pivot_table(
             index='Prey', columns='Bait', values='AvgSpec')
@@ -167,13 +169,14 @@ def pca(saint_output_data: dict, defaults: dict) -> tuple:
             ),
             legends['pca']
         ]
+        pca_data = pca_result.to_json(orient='split')
 
     return (
         html.Div(
             id='interactomics-pca-plot-div',
             children=gdiv
         ),
-        pca_result.to_json(orient='split')
+        pca_data
     )
 
 def enrich(saint_output_json: str, chosen_enrichments: list, figure_defaults, keep_all: bool = False, sig_threshold: float = 0.01) -> tuple:
@@ -337,35 +340,39 @@ def add_bait_column(saint_output, bait_uniprot_dict) -> pd.DataFrame:
 def run_saint(saint_input: dict, saint_path: list, session_uid: str, bait_uniprots: dict, cleanup: bool = True) -> str:
     # Can not use logging in this function, since it's called from a long_callback using celery, and logging will lead to a hang.
     # Instead, we can use print statements, and they will show up as WARNINGS in celery log.
+
     print(f'run_saint run: {datetime.now()}')
     temp_dir: str = os.path.join(*(saint_path[:-1]))
-    saint_cmd: str = os.path.join(temp_dir, saint_path[-1])
     temp_dir = os.path.join(temp_dir, session_uid)
     if not os.path.isdir(temp_dir):
         os.makedirs(temp_dir)
-    paths: list = [os.path.join(temp_dir, x)
-                   for x in 'inter.dat,prey.dat,bait.dat'.split(',')]
-    with open(paths[0], 'w', encoding='utf-8') as fil:
-        fil.write('\n'.join([
-            '\t'.join(x) for x in saint_input['int']
-        ]))
-    with open(paths[1], 'w', encoding='utf-8') as fil:
-        fil.write('\n'.join([
-            '\t'.join(x) for x in saint_input['prey']
-        ]))
-    with open(paths[2], 'w', encoding='utf-8') as fil:
-        fil.write('\n'.join([
-            '\t'.join(x) for x in saint_input['bait']
-        ]))
-    print(f'run_saint written: {datetime.now()}')
-    try:
-        print(f'run_saint running: {datetime.now()}')
-        subprocess.check_output(
-            [saint_cmd], stderr=subprocess.STDOUT, cwd=temp_dir, text=True)
-        failed: bool = not os.path.isfile(os.path.join(temp_dir, 'list.txt'))
-    except subprocess.CalledProcessError as e:
-        print(f'run_saint: SAINT failed: {datetime.now()} {e} ')
-        failed = True
+    with (
+        tempfile.NamedTemporaryFile() as baitfile,
+        tempfile.NamedTemporaryFile() as preyfile,
+        tempfile.NamedTemporaryFile() as intfile,
+    ):
+        baitfile.write(
+            ('\n'.join([
+                '\t'.join(x) for x in saint_input['bait']
+            ])).encode('utf-8')
+        )
+        preyfile.write(
+            ('\n'.join([
+                '\t'.join(x) for x in saint_input['prey']
+            ])).encode('utf-8')
+        )
+        intfile.write(
+            ('\n'.join([
+                '\t'.join(x) for x in saint_input['int']
+            ])).encode('utf-8')
+        )
+        baitfile.flush()
+        preyfile.flush()
+        intfile.flush()
+        
+        print(f'running saint in {temp_dir}, {intfile.name} {preyfile.name} {baitfile.name}: {datetime.now()}')
+        sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
+    failed: bool = not os.path.isfile(os.path.join(temp_dir, 'list.txt'))
     print(f'run_saint done: {datetime.now()}')
     if failed:
         ret: str = 'SAINT failed. Can not proceed.'

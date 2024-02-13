@@ -20,6 +20,26 @@ def update_nested_dict(base_dict, update_dict) -> dict:
             base_dict[key] = value
     return base_dict
 
+def make_nice_str_out_of_numbers(column: pd.Series, float_precision = 2, inplace=False, repnan: str = '') -> None | pd.Series:
+    nvals = []
+    for i, val in column.items():
+        if pd.isna(val):
+            newval = repnan
+        else:
+            newval = str(val)
+        if '.' in newval:
+            newval = newval.split('.')
+            test = newval[1][:float_precision]
+            newval = newval[0]
+            if set(test) != {'0'}:
+                newval = f'{newval}.{test}'
+        if inplace:
+            column[i] = newval
+        else:
+            nvals.append(newval)
+    if not inplace:
+        return pd.Series(data=nvals, index=column.index)
+
 def _to_str(val: Union[type(np.nan), float, int, str]) -> Union[type(pd.NA), str]:
     """Return a string representation of the given integer, rounded float, or otherwise a string.
 
@@ -28,7 +48,7 @@ def _to_str(val: Union[type(np.nan), float, int, str]) -> Union[type(pd.NA), str
     It can be useful to call `df[col].fillna(value=np.nan, inplace=True)` before calling this function.
     """
     if val is np.nan:
-        return ''
+        return 'Undefined'
     if isinstance(val, float) and (val % 1 == 0.0):
         return str(int(val))
     if isinstance(val, int):

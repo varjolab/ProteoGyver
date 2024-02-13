@@ -17,7 +17,7 @@ USER root
 RUN apt-get update && \
     apt-get -yq dist-upgrade && \
     apt-get install -yq \
-    software-properties-common dirmngr wget xz-utils
+    software-properties-common dirmngr wget xz-utils cron
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 
@@ -50,7 +50,6 @@ RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.fil
 RUN Rscript R_requirements.R
 COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
-
 
 # Finished.
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]

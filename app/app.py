@@ -1,13 +1,11 @@
 
 from dash import Dash, html, page_registry, page_container
 import dash_bootstrap_components as dbc
-from dash.dependencies import Output
 from dash_bootstrap_components.themes import FLATLY
 import logging
 import os
 import json
 from celery import Celery
-import dash_uploader as du
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
 
