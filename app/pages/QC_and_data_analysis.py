@@ -603,7 +603,7 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
 def interactomics_run_saint(saint_input, data_dictionary):
     return (interactomics.run_saint(
         saint_input,
-        parameters['External tools']['SAINT']['spc'],
+        parameters['External tools']['SAINT tempdir'],
         data_dictionary['other']['session name'],
         data_dictionary['other']['bait uniprots']
     ), '')

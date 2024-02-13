@@ -337,12 +337,12 @@ def add_bait_column(saint_output, bait_uniprot_dict) -> pd.DataFrame:
     return saint_output
 
 
-def run_saint(saint_input: dict, saint_path: list, session_uid: str, bait_uniprots: dict, cleanup: bool = True) -> str:
+def run_saint(saint_input: dict, saint_tempdir: list, session_uid: str, bait_uniprots: dict, cleanup: bool = True) -> str:
     # Can not use logging in this function, since it's called from a long_callback using celery, and logging will lead to a hang.
     # Instead, we can use print statements, and they will show up as WARNINGS in celery log.
 
     print(f'run_saint run: {datetime.now()}')
-    temp_dir: str = os.path.join(*(saint_path[:-1]))
+    temp_dir: str = os.path.join(*(saint_tempdir))
     temp_dir = os.path.join(temp_dir, session_uid)
     if not os.path.isdir(temp_dir):
         os.makedirs(temp_dir)

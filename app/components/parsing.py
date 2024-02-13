@@ -108,10 +108,8 @@ def parse_parameters(parameters_file: str) -> dict:
         1
     )
     db_conn.close()
-    parameters['External tools']['SAINT']['spc'] = [
-        os.getcwd()]+parameters['External tools']['SAINT']['spc']
-    parameters['External tools']['SAINT']['int'] = [
-        os.getcwd()]+parameters['External tools']['SAINT']['int']
+    parameters['External tools']['SAINT tempdir'] = [
+        os.getcwd()]+parameters['External tools']['SAINT tempdir']
     parameters['workflow parameters']['interactomics'] = {}
     parameters['workflow parameters']['interactomics']['crapome'] = {
         'available': crapome_sets,

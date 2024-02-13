@@ -18,6 +18,8 @@ COPY docker_entrypoint.sh /docker_entrypoint.sh
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
 RUN chmod 777 SAINTexpress-int
+RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc
+RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt
 
 WORKDIR /
 # JupyterHub
@@ -29,14 +31,14 @@ WORKDIR /proteogyver/data
 RUN unxz proteogyver.db.xz
 RUN mkdir -p /etc/supervisor/conf.d
 RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
-# Python installs
+# Python installs in case requirements got updated since pg_base was built.
+RUN pip3 install --upgrade pip
+RUN pip3 install --ignore-installed -r requirements.txt
 WORKDIR /proteogyver
 RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.json  
 RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json  
 RUN mkdir /proteogyver/cache
 WORKDIR /proteogyver/resources
-RUN pip3 install --upgrade pip
-RUN pip3 install --ignore-installed -r requirements.txt
 
 # Expose ports (jupyterHub. dash)
 EXPOSE 8090 8050

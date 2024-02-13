@@ -65,10 +65,7 @@
         "Enrichers": ["components", "enrichment"]
     },
     "External tools": {
-        "SAINT": {
-            "spc": ["external", "SAINTexpress", "SAINTexpress-spc"],
-            "int": ["external", "SAINTexpress", "SAINTexpress-int"]
-        }
+        "SAINT tempdir": ["external", "SAINTexpress"]
     },
     "Config": {
         "TIC information refresh interval in seconds": 900,
