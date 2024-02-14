@@ -33,6 +33,7 @@ RUN mkdir -p /etc/supervisor/conf.d
 RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
 # Python installs in case requirements got updated since pg_base was built.
 RUN pip3 install --upgrade pip
+WORKDIR /proteogyver/resources
 RUN pip3 install --ignore-installed -r requirements.txt
 WORKDIR /proteogyver
 RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.json  
