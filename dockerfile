@@ -1,6 +1,6 @@
 
 
-FROM pgbase:pgbase
+FROM pgbase:1.1
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 
 # First steps
