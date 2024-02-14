@@ -2,7 +2,7 @@ version: "3"
 
 services:
   pgyver_testing:
-    image: pgyver:v1.2t
+    image: pgyver:1.2t
     container_name: pgyver1.2t
     ports:
       - 8060:8050
