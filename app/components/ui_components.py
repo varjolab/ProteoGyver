@@ -170,6 +170,11 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 id='sidebar-rename-replicates',
                 options=['Rename replicates'], value=[]
             ),
+            dcc.Checklist(
+                id='sidebar-force-supervenn',
+                options=['Force supervenn'], value=[]
+            ),
+            tooltips.force_svenn_tooltip(),
             html.H4('Select workflow:'),
             dbc.Select(
                 options=[
@@ -220,8 +225,6 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
             dcc.Download(id='download-datafile-example'),
             dcc.Download(id='download-proteomics-comparison-example'),
             dcc.Download(id='download-all-data')
-            
-
         ],
         className='card text-white bg-primary mb-3',
         style=SIDEBAR_STYLE
@@ -575,6 +578,12 @@ def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
                     id='proteomics-loading-clustermap',
                     children=html.Div(
                         id={'type': 'workflow-plot', 'id': 'proteomics-clustermap-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-pertubation-volcano',
+                    children=html.Div(
+                        id={'type': 'workflow-plot', 'id': 'proteomics-pertubation-plot-div'}),
                     type='default'
                 ),
                 dcc.Loading(

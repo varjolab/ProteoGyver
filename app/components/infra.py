@@ -13,7 +13,6 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-
 data_store_export_configuration: dict = {
     'uploaded-data-table-info-data-store': ['json', 'Debug', '', ''],
     'uploaded-data-table-data-store': ['xlsx', 'Data', 'Input data tables', 'upload-split'],
@@ -42,6 +41,7 @@ data_store_export_configuration: dict = {
     'proteomics-clustermap-data-store': ['xlsx', 'Data', 'Figure data', 'Proteomics Clustermap;'],
     'proteomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
     'proteomics-comparison-table-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'proteomics-pertubation-data-store': ['xlsx', 'Data', 'Figure data', 'Proteomics pertubation;Sheet 0'],
     'interactomics-saint-input-data-store': ['xlsx', 'Data', 'SAINT input', 'saint-split'],
     'interactomics-enrichment-data-store': ['xlsx', 'Data', 'Enrichment', 'enrichment-split'],
     'interactomics-saint-bfdr-histogram-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
@@ -66,6 +66,7 @@ data_store_export_configuration: dict = {
 figure_export_directories: dict = {
     'Filtered Prey counts per bait': 'Interactomics figures',
     'Identified known interactions': 'Interactomics figures',
+    'Sample run TICs': 'QC figures',
     'Missing values per sample': 'QC figures',
     'SPC PCA': 'Interactomics figures',
     'Protein identification coverage': 'QC figures',
@@ -78,14 +79,15 @@ figure_export_directories: dict = {
     'Value mean': 'QC figures',
     'Imputation': 'Proteomics figures',
     'Missing value filtering': 'Proteomics figures',
+    'High-confidence interactions and identified known interactions': 'Interactomics figures',
+    'Common proteins in data': ';REP:WORKFLOW; figures',
+    'Intensity of proteins with missing values in other samples': 'Proteomics figures',
     'Normalization': 'Proteomics figures',
     'PCA': 'Proteomics figures',
     'Sample correlation clustering': 'Proteomics figures',
 }
 
-
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
-
 
 def save_data_stores(data_stores, export_dir) -> dict:
     export_excels: dict = {}
@@ -127,6 +129,8 @@ def save_data_stores(data_stores, export_dir) -> dict:
             if not 'split' in file_config:
                 sheet_name: str
                 sheet_name, sheet_index = file_config.split(';')
+                if 'pertubation' in file_config:
+                    continue
                 pdsheet = pd.read_json(d['props']['data'], orient='split')
                 if '|rename-int' in sheet_index:
                     sheet_index = sheet_index.split('|')[0]
@@ -260,7 +264,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
     for excel_name, excel_dict in export_excels.items():
         start_excel_time: datetime = prev_time
         if len(excel_dict.keys()) == 0:
-            print('No sheets', excel_name)
             continue
         with pd.ExcelWriter(excel_name, engine="xlsxwriter") as writer:
             # writer = pd.ExcelWriter(excel_name)
@@ -280,8 +283,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
                     logger.warning(
                         f'save data stores - sheet {excel_name}: {dic["name"]} not written: no rows to write: {datetime.now() - prev_time}')
                 prev_time: datetime = datetime.now()
-
-                # excel_dict[df_dict_index]['data'].to_excel(writer, sheet_name = dic['name'], header = dic['headers'])
             logger.warning(
                 f'save data stores - closing writer {excel_name}: {datetime.now() - start_excel_time}')
             prev_time: datetime = datetime.now()
@@ -333,7 +334,7 @@ def get_all_types(elements, get_types) -> list:
     return ret
 
 
-def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, local_debug:bool=False) -> None:
+def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, workflow) -> None:
     logger.warning(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
@@ -376,12 +377,6 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                         [fdir, header_str, legend['props']['children'], figure_html, graph, 'img'])
             elif header['type'].lower() == 'h5':  # Only used in enrichment plots
                 graph: dict = headers_and_figures[i+1]
-                if graph['type'].lower() == 'p':  # Nothing enriched
-                    continue
-                figure: dict = graph['props']['figure']
-                legend: dict = headers_and_figures[i+2]
-                figure_html: str = pio.to_html(
-                    figure, config=graph['props']['config'])
                 fig_subdir: str = 'Enrichment figures'
                 if 'microscopy' in legend['props']['children'].lower():
                     fig_subdir = 'MS-microscopy'
@@ -395,6 +390,11 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
     prev_time: datetime = datetime.now()
 
     for subdir, name, legend, fig_html, fig, figtype in figure_names_and_figures:
+        while ';REP' in subdir:
+            _, rep_what, __ = subdir.split(';',maxsplit=2)
+            replace = rep_what.split(':',maxsplit=1)[1]
+            if replace == 'WORKFLOW':
+                subdir = subdir.replace(f';{rep_what};', workflow)
         target_dir: str = os.path.join(export_dir, subdir)
         if not os.path.isdir(target_dir):
             os.makedirs(target_dir)
@@ -416,7 +416,6 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
         plotly_engine: str = 'kaleido'
         for output_format in output_formats:
             fig_path:str = os.path.join(target_dir, f'{name.replace(" ","_")}.{output_format}')
-            print(fig_path)
             if output_format == 'html':
                 continue
             if figtype == 'graph':
@@ -483,8 +482,12 @@ def save_input_information(input_divs, export_dir) -> None:
         if not 'id' in input['props']:
             continue
         if input['props']['id'] == 'interactomics-nearest-control-filtering':
+            usebool: bool = False
+            if len(input['props']['value']) > 0:
+                if input['props']['value'][0] is not None:
+                    usebool = True
             input_options.append(
-                ['Use only most-similar controls:', str(len(input['props']['value']) > 0)])
+                ['Use only most-similar controls:', usebool])
         elif input['props']['id'] == 'interactomics-num-controls':
             input_options.append(
                 ['Number of used controls:', input['props']['value']])
@@ -496,33 +499,6 @@ def save_input_information(input_divs, export_dir) -> None:
                 val_str = 'None'
             fil.write(f'{name} {val_str}\n')
     logger.warning(f'saving input info - done: {datetime.now() - prev_time}')
-
-
-def prepare_download(data_stores, analysis_divs, input_divs, cache_dir, session_name, figure_output_formats, commonality_pdf_data, local_debug:bool=False) -> str:
-    logger.warning(f'preparing download: {datetime.now()}')
-    prev_time: datetime = datetime.now()
-    export_dir: str = os.path.join(*cache_dir, session_name)
-    if os.path.isdir(export_dir):
-        shutil.rmtree(export_dir)
-    os.makedirs(export_dir)
-    timestamps: dict = save_data_stores(data_stores, export_dir)
-    save_figures(analysis_divs, export_dir,
-                 figure_output_formats, commonality_pdf_data, local_debug)
-    save_input_information(input_divs, export_dir)
-    logger.warning(
-        f'preparing download - finished exporting, making zip now: {datetime.now() - prev_time}')
-    prev_time: datetime = datetime.now()
-    export_zip_name: str = export_dir.rstrip(os.sep) + '.zip'
-    if os.path.isfile(export_zip_name):
-        os.remove(export_zip_name)
-    shutil.make_archive(export_dir.rstrip(os.sep), 'zip', export_dir)
-    logger.warning(
-        f'preparing download - zip made, removing leftover data: {datetime.now() - prev_time}')
-    prev_time: datetime = datetime.now()
-    shutil.rmtree(export_dir)
-    logger.warning(f'preparing download - done: {datetime.now() - prev_time}, {datetime.now()}')
-    return export_zip_name
-
 
 def upload_data_stores() -> html.Div:
     """Returns all the needed data store components"""
@@ -546,13 +522,28 @@ def working_data_stores() -> html.Div:
         stores.append(dcc.Store(id={'type': 'data-store', 'name': ID_STR}))
     return html.Div(id='workflow-stores', children=stores)
 
+def temporary_download_divs():
+    return html.Div(
+        id='download-temporary-things',
+        children=[
+            html.Div(id='download_temp1', children=''),
+            html.Div(id='download_temp2', children=''),
+            html.Div(id='download_temp3', children=''),
+            html.Div(id='download_temp4', children=''),
+            html.Div(id='download_temp5', children=''),
+            html.Div(id='download-temp-dir-ready',children='')
+        ]
+    )
+
 def invisible_utilities() -> html.Div:
     return html.Div(
         id='utils-div',
-        #children=[
-           # html.Div(id=id_dict) for id_dict in [{'type': 'utils','name':'interactomics-has-intensity'}]
-       # ],
-        children = [notifiers(),working_data_stores(),upload_data_stores()],
+        children = [
+            notifiers(),
+            working_data_stores(),
+            upload_data_stores(),
+            temporary_download_divs(),
+        ],
         hidden=True
     )
 

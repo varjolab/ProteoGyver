@@ -11,15 +11,15 @@ dash.register_page(__name__, path=f'/announcements')
 logger.warning(f'{__name__} loading')
 
 def announcements():
-    manual_contents:str = ''
+    announcements:str = ''
     umstyle:dict = GENERIC_PAGE.copy()
     umstyle['max-width']='800px'
     umstyle['paddingTop'] = 80
     with open(os.path.join('data','announcements.md')) as fil:
-        manual_contents = fil.read()
+        announcements = fil.read()
     return html.Div([
         dcc.Markdown(
-            manual_contents,
+            announcements,
             style={'paddingRight': '4%', 'paddingLeft': '2%'},
             className='md-table')
             

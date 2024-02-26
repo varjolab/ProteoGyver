@@ -1,10 +1,12 @@
 import pandas as pd
 from dash import html
 from dash.dcc import Graph
-from components.figures import before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot, histogram
+from components.figures import bar_graph, before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot, histogram
 from components import matrix_functions, summary_stats, stats
 from components.figures.figure_legends import PROTEOMICS_LEGENDS as legends
+from components.figures.figure_legends import leg_rep
 from datetime import datetime
+from dash_bootstrap_components import Card, CardBody, Tab, Tabs, Col, Row
 import logging
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,143 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
         ),
         filtered_data.to_json(orient='split')
     )
+
+def pertubation(filtered_and_normalized_data_json: str, sample_groups: dict, control_groups: str, replicate_colors:dict, figure_defaults_bars:dict, figure_defaults_matrix: dict):
+    pertu_tabs: list = []
+    pertubation_dict: dict = {}
+    figdef_for_plots = figure_defaults_matrix.copy()
+    figdef_for_plots['height'] = None
+    figdef_for_plots['width'] = None
+    done_groups = set()
+    for control_group in control_groups:
+        if control_group in done_groups:
+            continue
+        done_groups.add(control_group)
+        top_n = 50
+        results = matrix_functions.compute_zscore_based_deviation_from_control(
+           pd.read_json(filtered_and_normalized_data_json,orient='split'),
+            sample_groups,
+            control_group,
+            top_n
+        )
+        pertubation_dict[control_group] = {
+            'All proteins': results[1].to_json(orient='split'),
+            f'Top {top_n} proteins': results[2].to_json(orient='split')
+        }
+        for key, ser in results[0].items():
+            pertubation_dict[control_group]['key'] = ser.to_dict()
+        bar_graph_col_contents: list = []
+        bar_big_legend_done = False
+        for key, valser in results[0].items():
+            resdf: pd.DataFrame = pd.DataFrame(valser,columns=[key])
+            print(sample_groups)
+            resdf['Color'] = resdf.index#[sample_groups[i] for i in resdf.index]
+            pertu_bar_graph: Graph = bar_graph.make_graph(
+                f'proteomics-pertubation-{control_group}-{key}',
+                figdef_for_plots,
+                resdf,
+                f'Sample Z-score mean vs {control_group}',
+                x_name = None,
+                y_name = key,
+                x_label = 'Sample name'
+            )
+            if not bar_big_legend_done:
+                lkey = 'pertubation-bar'
+                bar_big_legend_done = True
+            else:
+                lkey = 'pertubation-bar-2'
+            bar_leg = leg_rep(
+                leg_rep(
+                    legends[lkey],
+                    'CONTROLSTRING',
+                    control_group
+                ),
+                'BARVALS',
+                key
+            )
+            bar_graph_col_contents.extend(
+                [
+                    html.H5(f'{key} based pertubation against {control_group}'),
+                    pertu_bar_graph,
+                    bar_leg
+                ]
+            )
+        matrix_data: pd.DataFrame = results[2][results[2].columns[3:]]
+        matrix_col_contents: list = [
+            html.H5(f'Per-sample group mean Z-score based pertubation against {control_group}'),
+            heatmaps.make_heatmap_graph(
+                matrix_data,
+                f'proteomics-pertubation-matrix-vs{control_group}',
+                f'Z-score group mean vs {control_group}',
+                figdef_for_plots,
+                cmap = 'dense'
+            ),
+            #heatmap here
+            leg_rep(
+                leg_rep(
+                    legends['pertubation-matrix'],
+                    'CONTROLSTRING',
+                    control_group
+                ),
+                'TOPN',
+                f'{top_n}'
+            ),
+            html.H5(f'Mean Z-score based pertubation against {control_group} top {top_n} proteins'),
+            bar_graph.make_graph(
+                f'proteomics-pertubation-{control_group}-protein-z-score',
+                figdef_for_plots,
+                results[2][['Z-score mean']],
+                f'Protein max Z-score mean vs {control_group}',
+                x_name = None,
+                y_name = 'Z-score mean',
+                x_label = 'Protein name',
+                color = None
+            ),
+            leg_rep(
+                leg_rep(
+                    legends['pertubation-bar-2'],
+                    'CONTROLSTRING',
+                    control_group
+                ),
+                'BARVALS',
+                f'mean of {top_n} proteins across all sample groups.'
+            )
+        ]
+
+        pertu_tabs.append(
+            Tab(
+                label = control_group,
+                children=[
+                    Card(
+                        CardBody(
+                            [
+                                Row(
+                                    [
+                                        Col(bar_graph_col_contents,width=6),
+                                        Col(matrix_col_contents, width=6)
+                                    ]
+                                )
+                            ]
+                        )
+                    )
+                ]
+            )
+        )
+    return (
+        html.Div(
+            id='proteomics-pertubation',
+            children = [
+                html.H4(id='proteomics-pertubation-header',children='Z-score based pertubation vs control group(s)'),
+                Tabs(
+                    id='proteomics-pertubation-tabs',
+                    children = pertu_tabs,
+                    style = {'width': '98%'}
+                )
+            ]
+        ),
+        pertubation_dict
+    )
+
 
 
 def normalization(filtered_data_json: str, normalization_option: str, defaults: dict, errorfile: str, title: str = None) -> tuple:
@@ -264,9 +403,10 @@ def volcano_plots(imputed_data_json: dict, sample_groups: dict, comparisons: lis
         significant_data, defaults, fc_thr, p_thr, 'proteomics')
     logger.warning(
         f'volcano - volcanoes generated: {datetime.now()}')
-    return ([
-        html.H3(id='proteomics-volcano-header', children='Volcano plots'),
-        graphs_div
-    ],
+    return (
+        [
+            html.H3(id='proteomics-volcano-header', children='Volcano plots'),
+            graphs_div
+        ],
         significant_data.to_json(orient='split')
     )

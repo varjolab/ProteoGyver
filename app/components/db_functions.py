@@ -51,6 +51,15 @@ def remove_column(db_conn, tablename, colname):
     except sqlite3.Error as error:
         print("Failed to remove column from sqlite table", error, sql_str)
         raise
+
+def rename_column(db_conn, tablename, old_col, new_col):
+    sql_str = f'ALTER TABLE {tablename} RENAME COLUMN {old_col} TO {new_col};'
+    try:
+        db_conn.cursor().execute(sql_str)
+    except sqlite3.Error as error:
+        print(f'Failed to rename column in sqlite table. Error: {error}', sql_str)
+        raise
+
     
 def delete_record(db_conn, tablename, criteria_col, criteria):
     sql_str: str = f"""DELETE from {tablename} where {criteria_col} = ?"""
@@ -133,11 +142,8 @@ def get_contaminants(db_file: str, protein_list:list = None, error_file: str = N
     :return: list of contaminants
     """
     conn: sqlite3.Connection = create_connection(db_file, error_file)
-    ret_list: list
-    if protein_list is None:
-        ret_list = get_from_table(conn, 'contaminants', select_col='uniprot_id')
-    else:
-        ret_list = get_from_table(conn, 'contaminants', select_col='uniprot_id', criteria_col='uniprot_id', criteria=protein_list)
-    ret_list = [r[0] for r in ret_list]
+    ret_list: list = [
+        r[0] for r in get_from_table(conn, 'contaminants', select_col='uniprot_id')
+    ]
     conn.close()
     return ret_list

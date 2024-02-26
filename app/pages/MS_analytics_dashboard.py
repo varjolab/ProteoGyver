@@ -47,7 +47,7 @@ d = data['run_time'].min()
 mintime = date(d.year,d.month, d.day)
 del data
 logger.warning(f'{__name__} preliminary data loaded')
-run_limit = 200
+run_limit = 100
 
 def description_card() -> html.Div:
     """
@@ -320,7 +320,7 @@ def delim_runs(runs):
     prevent_initial_call=True
 ) 
 def update_run_choices(_, start, end, sample_types, run_id_list, button_text) -> list:
-    if run_id_list.strip() == '':
+    if (run_id_list is None ) or (run_id_list.strip() == ''):
         start:str
         end: str
         start, end = sort_dates(start,end)

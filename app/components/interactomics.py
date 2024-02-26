@@ -124,7 +124,7 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
             id='interactomics-saint-known-plot',
             children=[
                 html.H4(id='interactomics-known-header',
-                        children='Identified known interactions'),
+                        children='High-confidence interactions and identified known interactions'),
                 bar_graph.make_graph(
                     'interactomics-saint-filt-int-known-graph',
                     figure_defaults,
@@ -715,8 +715,12 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         f'saint filtering - filtered size: {filtered_saint_output.shape}')
     if 'Bait uniprot' in filtered_saint_output.columns:
         # Immplement multiple baits per file, e.g. for fusions?
+        prey_is_not_bait = []
+        for _,row in filtered_saint_output.iterrows():
+            baits = [b.strip() for b in row['Bait uniprot'].split(';')]
+            prey_is_not_bait.append(row['Prey'] not in baits)
         filtered_saint_output = filtered_saint_output[
-            filtered_saint_output['Prey'] != filtered_saint_output['Bait uniprot']
+            prey_is_not_bait
         ]
     colorder: list = ['Bait', 'Bait uniprot', 'Prey',
                       'Passes filter', 'Passes filter with rescue', 'AvgSpec']

@@ -67,7 +67,7 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
             additional_proteins[p].append(k)
     additional_groups = {}
     for protid, groups in additional_proteins.items():
-        gk = ','.join(groups)
+        gk = ', '.join(groups)
         if gk not in additional_groups: additional_groups[gk] = set()
         additional_groups[gk].add(protid)
     
@@ -77,17 +77,17 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
         col_data: Series = table[c]
         col_data = col_data[col_data.notna()]
         com_for_col: DataFrame = common_proteins.loc[common_proteins.index.isin(col_data.index)]
-        for pclass in com_for_col['protein'].unique():
-            class_prots = com_for_col[com_for_col['protein']==pclass].index.values
+        for pclass in com_for_col['protein_type'].unique():
+            class_prots = com_for_col[com_for_col['protein_type']==pclass].index.values
             plot_data.append([
-                c, pclass, ','.join(class_prots), col_data.loc[class_prots].sum(), len(class_prots)
+                c, pclass, ', '.join(class_prots), col_data.loc[class_prots].sum(), len(class_prots)
             ])
         remaining_proteins: Series = col_data[~col_data.index.isin(com_for_col.index)]
         for groupname, group_prots in additional_groups.items():
             in_both = group_prots & set(remaining_proteins.index.values)
             if len(in_both) > 0:
                 plot_data.append([
-                    c, groupname, ','.join(in_both), col_data.loc[list(in_both)].sum(), len(in_both) 
+                    c, groupname, ', '.join(in_both), col_data.loc[list(in_both)].sum(), len(in_both) 
                 ])
 
         remaining_proteins = remaining_proteins[~remaining_proteins.index.isin(additional_proteins)]
@@ -327,7 +327,7 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
     return (graph_div, pandas_json)
 
 
-def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict) -> tuple:
+def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, force_svenn: bool) -> tuple:
     start_time: datetime = datetime.now()
     logger.warning(f'commonality_plot - started: {start_time}')
     common_data: dict = summary_stats.get_common_data(
@@ -337,7 +337,7 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict) 
     logger.warning(
         f'commonality_plot - summary stats calculated: {datetime.now() }')
     graph, image_str = commonality_graph.make_graph(
-        common_data, 'qc-commonality-plot', defaults)
+        common_data, 'qc-commonality-plot', force_svenn, defaults)
     if image_str == '':
         legend = legends['shared_id-plot-hm']
     else:

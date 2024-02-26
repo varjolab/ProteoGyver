@@ -77,7 +77,7 @@ def get_cytoscape_container(cyto_elements, full_height):
         "concentric",
         "breadthfirst",
         "cose",
-        "cose-bilkent",
+        #"cose-bilkent", # Does not work for now, next version should fix.
         "dagre",
         "cola",
         "klay",

@@ -38,16 +38,25 @@ def supervenn(group_sets: dict, id_str: str) -> tuple:
 
     plot_sets: list = []
     plot_setnames: list = []
+    all_proteins: set = set()
     for set_name, set_proteins in group_sets.items():
-        plot_sets.append(set(set_proteins))
+        set_proteins = set(set_proteins)
+        plot_sets.append(set_proteins)
+        all_proteins |= set_proteins
         plot_setnames.append(set_name)
+    minwd: int = 1
+    widths_minmax_ratio = 0.1
+    if len(plot_sets) > 6:
+        minwd = int(len(all_proteins) / 50)
+        widths_minmax_ratio = None
     svenn(
         plot_sets,
         plot_setnames,
         ax=axes,
         rotate_col_annotations=True,
         col_annotations_area_height=1.2,
-        widths_minmax_ratio=0.1
+        widths_minmax_ratio=widths_minmax_ratio,
+        min_width_for_annotation=minwd
     )
     plt.xlabel('Shared proteins')
     plt.ylabel('Sample group')
@@ -99,8 +108,8 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
     )
 
 
-def make_graph(group_sets: dict, id_str: str, defaults: dict) -> tuple:
-    if len(group_sets.keys()) <= 6:
+def make_graph(group_sets: dict, id_str: str, force_svenn: bool, defaults: dict) -> tuple:
+    if force_svenn or (len(group_sets.keys()) <= 6):
         return supervenn(group_sets, id_str)
     else:
         return common_heatmap(group_sets, id_str, defaults)

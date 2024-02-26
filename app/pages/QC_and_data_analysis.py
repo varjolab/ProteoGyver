@@ -1,11 +1,12 @@
 """ Restructured frontend for proteogyver app"""
 import os
+import shutil
 from uuid import uuid4
 from datetime import datetime
 from dash import html, callback, no_update, ALL, dcc, register_page
 from dash.dependencies import Input, Output, State
 from components import ui_components as ui
-from components.infra import invisible_utilities, prepare_download
+from components import infra
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
 from components.figures import tic_graph
@@ -28,7 +29,7 @@ layout = html.Div([
             parameters['Possible values']['Implemented workflows']),
         ui.modals(),
         ui.main_content_div(),
-        invisible_utilities()
+        infra.invisible_utilities()
     ],
     style=CONTENT_STYLE
 )
@@ -272,7 +273,10 @@ def common_proteins_plot(_, data_dictionary: dict) -> tuple:
     return qc_analysis.common_proteins(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         db_file,
-        parameters['Figure defaults']['full-height']
+        parameters['Figure defaults']['full-height'],
+        additional_groups = {
+            'Other contaminants': contaminant_list
+        }
     )
 
 
@@ -384,14 +388,19 @@ def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple
     Output({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'distribution-plot-div'}, 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    State('sidebar-force-supervenn', 'value'),
     prevent_initial_call=True
 )
-def commonality_plot(_, data_dictionary: dict) -> tuple:
+def commonality_plot(_, data_dictionary: dict, force_supervenn: list) -> tuple:
+    force_svenn: bool = False
+    if len(force_supervenn) > 0:
+        force_svenn = True
     return qc_analysis.commonality_plot(
         data_dictionary['data tables'][data_dictionary['data tables']
                                        ['table to use']],
         data_dictionary['sample groups']['rev'],
         parameters['Figure defaults']['full-height'],
+        force_svenn
     )
 
 
@@ -420,7 +429,6 @@ def proteomics_filtering_plot(nclicks, uploaded_data: dict, filtering_percentage
     if nclicks < 1:
         return (no_update, no_update)
     return proteomics.na_filter(uploaded_data, filtering_percentage, parameters['Figure defaults']['full-height'])
-
 
 @callback(
     Output({'type': 'workflow-plot',
@@ -459,6 +467,45 @@ def proteomics_imputation_plot(normalized_data: dict, imputation_option: str) ->
         return no_update
     return proteomics.imputation(normalized_data, imputation_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
 
+@callback(
+    Output({'type': 'workflow-plot',
+           'id': 'proteomics-pertubation-plot-div'}, 'children'),
+    Output({'type': 'data-store', 'name': 'proteomics-pertubation-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    State('proteomics-control-dropdown', 'value'),
+    State({'type': 'data-store',
+           'name': 'proteomics-comparison-table-data-store'}, 'data'),
+    State('proteomics-comparison-table-upload-success', 'style'),
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_group, comparison_data, comparison_upload_success_style, replicate_colors):
+    return (html.Div(), '')
+    if control_group is None:
+        if (comparison_data is None):
+            logger.warning(f'Proteomics volcano: no comparison data: {datetime.now()}')
+            return no_update
+        if (len(comparison_data) == 0):
+            logger.warning(f'Proteomics volcano: Comparison data len 0: {datetime.now()}')
+            return no_update
+        if comparison_upload_success_style['background-color'] in ('red', 'grey'):
+            logger.warning(f'Proteomics volcano: comparison data failed validation: {datetime.now()}')
+            return no_update
+    if imputed_data is None:
+        return no_update
+    sgroups: dict = data_dictionary['sample groups']['norm']
+    comparisons: list = parsing.parse_comparisons(
+        control_group, comparison_data, sgroups)
+    
+    return proteomics.pertubation(
+        imputed_data,
+        sgroups,
+        [c[1] for c in comparisons],
+        replicate_colors,
+        parameters['Figure defaults']['half-height'],
+        parameters['Figure defaults']['full-height']
+    )
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-pca-plot-div'}, 'children'),
@@ -889,30 +936,111 @@ def download_example_comparison_file(n_clicks) -> dict:
 )
 def download_data_table_example(_) -> dict:
     logger.warning(f'received DT download request at {datetime.now()}')
-
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
 
+@callback(
+    Output('download-temp-dir-ready','children'),
+    Output('button-download-all-data-text','children',allow_duplicate = True),
+    Input('button-download-all-data', 'n_clicks'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    State('button-download-all-data-text','children'),
+    prevent_initial_call=True,
+    background=True
+)
+def prepare_for_download(_, main_data, button_text):
+    export_dir: str = os.path.join(*parameters['Data paths']['Cache dir'],  main_data['other']['session name'], 'Proteogyver output')
+    if os.path.isdir(export_dir):
+        shutil.rmtree(export_dir)
+    os.makedirs(export_dir)
+    import markdown
+    with open(os.path.join('data','output_guide.md')) as fil:
+        text = fil.read()
+        html = markdown.markdown(text)
+    with open(os.path.join(export_dir, 'README.html'),'w',encoding='utf-8') as fil:
+        fil.write(html)
+    return export_dir, button_text
+
+@callback(
+    Output('download_temp1', 'children'),
+    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Input('download-temp-dir-ready','children'),
+    State('input-stores', 'children'),
+    State('button-download-all-data-text','children'),
+    prevent_initial_call=True,
+    background=True
+)
+def prepare_data1(export_dir, stores, button_text) -> dict:
+    logger.warning(f'received download request data1 at {datetime.now()}')
+    infra.save_data_stores(stores, export_dir)
+    return 'data1 done', button_text
+
+@callback(
+    Output('download_temp2', 'children'),
+    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Input('download-temp-dir-ready','children'),
+    State('workflow-stores', 'children'),
+    State('button-download-all-data-text','children'),
+    prevent_initial_call=True,
+    background=True
+)
+def prepare_data2(export_dir, stores, button_text) -> dict:
+    logger.warning(f'received download request data2 at {datetime.now()}')
+    infra.save_data_stores(stores, export_dir)
+    return 'data2 done', button_text
+
+@callback(
+    Output('download_temp3', 'children'),
+    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Input('download-temp-dir-ready','children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'children'),
+    State('button-download-all-data-text','children'),
+    State({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
+    State('workflow-dropdown', 'value'),
+    prevent_initial_call=True,
+    background=True
+)
+def prepare_data3(export_dir, analysis_divs, button_text,commonality_pdf_data, workflow) -> dict:
+    logger.warning(f'received download request data3 at {datetime.now()}')
+    figure_output_formats = ['html', 'png', 'pdf']
+    infra.save_figures(analysis_divs, export_dir,
+                 figure_output_formats, commonality_pdf_data, workflow)
+    return 'data3 done', button_text
+
+@callback(
+    Output('download_temp4', 'children'),
+    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Input('download-temp-dir-ready','children'),
+    State({'type': 'input-div', 'id': ALL}, 'children'),
+    State('button-download-all-data-text','children'),
+    prevent_initial_call=True,
+    background=True
+)
+def prepare_data4(export_dir, input_divs, button_text) -> dict:
+    logger.warning(f'received download request data4 at {datetime.now()}')
+    infra.save_input_information(input_divs, export_dir)
+    return 'data4 done',button_text
+    
+# NExt implement the below, but also move make_archive that way.
 
 @callback(
     Output('download-all-data', 'data'),
-    Output('button-download-all-data-text','children'),
-    Input('button-download-all-data', 'n_clicks'),
-    State('input-stores', 'children'),
-    State('workflow-stores', 'children'),
-    State({'type': 'analysis-div', 'id': ALL}, 'children'),
-    State({'type': 'input-div', 'id': ALL}, 'children'),
-    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
-    State({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
+    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Input('download-temp-dir-ready','children'),
     State('button-download-all-data-text','children'),
+    Input('download_temp1', 'children'),
+    Input('download_temp2', 'children'),
+    Input('download_temp3', 'children'),
+    Input('download_temp4', 'children'),
     prevent_initial_call=True,
-    background=True    
+    background=True,
 )
-def download_all_data(nclicks, stores, stores2, analysis_divs, input_divs, main_data, commonality_pdf_data, button_text) -> dict:
-    logger.warning(f'received download request at {datetime.now()}')
-    figure_output_formats = ['html', 'png', 'pdf']
-    stores: list = stores + stores2
-    export_zip_name: str = prepare_download(
-        stores, analysis_divs, input_divs, parameters['Data paths']['Cache dir'], main_data['other']['session name'], figure_output_formats, commonality_pdf_data, parameters['Config']['Local debug'])
-    logger.warning(f'sending file: {export_zip_name} at {datetime.now()}')
-    return (dcc.send_file(export_zip_name),button_text)
-    # DB dependent function
+def send_data(export_dir, button_text, *args) -> dict:
+    for a in args:
+        if not 'done' in a:
+            return no_update, no_update
+    export_zip_name: str = export_dir.rstrip(os.sep)
+    shutil.make_archive(export_zip_name, 'zip', export_dir)
+    export_zip_name +=  '.zip'
+    return dcc.send_file(export_zip_name), button_text
+
+    

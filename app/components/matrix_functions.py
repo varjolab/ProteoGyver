@@ -1,8 +1,9 @@
 import numpy as np
-from pandas import DataFrame, Series, isna
+from pandas import DataFrame, Series, isna, concat
 import qnorm
 from math import ceil
 from components.tools import R_tools
+from scipy.stats import median_abs_deviation
 from sklearn.decomposition import PCA
 
 
@@ -135,7 +136,8 @@ def normalize(data_table, normalization_method, errorfile: str, random_seed: int
 
 
 def impute(data_table: DataFrame, errorfile: str, method: str = 'QRILC', random_seed: int = 13) -> DataFrame:
-    """Imputes missing values into the dataframe with the specified method"""
+    """Imputes missing values int
+from scipy.stats import zscoreo the dataframe with the specified method"""
     ret: DataFrame = data_table
     if method == 'minProb':
         ret = impute_minprob_df(data_table, random_seed)
@@ -246,3 +248,83 @@ def impute_minprob_df(dataframe: DataFrame, *args, **kwargs) -> DataFrame:
         newdf.loc[:, column] = impute_minprob(
             dataframe[column], *args, **kwargs)
     return newdf
+
+
+
+def compute_zscore(data: DataFrame, test_samples: list, control_samples: list, measure: str ='median', std: int =2):
+    """
+    Computes Z-scores for log2 transformed MS intensity data using control samples.
+    
+    Parameters:
+    - data: DataFrame proteins in index and samples in columns.
+    - control_samples: List control sample column names.
+    - measure: 'mean' or 'median' to specify the central tendency measure.
+    - std: Standard deviation threshold for Z-score calculation.
+    
+    Returns:
+    - DataFrame with Z-scores, where values below 'std' are set to 0.
+    """
+    control_data = data[control_samples]
+    calc_data = data[test_samples]
+    
+    if measure == 'mean':
+        mean = control_data.mean(axis=1)
+        std_dev = control_data.std(axis=1)
+    elif measure == 'median':
+        mean = control_data.median(axis=1)
+       # std_dev = control_data.std(axis=1)
+        std_dev = median_abs_deviation(control_data, axis=1) * 1.4826  # To approximate standard deviation
+        
+    z_scores = (calc_data.subtract(mean, axis=0)).div(std_dev, axis=0)
+    #z_scores = z_scores.abs()
+    z_scores[z_scores < std] = 0
+    
+    return z_scores
+
+def compute_zscore_based_deviation_from_control(df: DataFrame, sample_groups: dict, control_group: str, top_n: int = 50) -> tuple:
+    results = {}
+    all_topn_proteins: set = set()
+    for sample_group, sample_columns in sample_groups.items():
+        if sample_group == control_group: continue
+        z_score_matrix = compute_zscore(df, sample_columns, sample_groups[control_group])
+        ranked_proteins = z_score_matrix.mean(axis=1).sort_values(ascending=False)
+        top_prots = ranked_proteins.head(top_n)
+        z_score_mean = z_score_matrix.mean(axis=0)
+        z_score_mean_topn = z_score_matrix.loc[top_prots.index].mean(axis=0)
+        all_topn_proteins |= set(top_prots.index.values)
+        results[sample_group] = [z_score_matrix, ranked_proteins, top_prots, z_score_mean, z_score_mean_topn]
+    all_topn_proteins = sorted(list(all_topn_proteins))
+    for sg in results.keys():
+        results[sg].append(results[sg][0].loc[all_topn_proteins].mean(axis=0))
+    z_score_dfs = dict()
+    for i, final_result_key in enumerate(['Z-score mean', f'Z-score top{top_n} mean', f'Z-score top{top_n} from all samplegroups']):
+        z_score_dfs[final_result_key] = []
+        for sample_group, sg_result in results.items():
+            z_score_dfs[final_result_key].append(
+                sg_result[3+i]
+            )
+    z_score_dfs = {key: concat(vals) for key, vals in z_score_dfs.items()}
+    result_protein_data = []
+    sorted_groups = [ sg for sg in results.keys()]
+    final_result_cols_protein = ['Z-score mean', 'Z-score max', 'Z-score max group'] + sorted_groups
+    for pi in df.index:
+        vals_per_sg = []
+        allvals = []
+        max_group = ('',0)
+        for sample_group in sorted_groups:
+            allvals.extend(list(results[sample_group][0].loc[pi].values))
+            sgval = results[sample_group][0].loc[pi].mean()
+            if abs(sgval) > abs(max_group[1]):
+                max_group = (sample_group, sgval)
+            vals_per_sg.append(sgval)
+        result_protein_data.append([
+            sum(allvals)/len(allvals),
+            max_group[1],
+            max_group[0]
+        ] + vals_per_sg)
+    protein_df = DataFrame(data=result_protein_data, index = df.index, columns=final_result_cols_protein)
+    return (
+        z_score_dfs,
+        protein_df,
+        protein_df.loc[all_topn_proteins]
+    )
