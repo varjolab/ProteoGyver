@@ -181,7 +181,6 @@ def pca(saint_output_data: dict, defaults: dict, replicate_colors: dict) -> tupl
             legends['pca']
         ]
         pca_data = pca_result.to_json(orient='split')
-    pca_result.to_csv('DEBUG_PCA_TEST.tsv',sep='\t')
     return (
         html.Div(
             id='interactomics-pca-plot-div',
