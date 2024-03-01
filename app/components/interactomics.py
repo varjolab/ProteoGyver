@@ -41,12 +41,21 @@ def do_network(saint_output_json, plot_height):
     return (plot_container, cyto_elements, interactions)
 
 
-def network_display_data(node_data, int_data, table_height) -> list:
+def network_display_data(node_data, int_data, table_height, datatype: str='Cytoscape') -> list:
     ret = [['Bait','Prey', 'PreyGene','AvgSpec']]
-    for e in node_data['edgesData']: 
-        ret.append([e['source'], e["target"]])
-        ret[-1].extend(int_data[e['source']][e['target']])
-    
+    if datatype == 'Cytoscape':
+        for e in node_data['edgesData']: 
+            ret.append([e['source'], e["target"]])
+            ret[-1].extend(int_data[e['source']][e['target']])
+    elif datatype == 'visdcc':
+        for e in node_data['edges']:
+            source, target = e.split('_-_')
+            ret.append([
+                source,
+                target,
+                int_data[source][target]
+            ])
+
     df = pd.DataFrame(data=ret[1:], columns=ret[0])
     div_contents = [
         html.Label('Selected node connections:'),
@@ -141,7 +150,7 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
 
 
 
-def pca(saint_output_data: dict, defaults: dict) -> tuple:
+def pca(saint_output_data: dict, defaults: dict, replicate_colors: dict) -> tuple:
     data_table: pd.DataFrame = pd.read_json(saint_output_data, orient='split')
     if len(data_table['Bait'].unique()) < 2:
         gdiv = ['Too few samle groups for PCA']
@@ -157,6 +166,7 @@ def pca(saint_output_data: dict, defaults: dict) -> tuple:
         pc1, pc2, pca_result = matrix_functions.do_pca(
             data_table.fillna(0), spoofed_sample_groups, n_components=2)
         pca_result.sort_values(by=pc1, ascending=True, inplace=True)
+        pca_result['Sample group color'] = [replicate_colors['sample groups'][grp] for grp in pca_result['Sample group']]
         gdiv = [
             html.H4(id='interactomics-pca-header', children='SPC PCA'),
             scatter.make_graph(
@@ -165,12 +175,13 @@ def pca(saint_output_data: dict, defaults: dict) -> tuple:
                 pca_result,
                 pc1,
                 pc2,
+                'Sample group color',
                 'Sample group'
             ),
             legends['pca']
         ]
         pca_data = pca_result.to_json(orient='split')
-
+    pca_result.to_csv('DEBUG_PCA_TEST.tsv',sep='\t')
     return (
         html.Div(
             id='interactomics-pca-plot-div',
@@ -717,8 +728,7 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
         # Immplement multiple baits per file, e.g. for fusions?
         prey_is_not_bait = []
         for _,row in filtered_saint_output.iterrows():
-            baits = [b.strip() for b in row['Bait uniprot'].split(';')]
-            prey_is_not_bait.append(row['Prey'] not in baits)
+            prey_is_not_bait.append(row['Prey'] not in [b.strip() for b in row['Bait uniprot'].split(';')])
         filtered_saint_output = filtered_saint_output[
             prey_is_not_bait
         ]

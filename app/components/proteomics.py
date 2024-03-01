@@ -322,7 +322,7 @@ def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, t
     )
 
 
-def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tuple:
+def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict, replicate_colors: dict) -> tuple:
 
     logger.warning(f'PCA - start: {datetime.now()}')
     data_table: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
@@ -335,7 +335,7 @@ def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tup
     pca_result.sort_values(by=pc1, ascending=True, inplace=True)
     logger.warning(
         f'PCA - done, only plotting left: {datetime.now()}')
-
+    pca_result['Sample group color'] = [replicate_colors['sample groups'][grp] for grp in pca_result['Sample group']]
     return (
         html.Div(
             id='proteomics-pca-plot-div',
@@ -347,6 +347,7 @@ def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict) -> tup
                     pca_result,
                     pc1,
                     pc2,
+                    'Sample group color',
                     'Sample group'
                 ),
                 legends['pca']

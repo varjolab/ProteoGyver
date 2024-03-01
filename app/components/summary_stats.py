@@ -69,11 +69,13 @@ def get_comparative_data(data_table, sample_groups) -> tuple:
     )
 
 
-def get_common_data(data_table: DataFrame, rev_sample_groups: dict) -> dict:
+def get_common_data(data_table: DataFrame, rev_sample_groups: dict, only_groups: list = None) -> dict:
     group_sets: dict = {}
     for column in data_table.columns:
         col_proteins: set = set(data_table[[column]].dropna().index.values)
         group_name: str = rev_sample_groups[column]
+        if (only_groups is not None) and (group_name not in only_groups):
+            continue
         if group_name not in group_sets:
             group_sets[group_name] = set()
         group_sets[group_name] |= col_proteins

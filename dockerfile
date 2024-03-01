@@ -4,11 +4,13 @@ LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 # First steps
 USER root
 
-RUN mkdir /proteogyver/data/Server_output
-RUN mkdir /proteogyver/data/MS_rundata
+RUN mkdir -p /proteogyver/data/Server_output
+RUN mkdir -p /proteogyver/data/MS_rundata
 RUN mkdir -p /etc/supervisor/conf.d
-RUN mkdir /etc/jupyterhub
-RUN mkdir /proteogyver/cache
+RUN mkdir -p /etc/jupyterhub
+RUN mkdir -p /proteogyver/cache
+RUN mkdir -p /proteogyver/data/unparsed_stats
+RUN mkdir -p /proteogyver/data/Server_output/stats
 
 WORKDIR /
 # Create mounts for the data
@@ -17,6 +19,7 @@ COPY app/update.sh /update.sh
 COPY app /proteogyver
 COPY docker_entrypoint.sh /docker_entrypoint.sh
 COPY jupyterhub.py /etc/jupyterhub/
+COPY nm_pack.py /nm_pack.py
 # Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc

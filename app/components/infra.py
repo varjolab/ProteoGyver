@@ -23,6 +23,7 @@ data_store_export_configuration: dict = {
     'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
     'discard-samples-data-store': ['json', 'Debug', '', ''],
     'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'qc-commonality-plot-visible-groups-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'count-data-store': ['xlsx', 'Data', 'Summary data', 'Protein counts;'],
     'common-protein-data-store': ['xlsx', 'Data', 'Summary data', 'Common proteins;'],
     'coverage-data-store': ['xlsx', 'Data', 'Summary data', 'Protein coverage;'],
@@ -59,7 +60,7 @@ data_store_export_configuration: dict = {
     'interactomics-enrichment-information-data-store': ['txt', 'Data', 'Enrichment information', 'enrich-split'],
     'interactomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
     'interactomics-network-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'interactomics-cytoscape-interactions-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-network-interactions-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'interactomics-msmic-data-store': ['xlsx', 'Data', 'MS microscopy results', 'MS microscopy results;'],
 }
 

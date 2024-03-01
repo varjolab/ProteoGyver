@@ -777,6 +777,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                     }
                                 ), width=4
                             ),
+                            tooltips.rescue_tooltip(),
                             dbc.Col([
                                 dbc.Row([
                                     dbc.Col(
@@ -959,12 +960,7 @@ def qc_area() -> html.Div:
                     id={'type': 'qc-plot', 'id': 'distribution-plot-div'}),
                 type='default'
             ),
-            dcc.Loading(
-                id='qc-loading-commonality',
-                children=html.Div(
-                    id={'type': 'qc-plot', 'id': 'commonality-plot-div'}),
-                type='default'
-            ),
+            html.Div(id={'type': 'qc-plot', 'id': 'commonality-plot-div'})
         ])
 
 

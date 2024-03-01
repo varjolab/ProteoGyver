@@ -2,11 +2,13 @@ import json
 from pandas import DataFrame, Series
 from pandas import read_json as pd_read_json
 from dash import html
+import dash_bootstrap_components as dbc
 from components.figures import bar_graph, comparative_plot, commonality_graph, reproducibility_graph
 from components import summary_stats
 from components.figures.figure_legends import QC_LEGENDS as legends
+from components.ui_components import checklist
 from datetime import datetime
-from dash.dcc import Graph, Dropdown
+from dash.dcc import Graph, Dropdown, Loading
 import logging
 from components import db_functions
 logger = logging.getLogger(__name__)
@@ -327,12 +329,13 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
     return (graph_div, pandas_json)
 
 
-def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, force_svenn: bool) -> tuple:
+def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, force_svenn: bool, only_groups: list = None) -> tuple:
     start_time: datetime = datetime.now()
     logger.warning(f'commonality_plot - started: {start_time}')
     common_data: dict = summary_stats.get_common_data(
         pd_read_json(pandas_json, orient='split'),
-        rev_sample_groups
+        rev_sample_groups,
+        only_groups = only_groups
     )
     logger.warning(
         f'commonality_plot - summary stats calculated: {datetime.now() }')
@@ -342,15 +345,41 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
         legend = legends['shared_id-plot-hm']
     else:
         legend = legends['shared_id-plot-sv']
-    graph_div: html.Div = html.Div(
+    graph_area: html.Div = html.Div(       
         id='qc-supervenn-div',
         children=[
             html.H4(id='qc-heading-shared_id',
                     children='Shared identifications'),
             graph,
-            legend
-        ])
+            legend,
+        ]
+    )
     common_data = {gk: list(gs) for gk, gs in common_data.items()}
     logger.warning(
         f'commonality_plot - graph drawn: {datetime.now() }')
-    return (graph_div, json.dumps(common_data), image_str)
+    return (graph_area, json.dumps(common_data), image_str)
+
+def generate_commonality_container(sample_groups):
+    return dbc.Row(
+        [
+            dbc.Col(
+            checklist(
+                label='qc-commonality-select-visible-sample-groups',
+                id_only=True,
+                options=sample_groups,
+                default_choice=sample_groups,
+                clean_id = False,
+                prefix_list = [html.H5('Select visible sample groups', style={'padding': '75px 0px 0px 0px'})],
+                postfix_list=[
+                    dbc.Button('Update plot',
+                            id='qc-commonality-plot-update-plot-button'),
+                ]
+            ), width=2),
+            dbc.Col(
+                [
+                    Loading(html.Div(id = 'qc-commonality-graph-div'))
+                ],
+                width = 10
+            )
+        ]
+    )

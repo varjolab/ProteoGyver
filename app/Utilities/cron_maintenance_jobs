@@ -1,3 +1,5 @@
 # must be ended with a new line "LF" (Unix) and not "CRLF" (Windows)
-*/15 * * * * cd /proteogyver/Utilities && python3 echo "Hello world" >> /var/log/cron.log 2>&1
+*/15 * * * * cd /proteogyver/Utilities && python3 update_database.py >> /var/log/cron.log 2>&1
+*/15 * * * * nmon -s 10 -c 90 -f -m /proteogyver/data/unparsed_stats
+0 1 * * * python3 /nm_pack.py /proteogyver/data/unparsed_stats /proteogyver/data/Server_output/stats
 # An empty line is required at the end of this file for a valid cron file.

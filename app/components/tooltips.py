@@ -19,3 +19,5 @@ def interactomics_select_top_controls_tooltip(target='interactomics-num-controls
 def force_svenn_tooltip(target = 'sidebar-force-supervenn') -> Tooltip:
     return generic_tooltip(target, 'This option will force the use of supervenn in commonality plot, instead of deciding between supervenn and a heatmap depending on the number of sample groups.')
 
+def rescue_tooltip(target = 'interactomics-rescue-filtered-out') -> Tooltip:
+    return generic_tooltip(target, 'Rescue will let preys pass filter if they pass the filter with any other bait. This means that BFDR values of e.g. 0.9 can pass, if the prey has a BFDR value of 0.0 with some other bait. !!!NOTE!!! This feature works well for small interactomics datasets, and related baits. With large and unrelated bait sets, it will enrich contaminants, that would otherwise be caught by filter in most baits.')
