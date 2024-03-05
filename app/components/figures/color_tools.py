@@ -11,7 +11,7 @@ def get_assigned_colors(sample_group_dict: dict) -> dict:
     colors: list = get_cut_colors(number_of_colors=len(entry_list))
     group_colors: dict = {}
     for i, entry in enumerate(entry_list):
-         group_colors[entry] = f'rgb({",".join(str(int(255*x)) for x in colors[i][:3])})'
+         group_colors[entry] = f'rgba({",".join(str(int(255*x)) for x in colors[i][:3])}, 1)'
     ret: dict = {'samples': {}, 'sample groups': group_colors}
     ret_cont: dict = {}
     for c in 'contaminant','non-contaminant':

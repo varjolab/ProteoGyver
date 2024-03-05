@@ -5,6 +5,37 @@ from math import ceil
 from components.tools import R_tools
 from scipy.stats import median_abs_deviation
 from sklearn.decomposition import PCA
+import pandas as pd
+import numpy as np
+from scipy.cluster.hierarchy import linkage, leaves_list
+from scipy.spatial.distance import pdist, squareform
+
+def hierarchical_clustering(df, cluster='both', method='ward', fillval: float = 0.0):
+    """
+    Perform hierarchical clustering on a pandas DataFrame.
+    
+    Parameters:
+    - df: pandas DataFrame with numerical values
+    - cluster: 'rows', 'columns', or 'both' to specify which dimension to cluster
+    - method: Method of linkage for hierarchical clustering. Defaults to 'ward'
+    
+    Returns:
+    - clustered_df: pandas DataFrame reordered according to hierarchical clustering
+    """
+    
+    if cluster not in ['rows', 'columns', 'both']:
+        raise ValueError("Parameter 'cluster' must be one of 'rows', 'columns', or 'both'.")
+
+    if cluster == 'rows' or cluster == 'both':
+        row_linkage = linkage(pdist(df.fillna(fillval), metric='euclidean'), method=method)
+        row_order = leaves_list(row_linkage)
+        df = df.iloc[row_order, :]
+        
+    if cluster == 'columns' or cluster == 'both':
+        col_linkage = linkage(pdist(df.T.fillna(fillval), metric='euclidean'), method=method)
+        col_order = leaves_list(col_linkage)
+        df = df.iloc[:, col_order]     
+    return df
 
 
 def filter_missing(data_table: DataFrame, sample_groups: dict, threshold: int = 60) -> DataFrame:

@@ -1,7 +1,7 @@
 import pandas as pd
 from dash import html
 from dash.dcc import Graph
-from components.figures import bar_graph, before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot, histogram
+from components.figures import bar_graph, before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot, histogram, cvplot
 from components import matrix_functions, summary_stats, stats
 from components.figures.figure_legends import PROTEOMICS_LEGENDS as legends
 from components.figures.figure_legends import leg_rep
@@ -292,6 +292,20 @@ def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
     )
     return None
 
+def perc_cvplot(imputed_data_json: str, sample_groups: dict, replicate_colors: dict, defaults: dict) -> Graph:
+    graph, data = cvplot.make_graph(pd.read_json(imputed_data_json, orient='split'),sample_groups, replicate_colors, defaults, 'proteomics-cv-plot')
+    return (
+        html.Div(
+            id = 'proteomics-cv-div',
+            children = [
+                html.H4(id='proteomics-cv-header', children='Coefficients of variation'),
+                graph,
+                legends['cv']
+            ]
+        ),
+        data
+    )
+
 def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, title: str = None) -> tuple:
 
     logger.warning(f'imputation - start: {datetime.now()}')
@@ -322,7 +336,7 @@ def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, t
     )
 
 
-def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict, replicate_colors: dict) -> tuple:
+def pca(imputed_data_json: str, sample_groups_rev: dict, defaults: dict, replicate_colors: dict) -> tuple:
 
     logger.warning(f'PCA - start: {datetime.now()}')
     data_table: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
@@ -357,7 +371,7 @@ def pca(imputed_data_json: dict, sample_groups_rev: dict, defaults: dict, replic
     )
 
 
-def clustermap(imputed_data_json: dict, defaults: dict) -> tuple:
+def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
     """Draws a correltion clustergram figure from the given data_table.
 
     Parameters:
@@ -391,7 +405,7 @@ def clustermap(imputed_data_json: dict, defaults: dict) -> tuple:
     )
 
 
-def volcano_plots(imputed_data_json: dict, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
+def volcano_plots(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
 
     logger.warning(f'volcano - start: {datetime.now()}')
     data: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')

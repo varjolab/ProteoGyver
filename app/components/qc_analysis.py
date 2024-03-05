@@ -7,6 +7,7 @@ from components.figures import bar_graph, comparative_plot, commonality_graph, r
 from components import summary_stats
 from components.figures.figure_legends import QC_LEGENDS as legends
 from components.ui_components import checklist
+from components.tooltips import use_svenn_tooltip
 from datetime import datetime
 from dash.dcc import Graph, Dropdown, Loading
 import logging
@@ -360,6 +361,9 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
     return (graph_area, json.dumps(common_data), image_str)
 
 def generate_commonality_container(sample_groups):
+    def_for_force: list = []
+    if len(sample_groups) <= 6:
+        def_for_force.append('Use supervenn')
     return dbc.Row(
         [
             dbc.Col(
@@ -370,10 +374,17 @@ def generate_commonality_container(sample_groups):
                 default_choice=sample_groups,
                 clean_id = False,
                 prefix_list = [html.H5('Select visible sample groups', style={'padding': '75px 0px 0px 0px'})],
-                postfix_list=[
-                    dbc.Button('Update plot',
-                            id='qc-commonality-plot-update-plot-button'),
-                ]
+                postfix_list=checklist(
+                    label='toggle-additional-supervenn-options',
+                    options=['Use supervenn'],
+                    id_only=True,
+                    default_choice = def_for_force,
+                    clean_id = False,
+                    postfix_list = [
+                        dbc.Button('Update plot',id='qc-commonality-plot-update-plot-button'),
+                        use_svenn_tooltip()
+                    ]
+                )
             ), width=2),
             dbc.Col(
                 [

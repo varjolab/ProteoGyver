@@ -170,11 +170,6 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 id='sidebar-rename-replicates',
                 options=['Rename replicates'], value=[]
             ),
-            dcc.Checklist(
-                id='sidebar-force-supervenn',
-                options=['Force supervenn'], value=[]
-            ),
-            tooltips.force_svenn_tooltip(),
             html.H4('Select workflow:'),
             dbc.Select(
                 options=[
@@ -566,6 +561,12 @@ def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
                     id='proteomics-loading-imputation',
                     children=html.Div(
                         id={'type': 'workflow-plot', 'id': 'proteomics-imputation-plot-div'}),
+                    type='default'
+                ),
+                dcc.Loading(
+                    id='proteomics-loading-cv',
+                    children=html.Div(
+                        id={'type': 'workflow-plot', 'id': 'proteomics-cv-plot-div'}),
                     type='default'
                 ),
                 dcc.Loading(

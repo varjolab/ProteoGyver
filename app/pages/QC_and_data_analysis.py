@@ -394,7 +394,6 @@ def pass_selected_groups_to_data_store(_, selection):
     Input({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
 )
 def generate_commonality_container(data_dictionary):
-    print('THIS SHOULD ONLY BE DONE ONCE')
     sample_groups = sorted(list(data_dictionary['sample groups']['norm'].keys()))
     return qc_analysis.generate_commonality_container(sample_groups)
 
@@ -404,15 +403,12 @@ def generate_commonality_container(data_dictionary):
     Output({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
     State({'type': 'qc-plot', 'id': 'commonality-plot-div'}, 'children'),# TODO: remove if unneeded
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
-    State('sidebar-force-supervenn', 'value'),
+    State('toggle-additional-supervenn-options', 'value'),
     Input({'type': 'data-store',
            'name': 'qc-commonality-plot-visible-groups-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def commonality_plot(_, data_dictionary: dict, force_supervenn: list, show_only_groups: dict) -> tuple:
-    force_svenn: bool = False
-    if len(force_supervenn) > 0:
-        force_svenn = True
+def commonality_plot(_, data_dictionary: dict, additional_options: list, show_only_groups: dict) -> tuple:
     show_groups = None
     if show_only_groups is not None:
         show_groups = show_only_groups['groups']
@@ -423,7 +419,7 @@ def commonality_plot(_, data_dictionary: dict, force_supervenn: list, show_only_
                                        ['table to use']],
         data_dictionary['sample groups']['rev'],
         parameters['Figure defaults']['full-height'],
-        force_svenn, only_groups=show_groups
+        ('Use supervenn' in additional_options), only_groups=show_groups
     )
 
 @callback(
@@ -528,6 +524,17 @@ def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_gr
         parameters['Figure defaults']['half-height'],
         parameters['Figure defaults']['full-height']
     )
+
+@callback(
+    Output({'type': 'workflow-plot', 'id': 'proteomics-cv-plot-div'}, 'children'),
+    Output({'type': 'data-store', 'name': 'proteomics-cv-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    prevent_initial_call=True
+)
+def proteomics_cv_plot(imputed_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
+    return proteomics.perc_cvplot(imputed_data, upload_dict['sample groups']['norm'], replicate_colors, parameters['Figure defaults']['full-height'])
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-pca-plot-div'}, 'children'),

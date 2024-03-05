@@ -108,8 +108,8 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
     )
 
 
-def make_graph(group_sets: dict, id_str: str, force_svenn: bool, defaults: dict) -> tuple:
-    if force_svenn or (len(group_sets.keys()) <= 6):
+def make_graph(group_sets: dict, id_str: str, use_supervenn: bool, defaults: dict) -> tuple:
+    if use_supervenn:
         return supervenn(group_sets, id_str)
     else:
         return common_heatmap(group_sets, id_str, defaults)

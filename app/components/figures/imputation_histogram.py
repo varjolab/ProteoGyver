@@ -13,6 +13,7 @@ def make_graph(non_imputed, imputed, defaults, id_name: str = None, title:str = 
     if id_name is None:
         id_name: str = 'imputation-histogram'
     imputed['Imputed'] = non_imputed['value'].isna()
+    imputed.sort_values(by='Imputed', ascending=True, inplace=True)
     if 'height' not in kwargs:
         kwargs: dict = dict(kwargs,height=defaults['height'])
     if 'width' not in kwargs:

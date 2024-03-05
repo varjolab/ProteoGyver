@@ -24,6 +24,7 @@ leg_dict: dict = {
         'pertubation-bar': 'Z-score based pertubation score against CONTROLSTRING. Based on the molecular degree of pertubation R-package, but not quite the same. Z-score is calculated based on the mean of the control group, instead of the full sample panel. Higher values mean samples that are more different from the control group. Calculated using BARVALS.',
         'pertubation-bar-2': 'Z-score based pertubation score against CONTROLSTRING. Calculated using BARVALS.',
         'pertubation-matrix': 'Z-score based pertubation score against CONTROLSTRING for TOPN most different proteins across all samples.',
+        'cv': 'Coefficient of variation is the standard deviation of a protein divided by the mean of the protein across each sample group. One protein therefore is represented by three entries in this plot. Calculating CV per sample group instead of across all sample groups is better, when we are interested in how stable the abundance is within-group. Given that each sample group consists of replicates, variance should be minimal. In this plot, percentage of CV is plotted against the protein log2 abundance. Abundance should have a nice, normal distribution, and higher abundance should correspond to lower CV. CVs under 20% qualify as good quality data, and most of them should be under 10%.'
     },
     'interactomics': {
         'pca': 'Spectral count -based PCA. Missing values have been imputed with zeroes. This is not a publication-worthy plot, but does indicate how similar baits are to one another.',

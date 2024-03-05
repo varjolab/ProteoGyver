@@ -272,6 +272,7 @@ PyJWT @ file:///work/ci_py311/pyjwt_1676827385359/work
 pylint @ file:///work/ci_py311/pylint_1676920998643/work
 pylint-venv @ file:///work/ci_py311/pylint-venv_1677706395472/work
 pyls-spyder==0.4.0
+pyNmonAnalyzer==1.0.9
 pyodbc @ file:///work/ci_py311/pyodbc_1676860985304/work
 pyOpenSSL @ file:///croot/pyopenssl_1690223430423/work
 pyparsing==3.1.1

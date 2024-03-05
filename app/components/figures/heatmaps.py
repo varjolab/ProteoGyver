@@ -2,6 +2,7 @@ from dash_bio import Clustergram
 from dash.dcc import Graph
 from plotly import graph_objects as go
 from plotly import express as px
+from components import matrix_functions
 from math import ceil
 
 def draw_clustergram(plot_data, defaults, color_map:list = None, **kwargs) -> Clustergram:
@@ -31,13 +32,15 @@ def draw_clustergram(plot_data, defaults, color_map:list = None, **kwargs) -> Cl
         **kwargs
     )
 
-def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict, cmap: str, autorange: bool = False, symmetrical: bool = True) -> Graph:
+def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict, cmap: str, autorange: bool = False, symmetrical: bool = True, cluster: str = None) -> Graph:
     zmi: int = 0
     if autorange:
         zmi = matrix_df.min().min()
         zmi = zmi = zmi*0.1
         zmi = -ceil(abs(zmi))
     zma: int = matrix_df.max().max()
+    if cluster is not None:
+        matrix_df = matrix_functions.hierarchical_clustering(matrix_df,cluster=cluster)
     zma = zma + zma*0.1
     zma = ceil(zma)
     if symmetrical:

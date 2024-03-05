@@ -85,7 +85,8 @@ def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, 
                     defaults=defaults,
                     cmap='balance',
                     autorange=True,
-                    symmetrical=True
+                    symmetrical=True,
+                    cluster='columns'
                 ),
                 volcano_heatmap_legend(control, id_prefix)
             ])
