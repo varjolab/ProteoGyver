@@ -59,6 +59,7 @@ UPLOAD_STYLE: dict = {
 UPLOAD_BUTTON_STYLE: dict = {
     'display': 'inline-block',
     'margin': '2%',
+    'height': '40px',
     'width':'96%',
 }
 SIDEBAR_LIST_STYLES: dict = {

@@ -18,6 +18,7 @@ def tic_figure(defaults:dict, traces: dict, datatype: str = 'TIC', height: int =
         height=400,
         xaxis_range=[0,max_x],
         yaxis_range=[0,max_y],
-        margin=dict(l=5, r=5, t=20, b=5)
+        margin=dict(l=5, r=5, t=20, b=5),
+        hovermode='x unified'
     )
     return tic_figure

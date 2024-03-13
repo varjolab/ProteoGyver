@@ -17,14 +17,27 @@ def vsn(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> pd.DataFra
         'm = justvsn(data.matrix(data))',
         f'write.table(m,file="{tempname}",sep="\\t",col.names=NA,quote=FALSE)'
     ]
-    return run_rscript(script, dataframe, [tempname], errorfile)
+    return run_rscript(script, dataframe, tempname, errorfile)
 
-def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_names: list, errorfile: str):
+def diann_maxlfq(report_df: pd.DataFrame, errorfile: str, modifications:list = None) -> pd.DataFrame:
+    tempname: uuid.UUID = str(uuid.uuid4())
+    mod_list = '|'.join(modifications)
+    script: list = [
+        'library(diann)',
+        f'df <- diann_load("{tempname}")',
+        f'df$modified <- grepl({mod_list}, df$Modified.Sequence, fixed=TRUE)',
+        'df <- df[df$modified==TRUE,]',
+        'mod_pgs <- diann_maxlfq(df, group.header="Protein.Group", id.header = "Precursor.Id", quantity.header = "Precursor.Normalised")'
+        f'write.table(phospho_pgs, "{tempname}", sep="\t",quote=FALSE)'
+    ]
+
+    return run_rscript(script, report_df, tempname, errorfile)
+
+def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_name: list, errorfile: str, input_df_has_index:bool = True):
     with tempfile.NamedTemporaryFile() as datafile:
         repwith = datafile.name
-        for repwhat in replace_names:
-            r_script_contents = [line.replace(repwhat,repwith) for line in r_script_contents]
-        r_script_data.to_csv(datafile, sep='\t')
+        r_script_contents = [line.replace(replace_name,repwith) for line in r_script_contents]
+        r_script_data.to_csv(datafile, sep='\t', index=input_df_has_index)
         with tempfile.NamedTemporaryFile() as scriptfile:
             scriptfile.write('\n'.join(r_script_contents).encode('utf-8'))
             scriptfile.flush()
@@ -52,4 +65,4 @@ def impute_qrilc(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> p
         f'df <- read.csv("{tempname}",sep="\\t",row.names=1)',
         f'write.table(data.frame(impute.QRILC(df,tune.sigma=1)[1]),file="{tempname}",sep="\\t")'
     ]
-    return run_rscript(script, dataframe, [tempname], errorfile)
+    return run_rscript(script, dataframe, tempname, errorfile)

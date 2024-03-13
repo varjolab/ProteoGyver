@@ -4,6 +4,7 @@ import numpy as np
 from statsmodels.stats import multitest
 from scipy.stats import ttest_ind
 from typing import Any
+from components.data_provider import map_protein_info
 
 
 
@@ -42,6 +43,7 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
             result['Identifier'] = data_table.index
         else:
             result['Name'] = data_table.index.values
+        result['Gene']  = map_protein_info(result.index)
         result['Sample'] = sample
         result['Control'] = control
         result['Significant'] = ((result['p_value_adj']<adj_p_thr) & (result['fold_change'].abs() > fc_thr))
@@ -52,6 +54,7 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
         ['Sample',
          'Control',
          'Name',
+         'Gene',
          'Significant',
          'fold_change',
          'p_value',

@@ -2,23 +2,22 @@ import plotly.graph_objects as go
 from dash.dcc import Graph
 import pandas as pd
 
-def make_graph(imputed: pd.DataFrame, sample_groups: dict, replicate_colors: dict, defaults: dict, id_name: str):
-    assert imputed.isna().sum().sum() == 0, 'No missing values allowed'
+def make_graph(normalized_data: pd.DataFrame, sample_groups: dict, replicate_colors: dict, defaults: dict, id_name: str):
     all_cvs = []
     all_text = []
     all_abundances = []
     colors = []
     for sg, group_cols in sample_groups.items():
-        means = imputed[group_cols].mean(axis=1)
-        stds = imputed[group_cols].std(axis=1)
+        means = normalized_data[group_cols].mean(axis=1)
+        stds = normalized_data[group_cols].std(axis=1)
         cv_percent = (stds / means) * 100
         all_cvs.extend(list(cv_percent))
         all_abundances.extend(list(means))
-        all_text.extend([f'{i} in {sg}' for i in imputed.index.values])
+        all_text.extend([f'{i} in {sg}' for i in normalized_data.index.values])
         colors.extend(
             [
                 replicate_colors['sample groups'][sg].replace(', 1)',', 0.5)')
-            ]*imputed.shape[0]
+            ]*normalized_data.shape[0]
         )
     x = all_abundances
     y = all_cvs

@@ -46,15 +46,17 @@ def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict,
     if symmetrical:
         zma = max(zma, abs(zmi))
         zmi = -zma
-    figure: go.Figure = px.imshow(matrix_df,
-                                    aspect='auto',
-                                    labels=dict(
-                                    x=matrix_df.columns.name,
-                                    y=matrix_df.index.name,
-                                    color=value_name),
-                                    color_continuous_scale=cmap,
-                                    height=defaults['height'],
-                                    width=defaults['width'],
-                                    zmin = zmi,
-                                    zmax = zma)
+    figure: go.Figure = px.imshow(
+        matrix_df,
+        aspect='auto',
+        labels=dict(
+        x=matrix_df.columns.name,
+        y=matrix_df.index.name,
+        color=value_name),
+        color_continuous_scale=cmap,
+        height=defaults['height'],
+        width=defaults['width'],
+        zmin = zmi,
+        zmax = zma,
+    )
     return Graph(config=defaults['config'], figure=figure, id=f'heatmap-{plot_name}')

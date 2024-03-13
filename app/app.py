@@ -12,7 +12,7 @@ from datetime import datetime
 celery_app = Celery(
     __name__, broker="redis://localhost:6379/0", backend="redis://localhost:6379/1"
 )
-long_callback_manager = CeleryLongCallbackManager(celery_app)
+long_callback_manager = CeleryLongCallbackManager(celery_app, expire=300)
 
 app = Dash(__name__, use_pages=True, external_stylesheets=[
            FLATLY], suppress_callback_exceptions=True, long_callback_manager=long_callback_manager)

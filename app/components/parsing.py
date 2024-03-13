@@ -361,8 +361,9 @@ def guess_control_samples(sample_names: list) -> list:
 
 
 def parse_comparisons(control_group, comparison_data, sgroups) -> list:
+    """Parses control group, sample group, and comparison data into a list of pairwise [sample, control] comparisons"""
     comparisons: list = []
-    if control_group is not None:
+    if (control_group is not None) and (control_group != ''):
         comparisons.extend([(sample, control_group)
                             for sample in sgroups.keys()if sample != control_group])
     if comparison_data is not None:

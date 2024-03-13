@@ -145,46 +145,52 @@ def upload_area(id_text, upload_id, indicator=True) -> html.Div:
 def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Div:
     return html.Div(
         [
-            html.H2("Input", style={'textAlign': 'center'}),
-            dbc.Button(
-                'Download example sample table',
-                style=UPLOAD_BUTTON_STYLE,
-                id='button-download-sample_table-template',
-                className='btn-info',
-            ),
-            dbc.Button(
-                'Download example data file',
-                style=UPLOAD_BUTTON_STYLE,
-                id='button-download-datafile-example',
-                className='btn-info',
-            ),
-            html.H4('Upload files:'),
-            upload_area('upload-data-file', 'Data file'),
-            upload_area('upload-sample_table-file', 'Sample table'),
-            html.Br(),
-            dcc.Checklist(
-                id='sidebar-remove-common-contaminants',
-                options=['Remove common contaminants'], value=['Remove common contaminants']
-            ),
-            dcc.Checklist(
-                id='sidebar-rename-replicates',
-                options=['Rename replicates'], value=[]
-            ),
-            html.H4('Select workflow:'),
-            dbc.Select(
-                options=[
-                    {'label': item, 'value': item} for item in implemented_workflows
-                ],
-                id='workflow-dropdown',
-            ),
-            html.H4('Select figure style:'),
-            dbc.Select(
-                value=figure_templates[0],
-                options=[
-                    {'label': item, 'value': item} for item in figure_templates
-                ],
-                id='figure-theme-dropdown',
-            ),
+            html.H2(children='▼ Input', id='input-header', style={'textAlign': 'center'}),
+            dbc.Collapse([
+                dbc.Button(
+                    'Download example sample table',
+                    style=UPLOAD_BUTTON_STYLE,
+                    id='button-download-sample_table-template',
+                    className='btn-info',
+                ),
+                dbc.Button(
+                    'Download example data file',
+                    style=UPLOAD_BUTTON_STYLE,
+                    id='button-download-datafile-example',
+                    className='btn-info',
+                ),
+                html.H4('Upload files:'),
+                upload_area('upload-data-file', 'Data file'),
+                upload_area('upload-sample_table-file', 'Sample table'),
+                html.Div([
+                        dcc.Checklist(
+                            id='sidebar-options',
+                            options=['Remove common contaminants', 'Rename replicates'], value=['Remove common contaminants'],
+                        )
+                    ],style={'display': 'inline-block'}),
+                html.H4('Select workflow:'),
+                dbc.Select(
+                    options=[
+                        {'label': item, 'value': item} for item in implemented_workflows
+                    ],
+                    id='workflow-dropdown',
+                ),
+                html.H4('Select figure style:'),
+                dbc.Select(
+                    value=figure_templates[0],
+                    options=[
+                        {'label': item, 'value': item} for item in figure_templates
+                    ],
+                    id='figure-theme-dropdown',
+                ),
+                dbc.Button(
+                    'Begin analysis',
+                    id='begin-analysis-button',
+                    style=UPLOAD_BUTTON_STYLE,
+                    className='btn-info',
+                    disabled=True,
+                ),
+            ],id='input-collapse',is_open=True),
             html.Div(
                 id='discard-samples-div',
                 children=[
@@ -199,13 +205,6 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 hidden=True
             ),
             dbc.Button(
-                'Begin analysis',
-                id='begin-analysis-button',
-                style=UPLOAD_BUTTON_STYLE,
-                className='btn-info',
-                disabled=True,
-            ),
-            dbc.Button(
                 children = dcc.Loading(
                             html.Div(id='button-download-all-data-text', children='Download all data')
                 ),
@@ -215,7 +214,7 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 disabled=True,
             ),
             # top right bottom left
-            html.Div(id='toc-div', style={'padding': '0px 10px 10px 30px'}),
+            html.Div(id='toc-div', style={'padding': '0px 10px 10px 30px', 'overflow': 'scroll'}),
             dcc.Download(id='download-sample_table-template'),
             dcc.Download(id='download-datafile-example'),
             dcc.Download(id='download-proteomics-comparison-example'),
@@ -280,6 +279,8 @@ def workflow_area(workflow: str, workflow_specific_parameters: dict, data_dictio
 
 
 def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
+    control_dropdown_options = ['']
+    control_dropdown_options.extend(sorted(list(data_dictionary['sample groups']['norm'].keys())))
     return dbc.Card(
         dbc.CardBody([
             dbc.Row([
@@ -321,8 +322,7 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
                         dbc.Select(
                             options=[
                                 {'label': sample_group, 'value': sample_group} for sample_group in
-                                sorted(
-                                    list(data_dictionary['sample groups']['norm'].keys()))
+                                control_dropdown_options
                             ],
                             required=True,
                             id='proteomics-control-dropdown',
@@ -735,7 +735,10 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
                 disabled=enrichment_dict['disabled'],
                 id_prefix='interactomics',
                 id_only=True,
-                prefix_list=[dbc.Label('Choose enrichments:')]
+                prefix_list=[
+                    dbc.Button('Deselect all enrichments',id='interactomics-select-none-enrichments'),
+                    dbc.Label('Choose enrichments:')
+                ]
             )
         )
     ])
@@ -980,6 +983,8 @@ def navbar(navbar_pages) -> dbc.NavbarSimple:
 
 def table_of_contents(main_div_children: list, itern=0) -> list:
     ret: list = []
+    if itern == 0:
+        ret.append(html.H3('Table of contents'))
     if main_div_children is None:
         return ret
     if isinstance(main_div_children, dict):

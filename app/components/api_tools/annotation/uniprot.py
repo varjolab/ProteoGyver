@@ -403,10 +403,6 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     else:
         reviewed = ''
 
-    retries: Retry = Retry(total=5, backoff_factor=0.25,
-                    status_forcelist=[500, 502, 503, 504])
-    session: requests.Session = requests.Session()
-    session.mount("https://", HTTPAdapter(max_retries=retries))
     fieldstr: list = []
     headers: list = []
     output_format: str = 'tsv'
@@ -451,10 +447,17 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
         f'https://rest.uniprot.org/uniprotkb/search?fields={fieldstr}&format={output_format}&'
         f'query=%28taxonomy_id%3A{organism}{reviewed}%29&size=500'
     )
-    url: str = pagination_url
+    return download_uniprot_pagination_url(pagination_url, headers, progress)
+
+def download_uniprot_pagination_url(pag_url: str, headers: list, progress:bool) -> pd.DataFrame:
+    retries: Retry = Retry(total=5, backoff_factor=0.25,
+                    status_forcelist=[500, 502, 503, 504])
+    session: requests.Session = requests.Session()
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+
     alltext: list = []
     index: list = []
-    for batch, total in __get_uniprot_batch(url, session):
+    for batch, total in __get_uniprot_batch(pag_url, session):
         for line in batch.text.splitlines()[1:]:
             line: list = line.split('\t')
             alltext.append(line[1:])
@@ -463,7 +466,33 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
             print(f'{len(alltext)} / {total}')
     return pd.DataFrame(columns=headers[1:], data=alltext, index=pd.Series(index, name='Entry'))
 
-
+def retrieve_protein_group(name:str, query_col:str = 'protein_name', reviewed:bool = True) -> pd.DataFrame:
+    """Utility function to quickly download tsvs describing each common protein class used in ProteoGyver.
+    
+    Parameters:
+    name: protein group name to search for
+    query_col: column to search. Protein name by default.
+    """
+    headers = [
+        'Entry',
+        'Reviewed',
+        'Entry name',
+        'Protein names',
+        'Gene names',
+        'Organism',
+        'Length',
+        'Gene names (primary)'
+    ]
+    colmap = get_uniprot_column_map()
+    field_str = '%2C'.join([colmap[h] for h in headers])
+    
+    name = name.lower().replace(' ','+')
+    if reviewed:
+        revstr:str = '+AND+%28reviewed%3Atrue%29'
+    else:
+        revstr = ''
+    group_url = f'https://rest.uniprot.org/uniprotkb/search?fields={field_str}&format=tsv&query=%28{query_col}%3A{name}%29{revstr}&size=500'
+    return download_uniprot_pagination_url(group_url, headers, False)
 def retrieve_uniprot(uniprotfile: str = 'Full human uniprot.tsv', **kwargs) -> pd.DataFrame:
     """Downloads full uniprot (reviewed entries only) to a file and returns the dataframe.
 

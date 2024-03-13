@@ -45,7 +45,8 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
                 'qc-count-plot',
                 defaults,
                 count_data,
-                title, color_discrete_map=True
+                title, color_discrete_map=True,
+                hide_legend=False
             ),
             legends['count-plot']
         ]
@@ -131,8 +132,8 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
     tic_dic: dict = {t_type.lower(): {'traces': [] } for t_type in dtypes}
     for trace_type in dtypes:
         trace_type = trace_type.lower()
-        max_x: float = 2000.0
-        max_y: float = 2000.0
+        max_x: float = 1.0
+        max_y: float = 1.0
         for _,row in ms_runs.iterrows():
             sample_row = expdesign[expdesign['Sampleid']==row['run_id']].iloc[0]
             trace = json.loads(row[f'{trace_type}_trace'])
@@ -373,7 +374,7 @@ def generate_commonality_container(sample_groups):
                 options=sample_groups,
                 default_choice=sample_groups,
                 clean_id = False,
-                prefix_list = [html.H5('Select visible sample groups', style={'padding': '75px 0px 0px 0px'})],
+                prefix_list = [html.H4('Select visible sample groups', style={'padding': '75px 0px 0px 0px'})],
                 postfix_list=checklist(
                     label='toggle-additional-supervenn-options',
                     options=['Use supervenn'],

@@ -4,7 +4,7 @@ from dash import dcc, html
 import os
 from plotly import io as pio
 from plotly import graph_objects as go
-import shutil
+from components.figures import tic_graph
 import re
 import json
 import pandas as pd
@@ -14,55 +14,63 @@ import logging
 logger = logging.getLogger(__name__)
 
 data_store_export_configuration: dict = {
+    'interactomics-network-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-network-interactions-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-saint-bfdr-histogram-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-saint-graph-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-common-protein-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'proteomics-comparison-table-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'commonality-figure-pdf-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'proteomics-cv-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'qc-commonality-plot-visible-groups-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+
     'uploaded-data-table-info-data-store': ['json', 'Debug', '', ''],
-    'uploaded-data-table-data-store': ['xlsx', 'Data', 'Input data tables', 'upload-split'],
     'uploaded-sample-table-info-data-store': ['json', 'Debug', '', ''],
-    'uploaded-sample-table-data-store': ['xlsx', 'Data', 'Input data tables', 'Uploaded expdesign;Sheet 3'],
     'upload-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
     'discard-samples-data-store': ['json', 'Debug', '', ''],
-    'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'qc-commonality-plot-visible-groups-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'count-data-store': ['xlsx', 'Data', 'Summary data', 'Protein counts;'],
-    'common-protein-data-store': ['xlsx', 'Data', 'Summary data', 'Common proteins;'],
-    'coverage-data-store': ['xlsx', 'Data', 'Summary data', 'Protein coverage;'],
-    'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
-    'missing-data-store': ['xlsx', 'Data', 'Summary data', 'Missing counts;'],
-    'sum-data-store': ['xlsx', 'Data', 'Summary data', 'Value sums;'],
-    'mean-data-store': ['xlsx', 'Data', 'Summary data', 'Value means;'],
-    'distribution-data-store': ['xlsx', 'Data', 'Summary data', 'Value distribution;'],
     'commonality-data-store': ['json', 'Data', 'Commonality data', ''],
-    'commonality-figure-pdf-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'proteomics-cv-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'proteomics-na-filtered-data-store': ['xlsx', 'Data', 'Proteomics data tables', 'NA filtered data;Sheet 2'],
-    'proteomics-normalization-data-store': ['xlsx', 'Data', 'Proteomics data tables', 'NA-Normalized data;Sheet 1'],
-    'proteomics-imputation-data-store': ['xlsx', 'Data', 'Proteomics data tables', 'NA-Norm-Imputed data;Sheet 0'],
-    'proteomics-distribution-data-store': ['xlsx', 'Data', 'Summary data', 'sample distribution;'],
-    'proteomics-pca-data-store': ['xlsx', 'Data', 'Figure data', 'Proteomics PCA;'],
-    'proteomics-clustermap-data-store': ['xlsx', 'Data', 'Figure data', 'Proteomics Clustermap;'],
-    'proteomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
-    'proteomics-comparison-table-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'proteomics-pertubation-data-store': ['xlsx', 'Data', 'Figure data', 'Proteomics pertubation;Sheet 0'],
-    'interactomics-saint-input-data-store': ['xlsx', 'Data', 'SAINT input', 'saint-split'],
-    'interactomics-enrichment-data-store': ['xlsx', 'Data', 'Enrichment', 'enrichment-split'],
-    'interactomics-saint-bfdr-histogram-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'interactomics-saint-graph-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'interactomics-common-protein-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'interactomics-network-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Network data;Sheet 8'],
-    'interactomics-pca-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'PCA;Sheet 7'],
-    'interactomics-imputed-and-normalized-intensity': ['xlsx', 'Data', 'Interactomics data tables', 'ImpNorm intensities;Sheet 6'],
-    'interactomics-saint-crapome-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Crapome;Sheet 5'],
-    'interactomics-saint-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Saint output;Sheet 4'],
-    'interactomics-saint-final-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Saint output with crapome;Sheet 3'],
-    'interactomics-saint-filtered-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filtered saint output;Sheet 2'],
-    'interactomics-saint-filtered-and-intensity-mapped-output-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filtered with intensities;Sheet 1|rename-int'],
-    'interactomics-saint-filt-int-known-data-store': ['xlsx', 'Data', 'Interactomics data tables', 'Filt int with knowns;Sheet 0|rename-int'],
+    'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
+    
+    'uploaded-sample-table-data-store': ['tsv', 'Data', ['Input data tables', 'Uploaded expdesign'],''],
+    'uploaded-data-table-data-store': ['tsv', 'Data', 'Input data tables', 'upload-split'],
+
+    'interactomics-msmic-data-store': ['tsv', 'Data', 'MS microscopy results', ''],
+    'interactomics-volcano-data-store': ['tsv', 'Data', 'Differential abundance', 'volc-split'],
+    
+    'count-data-store': ['tsv', 'Data', ['Summary data', 'Protein counts'],''],
+    'common-protein-data-store': ['tsv', 'Data', ['Summary data', 'Common proteins'],''],
+    'coverage-data-store': ['tsv', 'Data', ['Summary data', 'Protein coverage'],''],
+    'missing-data-store': ['tsv', 'Data', ['Summary data', 'Missing counts'],''],
+    'sum-data-store': ['tsv', 'Data', ['Summary data', 'Value sums'],''],
+    'mean-data-store': ['tsv', 'Data', ['Summary data', 'Value means'],''],
+    'proteomics-distribution-data-store': ['tsv', 'Data', ['Summary data', 'sample distribution'],''],
+    'distribution-data-store': ['tsv', 'Data', ['Summary data', 'Value distribution'],''],
+
+    'proteomics-pca-data-store': ['tsv', 'Data', ['Figure data', 'Proteomics PCA'],''],
+    'proteomics-clustermap-data-store': ['tsv', 'Data', ['Figure data', 'Proteomics Clustermap'],''],
+    'proteomics-pertubation-data-store': ['tsv', 'Data', ['Figure data', 'Proteomics pertubation'],''],
+
+    'proteomics-na-filtered-data-store': ['tsv', 'Data', ['Proteomics data tables', 'NA filtered data'],''],
+    'proteomics-normalization-data-store': ['tsv', 'Data', ['Proteomics data tables', 'NA-Normalized data'],''],
+    'proteomics-imputation-data-store': ['tsv', 'Data', ['Proteomics data tables', 'NA-Norm-Imputed data'],''],
+    'interactomics-network-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Network data'],''],
+    
+    'interactomics-pca-data-store': ['tsv', 'Data', ['Interactomics data tables', 'PCA'],''],
+    'interactomics-imputed-and-normalized-intensity': ['tsv', 'Data', ['Interactomics data tables', 'ImpNorm intensities'],''],
+    'interactomics-saint-crapome-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Crapome'],''],
+    'interactomics-saint-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Saint output'],''],
+    'interactomics-saint-final-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Saint output with crapome'],''],
+    'interactomics-saint-filtered-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Filtered saint output'],''],
+    'interactomics-saint-input-data-store': ['tsv', 'Data', 'SAINT input', 'saint-split'],
+    'interactomics-enrichment-data-store': ['tsv', 'Data', 'Enrichment', 'enrichment-split'],
+    'proteomics-volcano-data-store': ['tsv', 'Data', 'Differential abundance', 'volc-split'],
+    'interactomics-saint-filtered-and-intensity-mapped-output-data-store': ['tsv', 'Data', 'Filtered interactomics results with intensity', 'rename-int'],
+    'interactomics-saint-filt-int-known-data-store': ['tsv', 'Data', 'Filtered interactomics results with intensity and knowns', 'rename-int'],
+
     'interactomics-enrichment-information-data-store': ['txt', 'Data', 'Enrichment information', 'enrich-split'],
-    'interactomics-volcano-data-store': ['xlsx', 'Data', 'Significant differences between sample groups', 'volc-split;significants [sg] vs [cg]'],
-    'interactomics-network-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'interactomics-network-interactions-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'interactomics-msmic-data-store': ['xlsx', 'Data', 'MS microscopy results', 'MS microscopy results;'],
 }
 
 figure_export_directories: dict = {
@@ -81,6 +89,7 @@ figure_export_directories: dict = {
     'Value mean': 'QC figures',
     'Imputation': 'Proteomics figures',
     'Missing value filtering': 'Proteomics figures',
+    'Coefficients of variation': 'Proteomics figures',
     'High-confidence interactions and identified known interactions': 'Interactomics figures',
     'Common proteins in data': ';REP:WORKFLOW; figures',
     'Intensity of proteins with missing values in other samples': 'Proteomics figures',
@@ -92,15 +101,15 @@ figure_export_directories: dict = {
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
 
 def save_data_stores(data_stores, export_dir) -> dict:
-    export_excels: dict = {}
     timestamps: dict = {}
     prev_time: datetime = datetime.now()
     logger.warning(f'save data stores - started: {prev_time}')
-    no_index: set = {'Uploaded expdesign', 'Filt saint w intensities', 'Filt int saint w knowns',
-                     'Filtered saint output', 'Saint output with crapome', 'Saint output', 'ImpNorm intensities', 'Network data'}
     for d in data_stores:
         if not 'data' in d['props']:
             continue
+        if isinstance(d['props']['data'], str):
+            if d['props']['data'].strip() == '':
+                continue
         timestamps[d['props']['id']['name']] = d['props']['modified_timestamp']
         export_format: str
         export_subdir: str
@@ -110,90 +119,56 @@ def save_data_stores(data_stores, export_dir) -> dict:
             d['props']['id']['name']]
         if export_format == 'NO EXPORT':
             continue
-        export_destination: str = os.path.join(export_dir, export_subdir)
-        if not os.path.isdir(export_destination):
-            os.makedirs(export_destination)
-        if export_format == 'json':
-            if file_name == '':
-                file_name = d['props']['id']['name']
-            with open(os.path.join(export_destination, file_name+'.json'), 'w', encoding='utf-8') as fil:
-                json.dump(d['props']['data'], fil, indent=2)
-        elif export_format == 'txt':
-            if file_config == 'enrich-split':
-                for enrichment_name, file_contents in d['props']['data']:
-                    with open(os.path.join(export_destination, f'{file_name} {enrichment_name}.{export_format}'), 'w', encoding='utf-8') as fil:
-                        fil.write(file_contents)
-        elif export_format == 'xlsx':
-            file_name = os.path.join(
-                export_destination, '.'.join([file_name, export_format]))
-            if file_name not in export_excels:
-                export_excels[file_name] = {}
-            if not 'split' in file_config:
-                sheet_name: str
-                sheet_name, sheet_index = file_config.split(';')
-                if 'pertubation' in file_config:
-                    continue
-                pdsheet = pd.read_json(d['props']['data'], orient='split')
-                if '|rename-int' in sheet_index:
-                    sheet_index = sheet_index.split('|')[0]
-                    if not 'Averaged intensity' in pdsheet.columns:
-                        if sheet_name == 'Filtered with intensities': # skip intensity sheet if no intensity present
-                            continue
-                        elif sheet_name == 'Filt int with knowns': # Rename sheet with knowns, if no intensity present.
-                            sheet_name = 'Filtered with knowns'
-                index_bool: bool = True
-                if (sheet_name in no_index):
-                    index_bool = False
-                try:
-                    sheet_index: int = int(sheet_index.split()[-1])
-                except IndexError:
-                    sheet_index = 0
-                    while sheet_index in export_excels[file_name]:
-                        sheet_index += 1
-                if not file_name in export_excels:
-                    export_excels[file_name] = {}
-                assert sheet_index not in export_excels[
-                    file_name], f'DUPLICATE INDEX IN EXCEL EXPORT: {sheet_name} and {export_excels[file_name][sheet_index]["name"]}'
-                try:
-                    export_excels[file_name][sheet_index] = {
-                        'name': sheet_name,
-                        'data': pdsheet,
-                        'headers': True,
-                        'index': index_bool
-                    }
-                except ValueError as e:
-                    logger.warning(
-                        f'save data stores - ValueError: {file_name} {sheet_index} {sheet_name}: {e} {prev_time}')
-                    continue
-            else:
-                if file_config == 'upload-split':
-                    sheet_index = 0
+        try:
+            export_destination: str = os.path.join(export_dir, export_subdir)
+            if isinstance(file_name, list):
+                export_destination = os.path.join(export_destination, *file_name[:-1])
+                file_name = file_name[-1]
+            if not os.path.isdir(export_destination):
+                os.makedirs(export_destination)
+            if export_format == 'json':
+                if file_name == '':
+                    file_name = d['props']['id']['name']
+                with open(os.path.join(export_destination, file_name+'.json'), 'w', encoding='utf-8') as fil:
+                    json.dump(d['props']['data'], fil, indent=2)
+            elif export_format == 'txt':
+                if file_config == 'enrich-split':
+                    for enrichment_name, file_contents in d['props']['data']:
+                        with open(os.path.join(export_destination, f'{file_name} {enrichment_name}.{export_format}'), 'w', encoding='utf-8') as fil:
+                            fil.write(file_contents)
+            elif export_format == 'tsv':
+                if not 'split' in file_config:
+                    pd_df = pd.read_json(d['props']['data'], orient='split')
+                    if 'pertubation' in file_config:
+                        continue
+                    if 'rename-int' in file_config:
+                        if not 'Averaged intensity' in pd_df.columns:
+                            if ('intensity' in file_name)  and ('knowns' in file_name):
+                                file_name = 'Filtered interactomics results with knowns'
+                            else:
+                                continue
+                    use_name = os.path.join(export_destination, '.'.join([file_name, export_format]))
+                    pd_df.to_csv(use_name, sep='\t')
+                elif 'enrichment-split' in file_config:
+                    export_destination = os.path.join(export_destination, file_name)
+                    if not os.path.isdir(export_destination): os.makedirs(export_destination)
+                    for enrichment_name, enrichment_dict in d['props']['data'].items():
+                        use_name = os.path.join(export_destination, '.'.join([f'{enrichment_name}', export_format]))
+                        pd.read_json(enrichment_dict['result'], orient='split').to_csv(use_name,sep='\t',index=False)
+                elif file_config == 'upload-split':
+                    export_destination = os.path.join(export_destination, file_name)
+                    if not os.path.isdir(export_destination): os.makedirs(export_destination)
                     for key, data_table in d['props']['data'].items():
-                        data_table_pd: pd.DataFrame = pd.read_json(
-                            data_table, orient='split')
-                        if data_table_pd.shape[1] < 2:
-                            continue
-                        sheet_name = f'Input table {key}'
-                        if not file_name in export_excels:
-                            export_excels[file_name] = {}
-                        assert sheet_index not in export_excels[
-                            file_name], f'DUPLICATE INDEX IN EXCEL EXPORT: {sheet_name} and {export_excels[file_name][sheet_index]["name"]}'
-                        export_excels[file_name][sheet_index] = {
-                            'name': sheet_name,
-                            'data': data_table_pd,
-                            'headers': True,
-                            'index': True,
-                        }
-                        sheet_index += 1
+                        use_name = os.path.join(export_destination, '.'.join([f'{key}', export_format]))
+                        pd_df:pd.DataFrame = pd.read_json(data_table, orient='split')
+                        if pd_df.shape[1] < 2: continue
+                        pd_df.to_csv(use_name,sep='\t')
                 elif file_config == 'saint-split':
-                    export_excels[file_name] = {
-                        i: {'name': key, 'index': False,
-                            'data': pd.DataFrame(value), 'headers': False}
-                        for i, (key, value) in enumerate(d['props']['data'].items())
-                    }
+                    for saint_name, saint_dict in d['props']['data'].items():
+                        use_name = os.path.join(export_destination, '.'.join([f'{file_name} {saint_name}', export_format]))
+                        pd.read_json(saint_dict, orient='split').to_csv(use_name,sep='\t',index=False)
                 elif 'volc-split' in file_config:
-                    df: pd.DataFrame = pd.read_json(
-                        d['props']['data'], orient='split')
+                    df: pd.DataFrame = pd.read_json(d['props']['data'], orient='split')
                     df_dicts: list = []
                     df_dicts_all: list = []
                     for _, s_c_row in df[['Sample', 'Control']].drop_duplicates().iterrows():
@@ -208,14 +183,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             compname = replace.sub('SG', compname)
                             if 'samplegroup' in compname.lower():
                                 compname = compname.replace()
-                            sig_comp = f'{compname} sig only'
-                            needed: int = len(sig_comp) - 31
-                            if needed >= 7:
-                                sig_comp = sig_comp[:27] + 'Sigs'
-                            else:
-                                sig_comp = sig_comp.replace(' only', '')
-                        if len(sig_comp) > 31:
-                            sig_comp = sample[:14] + 'vs' + control[:14]
+                            sig_comp = f'{compname} significant only'
                         sig_df = df[(df['Sample'] == sample) & (df['Control'] == control) & df['Significant']]
                         if sig_df.shape[0] > 0:
                             df_dicts.append({
@@ -230,68 +198,29 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             'headers': True,
                             'index': False
                         })
-                    if len(df_dicts) > 20:
-                        for df_dict_index, df_dict in enumerate(df_dicts):
-                            new_filename = file_name.replace(
-                                f'.{export_format}',
-                                f'{df_dict["name"]}.{export_format}'
-                            )
-                            export_excels[new_filename] = {
-                                0: df_dict,
-                                1: df_dicts_all[df_dict_index]
-                            }
-                    else:
-                        df_dicts.extend(df_dicts_all)
-                        export_excels[file_name] = {
-                            i: df_dict for i, df_dict in enumerate(df_dicts)
-                        }
-                elif 'enrichment-split' in file_config:
-                    for i, (enrichment_name, enrichment_dict) in enumerate(d['props']['data'].items()):
-                        result_df: pd.DataFrame = pd.read_json(
-                            enrichment_dict['result'], orient='split')
-                        res_dict = {
-                            'name': enrichment_name,
-                            'data': result_df,
-                            'headers': True,
-                            'index': False
-                        }
-                        export_excels[file_name][i] = res_dict
+                    export_destination = os.path.join(export_destination, file_name)
+                    if not os.path.isdir(export_destination): os.makedirs(export_destination)
+                    for df_dict in df_dicts:
+                        use_name = os.path.join(export_destination, '.'.join([f'{df_dict["name"]}', export_format]))
+                        df_dict['data'].to_csv(use_name,sep='\t',index=False)
+                    for df_dict in df_dicts_all:
+                        use_name = os.path.join(export_destination, '.'.join([f'{df_dict["name"]}', export_format]))
+                        df_dict['data'].to_csv(use_name,sep='\t',index=False)
+                else:
+                    with open('DEBUG_INFRA_SAVE_DATA_STORES','w') as fil:
+                        fil.write(f'{d}')
+        except:
+            with open(f'FAILED_{d["props"]["id"]}','w') as fil:
+                fil.write(f'{d["props"]["data"]}')
+            print(d['props']['id'])
+            print(type(d['props']['data']))
+        
         logger.warning(
             f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
 
     logger.warning(
-        f'save data stores - writing excels: {datetime.now() - prev_time}')
-    prev_time: datetime = datetime.now()
-    for excel_name, excel_dict in export_excels.items():
-        start_excel_time: datetime = prev_time
-        if len(excel_dict.keys()) == 0:
-            continue
-        with pd.ExcelWriter(excel_name, engine="xlsxwriter") as writer:
-            # writer = pd.ExcelWriter(excel_name)
-            for df_dict_index in sorted(list(excel_dict.keys())):
-                if df_dict_index == 'config_info':
-                    continue
-                dic: dict = excel_dict[df_dict_index]
-                index_bool = dic['index']
-                if (dic['name'] in no_index):
-                    index_bool = False
-                if dic['data'].shape[0]>0:
-                    dic['data'].to_excel(writer, sheet_name=dic['name'],
-                                        header=dic['headers'], index=index_bool)
-                    logger.warning(
-                        f'save data stores - sheet {excel_name}: {dic["name"]} done: {datetime.now() - prev_time}')
-                else:
-                    logger.warning(
-                        f'save data stores - sheet {excel_name}: {dic["name"]} not written: no rows to write: {datetime.now() - prev_time}')
-                prev_time: datetime = datetime.now()
-            logger.warning(
-                f'save data stores - closing writer {excel_name}: {datetime.now() - start_excel_time}')
-            prev_time: datetime = datetime.now()
-        # writer.close()
-        logger.warning(
-            f'save data stores - finished with {excel_name}. Took: {datetime.now() - start_excel_time}')
-        prev_time: datetime = datetime.now()
+        f'save data stores - Done with export: {datetime.now() - prev_time}')
     return timestamps
 
 
@@ -337,6 +266,7 @@ def get_all_types(elements, get_types) -> list:
 
 
 def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, workflow) -> None:
+
     logger.warning(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
@@ -377,8 +307,12 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                     figure_html = f'<Img id={graph["props"]["id"]}, src="{img_str}">'
                     figure_names_and_figures.append(
                         [fdir, header_str, legend['props']['children'], figure_html, graph, 'img'])
-            elif header['type'].lower() == 'h5':  # Only used in enrichment plots
+            elif header['type'].lower() == 'h5':  # Only used in enrichment plots and MS-microscopy plots
                 graph: dict = headers_and_figures[i+1]
+                legend: dict = headers_and_figures[i+2]
+                figure: dict = graph['props']['figure']
+                figure_html: str = pio.to_html(
+                    figure, config=graph['props']['config'])
                 fig_subdir: str = 'Enrichment figures'
                 if 'microscopy' in legend['props']['children'].lower():
                     fig_subdir = 'MS-microscopy'
@@ -417,7 +351,7 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                 fil.write('\n'.join(new_html))
         plotly_engine: str = 'kaleido'
         for output_format in output_formats:
-            fig_path:str = os.path.join(target_dir, f'{name.replace(" ","_")}.{output_format}')
+            fig_path:str = os.path.join(target_dir, f'{name}.{output_format}')
             if output_format == 'html':
                 continue
             if figtype == 'graph':
@@ -527,13 +461,14 @@ def working_data_stores() -> html.Div:
 def temporary_download_divs():
     return html.Div(
         id='download-temporary-things',
-        children=[
-            html.Div(id='download_temp1', children=''),
-            html.Div(id='download_temp2', children=''),
-            html.Div(id='download_temp3', children=''),
-            html.Div(id='download_temp4', children=''),
-            html.Div(id='download_temp5', children=''),
-            html.Div(id='download-temp-dir-ready',children='')
+        children=[html.Div(id=f'download_temp{i}',children='') for i in range(1,9)]+ [html.Div(id='download-temp-dir-ready',children='')]
+    )
+
+def temporary_download_button_loading_divs():
+    return html.Div(
+        [
+            html.Div([dcc.Loading(id=f'download_loading_temp{i}',children='') for i in range(1,9)], hidden=True),
+            '   '
         ]
     )
 

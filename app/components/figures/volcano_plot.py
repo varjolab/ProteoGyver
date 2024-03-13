@@ -38,7 +38,8 @@ def volcano_plot(
         text='Highlight',
         height=defaults['height'],
         width=defaults['width'],
-        render_mode='svg'
+        render_mode='svg',
+        hover_data=['Name','Gene','Significant','p_value_adj_neg_log10','fold_change']
     )
 
     # Set yaxis properties

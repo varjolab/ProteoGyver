@@ -15,6 +15,7 @@ from components import EnrichmentAdmin as ea
 from dash_bootstrap_components import Card, CardBody, Tab, Tabs
 from datetime import datetime
 import logging
+from components.data_provider import map_protein_info
 logger = logging.getLogger(__name__)
 
 def count_knowns(saint_output, replicate_colors) -> pd.DataFrame:
@@ -176,7 +177,8 @@ def pca(saint_output_data: dict, defaults: dict, replicate_colors: dict) -> tupl
                 pc1,
                 pc2,
                 'Sample group color',
-                'Sample group'
+                'Sample group',
+                hover_data=['Sample group', 'Sample name', pc1,pc2]
             ),
             legends['pca']
         ]
@@ -545,7 +547,8 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
 
 def do_ms_microscopy(saint_output_json:str, db_file: str, figure_defaults: dict, version: str = 'v1.0') -> tuple:
     saint_output: pd.DataFrame = pd.read_json(
-    saint_output_json, orient='split')
+        saint_output_json, orient='split'
+    )
     db_file = os.path.join('data','proteogyver.db')
     db_conn = db_functions.create_connection(db_file)
     msmic_reference = db_functions.get_full_table_as_pd(

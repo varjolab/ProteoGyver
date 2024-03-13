@@ -292,8 +292,8 @@ def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
     )
     return None
 
-def perc_cvplot(imputed_data_json: str, sample_groups: dict, replicate_colors: dict, defaults: dict) -> Graph:
-    graph, data = cvplot.make_graph(pd.read_json(imputed_data_json, orient='split'),sample_groups, replicate_colors, defaults, 'proteomics-cv-plot')
+def perc_cvplot(data_json: str, sample_groups: dict, replicate_colors: dict, defaults: dict) -> Graph:
+    graph, data = cvplot.make_graph(pd.read_json(data_json, orient='split'),sample_groups, replicate_colors, defaults, 'proteomics-cv-plot')
     return (
         html.Div(
             id = 'proteomics-cv-div',
@@ -362,7 +362,8 @@ def pca(imputed_data_json: str, sample_groups_rev: dict, defaults: dict, replica
                     pc1,
                     pc2,
                     'Sample group color',
-                    'Sample group'
+                    'Sample group',
+                    hover_data=['Sample group', 'Sample name']
                 ),
                 legends['pca']
             ]

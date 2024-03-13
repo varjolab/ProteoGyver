@@ -8,7 +8,7 @@ for pid in $(ps -aux | grep python | grep celery | awk -F ' ' '{print $2}'); do 
 redis-cli shutdown
 killall celery
 redis-server --daemonize yes
-celery -A app.celery_app worker --logfile ./logs/$(date +"%Y-%m-%d")_celery.log &
+celery -A app.celery_app worker --loglevel DEBUG --logfile ./logs/$(date +"%Y-%m-%d")_celery.log &
 sleep 10
 echo "Starting app.py"
 python app.py 

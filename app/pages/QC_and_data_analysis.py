@@ -1,6 +1,7 @@
 """ Restructured frontend for proteogyver app"""
 import os
 import shutil
+import markdown
 from uuid import uuid4
 from datetime import datetime
 from dash import html, callback, no_update, ALL, dcc, register_page
@@ -22,6 +23,7 @@ logger.warning(f'{__name__} loading')
 parameters = parsing.parse_parameters('parameters.json')
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: list = db_functions.get_contaminants(db_file)
+figure_output_formats = ['html', 'png', 'pdf']
 
 layout = html.Div([
         ui.main_sidebar(
@@ -103,21 +105,21 @@ def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upl
     State({'type': 'uploaded-data-store',
           'name': 'uploaded-sample-table-info-data-store'}, 'data'),
     State('figure-theme-dropdown', 'value'),
-    State('sidebar-remove-common-contaminants', 'value'),
-    State('sidebar-rename-replicates', 'value'),
+    State('sidebar-options','value'),
     prevent_initial_call=True
 )
-def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_template, remove_contaminants, replace_names) -> tuple:
+def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_template, additional_options) -> tuple:
     """Sets the figure template, and \
         sends data to preliminary analysis and returns the resulting dictionary.
     """
     logger.warning(f'Validating data: {datetime.now()}')
     cont: list = []
-    if len(remove_contaminants) > 0:
-        cont = contaminant_list
     repnames: bool = False
-    if len(replace_names) > 0:
-        repnames = True
+    if additional_options is not None:
+        if 'Remove common contaminants' in additional_options:
+            cont = contaminant_list
+        if 'Rename replicates' in additional_options:
+            repnames = True
     pio.templates.default = figure_template
     return (parsing.format_data(
         f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
@@ -139,12 +141,14 @@ def remove_samples(discard_samples_list, data_dictionary) -> dict:
 @callback(
     Output({'type': 'analysis-div', 'id': 'qc-analysis-area'}, 'children'),
     Output('discard-samples-div', 'hidden'),
+    Output('workflow-specific-input-div', 'children',allow_duplicate = True),
+    Output('workflow-specific-div', 'children',allow_duplicate = True),
     Input({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def create_qc_area(_) -> tuple:
     """Creates the qc area div and unhides sample discard button"""
-    return (ui.qc_area(), False)
+    return (ui.qc_area(), False,'','')
 
 
 @callback(
@@ -380,6 +384,7 @@ def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple
         parsing.get_distribution_title(
             data_dictionary['data tables']['table to use'])
     )
+
 @callback(
     Output({'type': 'data-store',
            'name': 'qc-commonality-plot-visible-groups-data-store'}, 'data'),
@@ -424,12 +429,11 @@ def commonality_plot(_, data_dictionary: dict, additional_options: list, show_on
 
 @callback(
     Output('qc-done-notifier', 'children'),
-    Input({'type': 'qc-plot', 'id': 'commonality-plot-div'}, 'children'),
+    Input({'type': 'qc-plot', 'id': 'distribution-plot-div'},'children'),
     prevent_initial_call=True
 )
 def qc_done(_) -> str:
     return ''
-
 
 @callback(
     Output({'type': 'workflow-plot',
@@ -528,7 +532,7 @@ def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_gr
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-cv-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-cv-data-store'}, 'data'),
-    Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
@@ -619,6 +623,29 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_data, compa
 def select_all_none_controls(all_selected, options) -> list:
     all_or_none: list = [option['value'] for option in options if all_selected]
     return all_or_none
+
+@callback(
+    Output('interactomics-choose-enrichments', 'value'),
+    [Input('interactomics-select-none-enrichments', 'n_clicks')],
+    prevent_initial_call=True
+)
+def select_none_enrichments(deselect_click) -> list:
+    all_or_none: list = []
+    return all_or_none
+
+@callback(
+    Output('input-header', 'children'),
+    Output('input-collapse','is_open'),
+    Input('input-header','n_clicks'),
+    Input('begin-analysis-button','n_clicks'),
+    State('input-collapse','is_open'),
+    prevent_initial_call=True
+)
+def collapse_or_uncollapse_input(header_click, begin_click, input_is_open):
+    if input_is_open:
+        return ('► Input', False)
+    else:
+        return ('▼ Input', True)
 
 
 @callback(
@@ -934,8 +961,8 @@ def table_of_contents(_, __, ___, ____, main_div_contents: list) -> html.Div:
 
 
 @callback(
-    Output('workflow-specific-input-div', 'children'),
-    Output('workflow-specific-div', 'children'),
+    Output('workflow-specific-input-div', 'children',allow_duplicate = True),
+    Output('workflow-specific-div', 'children',allow_duplicate = True),
     Input('qc-done-notifier', 'children'),
     State('workflow-dropdown', 'value'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
@@ -977,109 +1004,227 @@ def download_data_table_example(_) -> dict:
     logger.warning(f'received DT download request at {datetime.now()}')
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
 
+
+def get_adiv_by_id(divs: list, idvals: list, idval_to_find: str):
+    use_index: int = -1
+    for i, idval in enumerate(idvals):
+        if idval['id'] == idval_to_find:
+            use_index = i
+            break
+    if use_index > -1:
+        return divs[use_index]
+    return None
+##################################
+##   Start of export section    ##
+##################################
+# Export needed to be split apart due to taking too long otherwise with background callbacks.
+# Background callbacks were disabled due to some weird-ass bug that had something to do with volcano plots and excessive numbers of differentially abundant proteins.
+
+
 @callback(
     Output('download-temp-dir-ready','children'),
     Output('button-download-all-data-text','children',allow_duplicate = True),
     Input('button-download-all-data', 'n_clicks'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
-    State('button-download-all-data-text','children'),
     prevent_initial_call=True,
-    background=True
+    #background=True
 )
-def prepare_for_download(_, main_data, button_text):
+def prepare_for_download(_, main_data):
     export_dir: str = os.path.join(*parameters['Data paths']['Cache dir'],  main_data['other']['session name'], 'Proteogyver output')
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
-    import markdown
     with open(os.path.join('data','output_guide.md')) as fil:
         text = fil.read()
         html = markdown.markdown(text)
     with open(os.path.join(export_dir, 'README.html'),'w',encoding='utf-8') as fil:
         fil.write(html)
-    return export_dir, button_text
+    return export_dir, infra.temporary_download_button_loading_divs()
 
 @callback(
     Output('download_temp1', 'children'),
-    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Output('download_loading_temp1', 'children'),
     Input('download-temp-dir-ready','children'),
     State('input-stores', 'children'),
-    State('button-download-all-data-text','children'),
     prevent_initial_call=True,
-    background=True
+    #background=True
 )
-def prepare_data1(export_dir, stores, button_text) -> dict:
-    logger.warning(f'received download request data1 at {datetime.now()}')
+def prepare_data1(export_dir, stores) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data1 at {start}')
     infra.save_data_stores(stores, export_dir)
-    return 'data1 done', button_text
+    logger.warning(f'done with download request data1, took {datetime.now()-start}')
+    return 'data1 done', ''
 
 @callback(
     Output('download_temp2', 'children'),
-    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Output('download_loading_temp2', 'children'),
     Input('download-temp-dir-ready','children'),
     State('workflow-stores', 'children'),
-    State('button-download-all-data-text','children'),
     prevent_initial_call=True,
-    background=True
+    #background=True
 )
-def prepare_data2(export_dir, stores, button_text) -> dict:
-    logger.warning(f'received download request data2 at {datetime.now()}')
+def prepare_data2(export_dir, stores) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data2 at {start}')
     infra.save_data_stores(stores, export_dir)
-    return 'data2 done', button_text
+    logger.warning(f'done with download request data2, took {datetime.now()-start}')
+    return 'data2 done', ''
 
 @callback(
     Output('download_temp3', 'children'),
-    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Output('download_loading_temp3', 'children'),
     Input('download-temp-dir-ready','children'),
     State({'type': 'analysis-div', 'id': ALL}, 'children'),
-    State('button-download-all-data-text','children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'id'),
     State({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
     State('workflow-dropdown', 'value'),
     prevent_initial_call=True,
-    background=True
+    #background=True
 )
-def prepare_data3(export_dir, analysis_divs, button_text,commonality_pdf_data, workflow) -> dict:
-    logger.warning(f'received download request data3 at {datetime.now()}')
-    figure_output_formats = ['html', 'png', 'pdf']
-    infra.save_figures(analysis_divs, export_dir,
-                 figure_output_formats, commonality_pdf_data, workflow)
-    return 'data3 done', button_text
+def prepare_data3(export_dir, analysis_divs, analysis_div_ids, commonality_pdf_data, workflow) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data3 at {start}')
+    try:
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'qc-analysis-area')], export_dir,
+                    figure_output_formats, commonality_pdf_data, workflow)
+    except Exception as e:
+        with open(os.path.join(export_dir, 'data3_errors'),'w') as fil:
+            fil.write(f'{e}')
+    logger.warning(f'done with download request data3, took {datetime.now()-start}')
+    return 'data3 done', ''
 
 @callback(
     Output('download_temp4', 'children'),
-    Output('button-download-all-data-text','children', allow_duplicate=True),
+    Output('download_loading_temp4', 'children'),
     Input('download-temp-dir-ready','children'),
     State({'type': 'input-div', 'id': ALL}, 'children'),
-    State('button-download-all-data-text','children'),
     prevent_initial_call=True,
-    background=True
+    #background=True
 )
-def prepare_data4(export_dir, input_divs, button_text) -> dict:
-    logger.warning(f'received download request data4 at {datetime.now()}')
+def prepare_data4(export_dir, input_divs) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data4 at {start}')
     infra.save_input_information(input_divs, export_dir)
-    return 'data4 done',button_text
-    
-# NExt implement the below, but also move make_archive that way.
+    logger.warning(f'done with download request data4, took {datetime.now()-start}')
+    return 'data4 done',''
 
+@callback(
+    Output('download_temp5', 'children'),
+    Output('download_loading_temp5', 'children'),
+    Input('download-temp-dir-ready','children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'id'),
+    State('workflow-dropdown', 'value'),
+    prevent_initial_call=True,
+    #background=True
+)
+def prepare_data5(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data5 at {start}')
+    try:
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-results-area')], export_dir,
+                    figure_output_formats, None, workflow)
+    except Exception as e:
+        with open(os.path.join(export_dir, 'data5_errors'),'w') as fil:
+            fil.write(f'{e}')
+    logger.warning(f'done with download request data5, took {datetime.now()-start}')
+    return 'data5 done', ''
+
+@callback(
+    Output('download_temp6', 'children'),
+    Output('download_loading_temp6', 'children'),
+    Input('download-temp-dir-ready','children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'id'),
+    State('workflow-dropdown', 'value'),
+    prevent_initial_call=True,
+    #background=True
+)
+def prepare_data6(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data6 at {start}')
+    try:
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-post-saint-area')], export_dir,
+                    figure_output_formats, None, workflow)
+    except Exception as e:
+        with open(os.path.join(export_dir, 'data6_errors'),'w') as fil:
+            fil.write(f'{e}')
+    logger.warning(f'done with download request data6, took {datetime.now()-start}')
+    return 'data6 done', ''
+
+@callback(
+    Output('download_temp7', 'children'),
+    Output('download_loading_temp7', 'children'),
+    Input('download-temp-dir-ready','children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'id'),
+    State('workflow-dropdown', 'value'),
+    prevent_initial_call=True,
+    #background=True
+)
+def prepare_data7(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data7 at {start}')
+    try:
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'proteomics-analysis-results-area')], export_dir,
+                    figure_output_formats, None, workflow)
+    except Exception as e:
+        with open(os.path.join(export_dir, 'data7_errors'),'w') as fil:
+            fil.write(f'{e}')
+    logger.warning(f'done with download request data7, took {datetime.now()-start}')
+    return 'data7 done', ''
+
+@callback(
+    Output('download_temp8', 'children'),
+    Output('download_loading_temp8', 'children'),
+    Input('download-temp-dir-ready','children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'children'),
+    State({'type': 'analysis-div', 'id': ALL}, 'id'),
+    State('workflow-dropdown', 'value'),
+    prevent_initial_call=True,
+    #background=True
+)
+def prepare_data8(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    start = datetime.now()
+    logger.warning(f'received download request data8 at {start}')
+    try:
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'phosphoproteomics-analysis-area')], export_dir,
+                    figure_output_formats, None, workflow)
+    except Exception as e:
+        with open(os.path.join(export_dir, 'data8_errors'),'w') as fil:
+            fil.write(f'{e}')
+    logger.warning(f'done with download request data8, took {datetime.now()-start}')
+    return 'data8 done', ''
+
+    
 @callback(
     Output('download-all-data', 'data'),
     Output('button-download-all-data-text','children', allow_duplicate=True),
     Input('download-temp-dir-ready','children'),
-    State('button-download-all-data-text','children'),
     Input('download_temp1', 'children'),
     Input('download_temp2', 'children'),
     Input('download_temp3', 'children'),
     Input('download_temp4', 'children'),
+    Input('download_temp5', 'children'),
+    Input('download_temp6', 'children'),
+    Input('download_temp7', 'children'),
+    Input('download_temp8', 'children'),
     prevent_initial_call=True,
-    background=True,
+    #background=True,
 )
-def send_data(export_dir, button_text, *args) -> dict:
+def send_data(export_dir, *args) -> dict:
     for a in args:
         if not 'done' in a:
             return no_update, no_update
+    start = datetime.now()
+    logger.warning(f'Started packing data at {start}')
     export_zip_name: str = export_dir.rstrip(os.sep)
     shutil.make_archive(export_zip_name, 'zip', export_dir)
     export_zip_name +=  '.zip'
-    return dcc.send_file(export_zip_name), button_text
+    logger.warning(f'done packing data, took {datetime.now()-start}')
+    return dcc.send_file(export_zip_name), 'Download all data'
 
-    
+##################################
+##    End of export section     ##
+##################################
