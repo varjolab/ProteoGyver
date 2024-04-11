@@ -203,10 +203,11 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
     sample_groups_rev: dict = {
         column_name: 'Before normalization' for column_name in data_table.columns
     }
-    for column_name in normalized_table.columns:
-        new_column_name: str = f'Normalized {column_name}'
-        data_table[new_column_name] = normalized_table[column_name]
-        sample_groups_rev[new_column_name] = 'After normalization'
+    sample_groups_rev.update({
+        f'Normalized {column_name}': 'After normalization' for column_name in data_table.columns
+    })
+    norm_cols_rename = {column_name: f'Normalized {column_name}' for column_name in data_table.columns}
+    data_table = pd.concat([data_table, normalized_table.rename(columns=norm_cols_rename)], axis=1)
 
     logger.warning(
         f'normalization - normalized applied: {datetime.now()}')
@@ -406,12 +407,12 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
     )
 
 
-def volcano_plots(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict) -> tuple:
+def volcano_plots(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict, test_type:str = 'independent') -> tuple:
 
     logger.warning(f'volcano - start: {datetime.now()}')
     data: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
     significant_data: pd.DataFrame = stats.differential(
-        data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr)
+        data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr, test_type = test_type)
     logger.warning(
         f'volcano - significants calculated: {datetime.now() }')
 

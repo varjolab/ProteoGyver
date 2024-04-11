@@ -175,7 +175,7 @@ from scipy.stats import zscoreo the dataframe with the specified method"""
     elif method == 'minValue':
         ret = impute_minval(data_table)
     elif method == 'gaussian':
-        ret = impute_gaussian(data_table, random_seed,errorfile)
+        ret = impute_gaussian(data_table, random_seed)
     elif method == 'QRILC':
         ret = R_tools.impute_qrilc(data_table, random_seed, errorfile)
     return ret

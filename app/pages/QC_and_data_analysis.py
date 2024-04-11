@@ -115,15 +115,18 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
     logger.warning(f'Validating data: {datetime.now()}')
     cont: list = []
     repnames: bool = False
+    uniq_only: bool = False
     if additional_options is not None:
         if 'Remove common contaminants' in additional_options:
             cont = contaminant_list
         if 'Rename replicates' in additional_options:
             repnames = True
+        if 'Use unique proteins only (remove protein groups)' in additional_options:
+            uniq_only = True
     pio.templates.default = figure_template
     return (parsing.format_data(
         f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
-        data_tables, data_info, expdes_table, expdes_info, cont, repnames), False)
+        data_tables, data_info, expdes_table, expdes_info, cont, repnames, uniq_only), False)
 
 @callback(
     Output({'type': 'data-store', 'name': 'upload-data-store'},
@@ -590,9 +593,10 @@ def proteomics_check_comparison_table(contents, filename, current_style, data_di
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     Input('proteomics-fc-value-threshold', 'value'),
     Input('proteomics-p-value-threshold', 'value'),
+    Input('proteomics-test-type', 'value'),
     prevent_initial_call=True
 )
-def proteomics_volcano_plots(imputed_data, control_group, comparison_data, comparison_upload_success_style, data_dictionary, fc_thr, p_thr) -> tuple:
+def proteomics_volcano_plots(imputed_data, control_group, comparison_data, comparison_upload_success_style, data_dictionary, fc_thr, p_thr, test_type) -> tuple:
     if imputed_data is None:
         return no_update
     if control_group is None:
@@ -608,7 +612,7 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_data, compa
     sgroups: dict = data_dictionary['sample groups']['norm']
     comparisons: list = parsing.parse_comparisons(
         control_group, comparison_data, sgroups)
-    return proteomics.volcano_plots(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height']) + ('',)
+    return proteomics.volcano_plots(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type) + ('',)
 
 # Need to implement:
 # GOBP mapping

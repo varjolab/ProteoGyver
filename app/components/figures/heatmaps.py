@@ -50,9 +50,10 @@ def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict,
         matrix_df,
         aspect='auto',
         labels=dict(
-        x=matrix_df.columns.name,
-        y=matrix_df.index.name,
-        color=value_name),
+            x=matrix_df.columns.name,
+            y=matrix_df.index.name,
+            color=value_name
+        ),
         color_continuous_scale=cmap,
         height=defaults['height'],
         width=defaults['width'],

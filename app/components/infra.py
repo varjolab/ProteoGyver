@@ -24,6 +24,7 @@ data_store_export_configuration: dict = {
     'proteomics-cv-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'qc-commonality-plot-visible-groups-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
+    'interactomics-network-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
 
     'uploaded-data-table-info-data-store': ['json', 'Debug', '', ''],
     'uploaded-sample-table-info-data-store': ['json', 'Debug', '', ''],
@@ -56,14 +57,13 @@ data_store_export_configuration: dict = {
     'proteomics-na-filtered-data-store': ['tsv', 'Data', ['Proteomics data tables', 'NA filtered data'],''],
     'proteomics-normalization-data-store': ['tsv', 'Data', ['Proteomics data tables', 'NA-Normalized data'],''],
     'proteomics-imputation-data-store': ['tsv', 'Data', ['Proteomics data tables', 'NA-Norm-Imputed data'],''],
-    'interactomics-network-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Network data'],''],
     
     'interactomics-pca-data-store': ['tsv', 'Data', ['Interactomics data tables', 'PCA'],''],
     'interactomics-imputed-and-normalized-intensity': ['tsv', 'Data', ['Interactomics data tables', 'ImpNorm intensities'],''],
     'interactomics-saint-crapome-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Crapome'],''],
-    'interactomics-saint-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Saint output'],''],
-    'interactomics-saint-final-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Saint output with crapome'],''],
-    'interactomics-saint-filtered-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Filtered saint output'],''],
+    'interactomics-saint-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Saint output'],'noindex'],
+    'interactomics-saint-final-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Saint output with crapome'],'noindex'],
+    'interactomics-saint-filtered-output-data-store': ['tsv', 'Data', ['Interactomics data tables', 'Filtered saint output'],'noindex'],
     'interactomics-saint-input-data-store': ['tsv', 'Data', 'SAINT input', 'saint-split'],
     'interactomics-enrichment-data-store': ['tsv', 'Data', 'Enrichment', 'enrichment-split'],
     'proteomics-volcano-data-store': ['tsv', 'Data', 'Differential abundance', 'volc-split'],
@@ -117,6 +117,10 @@ def save_data_stores(data_stores, export_dir) -> dict:
         file_config: str
         export_format, export_subdir, file_name, file_config = data_store_export_configuration[
             d['props']['id']['name']]
+        output_index=True
+        if 'noindex' in file_config:
+            file_config = file_config.replace('noindex','')
+            output_index = False
         if export_format == 'NO EXPORT':
             continue
         try:
@@ -148,7 +152,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             else:
                                 continue
                     use_name = os.path.join(export_destination, '.'.join([file_name, export_format]))
-                    pd_df.to_csv(use_name, sep='\t')
+                    pd_df.to_csv(use_name, sep='\t', index=output_index)
                 elif 'enrichment-split' in file_config:
                     export_destination = os.path.join(export_destination, file_name)
                     if not os.path.isdir(export_destination): os.makedirs(export_destination)
@@ -164,9 +168,11 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         if pd_df.shape[1] < 2: continue
                         pd_df.to_csv(use_name,sep='\t')
                 elif file_config == 'saint-split':
-                    for saint_name, saint_dict in d['props']['data'].items():
+                    for saint_name, saint_filelines in d['props']['data'].items():
                         use_name = os.path.join(export_destination, '.'.join([f'{file_name} {saint_name}', export_format]))
-                        pd.read_json(saint_dict, orient='split').to_csv(use_name,sep='\t',index=False)
+                        with open(use_name,'w',encoding='utf-8') as fil:
+                            for line in saint_filelines:
+                                fil.write('\t'.join(line)+'\n')
                 elif 'volc-split' in file_config:
                     df: pd.DataFrame = pd.read_json(d['props']['data'], orient='split')
                     df_dicts: list = []
@@ -294,7 +300,7 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                 fdir: str = ''
                 if header_str in figure_export_directories:
                     fdir = figure_export_directories[header_str]
-                elif 'volcano' in header_str.lower():
+                elif ('volcano' in header_str.lower()) or ('all significant differences vs' in header_str.lower()):
                     fdir = 'Volcano plots'
                 if graph['type'].lower() == 'graph':
                     figure: dict = graph['props']['figure']

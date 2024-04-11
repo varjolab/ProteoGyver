@@ -507,7 +507,7 @@ def guess_controls(sample_groups: dict) -> tuple:
     return (control_groups, control_samples)
 
 
-def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list, replace_replicate_names: bool) -> dict:
+def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list, replace_replicate_names: bool, use_unique_only: bool) -> dict:
     """Formats data formats into usable form and produces a data dictionary for later use"""
 
     intensity_table: pd.DataFrame = pd.read_json(
@@ -524,6 +524,13 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
         replace_names = replace_replicate_names
     )
     spc_table = spc_table[sorted(list(spc_table.columns))]
+    if use_unique_only:
+        drop_ind = [i for i in spc_table.index if ';' in str(i)]
+        if len(drop_ind)>0:
+            spc_table.drop(index=drop_ind,inplace=True)
+        drop_ind = [i for i in intensity_table.index if ';' in str(i)]
+        if len(drop_ind)>0:
+            intensity_table.drop(index=drop_ind,inplace=True)
 
     if len(intensity_table.columns) > 1:
         intensity_table = intensity_table[sorted(
@@ -543,7 +550,8 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
             i for i in untransformed_intensity_table.index if i not in contaminants_to_remove]]
         intensity_table = intensity_table.loc[[
             i for i in intensity_table.index if i not in contaminants_to_remove]]
-
+    spc_table = spc_table.replace(0, np.nan)
+    intensity_table = intensity_table.replace(0, np.nan)
     experiment_type = 'Proteomics/Phosphoproteomics'
     if 'bait uniprot' in expdes_info:
         experiment_type = 'Interactomics'

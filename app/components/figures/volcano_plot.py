@@ -52,7 +52,7 @@ def volcano_plot(
     if fcrange < fc_axis_min_max:
         fcrange = fc_axis_min_max
     fcrange += 0.25
-    fig.update_xaxes(title_text='Fold change', range=[-fcrange, fcrange])
+    fig.update_xaxes(title_text='Log2 fold change', range=[-fcrange, fcrange])
 
     # Add vertical lines indicating the significance thresholds
     fig.add_shape(type='line', x0=-fc_threshold, y0=0, x1=-

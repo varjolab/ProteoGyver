@@ -96,8 +96,6 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
         f'known_plot - knowns: {saint_output["Known interaction"].value_counts()}')
     db_conn.close()
     col_order.append('Known interaction')
-    col_order.append(
-        'Following columns are information about known interactions.')
     saint_output[col_order[-1]] = np.nan
     col_order.extend([c for c in saint_output.columns if c not in col_order])
     saint_output = saint_output[col_order]
@@ -339,13 +337,18 @@ def saint_histogram(saint_output_json: str, figure_defaults):
 
 
 def add_bait_column(saint_output, bait_uniprot_dict) -> pd.DataFrame:
+    saint_output['Bait'] = [b.rsplit('_',maxsplit=1)[0] for b in saint_output['Bait'].values]
     bu_column: list = []
+    prey_is_bait: list = []
     for _, row in saint_output.iterrows():
         if row['Bait'] in bait_uniprot_dict:
             bu_column.append(bait_uniprot_dict[row['Bait']])
+            prey_is_bait.append(row['Prey'].lower().strip() in [b.lower().strip() for b in bu_column[-1].split(';')])
         else:
             bu_column.append('No bait uniprot')
+            prey_is_bait.append(False)
     saint_output['Bait uniprot'] = bu_column
+    saint_output['Prey is bait'] = prey_is_bait
     return saint_output
 
 
@@ -385,12 +388,12 @@ def run_saint(saint_input: dict, saint_tempdir: list, session_uid: str, bait_uni
         print(f'running saint in {temp_dir}, {intfile.name} {preyfile.name} {baitfile.name}: {datetime.now()}')
         sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
     failed: bool = not os.path.isfile(os.path.join(temp_dir, 'list.txt'))
-    print(f'run_saint done: {datetime.now()}')
     if failed:
         ret: str = 'SAINT failed. Can not proceed.'
     else:
         ret = add_bait_column(pd.read_csv(os.path.join(
-            temp_dir, 'list.txt'), sep='\t'), bait_uniprots).to_json(orient='split')
+            temp_dir, 'list.txt'), sep='\t'), bait_uniprots)
+        ret = ret.to_json(orient='split')
         if cleanup:
             try:
                 shutil.rmtree(temp_dir)
@@ -446,10 +449,8 @@ def prepare_controls(input_data_dict, uploaded_controls, additional_controls, db
     for cg in uploaded_controls:
         control_cols.extend(sample_groups[cg])
     controls.append(spc_table[control_cols])
-    spc_table = spc_table[[
-        c for c in spc_table.columns if c not in control_cols]]
-    control_table: pd.DataFrame = pd.concat(
-        controls, axis=1).groupby(level=0, axis=1).mean()
+    spc_table = spc_table[[c for c in spc_table.columns if c not in control_cols]]
+    control_table: pd.DataFrame = pd.concat(controls, axis=1).groupby(level=0, axis=1).mean()
     logger.debug(f'Controls concatenated: {control_table.shape}, indexvals: {list(control_table.index)[:5]}')
     logger.debug(f'SPC table index: {list(spc_table.index)[:5]}')
     # Discard any control preys that are not identified in baits. It will not affect SAINT results.
@@ -503,10 +504,10 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
     prey: list = []
     inter: list = []
     for col in spc_table.columns:
-        bait.append([col, rev_sample_groups[col], 'T'])
+        bait.append([col, rev_sample_groups[col]+'_bait', 'T'])
     for col in control_table.columns:
         if col in rev_sample_groups:
-            bait.append([col, rev_sample_groups[col], 'C'])
+            bait.append([col, rev_sample_groups[col]+'_bait', 'C'])
         else:
             bait.append([col, 'inbuilt_ctrl', 'C'])
     logger.warning(
@@ -518,7 +519,9 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
     control_melt['sgroup'] = 'inbuilt_ctrl'
     control_melt = control_melt.reindex(
         columns=['variable', 'sgroup', 'index', 'value'])
-    inter.extend(control_melt.values.astype(str).tolist())
+    control_melt['value'] = control_melt['value'].astype(int)
+    inter.extend(control_melt.values
+                 .astype(str).tolist())
     logger.warning(
         f'make_saint_dict: Control table melted: {control_melt.shape}: {datetime.now()}')
     logger.warning(
@@ -526,8 +529,8 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
     for uniprot, srow in pd.melt(spc_table, ignore_index=False).replace(0, np.nan).dropna().iterrows():
         sgroup: str = 'inbuilt_ctrl'
         if srow['variable'] in rev_sample_groups:
-            sgroup = rev_sample_groups[srow['variable']]
-        inter.append([srow['variable'], sgroup, uniprot, str(srow['value'])])
+            sgroup = rev_sample_groups[srow['variable']]+'_bait'
+        inter.append([srow['variable'], sgroup, uniprot, str(int(srow['value']))])
     logger.warning(
         f'make_saint_dict: SPC table interactions prepared: {datetime.now()}')
     for uniprotid in (set(control_table.index.values) | set(spc_table.index.values)):
@@ -542,7 +545,6 @@ def make_saint_dict(spc_table, rev_sample_groups, control_table, protein_table) 
         prey.append([str(uniprotid), plen, gname])
     logger.warning(
         f'make_saint_dict: Preys prepared: {datetime.now()}')
-
     return {'bait': bait, 'prey': prey, 'int': inter}
 
 def do_ms_microscopy(saint_output_json:str, db_file: str, figure_defaults: dict, version: str = 'v1.0') -> tuple:
@@ -727,14 +729,10 @@ def saint_filtering(saint_output_json, bfdr_threshold, crapome_percentage, crapo
     logger.warning(
         f'saint filtering - filtered size: {filtered_saint_output.shape}')
     if 'Bait uniprot' in filtered_saint_output.columns:
-        # Immplement multiple baits per file, e.g. for fusions?
-        prey_is_not_bait = []
-        for _,row in filtered_saint_output.iterrows():
-            prey_is_not_bait.append(row['Prey'] not in [b.strip() for b in row['Bait uniprot'].split(';')])
         filtered_saint_output = filtered_saint_output[
-            prey_is_not_bait
+            filtered_saint_output['Prey is bait']==False
         ]
-    colorder: list = ['Bait', 'Bait uniprot', 'Prey',
+    colorder: list = ['Bait', 'Bait uniprot', 'Prey', 'PreyGene', 'Prey is bait',
                       'Passes filter', 'Passes filter with rescue', 'AvgSpec']
     colorder.extend(
         [c for c in filtered_saint_output.columns if c not in colorder])

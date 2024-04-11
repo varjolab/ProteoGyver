@@ -86,11 +86,7 @@ class handler():
         for annotation, (name, description) in datasets.items():
             realname: str = self._names_rev[annotation]
             self._datasets[realname] = [annotation, name, description]
-
-    @property
-    def handler_types(self) -> list:
-        return list(self._available.keys())
-
+            
     def get_available(self) -> dict:
         return self._available
 
@@ -241,7 +237,6 @@ class handler():
         """
         baseurl: str = 'http://pantherdb.org/services/oai/pantherdb/enrich/overrep?'
         ret: dict = {}
-
         for annotation, name, description in datasets:
             data: dict = {
                 'organism': organism,

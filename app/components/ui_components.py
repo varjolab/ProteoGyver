@@ -145,7 +145,7 @@ def upload_area(id_text, upload_id, indicator=True) -> html.Div:
 def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Div:
     return html.Div(
         [
-            html.H2(children='▼ Input', id='input-header', style={'textAlign': 'center'}),
+            html.H2(children='▼ Input', id='input-header', style={'textAlign': 'left'}),
             dbc.Collapse([
                 dbc.Button(
                     'Download example sample table',
@@ -165,7 +165,7 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                 html.Div([
                         dcc.Checklist(
                             id='sidebar-options',
-                            options=['Remove common contaminants', 'Rename replicates'], value=['Remove common contaminants'],
+                            options=['Remove common contaminants', 'Rename replicates', 'Use unique proteins only (remove protein groups)'], value=['Remove common contaminants'],
                         )
                     ],style={'display': 'inline-block'}),
                 html.H4('Select workflow:'),
@@ -356,14 +356,18 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
                     dcc.RadioItems([
                         {'label': f'{log2(x):.2f} ({x}-fold change)',
                          'value': log2(x)}
-                        for x in (1.5, 2, 3, 4, 5)
+                        for x in (1.2, 1.5, 2, 3, 4, 5)
                     ], 1, id='proteomics-fc-value-threshold'),
                 ], width=6),
                 dbc.Col([
                     dbc.Label('Adjusted p-value threshold for comparisons:'),
                     dcc.RadioItems([0.001, 0.01, 0.05], 0.01,
                                    id='proteomics-p-value-threshold'),
+                    dbc.Label('Test type for comparisons:'),
+                    dcc.RadioItems(['independent','paired'], 'independent',
+                                   id='proteomics-test-type'),
                 ], width=6)
+                
             ]),
             dbc.Row(
                 [
@@ -737,6 +741,7 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
                 id_only=True,
                 prefix_list=[
                     dbc.Button('Deselect all enrichments',id='interactomics-select-none-enrichments'),
+                    html.Br(),
                     dbc.Label('Choose enrichments:')
                 ]
             )
@@ -773,7 +778,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                 checklist(
                                     'Rescue filtered out',
                                     ['Rescue interactions that pass filter in any sample group'],
-                                    ['Rescue interactions that pass filter in any sample group'],
+                                    [],
                                     id_only=True,
                                     id_prefix='interactomics',
                                     style_override={
