@@ -12,7 +12,7 @@ leg_dict: dict = {
         'value_dist-plot': 'Value distribution of the identifications. The specifics can be different across sample groups, but especially replicates should look very similar.',
         'shared_id-plot-hm': 'Shared identifications across samples. The color corresponds to the number of shared identifications between row and column divided by the number of unique proteins identified across the two sample groups.',
         'shared_id-plot-sv': 'Supervenn diagram of the shared identifications. One row is one sample group. Numbers on the left show the number of identifications (no filtering) in each sample group. One figure "column" shows how many proteins are shared by each combination of sample gorups, and the number on the bottom shows the number of proteins in the shared group, while the number on top shows the number of sample groups in the shared group.',
-        'tic': '''Chromatogram of the input MS runs. Check your curves, and consider if they're comparable. TIC is usually enough to identify problems, but you can also choose different data types to check different chromatograms.'''
+        'tic': '''Chromatogram of the input MS runs. Check your curves, and consider if they're comparable. TIC is usually enough to identify problems, but you should also check the base peak.'''
     },
     'proteomics': {
         'na_filter': 'Unfiltered and filtered protein counts in samples. Proteins identified in fewer than FILTERPERC percent of the samples of at least one sample group were discarded as low-quality identifications, contaminants, or one-hit wonders.',

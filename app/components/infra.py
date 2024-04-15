@@ -4,7 +4,6 @@ from dash import dcc, html
 import os
 from plotly import io as pio
 from plotly import graph_objects as go
-from components.figures import tic_graph
 import re
 import json
 import pandas as pd
@@ -35,7 +34,7 @@ data_store_export_configuration: dict = {
     'commonality-data-store': ['json', 'Data', 'Commonality data', ''],
     'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
     
-    'uploaded-sample-table-data-store': ['tsv', 'Data', ['Input data tables', 'Uploaded expdesign'],''],
+    'uploaded-sample-table-data-store': ['tsv', 'Data', ['Input data tables', 'Uploaded expdesign'],'noindex'],
     'uploaded-data-table-data-store': ['tsv', 'Data', 'Input data tables', 'upload-split'],
 
     'interactomics-msmic-data-store': ['tsv', 'Data', 'MS microscopy results', ''],

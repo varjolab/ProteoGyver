@@ -5,7 +5,7 @@ import io
 import pandas as pd
 import numpy as np
 from collections.abc import Mapping
-from typing import Union
+from typing import Union, Type
 import os
 import json
 from components import db_functions
@@ -40,7 +40,7 @@ def make_nice_str_out_of_numbers(column: pd.Series, float_precision = 2, inplace
     if not inplace:
         return pd.Series(data=nvals, index=column.index)
 
-def _to_str(val: Union[type(np.nan), float, int, str]) -> Union[type(pd.NA), str]:
+def _to_str(val: Union[Type[np.nan], float, int, str]) -> Union[Type[pd.NA], str]:
     """Return a string representation of the given integer, rounded float, or otherwise a string.
 
     `np.nan` values are returned as empty strings.
@@ -343,7 +343,7 @@ def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
 
     info_dict: dict = {
         'protein lengths': protein_length_dict,
-        'data type': data_type
+        'data type': data_type,
     }
     table_dict: dict = {
         'spc': spc_table.to_json(orient='split'),
