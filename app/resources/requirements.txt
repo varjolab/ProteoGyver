@@ -20,7 +20,7 @@ scikit_learn==1.2.0
 scipy==1.13.0
 sh==2.0.6
 statsmodels==0.13.5
-suds_jurko==0.6
+suds==1.1.2
 supervenn==0.4.1
 Unidecode==1.3.6
 xlrd==2.0.1
