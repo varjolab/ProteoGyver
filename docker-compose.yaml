@@ -2,13 +2,25 @@ version: "3"
 
 services:
   pgyver_testing:
-    image: pgyver:1.2t
-    container_name: pgyver1.2t
+    image: pgyver:1.3a
+    container_name: pgtest
     ports:
       - 8060:8050
     environment:
       - TZ=Europe/Helsinki
-
     volumes:
       - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
+    restart: unless-stopped
+  pgyver_production:
+    image: pgyver:1.2.a2
+    container_name: pgprod
+    ports:
+      - 8050:8050
+      - 8090:8090
+    environment:
+      - TZ=Europe/Helsinki
+    volumes:
+      - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
+      - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
+    restart: unless-stopped

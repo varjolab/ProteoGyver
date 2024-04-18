@@ -366,6 +366,7 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
                     dbc.Label('Test type for comparisons:'),
                     dcc.RadioItems(['independent','paired'], 'independent',
                                    id='proteomics-test-type'),
+                    tooltips.test_type_tooltip(),
                 ], width=6)
                 
             ]),

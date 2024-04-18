@@ -21,3 +21,6 @@ def use_svenn_tooltip(target = 'sidebar-force-supervenn') -> Tooltip:
 
 def rescue_tooltip(target = 'interactomics-rescue-filtered-out') -> Tooltip:
     return generic_tooltip(target, 'Rescue will let preys pass filter if they pass the filter with any other bait. This means that BFDR values of e.g. 0.9 can pass, if the prey has a BFDR value of 0.0 with some other bait. !!!NOTE!!! This feature works well for small interactomics datasets, and related baits. With large and unrelated bait sets, it will enrich contaminants, that would otherwise be caught by filter in most baits.')
+
+def test_type_tooltip(target = 'proteomics-test-type') -> Tooltip:
+    return generic_tooltip(target, "ONLY USE paired IF you know what you're doing and your samples will be in the same order across sample groups, and you can be CERTAIN of it.")
