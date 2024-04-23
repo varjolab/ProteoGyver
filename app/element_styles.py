@@ -4,7 +4,7 @@
 _upload_height: int = 50
 SIDEBAR_STYLE: dict = {
     'position': 'fixed',
-    'top': 72,
+    'top': 85,
     'left': 0,
     'bottom': 0,
     'width': '20%',
@@ -19,7 +19,7 @@ CONTENT_STYLE: dict = {
     'margin-left': '22%',
     #'margin-top': ,
     'margin-right': '2%',
-    'paddingTop': 72,
+    'paddingTop': 85,
     'paddingBottom': '1%',
     #'padding': '5% 1%',
     'width': '75%',
@@ -30,7 +30,7 @@ CONTENT_STYLE: dict = {
 GENERIC_PAGE = {
     #'margin-top': ,
     'margin-right': '2%',
-    'paddingTop': 72,
+    'paddingTop': 85,
     'paddingBottom': '1%',
     #'padding': '5% 1%',
     'width': '100%',

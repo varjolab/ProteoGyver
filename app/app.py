@@ -2,6 +2,7 @@
 from dash import Dash, html, page_registry, page_container
 import dash_bootstrap_components as dbc
 from dash_bootstrap_components.themes import FLATLY
+from dash.dependencies import Input, Output, State
 import logging
 import os
 import json
@@ -42,6 +43,7 @@ logging.basicConfig(filename=logfilename, level=parameters['Config']['LogLevel']
 #log_handler.setLevel(logging.WARNING)
 #logger = logging.getLogger(__name__)
 #logger.warning(f'Proteogyver started: {datetime.now()}')
+LOGO = 'assets/images/proteogyver.png'
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +65,6 @@ pages_in_order = [
     'windowmaker',
 ]
 pages_in_order.extend(sorted([p for p in pages.keys() if p not in pages_in_order]))
-navbar_items = [pages[p] for p in pages_in_order]
 
 def main() -> None:
     logger.warning(f'Proteogyver started: {datetime.now()}')
@@ -74,6 +75,40 @@ def main() -> None:
 #        dbc.NavLink('JupyterHub',href='pg-23.biocenter.helsinki.fi:8090/')
 #    )
 #)
+
+navbar_items: list = [
+]
+navbar_items.extend([pages[p] for p in pages_in_order])
+
+navbar = dbc.Navbar(
+    dbc.Container(
+        [
+            html.Img(src=LOGO, height='100px'),
+            dbc.NavbarBrand('Proteogyver', className='ms-2', style = {'paddingRight': '50px'} ),
+            dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
+            dbc.Collapse(
+                navbar_items,
+                id="navbar-collapse",
+                is_open=False,
+                navbar=True,
+            ),
+        ]
+    ),
+    color='primary',
+    style={'zIndex':2147483647, 'position': 'fixed', 'width': '100%', 'height': '85px', 'Top': 0},
+    dark=True,
+)
+
+@app.callback(
+    Output("navbar-collapse", "is_open"),
+    [Input("navbar-toggler", "n_clicks")],
+    [State("navbar-collapse", "is_open")],
+)
+def toggle_navbar_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+"""
 navbar: dbc.NavbarSimple = dbc.NavbarSimple(
     id='main-navbar',
     children=navbar_items,
@@ -82,7 +117,7 @@ navbar: dbc.NavbarSimple = dbc.NavbarSimple(
     dark=True,
     style={'zIndex':2147483647, 'position': 'fixed', 'width': '100%', 'Top': 0},
     fluid=True
-)
+)"""
 
 app.layout = html.Div([
     navbar,
