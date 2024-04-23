@@ -45,6 +45,8 @@ WORKDIR /proteogyver
 RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.json  
 RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json  
 
+# This will fix a bug in the 0.6 version of dash_uploader.
+RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
 # Expose ports (jupyterHub. dash)
 EXPOSE 8090 8050
 
