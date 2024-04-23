@@ -32,7 +32,6 @@ RUN chmod 0644 /etc/cron.d/cron_maintenance_jobs
 RUN crontab /etc/cron.d/cron_maintenance_jobs
 RUN touch /var/log/cron.log
 
-# JupyterHub
 
 # Unpack database
 WORKDIR /proteogyver/data

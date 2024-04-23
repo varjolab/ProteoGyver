@@ -3,7 +3,6 @@ import sys
 import os
 import re
 import warnings
-from typing import Union
 import requests
 import pandas as pd
 from requests.adapters import HTTPAdapter, Retry
@@ -511,14 +510,14 @@ def retrieve_uniprot(uniprotfile: str = 'Full human uniprot.tsv', **kwargs) -> p
     return updf
 
 
-def download_full_uniprot_for_organism(organism: Union[list, int] = None,
+def download_full_uniprot_for_organism(organism = None,
                                        columns=None, progress: bool = False,
                                        overall_progress=False, reviewed_only:bool = True) -> pd.DataFrame:
     """Downloads the full uniprot database EXCLUDING isoforms in a .tsv format for a \
         given organism.
 
     Parameters:
-    organism: list of integer ID of the desired organism, e.g. human is 9606. If none, defaults\
+    organism: single integer ID or a list of integer ID of the desired organism, e.g. human is 9606. If none, defaults\
         to human.
     progress: Print progress reports of how each batch download is going
     overall_progress: Print progress reports when each batch is finished"""

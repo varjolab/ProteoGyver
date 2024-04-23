@@ -5,7 +5,6 @@ import io
 import pandas as pd
 import numpy as np
 from collections.abc import Mapping
-from typing import Union, Type
 import os
 import json
 from components import db_functions
@@ -40,7 +39,7 @@ def make_nice_str_out_of_numbers(column: pd.Series, float_precision = 2, inplace
     if not inplace:
         return pd.Series(data=nvals, index=column.index)
 
-def _to_str(val: Union[Type[np.nan], float, int, str]) -> Union[Type[pd.NA], str]:
+def _to_str(val):
     """Return a string representation of the given integer, rounded float, or otherwise a string.
 
     `np.nan` values are returned as empty strings.

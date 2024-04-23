@@ -1,5 +1,4 @@
 import sqlite3
-from typing import Union
 import pandas as pd
 import os
 
@@ -79,7 +78,7 @@ def add_record(db_conn, tablename, column_names, values):
         print("Failed to add record to sqlite table", error, sql_str)
         raise
         
-def create_connection(db_file, error_file: str = None) -> Union[sqlite3.Connection , None]:
+def create_connection(db_file, error_file: str = None):
     """ create a database connection to the SQLite database
         specified by the db_file
     :param db_file: database file
@@ -97,7 +96,7 @@ def create_connection(db_file, error_file: str = None) -> Union[sqlite3.Connecti
                 fil.write(str(e)+'\n')
     return conn
 
-def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False, pandas_index_col:str = None, operator:str = '=') -> Union[list, pd.DataFrame]:
+def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False, pandas_index_col:str = None, operator:str = '='):
     """"""
     cursor: sqlite3.Cursor = conn.cursor()
     if select_col is None:
@@ -119,7 +118,7 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = 
         ret: list = cursor.fetchall()
     return ret
 
-def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, criteria_col:str, criteria:list,as_pandas:bool = True, select_col: str = None) -> Union[list, pd.DataFrame]:
+def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, criteria_col:str, criteria:list,as_pandas:bool = True, select_col: str = None):
     """"""
     cursor: sqlite3.Cursor = conn.cursor()
     if select_col is None:
