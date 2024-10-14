@@ -14,6 +14,13 @@ import apitools
 
 # super inefficient, but run rarely, so good enough.
 def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set) -> None:
+    """
+    Inefficiently generates a pandas dataframe from a given intact zip file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.
+
+    :param file_path: path to the downloaded zip file
+    :param output_name: path for the output file
+    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file
+    """
     with zipfile.ZipFile(file_path, 'r') as zip_ref:
         zip_ref.extractall(file_path.replace('.zip',''))
     df = pd.read_csv(os.path.join(file_path.replace('.zip',''),'intact.txt'),sep='\t')
@@ -144,6 +151,12 @@ def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set) -> None
     findf.to_csv(output_name, sep='\t', index=False)
 
 def do_update(save_file, uniprots_to_get: set) -> None:
+    """
+    Handles practicalities of updating the intact tsv file on disk
+
+    :param save_dir: path to the .tsv file where data should be saved
+    :param uniprots_to_get: a set of which uniprots should be retained.
+    """
     ftpurl: str = 'ftp.ebi.ac.uk'
     ftpdir: str = '/pub/databases/intact/current/psimitab'
     ftpfilename: str = 'intact.zip'
@@ -156,6 +169,11 @@ def do_update(save_file, uniprots_to_get: set) -> None:
     generate_pandas(save_file, save_file.replace('.zip','.tsv'),uniprots_to_get)
 
 def update(uniprots_to_get: set) -> None:
+    """
+    Identifies whether update should be done or not, and does an update if needed.
+    
+    :param uniprots_to_get: which uniprots should be retained in the output file.
+    """
     ftpurl: str = 'ftp.ebi.ac.uk'
     ftpdir: str = '/pub/databases/intact/current/'
     ftp: ftplib.FTP = ftplib.FTP(ftpurl)
@@ -172,6 +190,11 @@ def update(uniprots_to_get: set) -> None:
         do_update(os.path.join(apitools.get_save_location('IntAct'),f'{apitools.get_timestamp()}_intact.zip'), uniprots_to_get)
 
 def get_latest() -> pd.DataFrame:
+    """
+    Fetches the latest data from disk
+
+    :returns: Pandas dataframe of the latest IntACT data.
+    """
     current_version: str = apitools.get_newest_file(apitools.get_save_location('IntAct'),namefilter='.tsv')
     return pd.read_csv(
         os.path.join(apitools.get_save_location('IntAct'), current_version),
@@ -181,10 +204,18 @@ def get_latest() -> pd.DataFrame:
     )
 
 def get_version_info() -> str:
+    """
+    Parses version info from the newest downloaded IntACT file
+    """
     nfile: str = apitools.get_newest_file(apitools.get_save_location('IntAct'))
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def methods_text() -> str:
+    """
+    Generates a methods text for used intact data
+
+    :returns: a tuple of (readable reference information (str), PMID (str), intact description (str))
+    """
     short,long,pmid = apitools.get_pub_ref('IntAct')
     return '\n'.join([
         'IntAct',

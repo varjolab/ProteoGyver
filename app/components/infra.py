@@ -1,5 +1,6 @@
 """Infrastructure components for Proteogyver"""
 
+from uu import Error
 from dash import dcc, html
 import os
 from plotly import io as pio
@@ -23,7 +24,6 @@ data_store_export_configuration: dict = {
     'proteomics-cv-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'qc-commonality-plot-visible-groups-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'interactomics-network-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
 
     'uploaded-data-table-info-data-store': ['json', 'Debug', '', ''],
     'uploaded-sample-table-info-data-store': ['json', 'Debug', '', ''],
@@ -31,7 +31,7 @@ data_store_export_configuration: dict = {
     'replicate-colors-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
     'discard-samples-data-store': ['json', 'Debug', '', ''],
-    'commonality-data-store': ['json', 'Data', 'Commonality data', ''],
+    'commonality-data-store': ['txt', 'Data', 'Commonality proteins', ''],
     'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
     
     'uploaded-sample-table-data-store': ['tsv', 'Data', ['Input data tables', 'Uploaded expdesign'],'noindex'],
@@ -133,15 +133,23 @@ def save_data_stores(data_stores, export_dir) -> dict:
                 if file_name == '':
                     file_name = d['props']['id']['name']
                 with open(os.path.join(export_destination, file_name+'.json'), 'w', encoding='utf-8') as fil:
-                    json.dump(d['props']['data'], fil, indent=2)
+                    dict_to_write: dict = {}
+                    if isinstance(d['props']['data'], dict):
+                        dict_to_write = d['props']['data']
+                    elif isinstance(d['props']['data'], str):
+                        dict_to_write = json.loads(d['props']['data'])
+                    json.dump(dict_to_write, fil, indent=2)
             elif export_format == 'txt':
                 if file_config == 'enrich-split':
                     for enrichment_name, file_contents in d['props']['data']:
                         with open(os.path.join(export_destination, f'{file_name} {enrichment_name}.{export_format}'), 'w', encoding='utf-8') as fil:
                             fil.write(file_contents)
+                else:
+                    with open(os.path.join(export_destination, f'{file_name}.{export_format}'),'w',encoding = 'utf-8') as fil:
+                        fil.write(d['props']['data'])
             elif export_format == 'tsv':
                 if not 'split' in file_config:
-                    pd_df = pd.read_json(d['props']['data'], orient='split')
+                    pd_df: pd.DataFrame = pd.read_json(d['props']['data'], orient='split')
                     if 'pertubation' in file_config:
                         continue
                     if 'rename-int' in file_config:
@@ -212,10 +220,10 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         use_name = os.path.join(export_destination, '.'.join([f'{df_dict["name"]}', export_format]))
                         df_dict['data'].to_csv(use_name,sep='\t',index=False)
                 else:
-                    with open('DEBUG_INFRA_SAVE_DATA_STORES','w') as fil:
+                    with open('DEBUG_INFRA_SAVE_DATA_STORES','w', encoding = 'utf-8') as fil:
                         fil.write(f'{d}')
-        except:
-            with open(f'FAILED_{d["props"]["id"]}','w') as fil:
+        except: # pylint: disable=bare-except
+            with open(f'FAILED_{d["props"]["id"]}','w', encoding = 'utf-8') as fil:
                 fil.write(f'{d["props"]["data"]}')
             print(d['props']['id'])
             print(type(d['props']['data']))
@@ -271,7 +279,7 @@ def get_all_types(elements, get_types) -> list:
 
 
 def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, workflow) -> None:
-
+    """"""
     logger.warning(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(

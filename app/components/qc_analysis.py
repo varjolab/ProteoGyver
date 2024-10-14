@@ -359,7 +359,21 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
     common_data = {gk: list(gs) for gk, gs in common_data.items()}
     logger.warning(
         f'commonality_plot - graph drawn: {datetime.now() }')
-    return (graph_area, json.dumps(common_data), image_str)
+    com = {}
+    for sg, sgprots in common_data.items():
+        for p in sgprots:
+            if p not in com: com[p] = []
+            com[p].append(sg)
+    common_data = {}
+    for p, sets in com.items():
+        sk = ','.join(sorted(sets))
+        if sk not in common_data: common_data[sk] = []
+        common_data[sk].add(p)
+    common_str:str = ''
+    for group, nset in common_data.items():
+        common_str += f'Group: {group.replace(";", ", ")} :: {len(nset)} protein groups\n{",".join(sorted(list(nset)))}\n----------\n'
+
+    return (graph_area, common_str, image_str)
 
 def generate_commonality_container(sample_groups):
     def_for_force: list = []

@@ -9,11 +9,12 @@ sys.path.append(parent)
 import apitools
 
 def retrieve_reactome_data(reactome_ids: list) -> tuple:
-    """Retrieves more detailed data for given reactome identifiers from reactome
+    """
+    Retrieves more detailed data for given reactome identifiers from reactome
 
-    Returns:
-    tuple of (pd.DataFrame, list).
-    pandas dataframe will contain the most often used information, and the list contains \
+    :param reactome_ids: list of Reactome IDs to download.
+
+    :returns: tuple of (pd.DataFrame, list). The pandas dataframe will contain the most often used information, and the list contains \
         full dict objects containing all the available data.
     """
     reactome_url = 'https://reactome.org/ContentService/data/query/ids'
@@ -50,9 +51,14 @@ def retrieve_reactome_data(reactome_ids: list) -> tuple:
         datarows.append(newrow)
     return pd.DataFrame(data=datarows, columns=columns, index=pd.Series(data=index, name='stId'))
 
-def save_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders: list = None):
-    """Retrieves a single tab delimed (e.g. reactome) file and saves it to file according to \
+def save_tab_delimed_file(reactome_url: str, output_filename: str, output_fileheaders: list = None) -> None:
+    """
+    Retrieves a single tab delimed (e.g. reactome) file and saves it to file according to \
         specified output filename and output file headers. Output will be tab delimed.
+    
+    :param reactome_url: url to reactome file
+    :param output_filename: where to save the downloaded file. .tsv will be appended to the file name
+    :param output_fileheaders: list of column headers for the downloaded file. If None, first line of the downloaded file will be used.
     """
     response = requests.get(reactome_url, timeout=10)
     filelines = response.text.split('\n')
@@ -65,7 +71,10 @@ def save_tab_delimed_file(reactome_url: str, output_filename, output_fileheaders
                                                                     sep='\t', index=False,encoding = 'utf-8')
 
 def get_default_reactome_dict():
-    """Returns default dict of reactome urls and their column names.
+    """
+    Generates default dict of reactome urls and their column names.
+
+    :returns a dict containing {reactome filename: (reactome url for file, column headers for output file)}
     """
     return {
         'uniprot2lowestlevel':
@@ -106,15 +115,13 @@ def get_default_reactome_dict():
     }
 
 # TODO: date the files, retrieve only, when necessary, e.g. every month? or two months?
-
-
 def retrieve_reactome(reactome_folder: str = 'Reactome_Data', reactome_dict: dict = None) -> None:
-    """Retrieves full mapping and pathway information files from Reactome to a specified folder
+    """
+    Retrieves full mapping and pathway information files from Reactome to a specified folder
 
-    Parameters:
-    reactome_folder: folder, where data should be saved. If it doesn't exist, it will be
+    :param reactome_folder: folder, where data should be saved. If it doesn't exist, it will be
         created.
-    reactome_dict: A dictionary of {output_fileName: reactome_url} for Reactome files.
+    :param reactome_dict: A dictionary of {output_fileName: reactome_url} for Reactome files.
         See method get_default_reactome_dict for reference.
     """
     if not reactome_dict:
@@ -129,12 +136,23 @@ def retrieve_reactome(reactome_folder: str = 'Reactome_Data', reactome_dict: dic
         save_tab_delimed_file(r_url, out_file, headers)
 
 def current_reactome_version() -> str:
+    """
+    Fetches current Reactome version name
+
+    :returns: version as str, or -1, if failed to get version
+    """
     for _ in range(0, 20):
         r: requests.Response = requests.get('https://reactome.org/ContentService/data/database/version')
         if r.status_code == 200: 
             return r.text
+    return -1
           
 def newer_reactome_available() -> bool:
+    """
+    Checks if a newer version of reactome is available
+
+    :returns: True, if a newer version is available.
+    """
     data_directory:str = apitools.get_save_location('Reactome')
     current_database_file:str = apitools.get_newest_file(data_directory)
     try:
@@ -146,6 +164,9 @@ def newer_reactome_available() -> bool:
 
   
 def update() -> None:
+    """
+    Checks current and latest version and updates, if newer version is available.
+    """
     reactome_files: dict = get_default_reactome_dict()
     latest: str = current_reactome_version()
     data_directory:str = apitools.get_save_location('Reactome')
@@ -159,12 +180,20 @@ def update() -> None:
     retrieve_reactome(reactome_folder = data_directory, reactome_dict = to_be_downloaded)
 
 def get_version_info() -> str:
+    """
+    Returns version info for the newest (and only) available Reactome version.
+    """
     nfile: str = apitools.get_newest_file(apitools.get_save_location('Reactome'))
     version:str = nfile.split('_')[0]
     downdate:str = nfile.split('_')[1]
     return f'Version {version}, downloaded ({downdate}).'
 
 def methods_text() -> str:
+    """
+    Generates a methods text for used Reactome data
+    
+    :returns: a tuple of (readable reference information (str), PMID (str), Reactome description (str))
+    """
     short,long,pmid = apitools.get_pub_ref('reactome')
     return '\n'.join([
         f'Reactome pathways were mapped from Reactome (https://reactome.org) {short}',

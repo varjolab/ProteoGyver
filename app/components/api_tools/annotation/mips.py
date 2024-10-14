@@ -12,6 +12,12 @@ sys.path.append(parent)
 import apitools
 
 def parse(xmlfile) -> pd.DataFrame:
+    """
+    Parses MIPS data from the MIPS data file
+
+    :param xmlfile: path to the MIPS xml file.
+    """
+
     with open(xmlfile,encoding='utf-8') as fil:
        doc: dict = xmltodict.parse(fil.read())
     interactions: list = []
@@ -65,8 +71,11 @@ def parse(xmlfile) -> pd.DataFrame:
     return pd.DataFrame(data=interactions,columns=heads)
 
 def download_and_parse(outfile) -> None:
-    """Will download MIPS interaction database from https://mips.helmholtz-muenchen.de/proj/ppi/ \
+    """
+    Will download MIPS interaction database from https://mips.helmholtz-muenchen.de/proj/ppi/ \
         and parse it into a file
+
+    :param outfile: path to the output file.
     """
     xmlfile: str = outfile.replace('gz','xml')
     # If already downloaded - no need to download and can move on to parsing right away.
@@ -85,6 +94,12 @@ def download_and_parse(outfile) -> None:
     dataframe.to_csv(outfile.replace('.gz','_interactions.tsv'),sep='\t',index=False,encoding = 'utf-8')
 
 def update() -> None:
+    """
+    Updates MIPS. 
+
+    No need to ever call again unless doing a rebuild. MIPS is offline as of 10.03.2023
+    """
+
     today: str = apitools.get_timestamp()
     outdir: str = apitools.get_save_location('MIPS')
     if len([f for f in os.listdir(outdir) if 'gz' in f])<1:
@@ -95,6 +110,12 @@ def update() -> None:
         download_and_parse(outfile)
     
 def get_interactions() -> dict:
+    """
+    Parses MIPS data from the saved data file into a dictionary
+
+    :returns: dictionary of interactions: {ProteinA: {ProteinB: {"References": {(reference string, detection method), (reference string 2, detection method 2)} } }
+    """
+
     df: pd.DataFrame = pd.read_csv(apitools.get_newest_file(apitools.get_save_location('MIPS'),namefilter = '_interactions.tsv'),sep='\t')
     interactions: dict = {}
     for _,row in df[(df['Protein 1 xref ID']!='-') & (df['Protein 2 xref ID']!='-')].iterrows():
@@ -111,10 +132,18 @@ def get_interactions() -> dict:
     return interactions
 
 def get_version_info() -> str:
+    """
+    Returns version info for the newest (and only) available MIPS version.
+    """
     nfile: str = apitools.get_newest_file(apitools.get_save_location('MIPS'), namefilter='gz')
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def methods_text() -> str:
+    """
+    Generates a methods text for used MIPS data
+    
+    :returns: a tuple of (readable reference information (str), PMID (str), mips description (str))
+    """
     short: str
     long: str
     pmid: str

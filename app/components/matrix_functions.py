@@ -5,10 +5,8 @@ from math import ceil
 from components.tools import R_tools
 from scipy.stats import median_abs_deviation
 from sklearn.decomposition import PCA
-import pandas as pd
-import numpy as np
 from scipy.cluster.hierarchy import linkage, leaves_list
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist
 
 def hierarchical_clustering(df, cluster='both', method='ward', fillval: float = 0.0):
     """

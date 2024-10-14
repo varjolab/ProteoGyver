@@ -3,18 +3,43 @@ from datetime import datetime, timedelta
 import nbib
 
 def get_timestamp() -> str:
+    """
+    Returns standardized timestamp.
+
+    :returns: standardized timestamp for current day as a string.
+    """
     return datetime.now().strftime('%Y-%m-%d')
 
 def parse_timestamp_from_str(stamp_text:str) -> str:
+    """
+    Parses standardized time stamp from string.
+    :param stamp_text: str with the timestamp
+
+    :returns: Datetime for the timestamp
+    """
     return datetime.strptime(stamp_text,'%Y-%m-%d').date()
 
 
 def is_newer(reference:str, new_date:str) -> bool:
-    reference: datetime.date = datetime.strptime(reference, '%y-%m-%d').date()
-    new_date: datetime.date = datetime.strptime(new_date, '%Y-%m-%d').date()
+    """
+    Checks whether new_date is newer than reference
+
+    :param reference: reference timestamp string
+    :param new_date: new_date timestamp string
+
+    :returns: True, if new_date is more recent than reference.
+    """
+    reference: datetime.date = parse_timestamp_from_str(reference)
+    new_date: datetime.date = parse_timestamp_from_str(new_date)
     return (new_date>reference)
 
 def get_save_location(databasename) -> str:
+    """
+    Finds the appropriate location to save a database file
+
+    :param databasename: Name of the database
+    :returns: path to the database directory, where files should be written.
+    """
     base_location: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'api_data'
@@ -25,6 +50,16 @@ def get_save_location(databasename) -> str:
     return dir_name
 
 def get_files_newer_than(directory:str, date:str, days:int, namefilter:str=None) -> list:
+    """
+    Gets files newer than a given date in a dictionary, only going back a given number of days. Uses os.path.getmtime to establish file dates.
+
+    :param directory: where to search
+    :param date: base date for the search, e.g. today
+    :param days: how many days move the cutoff date to the past from the date parameter
+    :param namefilter: only return files, which have this string in their name
+
+    :returns: list of files newer than date-days, that optionally contain namefilter in their name.
+    """
     if not os.path.isdir(directory):
         return ''
     # Convert the date string to a datetime object
@@ -46,7 +81,15 @@ def get_files_newer_than(directory:str, date:str, days:int, namefilter:str=None)
             newer_files.append(filename)
     return newer_files
 
-def get_newest_file(directory, namefilter:str = None) -> str:
+def get_newest_file(directory:str, namefilter:str = None) -> str:
+    """
+    Finds the latest modified file in a directory
+
+    :param directory: where to search
+    :param namefilter: only consider files with this in their name
+
+    :returns: name of the newest file, not the full path.
+    """
     if not os.path.isdir(directory):
         return ''
     # Initialize variables to store the name and modification time of the newest file
@@ -69,6 +112,13 @@ def get_newest_file(directory, namefilter:str = None) -> str:
     return newest_file
 
 def get_nbibfile(databasename:str) -> str:
+    """
+    Fetches the nbib reference file for the given database. Does not check, if the file exists.
+
+    :param databasename: name of the database
+
+    :returns: path to the nbib file for that database.
+    """
     nbibpath: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'api_data',
@@ -77,6 +127,17 @@ def get_nbibfile(databasename:str) -> str:
     return nbibpath
 
 def get_pub_ref(databasename:str) -> list:
+    """
+    Fetches reference information for the given database
+
+    :param databasename: which database to get information for
+
+    :returns: list of reference information: [
+        short description,
+        long description,
+        PMID
+    ]
+    """
     
     nbibdata: list = nbib.read_file(get_nbibfile(databasename))[0]
     pubyear: str = nbibdata['publication_date'].split(maxsplit=1)[0]

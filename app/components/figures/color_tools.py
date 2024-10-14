@@ -5,13 +5,14 @@ def get_assigned_colors(sample_group_dict: dict) -> dict:
     """Returns a dictionary with each sample name from the sample group dict assigned a color\
         corresponding to its sample group.
 
-    :param: sample_group_dict: dictionary of sample groups, where one group maps to a list of samples.
+    :param sample_group_dict: dictionary of sample groups, where one group maps to a list of samples.
+    :returns: tuple of (dictionary of samples and sample groups,dictionary of samples and sample groups with contaminant annotation)
     """
     entry_list: list = list(sample_group_dict.keys())
     colors: list = get_cut_colors(number_of_colors=len(entry_list))
     group_colors: dict = {}
     for i, entry in enumerate(entry_list):
-         group_colors[entry] = f'rgba({",".join(str(int(255*x)) for x in colors[i][:3])}, 1)'
+        group_colors[entry] = f'rgba({",".join(str(int(255*x)) for x in colors[i][:3])}, 1)'
     ret: dict = {'samples': {}, 'sample groups': group_colors}
     ret_cont: dict = {}
     for c in 'contaminant','non-contaminant':
@@ -25,7 +26,12 @@ def get_assigned_colors(sample_group_dict: dict) -> dict:
             ret_cont['contaminant']['samples'][sample_name] = darken(group_colors[sample_group],20)
     return (ret, ret_cont)
 
-def darken(color, percent):
+def darken(color: str, percent: int) -> str:
+    """Darkens a given color by a given percentage value).
+    :param color: input color as  "rgb(123,321,123)"
+    :param percent: percentage for how much to darken
+    :returns: new color string in the  "rgb(123,321,123)" format.
+    """
     tp: str
     col_ints:list
     tp, col_ints = color.split('(')
@@ -38,9 +44,10 @@ def get_cut_colors(colormapname: str = 'gist_ncar', number_of_colors: int = 15,
                 cut: float = 0.4) -> list:
     """Returns cut colors from the given colormapname
 
-    :param: colormap: which matplotlib colormap to use
-    :param: number_of_colors: how many colors to return. Colors will be equally spaced in the map
-    :param: cut: how much to cut the colors.
+    :param colormap: which matplotlib colormap to use
+    :param number_of_colors: how many colors to return. Colors will be equally spaced in the map
+    :param cut: how much to cut the colors.
+    :returns: cut color list
     """
     number_of_colors += 1
     colors: list = (1. - cut) * (plt.get_cmap(colormapname)(np.linspace(0., 1., number_of_colors))) + \

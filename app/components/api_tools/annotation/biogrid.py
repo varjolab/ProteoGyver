@@ -14,6 +14,12 @@ import apitools
 
 # super inefficient, but run rarely, so good enough.
 def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
+    """
+    Inefficiently generates a pandas dataframe from a given biogrid file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.
+
+    :param file_path: path to the downloaded .tab3 file
+    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file
+    """
     newpath:str = file_path.replace('.txt','.tsv')
     os.rename(file_path, newpath)
     df = pd.read_csv(newpath,sep='\t', low_memory=False)
@@ -163,12 +169,25 @@ def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
     findf.to_csv(newpath, sep='\t', index=False)
 
 def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set) -> None:
+    """
+    Handles practicalities of updating the biogrid tsv file on disk
+
+    :param save_dir: directory where the datafiles will be put
+    :param save_zipname: filename for the zipfile that will be downloaded
+    :param latest_zip_url: url for the zip to download from BioGRID
+    :param uniprots_to_get: a set of which uniprots should be retained.
+    """
     urlretrieve(latest_zip_url,os.path.join(save_dir, save_zipname))
     with ZipFile(os.path.join(save_dir, save_zipname), 'r') as zip_ref:
         zip_ref.extractall(save_dir)
     generate_pandas(os.path.join(save_dir, save_zipname.replace('.zip','.txt')), uniprots_to_get)
 
 def get_latest() -> pd.DataFrame:
+    """
+    Fetches the latest data from disk
+
+    :returns: Pandas dataframe of the latest BioGRID data.
+    """
     current_version: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'),namefilter='.tsv')
     return pd.read_csv(
         os.path.join(apitools.get_save_location('BioGRID'), current_version),
@@ -177,7 +196,13 @@ def get_latest() -> pd.DataFrame:
         low_memory=False
     )
 
+#TODO: check uniprots in should_update bool check too, not just version.
 def update(uniprots_to_get:set) -> None:
+    """
+    Updates the database, if required
+
+    :param uniprots_to_get: uniprots to retain in the database    
+    """
     url = 'https://downloads.thebiogrid.org/BioGRID/Release-Archive'
     r = get(url).text.split('\n')
     r = [rr.strip().split('href=')[1].split('\' title')[0].strip().strip('\'') for rr in r if 'https://downloads.thebiogrid.org/BioGRID/Release-Archive/' in rr]
@@ -194,10 +219,16 @@ def update(uniprots_to_get:set) -> None:
         do_update(save_location, uzip, latest_zipname, uniprots_to_get)
         
 def get_version_info() -> str:
+    """
+    Returns version info for the newest available biogrid version.
+    """
     nfile: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'))
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def get_method_annotation() -> dict:
+    """
+    Returns information regarding annotation for interaction identification methods used in BioGRID
+    """
     legend = {
         'Affinity Capture-Luminescence': r'An interaction is inferred when a bait protein, tagged with luciferase, is enzymatically detected in immunoprecipitates of the prey protein as light emission. The prey protein is affinity captured from cell extracts by either polyclonal antibody or epitope tag.', 
         'Affinity Capture-MS': r'An interaction is inferred when a bait protein is affinity captured from cell extracts by either polyclonal antibody or epitope tag and the associated interaction partner is identified by mass spectrometric methods. Note that this in an in vivo experiment where all relevant proteins are co-expressed in the cell (e.g. PMID: 12150911).', 
@@ -220,6 +251,11 @@ def get_method_annotation() -> dict:
     return legend
 
 def methods_text() -> str:
+    """
+    Generates a methods text for used biogrid data
+    
+    :returns: a tuple of (readable reference information (str), PMID (str), biogrid description (str))
+    """
     short,long,pmid = apitools.get_pub_ref('BioGRID')
     return '\n'.join([
         'BioGRID',
@@ -229,7 +265,6 @@ def methods_text() -> str:
         long
     ])
 
-
-
+# TODO: this should not be set here.
 odir = os.path.join('components','api_tools','annotation')
     

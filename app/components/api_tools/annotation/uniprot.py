@@ -16,7 +16,9 @@ import apitools
 
 # TODO: move to a separate file
 def get_uniprot_column_map() -> dict:
-    """Returns currently understood map of uniprot columns in a dict."""
+    """
+    Returns currently understood map of uniprot columns in a dict.
+    """
     return {'Entry': 'accession',
             'Absorption': 'absorption',
             'Annotation': 'annotation_score',
@@ -307,7 +309,9 @@ def get_uniprot_column_map() -> dict:
             }
 
 def get_default_uniprot_column_map() -> dict:
-    """Returns a sensible, yet extensive default map of uniprot columns in a dict."""
+    """
+    Returns a sensible, yet extensive default map of uniprot columns in a dict.
+    """
     return {'Entry': 'accession',
             'Post-translational modification': 'cc_ptm',
             'Comment Count': 'comment_count',
@@ -356,11 +360,11 @@ def get_default_uniprot_column_map() -> dict:
             }
 
 
-def __get_uniprot_batch(batch_url: str, session: requests.Session) -> tuple:
-    """Retrieves batches from UniProt, results response, and total number of results.
+def __get_uniprot_batch(batch_url: str, session: requests.Session) -> tuple: #TODO: mark all tuple returns with Generator class once available
+    """
+    Retrieves batches from UniProt, results response, and total number of results.
 
-    Yields:
-    a tuple of (requests.models.Response, total:str)
+    :yields: a tuple of (requests.models.Response, total:str)
     """
     while batch_url:
         response = session.get(batch_url)
@@ -374,7 +378,12 @@ def __get_uniprot_batch(batch_url: str, session: requests.Session) -> tuple:
 
 
 def __get_uniprot_next_link(headers: requests.structures.CaseInsensitiveDict) -> str:
-    """Returns link to the next page of results in a UniProt query, or None is no link is found.
+    """
+    Parses link to the next page of results in a UniProt query
+
+    :param headers: dictionary of html headers.
+
+    :returns: The link, or None is no link is found.
     """
     re_next_link = re.compile(r'<(.+)>; rel="next"')
     if "Link" in headers:
@@ -386,16 +395,19 @@ def __get_uniprot_next_link(headers: requests.structures.CaseInsensitiveDict) ->
 
 def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
                             fields: list = None, reviewed_only: bool = True) -> pd.DataFrame:
-    """Downloads whole uniprot for a given organism using pagination.
+    """
+    Downloads whole uniprot for a given organism using pagination.
 
     Entry -column will always be the first column and used as the index in the output dataframe.
 
-    Parameters:
-    progress: Progress report printing
-    organism: human by default, otherwise specify organism ID (e.g. human is 9606)
-    fields: uniprot field labels for fields to retrieve. Refer to \
+    :param progress: Progress report printing
+    :param organism: human by default, otherwise specify organism ID (e.g. human is 9606)
+    :param fields: uniprot field labels for fields to retrieve. Refer to \
         https://www.uniprot.org/help/return_fields for help with field Labels \
         (from the label column). If None, download a default selection.
+    :param reviewed_only: if True, only reviewed entries will be returned. if False, all entries will be returned (probably not what you want).
+    
+    :returns: the requested uniprot data in a pandas dataframe.
     """
     if reviewed_only:
         reviewed:str = '%29%20AND%20%28reviewed%3Atrue'
@@ -449,6 +461,15 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     return download_uniprot_pagination_url(pagination_url, headers, progress)
 
 def download_uniprot_pagination_url(pag_url: str, headers: list, progress:bool) -> pd.DataFrame:
+    """
+    Handles the downloading of the uniprot
+
+    :param pag_url: url for uniprot
+    :param headers: list of headers to get
+    :param progress: True, if progress should be printed
+
+    :returns: Pandas dataframe of the uniprot specified by url and headers.
+    """
     retries: Retry = Retry(total=5, backoff_factor=0.25,
                     status_forcelist=[500, 502, 503, 504])
     session: requests.Session = requests.Session()
@@ -466,11 +487,13 @@ def download_uniprot_pagination_url(pag_url: str, headers: list, progress:bool) 
     return pd.DataFrame(columns=headers[1:], data=alltext, index=pd.Series(index, name='Entry'))
 
 def retrieve_protein_group(name:str, query_col:str = 'protein_name', reviewed:bool = True) -> pd.DataFrame:
-    """Utility function to quickly download tsvs describing each common protein class used in ProteoGyver.
+    """
+    Utility function to quickly download tsvs describing each common protein class used in ProteoGyver.
     
-    Parameters:
-    name: protein group name to search for
-    query_col: column to search. Protein name by default.
+    :param name: protein group name to search for
+    :param query_col: column to search. Protein name by default.
+    
+    :returns: pandas datafrmae of the given protein group
     """
     headers = [
         'Entry',
@@ -492,13 +515,16 @@ def retrieve_protein_group(name:str, query_col:str = 'protein_name', reviewed:bo
         revstr = ''
     group_url = f'https://rest.uniprot.org/uniprotkb/search?fields={field_str}&format=tsv&query=%28{query_col}%3A{name}%29{revstr}&size=500'
     return download_uniprot_pagination_url(group_url, headers, False)
-def retrieve_uniprot(uniprotfile: str = 'Full human uniprot.tsv', **kwargs) -> pd.DataFrame:
-    """Downloads full uniprot (reviewed entries only) to a file and returns the dataframe.
 
-    Parameters:
-    uniprotfile: path of the output file
-    kwargs: kwargs to pass down to download_full_uniprot_for_organism, e.g. to specify which\
+def retrieve_uniprot(uniprotfile: str = 'Full human uniprot.tsv', **kwargs) -> pd.DataFrame:
+    """
+    Downloads full uniprot (reviewed entries only) to a file and returns the dataframe.
+
+    :param uniprotfile: path of the output file
+    :param kwargs: kwargs to pass down to download_full_uniprot_for_organism, e.g. to specify which\
         organism or if progress should be reported.
+    
+    :returns: full uniprot as a pandas dataframe.
     """
     if os.path.isfile(uniprotfile):
         updf:pd.DataFrame = pd.read_csv(uniprotfile, sep='\t')
@@ -509,18 +535,21 @@ def retrieve_uniprot(uniprotfile: str = 'Full human uniprot.tsv', **kwargs) -> p
     updf = updf.drop(columns=['Entry'])
     return updf
 
-
-def download_full_uniprot_for_organism(organism = None,
-                                       columns=None, progress: bool = False,
-                                       overall_progress=False, reviewed_only:bool = True) -> pd.DataFrame:
-    """Downloads the full uniprot database EXCLUDING isoforms in a .tsv format for a \
+def download_full_uniprot_for_organism(organism: int = None, # TODO: mark this as Union[list, int] when newer version of python available
+                                       columns: set = None, progress: bool = False,
+                                       overall_progress: bool = False, reviewed_only:bool = True) -> pd.DataFrame:
+    """
+    Downloads the full uniprot database EXCLUDING isoforms in a .tsv format for a \
         given organism.
 
-    Parameters:
-    organism: single integer ID or a list of integer ID of the desired organism, e.g. human is 9606. If none, defaults\
-        to human.
-    progress: Print progress reports of how each batch download is going
-    overall_progress: Print progress reports when each batch is finished"""
+    :param organism: integer ID or a list of integer ID of the desired organism, e.g. human is 9606. If none, defaults to human.
+    :param columns: a set of uniprot columns to get
+    :param progress: Print progress reports of how each batch download is going
+    :param overall_progress: Print progress reports when each batch is finished
+    :param reviewed only: True, if only reviewed entries should be retrieved
+
+    :returns: pandas dataframe of the uniprot.
+    """
     if not organism:
         organism: list = [9606]
     elif isinstance(organism, int):
@@ -543,6 +572,12 @@ def download_full_uniprot_for_organism(organism = None,
     return pd.concat(dfs_to_merge, axis=1)
 
 def update(organism = 9606,progress=False) -> None:
+    """
+    Checks, whether an update for uniprot is available and downloads it if necessary.
+
+    :param organism: which organism to download
+    :param progress: True, if progress should be printed.
+    """
     outdir: str = apitools.get_save_location('Uniprot')
     if is_newer_available(apitools.get_newest_file(outdir, namefilter=str(organism))):
         today: str = apitools.get_timestamp()
@@ -561,6 +596,14 @@ def update(organism = 9606,progress=False) -> None:
 
 
 def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
+    """
+    Checks whether newer uniprot version is available
+
+    :param newest_file: Path to the newest downloaded file
+    :param organism: which organism uniprot to check.
+
+    :returns: True, if newer uniprot version is available.
+    """
     uniprot_url: str = f"https://rest.uniprot.org/uniprotkb/search?\
         query=organism_id:{organism}&format=fasta"
     uniprot_response: requests.Response = requests.get(uniprot_url)
@@ -582,10 +625,22 @@ def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
     return ret
 
 def get_version_info(organism:int=9606) -> str:
+    """
+    Parses uniprot version from uniprot file
+
+    :param organism: which organism to check
+    
+    :returns: version information.
+    """
     nfile: str = apitools.get_newest_file(apitools.get_save_location('Uniprot'), namefilter=str(organism))
     return f'Downloaded ({nfile.split("_")[0]})'
 
-def methods_text(organism=9606) -> str:
+def methods_text(organism=9606) -> tuple:
+    """
+    Generates a methods text for used uniprot data
+    
+    :returns: a tuple of (readable reference information (str), PMID (str), uniprot description (str))
+    """
     short:str
     long: str
     pmid: str

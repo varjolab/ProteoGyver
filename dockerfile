@@ -1,4 +1,4 @@
-FROM pgbase:1.2
+FROM pgbase:1.4a
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 
 # First steps
@@ -8,7 +8,6 @@ RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/MS_rundata
 RUN mkdir -p /etc/supervisor/conf.d
 RUN mkdir -p /etc/jupyterhub
-RUN mkdir -p /proteogyver/cache
 RUN mkdir -p /proteogyver/data/unparsed_stats
 RUN mkdir -p /proteogyver/data/Server_output/stats
 

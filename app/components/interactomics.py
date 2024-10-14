@@ -84,6 +84,8 @@ def known_plot(filtered_saint_input_json, db_file, rep_colors_with_cont, figure_
         db_conn, 'known_interactions', upid_a_col, list(
             saint_output['Bait uniprot'].unique())
     )
+
+    # TODO: multibait
     saint_output = pd.merge(
         saint_output,
         knowns,
