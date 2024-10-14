@@ -1,5 +1,5 @@
 FROM pgbase:1.2
-LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
+LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 
 # First steps
 USER root
