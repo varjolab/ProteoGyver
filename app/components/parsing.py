@@ -316,6 +316,8 @@ def read_df_from_content(content, filename, lowercase_columns=False) -> pd.DataF
 def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
     """Determines and applies the appropriate read function to use for the given data file."""
     table: pd.DataFrame = read_df_from_content(file_contents, filename)
+    table.columns = table.columns.astype(str)
+
     read_funcs: dict[tuple[str, str]] = {
         ('DIA', 'DIA-NN'): read_dia_nn,
         ('DDA', 'FragPipe'): read_fragpipe,
@@ -671,13 +673,13 @@ def rename_columns_and_update_expdesign(
     newnames = []
     expdesign = expdesign[expdesign['Sample name'].notna()]
     expdesign = expdesign[expdesign['Sample group'].notna()]
+    for col in expdesign.columns:
+        expdesign.loc[:,col] = expdesign[col].astype(str).apply(str.strip)
     for i, oldvalue in enumerate(expdesign['Sample name'].values):
         oldvalue = oldvalue.rsplit('\\', maxsplit=1)[-1]
         oldvalue = oldvalue.rsplit('/', maxsplit=1)[-1]
         newnames.append(oldvalue)
     expdesign['Sample name'] = newnames
-    for col in expdesign.columns:
-        expdesign.loc[:,col] = expdesign[col].astype(str).apply(str.strip)
     discarded_columns: list = []
     sample_groups: dict = {}
     sample_group_columns: dict = {}
