@@ -152,7 +152,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                                 f'File modified timestamp: {d["props"]["data"]["Modified time"]}',
                                 f'File name: {d["props"]["data"]["File name"]}',
                                 f'Data type: {d["props"]["data"]["Data type"][0]}',
-                                f'Data source guess {d["props"]["data"]["Data type"][1]}
+                                f'Data source guess {d["props"]["data"]["Data type"][1]}'
                             ]))
                         if file_name == 'Sample table':
                             fil.write('\n'.join([
