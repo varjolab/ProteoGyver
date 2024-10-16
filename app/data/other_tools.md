@@ -8,7 +8,9 @@
 ## Analysis
 - [iProPhos for phosphorylation](https://www.mcponline.org/article/S1535-9476(23)00204-9/fulltext)
 - [phosX for kinase activity from phosphoproteomics](https://www.biorxiv.org/content/10.1101/2024.03.22.586304v2)
-- 
+- [Cross-species PTM mapping and comparison](https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(24)00237-6)
+- [Protein topology](https://github.com/izzilab/protodeviser)
+- [Protein sequence -based phosphorylation prediction](https://sitetack.net/)
 ### Pathways
 
 ### Enrichment

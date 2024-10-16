@@ -25,8 +25,8 @@ data_store_export_configuration: dict = {
     'qc-commonality-plot-visible-groups-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
 
-    'uploaded-data-table-info-data-store': ['json', 'Debug', '', ''],
-    'uploaded-sample-table-info-data-store': ['json', 'Debug', '', ''],
+    'uploaded-data-table-info-data-store': ['txt', 'Input data info', 'Data table', 'input-file'],
+    'uploaded-sample-table-info-data-store': ['txt', 'Input data info', 'Sample table', 'input-file'],
     'upload-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
@@ -140,10 +140,25 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         dict_to_write = json.loads(d['props']['data'])
                     json.dump(dict_to_write, fil, indent=2)
             elif export_format == 'txt':
+                'txt', 'Input data info', 'Data table', 'input-file'
                 if file_config == 'enrich-split':
                     for enrichment_name, file_contents in d['props']['data']:
                         with open(os.path.join(export_destination, f'{file_name} {enrichment_name}.{export_format}'), 'w', encoding='utf-8') as fil:
                             fil.write(file_contents)
+                elif file_config == 'input-file':
+                    with open(os.path.join(export_destination, f'{file_name}.{export_format}'),'w',encoding='utf-8') as fil:
+                        if file_name == 'Data table':
+                            fil.write('\n'.join([
+                                f'File modified timestamp: {d["props"]["data"]["Modified time"]}',
+                                f'File name: {d["props"]["data"]["File name"]}',
+                                f'Data type: {d["props"]["data"]["Data type"][0]}',
+                                f'Data source guess {d["props"]["data"]["Data type"][1]}
+                            ]))
+                        if file_name == 'Sample table':
+                            fil.write('\n'.join([
+                                f'File modified timestamp: {d["props"]["data"]["Modified time"]}',
+                                f'File name: {d["props"]["data"]["File name"]}'
+                            ]))
                 else:
                     with open(os.path.join(export_destination, f'{file_name}.{export_format}'),'w',encoding = 'utf-8') as fil:
                         fil.write(d['props']['data'])
@@ -415,6 +430,8 @@ def save_input_information(input_divs, export_dir) -> None:
         'Input'
     ]
     input_options: list = []
+    with open('DEBUG input_divs.json','w') as fil:
+        json.dump(input_divs, fil, indent=2)
     labels_and_inputs: list = get_all_types(input_divs, these)
     for i, label in enumerate(labels_and_inputs):
         if label['type'] != 'Label':
@@ -440,6 +457,8 @@ def save_input_information(input_divs, export_dir) -> None:
         elif input['props']['id'] == 'interactomics-num-controls':
             input_options.append(
                 ['Number of used controls:', input['props']['value']])
+    # Grab all input filenames:
+    
 
     with open(os.path.join(export_dir, 'Options used in analysis.txt'), 'w', encoding='utf-8') as fil:
         for name, values in input_options:

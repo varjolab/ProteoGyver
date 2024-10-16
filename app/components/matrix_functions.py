@@ -153,7 +153,7 @@ def normalize(data_table, normalization_method, errorfile: str, random_seed: int
     """Normalizes a given dataframe with the wanted method."""
     return_table: DataFrame = data_table
     if not normalization_method:
-        normalization_method = 'None'
+        normalization_method = 'no_normalization'
     if normalization_method == 'Median':
         return_table = median_normalize(data_table)
     elif normalization_method == 'Quantile':

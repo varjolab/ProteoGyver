@@ -1008,7 +1008,6 @@ def download_data_table_example(_) -> dict:
     logger.warning(f'received DT download request at {datetime.now()}')
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
 
-
 def get_adiv_by_id(divs: list, idvals: list, idval_to_find: str):
     use_index: int = -1
     for i, idval in enumerate(idvals):
@@ -1018,12 +1017,13 @@ def get_adiv_by_id(divs: list, idvals: list, idval_to_find: str):
     if use_index > -1:
         return divs[use_index]
     return None
+
 ##################################
 ##   Start of export section    ##
 ##################################
 # Export needed to be split apart due to taking too long otherwise with background callbacks.
 # Background callbacks were disabled due to some weird-ass bug that had something to do with volcano plots and excessive numbers of differentially abundant proteins.
-
+# These could now be merged back into one, I guess
 
 @callback(
     Output('download-temp-dir-ready','children'),
