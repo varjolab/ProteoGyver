@@ -366,8 +366,9 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
             com[p].append(sg)
     common_data = {}
     for p, sets in com.items():
-        sk = ','.join(sorted(sets))
-        if sk not in common_data: common_data[sk] = []
+        sk: str = ','.join(sorted(sets))
+        if sk not in common_data:
+            common_data[sk] = set()
         common_data[sk].add(p)
     common_str:str = ''
     for group, nset in common_data.items():
