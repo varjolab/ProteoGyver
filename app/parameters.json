@@ -50,7 +50,7 @@
         "Figure templates": ["plotly_white", "simple_white", "plotly_dark"]
     },
     "Data paths": {
-        "Database file": ["data", "proteogyver.db"],
+        "Database file": ["data", "db", "proteogyver.db"],
         "Example data file": ["data","example files","datafile.tsv"],
         "Example sample table file": ["data","example files","sampletable.tsv"],
         "Example proteomics comparison file": ["data","example files","proteomics comparisons.tsv"],

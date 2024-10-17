@@ -46,7 +46,7 @@ layout = ui.windowmaker_interface(offered_equations)
 
 
 upload_dir:str = os.path.join(*parameters['Data paths']['Cache dir'])
-upload_dir = os.path.join(upload_dir, 'uploads')
+upload_dir = os.path.join(upload_dir, 'uploads','windowmaker')
 if not os.path.isdir(upload_dir): os.makedirs(upload_dir)
 du.configure_upload(
     get_app(),
