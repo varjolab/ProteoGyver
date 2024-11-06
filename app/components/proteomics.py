@@ -2,7 +2,7 @@ import pandas as pd
 from dash import html
 from dash.dcc import Graph
 from components.figures import bar_graph, before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot, histogram, cvplot
-from components import matrix_functions, summary_stats, stats
+from components import matrix_functions, quick_stats
 from components.figures.figure_legends import PROTEOMICS_LEGENDS as legends
 from components.figures.figure_legends import leg_rep
 from datetime import datetime
@@ -214,7 +214,7 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
 
     names: list
     comparative_data: dict
-    names, comparative_data = summary_stats.get_comparative_data(
+    names, comparative_data = quick_stats.get_comparative_data(
         data_table, sample_groups_rev
     )
     logger.warning(
@@ -411,7 +411,7 @@ def volcano_plots(imputed_data_json: str, sample_groups: dict, comparisons: list
 
     logger.warning(f'volcano - start: {datetime.now()}')
     data: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
-    significant_data: pd.DataFrame = stats.differential(
+    significant_data: pd.DataFrame = quick_stats.differential(
         data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr, test_type = test_type)
     logger.warning(
         f'volcano - significants calculated: {datetime.now() }')

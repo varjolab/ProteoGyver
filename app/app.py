@@ -63,6 +63,7 @@ pages_in_order = [
     'qc and data analysis',
     'ms analytics dashboard',
     'windowmaker',
+    'colocalizator',
 ]
 pages_in_order.extend(sorted([p for p in pages.keys() if p not in pages_in_order]))
 
@@ -78,7 +79,7 @@ def main() -> None:
 
 navbar_items: list = [
 ]
-navbar_items.extend([pages[p] for p in pages_in_order])
+navbar_items.extend([pages[p] for p in pages_in_order if p in pages])
 
 navbar = dbc.Navbar(
     dbc.Container(

@@ -12,6 +12,7 @@ import re
 from plotly import io as pio
 from components import db_functions
 import numpy as np
+from element_styles import GENERIC_PAGE
 import json
 import logging
 
@@ -398,8 +399,8 @@ def ms_analytics_layout():
                 dcc.Store('trace-dict'),
                 dcc.Store('plot-data'),
                 dcc.Store('plot-max-y'),
-                html.Div(id='tic-analytics-current-tic-idx', children = 0, style={'display': 'none'}),' ','\t',',',';','|'
-            ]),
+                html.Div(id='tic-analytics-current-tic-idx', children = 0, style={'display': 'none'})
+            ],style={'display':'none'}),
             dbc.Row([
                 dbc.Col([
                     description_card(),
@@ -436,6 +437,6 @@ def ms_analytics_layout():
                 ],
                 width = 8)
             ])
-        ])
+        ],style=GENERIC_PAGE)
 
 layout = ms_analytics_layout()

@@ -4,7 +4,7 @@ from pandas import read_json as pd_read_json
 from dash import html
 import dash_bootstrap_components as dbc
 from components.figures import bar_graph, comparative_plot, commonality_graph, reproducibility_graph
-from components import summary_stats
+from app.components import quick_stats
 from components.figures.figure_legends import QC_LEGENDS as legends
 from components.ui_components import checklist
 from components.tooltips import use_svenn_tooltip
@@ -19,7 +19,7 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
     """Generates a bar plot of given data"""
     start_time: datetime = datetime.now()
     logger.warning(f'count_plot - started: {start_time}')
-    count_data: DataFrame = summary_stats.get_count_data(
+    count_data: DataFrame = quick_stats.get_count_data(
         pd_read_json(pandas_json, orient='split'),
         contaminant_list
     )
@@ -160,7 +160,7 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
 
 def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
     logger.warning(f'coverage - started: {datetime.now()}')
-    coverage_data: DataFrame = summary_stats.get_coverage_data(
+    coverage_data: DataFrame = quick_stats.get_coverage_data(
         pd_read_json(pandas_json, orient='split'))
 
     logger.warning(
@@ -209,7 +209,7 @@ def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str,
 def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
     logger.warning(f'missing_plot - started: {start_time}')
-    na_data: DataFrame = summary_stats.get_na_data(
+    na_data: DataFrame = quick_stats.get_na_data(
         pd_read_json(pandas_json, orient='split'))
     na_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in na_data.index.values
@@ -239,7 +239,7 @@ def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title
 def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
     start_time: datetime = datetime.now()
     logger.warning(f'sum_plot - started: {start_time}')
-    sum_data: DataFrame = summary_stats.get_sum_data(
+    sum_data: DataFrame = quick_stats.get_sum_data(
         pd_read_json(pandas_json, orient='split'))
     sum_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in sum_data.index.values
@@ -271,7 +271,7 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
     logger.warning(f'mean_plot - started: {start_time}')
     if title is None:
         title = 'Value mean per sample'
-    mean_data: DataFrame = summary_stats.get_mean_data(
+    mean_data: DataFrame = quick_stats.get_mean_data(
         pd_read_json(pandas_json, orient='split'))
     mean_data['Color'] = [
         replicate_colors['samples'][rep_name] for rep_name in mean_data.index.values
@@ -302,7 +302,7 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
     logger.warning(f'distribution_plot - started: {start_time}')
     names: list
     comparative_data: list
-    names, comparative_data = summary_stats.get_comparative_data(
+    names, comparative_data = quick_stats.get_comparative_data(
         pd_read_json(pandas_json, orient='split'),
         sample_groups
     )
@@ -334,7 +334,7 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
 def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, force_svenn: bool, only_groups: list = None) -> tuple:
     start_time: datetime = datetime.now()
     logger.warning(f'commonality_plot - started: {start_time}')
-    common_data: dict = summary_stats.get_common_data(
+    common_data: dict = quick_stats.get_common_data(
         pd_read_json(pandas_json, orient='split'),
         rev_sample_groups,
         only_groups = only_groups

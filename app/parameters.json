@@ -19,7 +19,7 @@
                 "Vsn": "Vsn",
                 "No normalization": "no_normalization"
             },
-            "default normalization method": "Median"        
+            "default normalization method": "no_normalization"        
         },
         "interactomics": "Loaded at runtime",
         "phosphoproteomics": "Not implemented"

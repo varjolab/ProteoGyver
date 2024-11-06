@@ -2,9 +2,8 @@
 
 
 import dash_bootstrap_components as dbc
-from itertools import chain
 from dash import dcc, html
-from element_styles import GENERIC_PAGE, SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES, UPLOAD_INDICATOR_STYLE
+from element_styles import SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES, UPLOAD_INDICATOR_STYLE
 from typing import Any
 from components import tooltips, text_handling
 from numpy import log2
@@ -379,156 +378,6 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
         ])
     )
 
-def windowmaker_input_options( offered_equations):
-    premade_eqs = [dbc.Label('Load pre-defined line equation:')]
-    for equation, eqname in offered_equations:
-        premade_eqs.append(
-            html.Div(
-                dbc.Button(
-                    equation, 
-                    id={'type': 'PREDEFEQBUTTON', 'name':eqname},
-                    style={'padding': '5px 5px 5px 5px'}, disabled=True
-                ),style = {'display': 'block','padding': '5px 5px 5px 5px'}
-            )
-        )
-    input_row_list = [
-        dbc.Row([
-            dbc.Col([
-                range_input('MZ Range: ',  400, 1200, 'windowmaker-mz-input'),
-                html.P(),
-                range_input('Peptide length: ', 0, 50, 'windowmaker-peplen-input'),
-            ]),
-            dbc.Col([
-                range_input('IM Range: ', 0.8, 1.4, 'windowmaker-mob-input', stepsize=0.1)
-            ]),
-        ],style={'padding': '5px 5px 5px 5px'}),
-        dbc.Row([
-            dbc.Col(id = 'windowmaker-peplen-col', children = [
-                html.Hr(style={'margin-top': '10px'})
-            ],style={'padding': '5px 5px 5px 5px'})
-        ]),
-        dbc.Row([
-            dbc.Col(
-                premade_eqs
-            ),
-            dbc.Col([
-                dcc.Input(id='windowmaker-line-equation-input',type='text',placeholder='input line equation',style={'padding': '5px 5px 5px 5px'}),
-                html.Div([dbc.Button('Add line', id='windowmaker-add-line-button', disabled=True)], style={'padding': '15px 5px 5px 5px'})
-            ]),
-            dbc.Col([
-                dbc.Label('Enabled filters:'),
-                dcc.Loading(html.Ul(id='windowmaker-enabled-filters-list'))
-            ]),
-            dbc.Col(id='windowmaker-filter-col'),
-            html.Hr(style={'margin-top': '25px'})
-        ],style={'padding': '5px 5px 5px 5px'})
-    ]
-    input_row_list.append(
-        dbc.Row([
-            html.Br(),
-            html.Div(id='windowmaker-equations-list-group',children=[], style={'width': '100%', 'display': 'block'}),
-            html.P(id='windowmaker-remaining-ions'),
-            dbc.Button('Calculate windows', id='windowmaker-calculate-windows-button', style={'padding': '5px 5px 5px 5px'}, disabled=True)
-        ],style={'padding': '5px 5px 5px 5px'})
-    )
-    return input_row_list
-
-def windowmaker_interface(offered_equations) -> html.Div:
-    du_uploader, session_id = make_du_uploader('windowmaker-mgf-file-upload', 'Upload speclib or MGF file')
-    return html.Div(
-        [
-            html.Div(id='infra',children=[
-                dcc.Store(id='windowmaker-full-data-store'),
-                dcc.Store(id='windowmaker-filtered-data-store'),
-                dcc.Store(id='windowmaker-best-windows'),
-                html.Div(id='windowmaker-windowgeneration-data-stores'),
-                dcc.Store(id='windowmaker-filtered-pdata'),
-                dcc.Store(id='windowmaker-prev-clicks-data-store', data={}),
-                dcc.Store(id='windowmaker-filter-columns',data={}),
-                html.Div(id='windowmaker-mgf-file-saved'),
-                html.Div(id='placeholder'),
-                dcc.Store(id='windowmaker-session-id',data={'session-id': session_id}),
-                dcc.Download(id='windowmaker-download-method')
-            ], hidden=True),
-            dbc.Row(
-                id='windowmaker-input-row',
-                children=[
-                    dbc.Card([
-                        dbc.Row([
-                            dbc.Col(
-                                html.Div([
-                                    html.H3('Upload an MGF file or a spectral library'),
-                                    html.P('Library MUST be in a text format (tsv, txt, csv, xlsx). DIA-NN in-silico libraries are not compatible, or a good idea.'),
-                                    dcc.Checklist(
-                                        id='windowmaker-play-notification-sound-when-done',
-                                        options=['Play notification sound when done'], value=['Play notification sound when done']
-                                    ),
-                                ]), width=6
-                            ),
-                            dbc.Col(
-                                [
-                                    html.Div(
-                                        du_uploader,
-                                        style={'padding': '15px 0px 0px 0px'}
-                                    ),
-                                ],
-                                width=6
-                            )
-                        ]),
-                        dbc.Row(
-                            html.Div(
-                                dcc.Loading(
-                                    html.P(id='windowmaker-input-file-info-text', style={'text-align': 'left'})
-                                ),style={
-                                    'textAlign': 'center',
-                                    'alignContent': 'center',
-                                    'margin': 'auto'
-                                }
-                            )
-                        )
-                    ], body=True)
-                ],style={'alignContent': 'center'}
-            ),
-            dbc.Row(
-                id='windowmaker-mod-row',
-                children=[
-                    dbc.Col(
-                        children=[
-                            dbc.Card(
-                                dcc.Loading(
-                                    html.Div(id='windowmaker-pre-plot-area')
-                                ),body=True, style={'width': '90%'}
-                            ),
-                            dbc.Card(
-                                dcc.Loading(
-                                    html.Div(id='windowmaker-ch-plot-area')
-                                ),body=True, style={'width': '90%'}
-                            )
-                        ],
-                        width=6,style={'alignContent': 'center'}
-                    ),
-                    dbc.Col(
-                        dbc.Card(
-                            windowmaker_input_options(offered_equations), body=True, style={'width': '90%'}
-                        ),width=6,style={'alignContent': 'center'}
-                    )
-                ],style={'alignContent': 'center'}
-            ),
-            dbc.Row(
-                id='windowmaker-output-row',
-                children=[
-                    dbc.Card([
-                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-illu')),
-                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-genwin')),
-                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-bestwin')),
-                        dcc.Loading(html.Div(id='windowmaker-buttonload-output-process')),
-                        dcc.Loading(html.Div(id='windowmaker-post-plot-area'))
-                    ], body=True)
-                ],style={'alignContent': 'center'}
-            )
-        ],style=GENERIC_PAGE
-    )
-
 def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
 
     return [
@@ -668,42 +517,6 @@ def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
             )
         ),
     ])
-
-def generate_filter_group(data, filcols):
-    dropdown = dcc.Dropdown(filcols, id='windowmaker-filter-col-dropdown',value=filcols[0])
-    checklists = []
-    checklist_target_cols = []
-    for fcol in filcols:
-        if fcol == 'Modifications':
-            values = sorted(
-                list(
-                    set(
-                        chain.from_iterable([
-                            mods.split(';') for mods in data[fcol]
-                        ])
-                    )
-                )
-            )
-        else:
-            values = sorted(list(data[fcol].unique()))
-        values = [str(x) for x in values]
-        f = text_handling.replace_special_characters(fcol,'-', stripresult=True, remove_duplicates=True)
-        checklist_target_cols.append(fcol)
-        checklists.append(
-            html.Div(
-                id={'type': 'windowmaker-filter-div', 'name': f'include-{f}'},
-                children = checklist(
-                    {'type': 'windowmaker-filter-checklist', 'name': f},
-                    values,
-                    values,
-                    id_only=True,
-                    clean_id=False,
-                    prefix_list = [dbc.Label(f'Only consider values:')]
-                ),
-                hidden=True
-            )
-        )
-    return dropdown, checklists, checklist_target_cols
 
 def interactomics_crapome_col(crapome_dict) -> dbc.Col:
     return dbc.Col([
