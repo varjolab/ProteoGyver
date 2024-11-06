@@ -1,4 +1,4 @@
-install.packages('BiocManager', 'proteomicsCV', 'vsn', 'IRkernel', 'devtools', 'tidyverse', 'flashClust', 'WGCNA', 'samr', ncpus=12)
+install.packages(c('BiocManager', 'proteomicsCV', 'vsn', 'IRkernel', 'devtools', 'tidyverse', 'flashClust', 'WGCNA', 'samr'), ncpus=12)
 BiocManager::install(c('DEP', 'AnnotationDb', 'GO.db', 'preprocessCore', 'impute'))
 IRkernel::installspec(user = FALSE) 
 library(devtools)
