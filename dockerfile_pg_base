@@ -49,10 +49,12 @@ RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 # R things
 #RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
 RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"))' >> /etc/R/Rprofile.site
-#/usr/local/lib/R/etc/Rprofile.site
-RUN Rscript R_requirements.R
 COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
+WORKDIR /
+WORKDIR /proteogyver/resources
+#/usr/local/lib/R/etc/Rprofile.site
+RUN Rscript R_requirements.R
 
 # Finished.
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
