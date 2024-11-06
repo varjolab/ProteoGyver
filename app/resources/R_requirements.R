@@ -1,5 +1,6 @@
 install.packages(c('BiocManager','devtools', 'proteomicsCV', 'vsn', 'IRkernel', 'devtools', 'tidyverse', 'flashClust', 'WGCNA', 'samr'), ncpus=12)
-BiocManager::install(c('MSnbase', 'DEP', 'AnnotationDb', 'GO.db', 'preprocessCore', 'impute'))
+BiocManager::install('DEP')
+#c('MSnbase', 'DEP', 'AnnotationDb', 'GO.db', 'preprocessCore', 'impute'))
 IRkernel::installspec(user = FALSE) 
 library(devtools)
 install_github("https://github.com/vdemichev/diann-rpackage")
