@@ -55,6 +55,9 @@ WORKDIR /
 WORKDIR /proteogyver/resources
 #/usr/local/lib/R/etc/Rprofile.site
 RUN Rscript R_requirements.R
+RUN Rscript R_requirements2.R
+RUN Rscript R_requirements3.R
+RUN Rscript R_requirements4.R
 
 # Finished.
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
