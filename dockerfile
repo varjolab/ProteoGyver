@@ -1,4 +1,4 @@
-FROM pgbase:1.2
+FROM pgbase:1.3
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 
 # First steps
@@ -18,7 +18,7 @@ COPY app/update.sh /update.sh
 COPY app /proteogyver
 COPY docker_entrypoint.sh /docker_entrypoint.sh
 COPY jupyterhub.py /etc/jupyterhub/
-COPY nm_pack.py /nm_pack.py
+
 # Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
 RUN chmod 777 SAINTexpress-spc
@@ -33,8 +33,6 @@ RUN touch /var/log/cron.log
 
 
 # Unpack database
-WORKDIR /proteogyver/data
-RUN unxz proteogyver.db.xz
 RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
 # Python installs
 WORKDIR /proteogyver/resources
@@ -44,7 +42,7 @@ WORKDIR /proteogyver
 RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.json  
 RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json  
 
-# This will fix a bug in the 0.6 version of dash_uploader.
+# This will fix a bug in the 0.6 version of dash_uploader. It's a very crude method, but it works for this application.
 RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
 # Expose ports (jupyterHub. dash)
 EXPOSE 8090 8050

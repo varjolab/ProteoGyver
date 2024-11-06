@@ -33,9 +33,9 @@ RUN apt-get install -yq apt-utils software-properties-common locales \
 
 RUN npm install -g configurable-http-proxy
 
-# User management
-RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
-    echo "kamms:kamms" | chpasswd
+# User management not needed for now
+#RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
+#    echo "kamms:kamms" | chpasswd
 WORKDIR /
 COPY app /proteogyver
 COPY app/resources /proteogyver/resources
