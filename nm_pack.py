@@ -4,9 +4,13 @@ import numpy as np
 from datetime import datetime
 from pynmonanalyzer.pyNmonParser import pyNmonParser
 from time import sleep
+import sys
 
-indir = 'nmonstats'
-outdir = '.'
+indir = sys.argv[1]
+outdir = sys.argv[2]
+if not os.path.isdir(outdir):
+    os.makedirs(outdir)
+
 allfiles = [
     f for f in os.listdir(indir) if 'nmon' in f
 ]
