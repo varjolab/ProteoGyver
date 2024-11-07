@@ -59,6 +59,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
 RUN pip3 install --ignore-installed -r requirements.txt
 RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
+
 # JupyterHub
 # R things
 #RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
@@ -67,6 +68,9 @@ COPY docker_entrypoint.sh /
 COPY app/update.sh /update.sh
 WORKDIR /
 WORKDIR /proteogyver/resources
+#Needed for R
+RUN apt-get -y build-dep libcurl4-gnutls-dev
+RUN apt-get -y install libcurl4-gnutls-dev
 #/usr/local/lib/R/etc/Rprofile.site
 RUN Rscript R_requirements.R
 RUN Rscript R_requirements2.R
