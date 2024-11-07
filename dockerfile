@@ -18,6 +18,7 @@ COPY app/update.sh /update.sh
 COPY app /proteogyver
 COPY docker_entrypoint.sh /docker_entrypoint.sh
 COPY jupyterhub.py /etc/jupyterhub/
+COPY nm_pack.py /nm_pack.py
 
 # Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
@@ -28,12 +29,12 @@ RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpr
 
 COPY app/Utilities/cron_maintenance_jobs /etc/cron.d/cron_maintenance_jobs
 RUN chmod 0644 /etc/cron.d/cron_maintenance_jobs
-RUN crontab /etc/cron.d/cron_maintenance_jobs
 RUN touch /var/log/cron.log
+RUN crontab /etc/cron.d/cron_maintenance_jobs
 
 
 # Unpack database
-RUN cp /proteogyver/other_commands/celery.conf /etc/supervisor/conf.d/celery.conf
+RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
 # Python installs
 WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip

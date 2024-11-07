@@ -1,7 +1,15 @@
-install.packages(c('BiocManager','devtools', 'proteomicsCV', 'vsn', 'IRkernel', 'devtools', 'tidyverse', 'flashClust', 'WGCNA', 'samr'), ncpus=12)
+readRenviron("/etc/default/locale")
+LANG <- Sys.getenv("LANG")
+if(nchar(LANG))
+   Sys.setlocale("LC_ALL", LANG)
+   
+install.packages('BiocManager')
+BiocManager::install("impute")
+install.packages(c('proteomicsCV', 'vsn', 'IRkernel', 'devtools', 'tidyverse', 'flashClust', 'WGCNA', 'samr'), ncpus=12)
 IRkernel::installspec(user = FALSE) 
 library(devtools)
 install_github("https://github.com/vdemichev/diann-rpackage")
 BiocManager::install('SummarizedExperiment')
 BiocManager::install('MSnbase')
 BiocManager::install('DEP')
+
