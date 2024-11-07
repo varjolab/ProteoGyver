@@ -2,3 +2,6 @@ install.packages(c('BiocManager','devtools', 'proteomicsCV', 'vsn', 'IRkernel', 
 IRkernel::installspec(user = FALSE) 
 library(devtools)
 install_github("https://github.com/vdemichev/diann-rpackage")
+BiocManager::install('SummarizedExperiment')
+BiocManager::install('MSnbase')
+BiocManager::install('DEP')
