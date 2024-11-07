@@ -24,14 +24,29 @@ RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_r
 RUN apt-get install -yq apt-utils software-properties-common locales \
     git python3 python3-pip nodejs npm  \
     dos2unix ca-certificates nano postgresql \
-    littler \
+    littler gnupg \
     r-cran-littler \
     r-base \
     r-base-dev \
     r-recommended \
     redis psmisc
-
+RUN wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc
+RUN echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" > /etc/apt/sources.list.d/cranapt.list
+RUN apt update -qq
 RUN npm install -g configurable-http-proxy
+
+RUN echo "Package: *" > /etc/apt/preferences.d/99cranapt
+RUN echo "Pin: release o=CRAN-Apt Project" >> /etc/apt/preferences.d/99cranapt
+RUN echo "Pin: release l=CRAN-Apt Packages" >> /etc/apt/preferences.d/99cranapt
+RUN echo "Pin-Priority: 700"  >> /etc/apt/preferences.d/99cranapt
+
+RUN apt install --yes --no-install-recommends python3-{dbus,gi,apt}
+## Then install bspm (as root) and enable it, and enable a speed optimization
+RUN Rscript -e 'install.packages("bspm")'
+RUN RHOME=$(R RHOME)
+RUN echo "suppressMessages(bspm::enable())" >> ${RHOME}/etc/Rprofile.site
+RUN echo "options(bspm.version.check=FALSE)" >> ${RHOME}/etc/Rprofile.site
+
 
 # User management not needed for now
 #RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
