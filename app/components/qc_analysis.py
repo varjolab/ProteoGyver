@@ -4,14 +4,13 @@ from pandas import read_json as pd_read_json
 from dash import html
 import dash_bootstrap_components as dbc
 from components.figures import bar_graph, comparative_plot, commonality_graph, reproducibility_graph
-from app.components import quick_stats
+from components import quick_stats, db_functions
 from components.figures.figure_legends import QC_LEGENDS as legends
 from components.ui_components import checklist
 from components.tooltips import use_svenn_tooltip
 from datetime import datetime
 from dash.dcc import Graph, Dropdown, Loading
 import logging
-from components import db_functions
 logger = logging.getLogger(__name__)
 
 
