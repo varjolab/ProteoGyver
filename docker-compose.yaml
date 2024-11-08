@@ -2,7 +2,7 @@ version: "3"
 
 services:
   pgyver_testing:
-    image: pgyver:1.4a
+    image: pgyver:1.45
     container_name: pgtest
     ports:
       - 8060:8050
@@ -15,7 +15,7 @@ services:
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
     restart: unless-stopped
   pgyver_production:
-    image: pgyver:1.3a
+    image: pgyver:1.4a
     container_name: pgprod
     ports:
       - 8050:8050
