@@ -3,7 +3,7 @@ name: proteogyver
 services:
   pgyver_testing:
     image: pgyver:1.45
-    container_name: pgtest
+    container_name: pgtest145
     ports:
       - 8060:8050
     environment:
@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
   pgyver_production:
     image: pgyver:1.4a
-    container_name: pgprod
+    container_name: pgprod14a
     ports:
       - 8050:8050
     environment:
