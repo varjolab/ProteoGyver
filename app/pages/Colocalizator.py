@@ -372,6 +372,7 @@ def microscopy_content_div():
     return dbc.Col(
         [
             dbc.Row(id='channels-row'),
+            dbc.Row(id='useless-spacer',children = ' ')
             dbc.Row(id='colocalization-row')
         ],width=9
     )

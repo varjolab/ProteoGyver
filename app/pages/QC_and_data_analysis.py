@@ -124,9 +124,19 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
         if 'Use unique proteins only (remove protein groups)' in additional_options:
             uniq_only = True
     pio.templates.default = figure_template
-    return (parsing.format_data(
-        f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
-        data_tables, data_info, expdes_table, expdes_info, cont, repnames, uniq_only), False)
+    return (
+        parsing.format_data(
+            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
+            data_tables,
+            data_info,
+            expdes_table,
+            expdes_info,
+            cont,
+            repnames,
+            uniq_only,
+            parameters['workflow parameters']['interactomics']['control indicators']
+        ), 
+        False)
 
 @callback(
     Output({'type': 'data-store', 'name': 'upload-data-store'},
@@ -535,13 +545,18 @@ def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_gr
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-cv-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-cv-data-store'}, 'data'),
-    Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'},'data'),
+    Input({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data')
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_cv_plot(imputed_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
-    return proteomics.perc_cvplot(imputed_data, upload_dict['sample groups']['norm'], replicate_colors, parameters['Figure defaults']['full-height'])
+def proteomics_cv_plot(uploaded_data: dict, na_filtered_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
+    raw_int_data: pd.DataFrame = pd.read_json(uploaded_data['data tables']['raw intensity'], orient='split')
+    na_filtered_table: pd.DataFrame = pd.read_json(na_filtered_data, orient='split')
+    # Drop rows that are no longer present in filtered data
+    raw_ind_data.drop(index=list(set(raw_ind_data.index)-set(na_filtered_table.index)),inplace=True)
+    return proteomics.perc_cvplot(raw_int_data, upload_dict['sample groups']['norm'], replicate_colors, parameters['Figure defaults']['full-height'])
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-pca-plot-div'}, 'children'),

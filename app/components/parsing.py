@@ -353,13 +353,24 @@ def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
     return table_dict, info_dict
 
 
-def guess_control_samples(sample_names: list) -> list:
-    possible_control_samples: list = []
-    for group_name in sample_names:
-        if 'gfp' in group_name.lower():
-            possible_control_samples.append(group_name)
-    return possible_control_samples
+def guess_controls(sample_groups: dict, ctrl_indicators: list) -> tuple:
+    """Guesses controls from sample groups.
 
+    Any samples with GFP in the name are assumed to be controls.
+    :returns: tuple of (list of control sample groups, list of control samples)
+    """
+    control_groups: list = []
+    control_samples: list = []
+    for group_name, samples in sample_groups.items():
+        might_be_control: bool = False
+        for ctrl_ind in ctrl_indicators:
+            if ctrl_ind in group_name.lower():
+                might_be_control = True
+                break
+        if might_be_control:
+            control_groups.append(group_name)
+            control_samples.append(samples)
+    return (control_groups, control_samples)
 
 def parse_comparisons(control_group, comparison_data, sgroups) -> list:
     """Parses control group, sample group, and comparison data into a list of pairwise [sample, control] comparisons"""
@@ -493,22 +504,8 @@ def check_bait(bait_entry: str) -> str:
     return bval
 
 
-def guess_controls(sample_groups: dict) -> tuple:
-    """Guesses controls from sample groups.
 
-    Any samples with GFP in the name are assumed to be controls.
-    :returns: tuple of (list of control sample groups, list of control samples)
-    """
-    control_groups: list = []
-    control_samples: list = []
-    for group_name, samples in sample_groups.items():
-        if 'gfp' in group_name.lower():
-            control_groups.append(group_name)
-            control_samples.append(samples)
-    return (control_groups, control_samples)
-
-
-def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list, replace_replicate_names: bool, use_unique_only: bool) -> dict:
+def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list, replace_replicate_names: bool, use_unique_only: bool, control_indicators: list) -> dict:
     """Formats data formats into usable form and produces a data dictionary for later use"""
 
     intensity_table: pd.DataFrame = pd.read_json(
@@ -605,7 +602,7 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
         return_dict['other']['all proteins'] = list(intensity_table.index)
 
     return_dict['sample groups']['guessed control samples'] = guess_controls(
-        sample_groups)
+        sample_groups, control_indicators)
 
     return return_dict
 

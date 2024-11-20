@@ -21,7 +21,9 @@
             },
             "default normalization method": "no_normalization"        
         },
-        "interactomics": "Loaded at runtime",
+        "interactomics": {
+            "control indicators": ["ctrl", "gfp", "control"]
+        },
         "phosphoproteomics": "Not implemented"
     },
     "Figure defaults": {

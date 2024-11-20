@@ -9,7 +9,7 @@ from components import tooltips, text_handling
 from numpy import log2
 import uuid
 import dash_uploader as du
-from components.parsing import guess_control_samples
+from components.parsing import guess_controls
 from components.figures.figure_legends import INTERACTOMICS_LEGENDS as interactomics_legends
 
 HEADER_DICT: dict = {
@@ -566,7 +566,10 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
 def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Div:
     all_sample_groups: list = []
     sample_groups: dict = data_dictionary['sample groups']['norm']
-    chosen: list = guess_control_samples(list(sample_groups.keys()))
+    chosen: list = guess_controls(
+        list(sample_groups.keys()),
+        parameters['workflow parameters']['interactomics']['control indicators']
+    )
     for k in sample_groups.keys():
         if k not in chosen:
             all_sample_groups.append(k)
