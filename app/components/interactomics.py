@@ -18,16 +18,34 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-def count_knowns(saint_output, replicate_colors) -> pd.DataFrame:
-    """
-    Counts the number of known interactions for each bait protein.
+def count_knowns(saint_output: pd.DataFrame, replicate_colors: dict) -> pd.DataFrame:
+    """Counts the number of known interactions for each bait protein.
+
+    Takes a SAINT output DataFrame and processes it to count known interactions,
+    adding color coding based on whether interactions are known or not.
 
     Args:
-        saint_output: DataFrame containing SAINT output data
-        replicate_colors: Dictionary mapping sample groups to their display colors
+        saint_output: DataFrame containing SAINT output with at least 'Bait' and 
+            'Known interaction' columns
+        replicate_colors: Dictionary with structure:
+            {
+                'contaminant': {'sample groups': {bait_name: color}},
+                'non-contaminant': {'sample groups': {bait_name: color}}
+            }
 
     Returns:
-        DataFrame: DataFrame containing the count of known interactions for each bait with three columns: 'Bait', 'Known interaction', and 'Prey count'
+        pd.DataFrame: Contains columns:
+            - Bait: Name of the bait protein
+            - Known interaction: Boolean indicating if row count is for known interactors or not
+            - Prey count: Number of prey proteins
+            - Color: Color code for visualization
+
+    Example:
+        >>> colors = {
+        ...     'contaminant': {'sample groups': {'BaitA': 'red'}},
+        ...     'non-contaminant': {'sample groups': {'BaitA': 'blue'}}
+        ... }
+        >>> count_knowns(saint_df, colors)
     """
     saint_output.to_csv('saint_output.csv')
     data: pd.DataFrame = saint_output[['Bait', 'Known interaction']].\
