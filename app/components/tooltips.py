@@ -6,7 +6,7 @@ def generic_tooltip(target: str, text: str) -> Tooltip:
         children=text,
         target=target,
         placement='top',
-        style={'text-transform': 'none'}
+        style={'text-transform': 'none','padding-top': '50px'}
     )
 
 
@@ -20,7 +20,10 @@ def use_svenn_tooltip(target = 'sidebar-force-supervenn') -> Tooltip:
     return generic_tooltip(target, 'This option will force the use of supervenn in commonality plot, instead of deciding between supervenn and a heatmap depending on the number of sample groups.')
 
 def rescue_tooltip(target = 'interactomics-rescue-filtered-out') -> Tooltip:
-    return generic_tooltip(target, 'Rescue will let preys pass filter if they pass the filter with any other bait. This means that BFDR values of e.g. 0.9 can pass, if the prey has a BFDR value of 0.0 with some other bait. !!!NOTE!!! This feature works well for small interactomics datasets, and related baits. With large and unrelated bait sets, it will enrich contaminants, that would otherwise be caught by filter in most baits.')
+    return generic_tooltip(target, 'Rescue will let preys pass filter if they pass the filter with any other bait. This means that BFDR values of e.g. 0.9 can pass, if the prey has a BFDR value of 0.0 with some other bait. !!!NOTE!!! This feature works well for small interactomics datasets of related baits, e.g. four receptors of the same family. With large and unrelated bait sets, it will enrich contaminants, that would otherwise be caught by filter in most baits. However, that can also highlight loopholes in your filtering strategy, or e.g. contaminant sources not covered by control sets.')
 
 def test_type_tooltip(target = 'proteomics-test-type') -> Tooltip:
-    return generic_tooltip(target, "ONLY USE paired IF you know what you're doing and your samples will be in the same order across sample groups, and you can be CERTAIN of it.")
+    return generic_tooltip(target, "ONLY USE paired IF you know what you're doing and your samples will be in the same order across sample groups, and you can be CERTAIN of it. And then check your results to make sure they were.")
+
+def nearest_tooltip(target = 'interactomics-nearest-control-filtering') -> Tooltip:
+    return generic_tooltip(target, 'This option will compare inbuilt control runs and choose n that are most similar to your samples. Only use if you are experiencing performance issues with full controls, as more controls do not degrade performance usually. IF you choose to use it, make sure you know which runs were selected for the final controls.')

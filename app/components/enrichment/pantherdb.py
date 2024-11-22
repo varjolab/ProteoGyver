@@ -178,7 +178,9 @@ class handler():
     def get_default_panel(self) -> list:
         return self._defaults
 
-    def enrich(self, data_lists: list, options: str) -> list:
+    def enrich(self, parameters,data_lists: list, options: str) -> list:
+        """
+        """
         if options == 'defaults':
             datasets: list = self.get_default_panel()
         else:

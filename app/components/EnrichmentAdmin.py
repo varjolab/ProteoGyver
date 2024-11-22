@@ -43,6 +43,7 @@ def get_default() -> list:
     return sorted(list(_defaults.keys()))
 def get_disabled() -> list:
     return sorted(_disabled)
+
 class EnrichmentAdmin:
     def __init__(self) -> None:
         self.import_handlers()
@@ -58,7 +59,7 @@ class EnrichmentAdmin:
                 ret_dict[module_name] = api_module.handler()
         self._imported_handlers: dict = ret_dict
 
-    def enrich_all(self, data_table: pd.DataFrame,enrichment_strings: list, id_column: str = None, id_list: list = None, split_by_column: str = None, split_name: str = None) -> list:
+    def enrich_all(self, parameters, data_table: pd.DataFrame,enrichment_strings: list, id_column: str = None, id_list: list = None, split_by_column: str = None, split_name: str = None) -> list:
         assert ((id_column is not None) or (id_list is not None)), 'Supply either id_column or id_list'
         if split_by_column is not None:
             if split_name is None:
@@ -76,22 +77,30 @@ class EnrichmentAdmin:
         enrichment_names: list = []
         done_info: list = []
         for api, enrichmentlist in enrichments_to_do.items():
-            enrichment_options: str = ';'.join(enrichmentlist)
-            enrichment_input = []
-            if split_by_column:
-                for b in data_table[split_by_column].unique():
-                    df = data_table[data_table[split_by_column]==b]
-                    enrichment_input.append([b, list(df[id_column].values)])
-            else:
-                if id_list:
-                    enrichment_input.append(['All',id_list])
+            try:
+                enrichment_options: str = ';'.join(enrichmentlist)
+                enrichment_input = []
+                if split_by_column:
+                    for b in data_table[split_by_column].unique():
+                        df = data_table[data_table[split_by_column]==b]
+                        enrichment_input.append([b, list(df[id_column].values)])
                 else:
-                    enrichment_input.append(['All',df[id_column]])
-            result_names: list
-            return_dataframes: list
-            done_information: list
-            handler = self._imported_handlers[api]
-            result_names, return_dataframes, done_information = handler.enrich(enrichment_input, enrichment_options)
+                    if id_list:
+                        enrichment_input.append(['All',id_list])
+                    else:
+                        enrichment_input.append(['All',df[id_column]])
+                result_names: list
+                return_dataframes: list
+                done_information: list
+                handler = self._imported_handlers[api]
+                result_names, return_dataframes, done_information = handler.enrich(parameters, enrichment_input, enrichment_options)
+            except Exception as e:
+                #TODO move to logging module
+                print(f'Error in enrichment {api}: {e}')
+                result_names = ['DAVID']
+                return_dataframes = [pd.DataFrame()]
+                done_information = ['DAVID enrichment failed.']
+                continue
             enrichment_results.extend(return_dataframes)
             enrichment_names.extend(result_names)
             done_info.extend(done_information)

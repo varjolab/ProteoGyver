@@ -1,7 +1,9 @@
 """ Restructured frontend for proteogyver app"""
+from io import StringIO
 import os
 import shutil
 import markdown
+import pandas as pd
 from uuid import uuid4
 from datetime import datetime
 from dash import html, callback, no_update, ALL, dcc, register_page
@@ -134,7 +136,8 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
             cont,
             repnames,
             uniq_only,
-            parameters['workflow parameters']['interactomics']['control indicators']
+            parameters['workflow parameters']['interactomics']['control indicators'],
+            parameters['file loading']['Bait ID column names']
         ), 
         False)
 
@@ -546,16 +549,16 @@ def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_gr
     Output({'type': 'workflow-plot', 'id': 'proteomics-cv-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-cv-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'upload-data-store'},'data'),
-    Input({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data')
+    Input({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def proteomics_cv_plot(uploaded_data: dict, na_filtered_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
-    raw_int_data: pd.DataFrame = pd.read_json(uploaded_data['data tables']['raw intensity'], orient='split')
-    na_filtered_table: pd.DataFrame = pd.read_json(na_filtered_data, orient='split')
+    raw_int_data: pd.DataFrame = pd.read_json(StringIO(uploaded_data['data tables']['raw intensity']), orient='split')
+    na_filtered_table: pd.DataFrame = pd.read_json(StringIO(na_filtered_data), orient='split')
     # Drop rows that are no longer present in filtered data
-    raw_ind_data.drop(index=list(set(raw_ind_data.index)-set(na_filtered_table.index)),inplace=True)
+    raw_int_data.drop(index=list(set(raw_int_data.index)-set(na_filtered_table.index)),inplace=True)
     return proteomics.perc_cvplot(raw_int_data, upload_dict['sample groups']['norm'], replicate_colors, parameters['Figure defaults']['full-height'])
 
 @callback(
@@ -627,7 +630,7 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_data, compa
     sgroups: dict = data_dictionary['sample groups']['norm']
     comparisons: list = parsing.parse_comparisons(
         control_group, comparison_data, sgroups)
-    return proteomics.volcano_plots(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type) + ('',)
+    return proteomics.differential_abundance(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type) + ('',)
 
 # Need to implement:
 # GOBP mapping
@@ -710,7 +713,7 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
         return (no_update, no_update, no_update)
     if nclicks < 1:
         return (no_update, no_update, no_update)
-    do_proximity_filtering: bool = (len(proximity_filtering_checklist) > 0)
+    do_proximity_filtering: bool = ('Select' in proximity_filtering_checklist)
     return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file, do_proximity_filtering, n_controls)
 
 
@@ -751,13 +754,15 @@ def interactomics_add_crapome_to_saint(saint_output, crapome):
     Output('interactomics-saint-filtering-container', 'children'),
     Input({'type': 'data-store',
           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
+    State('interactomics-rescue-filtered-out', 'value'),
     prevent_initial_call=True
 )
-def interactomics_create_saint_filtering_container(saint_output_ready):
+def interactomics_create_saint_filtering_container(saint_output_ready, rescue):
+    rescue_bool: bool = ('Rescue interactions that pass filter in any sample group' in rescue)
     if 'SAINT failed.' in saint_output_ready:
         return ('',html.Div(id='saint-failed', children=saint_output_ready))
     else:
-        return ('',ui.saint_filtering_container(parameters['Figure defaults']['half-height']))
+        return ('',ui.saint_filtering_container(parameters['Figure defaults']['half-height'], rescue_bool))
 
 
 @callback(
@@ -924,13 +929,14 @@ def interactomics_network_plot(_, saint_output):
     background=True
 )
 def interactomics_enrichment(_, saint_output, chosen_enrichments):
-    return ('',) + interactomics.enrich(saint_output, chosen_enrichments, parameters['Figure defaults']['full-height'])
+    print('ENRICHMENT CALLED')
+    return ('',) + interactomics.enrich(parameters['Enrichment'], saint_output, chosen_enrichments, parameters['Figure defaults']['full-height'])
 
 ########################################
 # Interactomics network plot callbacks #
 ########################################
-## Visdcc pakcage is currently unused, because it's impossible to export anything sensible out of it.
-## Export would require javascript, but there is no time to do any of this
+## Visdcc package is currently unused, because it's impossible to export anything sensible out of it.
+## Export would require javascript, but there is no time to do any of this.
 ## Perhaps in the future though? 
 ## This callback will be left here, same as the modifications in interactomics.network_display_data
 ## So that if export is possible in the future, we can just plug in the visdcc network plot.
@@ -942,6 +948,9 @@ def interactomics_enrichment(_, saint_output, chosen_enrichments):
           'name': 'interactomics-network-interactions-data-store'},'data')
 )
 def display_tap_node(node_data, int_data, network_type: str = 'Cytoscape'):
+    print(node_data)
+    print(f'Node data: {node_data}')
+    print(f'Network type: {network_type}')
     if not node_data:
         return None
     if network_type == 'Cytoscape':

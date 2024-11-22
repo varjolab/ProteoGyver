@@ -1,4 +1,5 @@
 import pandas as pd
+from io import StringIO
 from dash import html
 from dash.dcc import Graph
 from components.figures import bar_graph, before_after_plot, comparative_plot, imputation_histogram, scatter, heatmaps, volcano_plot, histogram, cvplot
@@ -15,7 +16,7 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
 
     logger.warning(f'nafilter - start: {datetime.now()}')
     data_table: pd.DataFrame = pd.read_json(
-        input_data_dict['data tables']['intensity'],
+        StringIO(input_data_dict['data tables']['intensity']),
         orient='split'
     )
     original_counts: pd.DataFrame = matrix_functions.count_per_sample(
@@ -65,7 +66,7 @@ def pertubation(filtered_and_normalized_data_json: str, sample_groups: dict, con
         done_groups.add(control_group)
         top_n = 50
         results = matrix_functions.compute_zscore_based_deviation_from_control(
-           pd.read_json(filtered_and_normalized_data_json,orient='split'),
+           pd.read_json(StringIO(filtered_and_normalized_data_json),orient='split'),
             sample_groups,
             control_group,
             top_n
@@ -80,7 +81,6 @@ def pertubation(filtered_and_normalized_data_json: str, sample_groups: dict, con
         bar_big_legend_done = False
         for key, valser in results[0].items():
             resdf: pd.DataFrame = pd.DataFrame(valser,columns=[key])
-            print(sample_groups)
             resdf['Color'] = resdf.index#[sample_groups[i] for i in resdf.index]
             pertu_bar_graph: Graph = bar_graph.make_graph(
                 f'proteomics-pertubation-{control_group}-{key}',
@@ -194,7 +194,7 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
 
     logger.warning(f'normalization - start: {datetime.now()}')
 
-    data_table: pd.DataFrame = pd.read_json(filtered_data_json, orient='split')
+    data_table: pd.DataFrame = pd.read_json(StringIO(filtered_data_json),orient='split')
     normalized_table: pd.DataFrame = matrix_functions.normalize(
         data_table, normalization_option, errorfile)
     logger.warning(
@@ -253,7 +253,7 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
     )
 
 def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
-    data_table: pd.DataFrame = pd.read_json(filtered_data_json, orient='split')
+    data_table: pd.DataFrame = pd.read_json(StringIO(filtered_data_json),orient='split')
     missing_series: pd.Series = pd.Series(data_table.loc[data_table.isna().sum(axis=1)>0].values.flatten())
     valid_series: pd.Series = pd.Series(data_table.loc[data_table.isna().sum(axis=1)==0].values.flatten())
     missing_series = missing_series[missing_series.notna()]
@@ -310,7 +310,7 @@ def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, t
 
     logger.warning(f'imputation - start: {datetime.now()}')
 
-    data_table: pd.DataFrame = pd.read_json(filtered_data_json, orient='split')
+    data_table: pd.DataFrame = pd.read_json(StringIO(filtered_data_json),orient='split')
     imputed_table: pd.DataFrame = matrix_functions.impute(
         data_table, errorfile, imputation_option)
     logger.warning(
@@ -339,7 +339,7 @@ def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, t
 def pca(imputed_data_json: str, sample_groups_rev: dict, defaults: dict, replicate_colors: dict) -> tuple:
 
     logger.warning(f'PCA - start: {datetime.now()}')
-    data_table: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
+    data_table: pd.DataFrame = pd.read_json(StringIO(imputed_data_json),orient='split')
     pc1: str
     pc2: str
     pca_result: pd.DataFrame
@@ -383,7 +383,7 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
     dcc.Graph containing a dash_bio.Clustergram describing correlation between samples.
     """
     corrdata: pd.DataFrame = pd.read_json(
-        imputed_data_json, orient='split').corr()
+        StringIO(imputed_data_json), orient='split').corr()
     logger.warning(
         f'clustermap - only plotting left: {datetime.now()}')
     return (
@@ -396,7 +396,7 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
                     id='proteomics-clustermap-plot',
                     config=defaults['config'],
                     figure=heatmaps.draw_clustergram(
-                        corrdata, defaults
+                        corrdata, defaults, center_values=False
                     )
                 ),
                 legends['clustermap']
@@ -406,10 +406,10 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
     )
 
 
-def volcano_plots(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict, test_type:str = 'independent') -> tuple:
+def differential_abundance(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict, test_type:str = 'independent') -> tuple:
 
     logger.warning(f'volcano - start: {datetime.now()}')
-    data: pd.DataFrame = pd.read_json(imputed_data_json, orient='split')
+    data: pd.DataFrame = pd.read_json(StringIO(imputed_data_json),orient='split')
     significant_data: pd.DataFrame = quick_stats.differential(
         data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr, test_type = test_type)
     logger.warning(
@@ -421,7 +421,7 @@ def volcano_plots(imputed_data_json: str, sample_groups: dict, comparisons: list
         f'volcano - volcanoes generated: {datetime.now()}')
     return (
         [
-            html.H3(id='proteomics-volcano-header', children='Volcano plots'),
+            html.H3(id='proteomics-volcano-header', children='Differential abundance'),
             graphs_div
         ],
         significant_data.to_json(orient='split')

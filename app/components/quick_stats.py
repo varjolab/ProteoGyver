@@ -109,8 +109,8 @@ def get_coverage_data(data_table: pd.DataFrame) -> pd.DataFrame:
         data_table.notna()
         .astype(int)
         .sum(axis=1)
-        .value_counts(), columns=['Identified in # samples']
-    )
+        .value_counts()
+    ).rename(columns={'count': 'Identified in # samples'})
 
 
 def get_na_data(data_table: pd.DataFrame) -> pd.DataFrame:

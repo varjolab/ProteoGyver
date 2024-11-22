@@ -3,10 +3,13 @@ from dash.dcc import Graph
 from plotly import express as px
 from plotly import graph_objects as go
 from plotly.subplots import make_subplots
-
+import json
 
 def get_reproducibility_dataframe(data_table: pd.DataFrame, sample_groups: dict) -> pd.DataFrame:
     repro_data: dict = {}
+    with open('sample_groups.json','w') as fil:
+        json.dump(sample_groups,fil,indent=2)
+    data_table.to_csv('data_table.tsv',sep='\t')
     for sample_group, sample_columns in sample_groups.items():
         sgroup_data_table: pd.DataFrame = data_table[sample_columns]
         mean: pd.Series = sgroup_data_table.mean(axis=1)

@@ -19,41 +19,38 @@ def update_nested_dict(base_dict, update_dict) -> dict:
             base_dict[key] = value
     return base_dict
 
-def make_nice_str_out_of_numbers(column: pd.Series, float_precision = 2, inplace=False, repnan: str = '') -> None | pd.Series:
-    nvals = []
-    for i, val in column.items():
-        if pd.isna(val):
-            newval = repnan
-        else:
-            newval = str(val)
-        if '.' in newval:
-            newval = newval.split('.')
-            test = newval[1][:float_precision]
-            newval = newval[0]
-            if set(test) != {'0'}:
-                newval = f'{newval}.{test}'
-        if inplace:
-            column[i] = newval
-        else:
-            nvals.append(newval)
-    if not inplace:
-        return pd.Series(data=nvals, index=column.index)
-
-def _to_str(val):
+def _to_str(val, nan_str: str = '', float_precision: int = 2):
     """Return a string representation of the given integer, rounded float, or otherwise a string.
-
-    `np.nan` values are returned as empty strings.
-
-    It can be useful to call `df[col].fillna(value=np.nan, inplace=True)` before calling this function.
     """
-    if val is np.nan:
-        return 'Undefined'
-    if isinstance(val, float) and (val % 1 == 0.0):
-        return str(int(val))
+    if pd.isna(val):
+        return nan_str
+    if isinstance(val, float):
+        if (val % 1 == 0.0):
+            return str(int(val))
+        else:
+            return f'{val:.{float_precision}f}'
     if isinstance(val, int):
         return str(val)
     assert isinstance(val, str)
     return val
+
+def check_numeric(st: str):
+    if isinstance(st, np.number):
+        return {'success': True, 'value': st}
+    val = None
+    try:
+        sts = st.split('.')
+        if len(sts) > 1:
+            if sts[-1]=='0':
+                val = int(sts[0])
+        if val is None:
+            val = int(st)
+    except ValueError:
+        try:
+            val = float(st)
+        except ValueError:
+            return {'success': False, 'value': st}
+    return {'success': True, 'value': val}
 
 def unmix_dtypes(df: pd.DataFrame) -> None:
     """Convert mixed dtype columns in the given dataframe to strings.
@@ -109,7 +106,8 @@ def parse_parameters(parameters_file: str) -> dict:
     db_conn.close()
     parameters['External tools']['SAINT tempdir'] = [
         os.getcwd()]+parameters['External tools']['SAINT tempdir']
-    parameters['workflow parameters']['interactomics'] = {}
+    if not 'interactomics' in parameters['workflow parameters'].keys():
+        parameters['workflow parameters']['interactomics'] = {}
     parameters['workflow parameters']['interactomics']['crapome'] = {
         'available': crapome_sets,
         'disabled': disabled_crapome_sets,
@@ -392,7 +390,7 @@ def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
         data_table.select_dtypes(include=np.number).columns)
     for column in data_table.columns:
         if column in numerical_columns:
-            aggfuncs[column] = sum
+            aggfuncs[column] = 'sum'
         else:
             aggfuncs[column] = 'first'
     return data_table.groupby(data_table.index).agg(aggfuncs).replace(0, np.nan)
@@ -425,7 +423,7 @@ def parse_data_file(
         if isinstance(table_data, str):
             if table_data.count('No data') != 2:
                 data_table: pd.DataFrame = pd.read_json(
-                    table_data, orient='split')
+                    io.StringIO(table_data), orient='split')
                 numeric_columns: set = set(
                     data_table.select_dtypes(include=np.number).columns)
                 if len(numeric_columns) >= 3:
@@ -505,13 +503,16 @@ def check_bait(bait_entry: str) -> str:
 
 
 
-def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict, expdes_info: dict, contaminants_to_remove: list, replace_replicate_names: bool, use_unique_only: bool, control_indicators: list) -> dict:
+def format_data(
+        session_uid: str, data_tables: dict, data_info: dict, expdes_table: dict,
+        expdes_info: dict, contaminants_to_remove: list, replace_replicate_names: bool,
+        use_unique_only: bool, control_indicators: list, bait_id_column_names: list) -> dict:
     """Formats data formats into usable form and produces a data dictionary for later use"""
 
     intensity_table: pd.DataFrame = pd.read_json(
-        data_tables['int'], orient='split')
-    spc_table: pd.DataFrame = pd.read_json(data_tables['spc'], orient='split')
-    expdesign: pd.DataFrame = pd.read_json(expdes_table, orient='split')
+        io.StringIO(data_tables['int']), orient='split')
+    spc_table: pd.DataFrame = pd.read_json(io.StringIO(data_tables['spc']),orient='split')
+    expdesign: pd.DataFrame = pd.read_json(io.StringIO(expdes_table),orient='split')
 
     sample_groups: dict
     discarded_columns: list
@@ -519,17 +520,18 @@ def format_data(session_uid: str, data_tables: dict, data_info: dict, expdes_tab
     sample_groups, discarded_columns, used_columns, expdesign = rename_columns_and_update_expdesign(
         expdesign,
         [intensity_table, spc_table],
+        bait_id_column_names,
         replace_names = replace_replicate_names
     )
     spc_table = spc_table[sorted(list(spc_table.columns))]
     if use_unique_only:
-        drop_ind = [i for i in spc_table.index if ';' in str(i)]
-        if len(drop_ind)>0:
-            spc_table.drop(index=drop_ind,inplace=True)
-        drop_ind = [i for i in intensity_table.index if ';' in str(i)]
-        if len(drop_ind)>0:
-            intensity_table.drop(index=drop_ind,inplace=True)
-
+        for table in [spc_table, intensity_table]:
+            drop_ind = [i for i in table.index if ';' in str(i)]
+            if len(drop_ind)>0:
+                table.drop(index=drop_ind,inplace=True)
+    if len(discarded_columns) > 0:
+        for table in [spc_table, intensity_table]:
+            table.drop(columns=[c for c in discarded_columns if c in table.columns],inplace=True)
     if len(intensity_table.columns) > 1:
         intensity_table = intensity_table[sorted(
             list(intensity_table.columns))]
@@ -627,7 +629,7 @@ def delete_samples(discard_samples, data_dictionary) -> dict:
             for real_table_name, table_json in data_dictionary['data tables'][table_name].items():
                 table_without_discarded_samples: pd.DataFrame = remove_from_table(
                     real_table_name,
-                    pd.read_json(table_json, orient='split'),
+                    pd.read_json(io.StringIO(table_json),orient='split'),
                     discard_samples
                 )
                 data_dictionary['data tables']['with-contaminants'][real_table_name] = table_without_discarded_samples.to_json(
@@ -636,7 +638,7 @@ def delete_samples(discard_samples, data_dictionary) -> dict:
         else:
             table_without_discarded_samples: pd.DataFrame = remove_from_table(
                 table_name,
-                pd.read_json(table_json, orient='split'),
+                pd.read_json(io.StringIO(table_json),orient='split'),
                 discard_samples
             )
             data_dictionary['data tables'][table_name] = table_without_discarded_samples.to_json(
@@ -657,159 +659,141 @@ def delete_samples(discard_samples, data_dictionary) -> dict:
 
     return data_dictionary
 
+def clean_sample_names(expdesign: pd.DataFrame, bait_id_column_names: list) -> pd.DataFrame:
+    """Clean and validate the experimental design dataframe."""
+    # Remove rows with missing required values
+    expd_columns = ['Sample group','Sample name']
+    expdesign = expdesign[~(expdesign[expd_columns].isna().sum(axis=1)>0)].copy()
+    expd_columns.extend([c for c in expdesign.columns if c not in expd_columns])
+    # Convert all values to strings
+    for col in expd_columns:
+        expdesign[col] = expdesign[col].apply(_to_str)
+    # Remove file paths from sample names (handles both Windows and Unix paths)
+    expdesign.loc[:, 'Sample name'] = expdesign['Sample name'].apply(
+        lambda x: x.rsplit('\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
+    )
+    
+    # Standardize bait column name if it exists
+    for bid in bait_id_column_names:
+        matching_cols = [c for c in expdesign.columns if c.lower().strip() == bid]
+        if matching_cols:
+            expdesign.rename(columns={matching_cols[0]: 'Bait uniprot'}, inplace=True)
+            break
+    return expdesign
+def clean_column_name(col_name: str) -> str:
+    """Remove file paths and extensions from column names."""
+    col = col_name.rsplit('\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
+    return col.rsplit('.d', maxsplit=1)[0]
 
+def format_sample_group_name(sample_group) -> str:
+    """Format sample group names, handling numeric cases."""
+    if pd.isna(sample_group):
+        return None
+    
+    try_num = check_numeric(sample_group)
+    if try_num['success']:
+        return f'SampleGroup_{try_num["value"]}'
+    return str(sample_group)
+
+def generate_replicate_name(group_name: str, sample_name: str, existing_names: set, replace_names: bool) -> str:
+    """Generate unique replicate names."""
+    if replace_names:
+        i = 1
+        while f'{group_name}_Rep_{i}' in existing_names:
+            i += 1
+        return f'{group_name}_Rep_{i}'
+    else:
+        basename = clean_column_name(sample_name)
+        i = 0
+        while f'{basename}_{i}' in existing_names:
+            i += 1
+        return f'{basename}_{i}' if i > 0 else basename
+    
 def rename_columns_and_update_expdesign(
         expdesign: pd.DataFrame,
         tables: list,
+        bait_id_column_names: list,
         replace_names: bool = True) -> tuple:
-    """Modified expdes and data tables to discard samples not mentioned in the sample table.
-
-    :returns: tuple of (sample_groups, discarded columns, used_columns)
-    """
-    # Get rid of file paths and timstof .d -file extension, if present:
-    newnames = []
-    expdesign = expdesign[expdesign['Sample name'].notna()]
-    expdesign = expdesign[expdesign['Sample group'].notna()]
-    for col in expdesign.columns:
-        expdesign.loc[:,col] = expdesign[col].astype(str).apply(str.strip)
-    for i, oldvalue in enumerate(expdesign['Sample name'].values):
-        oldvalue = oldvalue.rsplit('\\', maxsplit=1)[-1]
-        oldvalue = oldvalue.rsplit('/', maxsplit=1)[-1]
-        newnames.append(oldvalue)
-    expdesign['Sample name'] = newnames
-    discarded_columns: list = []
-    sample_groups: dict = {}
-    sample_group_columns: dict = {}
-    rev_intermediate_renaming: list = []
-    for table_ind, table in enumerate(tables):
-        intermediate_renaming: dict = {}
-        rev_intermediate_renaming.append([])
-        if len(table.columns) < 2:
-            continue
-        for column_name in table.columns:
-            # Discard samples that are not named
-            col: str = column_name
-            if col not in expdesign['Sample name'].values:
-                # Try to see if the column without possible file path is in the expdesign:
-                col = col.rsplit(
-                    '\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
-                if col not in expdesign['Sample name'].values:
-                    col = col.rsplit('.d', maxsplit=1)[0]
-                    if col not in expdesign['Sample name'].values:
-                        for sname in expdesign['Sample name'].values:
-                            if col.startswith(sname) and (abs(len(col)-len(sname)) < 10):
-                                col = sname
-                        if not col in expdesign['Sample name'].values:
-                        # Discard column if not found
-                            discarded_columns.append(col)
-                            continue
-            intermediate_renaming[column_name] = col
-            sample_group: str = expdesign[expdesign['Sample name']
-                                          == col].iloc[0]['Sample group']
-            
-            try_num = check_numeric(sample_group)
-            if try_num['success']:
-                sample_group = f'SampleGroup_{try_num["value"]}'
-
-            # If no value is available for sample in the expdesign
-            # (but sample column name is there for some reason), discard column
-            if pd.isna(sample_group):
-                continue
-            if isinstance(sample_group, np.number):
-                if sample_group == int(sample_group):
-                    sample_group = int(sample_group)
-                newname = f'SampleGroup_{sample_group}'
-            else:
-                newname: str = str(sample_group)
-            # We expect replicates to not be specifically named; they will be named here.
-            if newname not in sample_group_columns:
-                sample_group_columns[newname] = [[]
-                                                 for _ in range(len(tables))]
-            sample_group_columns[newname][table_ind].append(col)
-        if len(intermediate_renaming.keys()) > 0:
-            table.drop(
-                columns=[c for c in table.columns if c not in intermediate_renaming.keys()])
-            table.rename(columns=intermediate_renaming, inplace=True)
-        rev_intermediate_renaming[-1] = {value: key for key,
-                                         value in intermediate_renaming.items()}
-    column_renames: list = [{} for _ in range(len(tables))]
-    used_columns: list = [{} for _ in range(len(tables))]
-
-    for nname, list_of_all_table_columns in sample_group_columns.items():
-        first_len: int = 0
-        for table_index, table_columns in enumerate(list_of_all_table_columns):
-            if len(table_columns) < 1:
-                continue
-            if first_len == 0:
-                first_len = len(table_columns)
-            else:
-                # Should have same number of columns/replicates for SPC and intensity tables
-                assert len(table_columns) == first_len
-            for column_name in table_columns:
-                if replace_names:
-                    i: int = 1
-                    while f'{nname}_Rep_{i}' in column_renames[table_index]:
-                        i += 1
-                    newname_to_use: str = f'{nname}_Rep_{i}'
-                else:
-                    column_name = column_name.split('\\')[-1].split('/')[-1]
-                    basename = column_name
-                    i = 0
-                    while basename in column_renames[table_index]:
-                        basename = f'{column_name}_{i}'
-                        i += 1
-                    newname_to_use = basename
-
-                    
-                if nname not in sample_groups:
-                    sample_groups[nname] = set()
-                sample_groups[nname].add(newname_to_use)
-                column_renames[table_index][newname_to_use] = column_name
-                used_columns[table_index][newname_to_use] = rev_intermediate_renaming[table_index][column_name]
-    sample_groups = {
-        'norm': {k: sorted(list(v)) for k, v in sample_groups.items()},
-        'rev': {}
-    }
-    for group, samples in sample_groups['norm'].items():
-        for sample in samples:
-            sample_groups['rev'][sample] = group
-    for table_index, table in enumerate(tables):
-        rename_columns: dict = {value: key for key,
-                                value in column_renames[table_index].items()}
-        table.drop(
-            columns=[c for c in table.columns if c not in rename_columns],
-            inplace=True
-        )
-        table.rename(columns=rename_columns, inplace=True)
+    """Rename columns and update experimental design table.
     
-    #Remove samples from expdesign that are not present in the data.
-    common_cols = set()
+    Returns:
+        tuple: (sample_groups, discarded_columns, used_columns, expdesign)
+    """
+    # Initial cleanup
+    expdesign = clean_sample_names(expdesign, bait_id_column_names)
+    discarded_columns = []
+    sample_group_columns = {}
+    column_mappings = []  # List of dicts for each table's column mappings
+    
+    # First pass: Map original columns to cleaned names and group assignments
     for table in tables:
-        if len(table.columns) == 0:
+        if len(table.columns) < 2:
+            column_mappings.append({})
             continue
-        common_cols |= set(table.columns)
-    expdesign = expdesign[expdesign['Sample name'].isin(common_cols)]
-    for table in tables:
-        table.drop(columns=[c for c in table.columns if c not in common_cols], inplace=True)
+            
+        table_mapping = {}
+        for col in table.columns:
+            clean_col = clean_column_name(col)
+            
+            # Skip if column not in experimental design
+            if clean_col not in expdesign['Sample name'].values:
+                discarded_columns.append(clean_col)
+                continue
+                
+            # Get and format sample group
+            sample_group = expdesign[expdesign['Sample name'] == clean_col].iloc[0]['Sample group']
+            group_name = format_sample_group_name(sample_group)
+            if not group_name:
+                continue
+                
+            # Initialize group if needed
+            if group_name not in sample_group_columns:
+                sample_group_columns[group_name] = [[] for _ in tables]
+            
+            table_mapping[col] = {'clean_name': clean_col, 'group': group_name}
+            
+        column_mappings.append(table_mapping)
+    
+    # Second pass: Generate final column names and build sample groups
+    sample_groups = {'norm': {}, 'rev': {}}
+    used_columns = [{} for _ in tables]
+    
+    for table_idx, mapping in enumerate(column_mappings):
+        final_names = {}
+        for orig_col, info in mapping.items():
+            group = info['group']
+            new_name = generate_replicate_name(
+                group, 
+                info['clean_name'],
+                set(final_names.values()), 
+                replace_names
+            )
+            
+            final_names[orig_col] = new_name
+            
+            if group not in sample_groups['norm']:
+                sample_groups['norm'][group] = []
+            sample_groups['norm'][group].append(new_name)
+            sample_groups['rev'][new_name] = group
+            
+            used_columns[table_idx][new_name] = orig_col
+            
+        # Apply renames to table
+        tables[table_idx] = tables[table_idx].rename(columns=final_names)
+    
+    # Get rid of duplicates introduced due to multiple tables being processed in previous step
+    for group in sample_groups['norm']:
+        sample_groups['norm'][group] = sorted(
+            list(
+                set(sample_groups['norm'][group])
+            )
+        )
+    # Final cleanup: Remove unused samples from expdesign
+    used_cols = set().union(*[set(table.columns) for table in tables if len(table.columns) > 0])
+    expdesign = expdesign[expdesign['Sample name'].isin(used_cols)]
+    
     return (sample_groups, discarded_columns, used_columns, expdesign)
 
-def check_numeric(st: str):
-    if isinstance(st, np.number):
-        return {'success': True, 'value': st}
-    val = None
-    try:
-        sts = st.split('.')
-        if len(sts) > 1:
-            if sts[-1]=='0':
-                val = int(sts[0])
-        if val is None:
-            val = int(st)
-    except ValueError:
-        try:
-            val = float(st)
-        except ValueError:
-            return {'success': False, 'value': st}
-    return {'success': True, 'value': val}
 
 def check_comparison_file(file_contents, file_name, sgroups, new_upload_style) -> list:
     indicator: str = 'green'

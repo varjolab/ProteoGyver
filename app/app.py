@@ -18,7 +18,7 @@ long_callback_manager = CeleryLongCallbackManager(celery_app, expire=300)
 app = Dash(__name__, use_pages=True, external_stylesheets=[
            FLATLY], suppress_callback_exceptions=True, long_callback_manager=long_callback_manager)
 
-app.title = 'Data analysis alpha version'
+app.title = 'Data analysis beta version'
 app.enable_dev_tools(debug=True)
 #app.config.from_pyfile('app_config.py')
 server = app.server
@@ -54,7 +54,11 @@ pages = {
     page['name'].lower(): dbc.NavItem(
         dbc.NavLink(
             page['name'].upper(),
-            href=page['relative_path']
+            href=page['relative_path'],
+            style={
+                'padding': '10px',
+                'color': 'white'
+            }
         )
     ) for page in page_registry.values()
 }
@@ -85,7 +89,7 @@ navbar = dbc.Navbar(
     dbc.Container(
         [
             html.Img(src=LOGO, height='100px'),
-            dbc.NavbarBrand('Proteogyver', className='ms-2', style = {'paddingRight': '50px'} ),
+            dbc.NavbarBrand('ProteoGyver', className='ms-2', style = {'paddingRight': '50px','font-size': '30px'} ),
             dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
             dbc.Collapse(
                 navbar_items,

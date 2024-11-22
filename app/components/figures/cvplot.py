@@ -20,7 +20,7 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
                 replicate_colors['sample groups'][sg].replace(', 1)',', 0.5)')
             ]*raw_data.shape[0]
         )
-    x = np.log2(all_abundances)
+    x = all_abundances
     y = all_cvs
     styles = {
         'xy1': {'zeroline': False, 'domain': [0,0.85], 'showgrid': False},

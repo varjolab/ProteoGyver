@@ -1,0 +1,68 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+.virtualenv/
+
+# VSCode specific files
+.vscode/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test result files
+.coverage
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+*.env
+
+# Logs
+*.log
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# R specific files
+.Rhistory
+.RData
+.Rproj.user/
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+*.temp
+
+# Debug logs
+debug/
+logs/
+*.debug
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+
+.vscode/
+
+# OS specific
+.DS_Store
+Thumbs.db

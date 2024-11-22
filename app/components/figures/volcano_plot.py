@@ -103,7 +103,7 @@ def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, 
                 id=f'{id_prefix}-{sample}-vs-{control}-volcano',
                 figure=volcano_plot(
                     significant_data[(significant_data['Sample'] == sample) & (
-                        significant_data['Control'] == control)],
+                        significant_data['Control'] == control)].copy(),
                     defaults, adj_p_threshold=p_thr, fc_threshold=fc_thr
                 ),
                 config=defaults['config']

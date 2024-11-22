@@ -1,7 +1,8 @@
 {
     "file loading": {
         "Maximum psm ever theoretically encountered": 5000,
-        "Do not show in enrichment default": []
+        "Do not show in enrichment default": [],
+        "Bait ID column names": ["bait uniprot","bait id","bait identifier"]
     },
     "workflow parameters": {
         "proteomics": {    
@@ -25,6 +26,9 @@
             "control indicators": ["ctrl", "gfp", "control"]
         },
         "phosphoproteomics": "Not implemented"
+    },
+    "Enrichment": {
+        "DAVID username": "kari.salokas@helsinki.fi"
     },
     "Figure defaults": {
         "full-height": {

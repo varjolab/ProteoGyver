@@ -102,7 +102,7 @@ def get_cytoscape_container(cyto_elements, full_height):
                         {'label': val.capitalize(), 'value': val} for val in cyto_layouts
                     ],
                     clearable=False,
-                    value = cyto_layouts[0]
+                    value = 'cose'
                 ),
                 html.Div(id='nodedata-div', style = {'padding-top': '15px'})
             ], style={'vertical-align': 'top', 'width': '30%','display': 'inline-block'})

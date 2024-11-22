@@ -44,10 +44,13 @@ class handler():
     def get_default_panel(self) -> list:
         return self._defaults
     
-    def enrich(self, data_lists:list, options: str) -> tuple:
+    def enrich(self, data_lists:list, options: str, parameters: dict) -> tuple:
         """Main enrich method.
         
-        :returns: a tuple of (result_names, result_data, result_legends). Result names is a list of the names of different enrichments. Result data is a list of tuples of (fold change column name, dataframe), and result legends is a list of more elaborate information about each enrichment, if available.
+        :returns: a tuple of (result_names, result_data, result_legends). \
+            Result names is a list of the names of different enrichments. 
+            Result data is a list of tuples of (fold change column name, dataframe).
+            Result legends is a list of more elaborate information about each enrichment, if available.
         """
         if options == 'defaults':
             datasets: list = self.get_default_panel()
@@ -57,7 +60,7 @@ class handler():
         results: dict = {}
         legends: dict = {}
         for bait, preylist in data_lists:
-            for data_type_key, results_df in self.run_david_overrepresentation_analysis(datasets, preylist).items():
+            for data_type_key, results_df in self.run_david_overrepresentation_analysis(parameters,datasets, preylist).items():
                 if data_type_key not in results:
                     results[data_type_key] = [(pd.DataFrame(), bait, preylist)]
                     legends[data_type_key] = []
@@ -117,7 +120,7 @@ class handler():
             'benjamini',
         ]
 
-    def run_david_overrepresentation_analysis(self, david_categories: list, uniprot_idlist: list, bg_uniprot_list: list = None, sig_threshold: float = 0.05, sig_col:str = 'benjamini', fold_enrichment_threshold: float = 2, count_threshold: int = 2) -> tuple:
+    def run_david_overrepresentation_analysis(self, parameters, david_categories: list, uniprot_idlist: list, bg_uniprot_list: list = None, sig_threshold: float = 0.05, sig_col:str = 'benjamini', fold_enrichment_threshold: float = 2, count_threshold: int = 2) -> tuple:
         """Runs statistical overrepresentation analysis on DAVID server (david.ncifcrf.gov), and \
             returns the results as a dictionary.
 
@@ -139,7 +142,7 @@ class handler():
         url = 'https://david.ncifcrf.gov/webservice/services/DAVIDWebService?wsdl'
         client: Client = Client(url)
         client.wsdl.services[0].setlocation('https://david.ncifcrf.gov/webservice/services/DAVIDWebService.DAVIDWebServiceHttpSoap11Endpoint/')
-        client.service.authenticate('kari.salokas@helsinki.fi')
+        client.service.authenticate(parameters['DAVID username'])
         list_type: int = 0 # 0 for sample, 1 for background
         id_type: str = 'UNIPROT_ACCESSION'
         input_ids: str = ','.join(uniprot_idlist)

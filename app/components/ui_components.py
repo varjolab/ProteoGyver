@@ -11,6 +11,7 @@ import uuid
 import dash_uploader as du
 from components.parsing import guess_controls
 from components.figures.figure_legends import INTERACTOMICS_LEGENDS as interactomics_legends
+from components.figures.figure_legends import saint_legend
 
 HEADER_DICT: dict = {
     'component': {
@@ -566,14 +567,11 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
 def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Div:
     all_sample_groups: list = []
     sample_groups: dict = data_dictionary['sample groups']['norm']
-    chosen: list = guess_controls(
-        list(sample_groups.keys()),
-        parameters['workflow parameters']['interactomics']['control indicators']
-    )
+    guessed_controls: list = data_dictionary['sample groups']['guessed control samples'][0]
     for k in sample_groups.keys():
-        if k not in chosen:
+        if k not in guessed_controls:
             all_sample_groups.append(k)
-    all_sample_groups = sorted(chosen) + sorted(all_sample_groups)
+    all_sample_groups = sorted(guessed_controls) + sorted(all_sample_groups)
     return html.Div(
         children=[
             dbc.Row(
@@ -582,7 +580,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                         dbc.Row(
                             [
                                 interactomics_control_col(
-                                    all_sample_groups, chosen),
+                                    all_sample_groups, guessed_controls),
                                 interactomics_inbuilt_control_col(
                                     parameters['controls']),
                                 interactomics_crapome_col(
@@ -590,7 +588,6 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                             ]
                         ),
                         dbc.Row([
-                            dbc.Col(width=1),
                             dbc.Col(
                                 checklist(
                                     'Rescue filtered out',
@@ -603,8 +600,8 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                     }
                                 ), width=4
                             ),
-                            tooltips.rescue_tooltip(),
                             dbc.Col([
+                                tooltips.rescue_tooltip(),
                                 dbc.Row([
                                     dbc.Col(
                                         checklist(
@@ -616,7 +613,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                             style_override={
                                                 'margin': '5px', 'verticalAlign': 'center'
                                             },
-                                        ), width=2
+                                        ), width=3
                                     ),
                                     dbc.Col([
                                         dbc.Input(
@@ -624,14 +621,15 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                             min=0, max=200, step=1, style={'margin': '5px', 'verticalAlign': 'center'}
                                         ),
                                         tooltips.interactomics_select_top_controls_tooltip()
-                                    ], width=2),
+                                    ], width=3),
                                     dbc.Col(
                                         html.P('most similar inbuilt control runs',
                                                style={'margin': '5px', 'verticalAlign': 'center'}),
-                                        width=7
+                                        width=6
                                     )
                                 ])
                             ], width=6),
+                            tooltips.nearest_tooltip(),
                             dbc.Col(width=1)
                         ])
                     ], width=9),
@@ -651,7 +649,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
     )
 
 
-def saint_filtering_container(defaults) -> list:
+def saint_filtering_container(defaults, rescue) -> list:
     return html.Div(
         id={'type': 'input-div', 'id': 'interactomics-saint-filtering-area'},
         children=[
@@ -664,7 +662,7 @@ def saint_filtering_container(defaults) -> list:
                     children='Filtered Prey counts per bait'),
             dcc.Graph(id='interactomics-saint-graph',
                       config=defaults['config']),
-            interactomics_legends['filtered-saint-counts'],
+            saint_legend(rescue),
             dbc.Label('Saint BFDR threshold:'),
             dcc.Slider(0, 0.1, 0.01, value=0.05,
                        id='interactomics-saint-bfdr-filter-threshold'),

@@ -165,8 +165,7 @@ def normalize(data_table, normalization_method, errorfile: str, random_seed: int
 
 
 def impute(data_table: DataFrame, errorfile: str, method: str = 'QRILC', random_seed: int = 13) -> DataFrame:
-    """Imputes missing values int
-from scipy.stats import zscoreo the dataframe with the specified method"""
+    """Imputes missing values in the dataframe with the specified method"""
     ret: DataFrame = data_table
     if method == 'minProb':
         ret = impute_minprob_df(data_table, random_seed)

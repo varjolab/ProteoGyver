@@ -5,6 +5,7 @@ from dash import dcc, html
 import os
 from plotly import io as pio
 from plotly import graph_objects as go
+from io import StringIO
 import re
 import json
 import pandas as pd
@@ -164,7 +165,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         fil.write(d['props']['data'])
             elif export_format == 'tsv':
                 if not 'split' in file_config:
-                    pd_df: pd.DataFrame = pd.read_json(d['props']['data'], orient='split')
+                    pd_df: pd.DataFrame = pd.read_json(StringIO(d['props']['data']),orient='split')
                     if 'pertubation' in file_config:
                         continue
                     if 'rename-int' in file_config:
@@ -180,13 +181,13 @@ def save_data_stores(data_stores, export_dir) -> dict:
                     if not os.path.isdir(export_destination): os.makedirs(export_destination)
                     for enrichment_name, enrichment_dict in d['props']['data'].items():
                         use_name = os.path.join(export_destination, '.'.join([f'{enrichment_name}', export_format]))
-                        pd.read_json(enrichment_dict['result'], orient='split').to_csv(use_name,sep='\t',index=False)
+                        pd.read_json(StringIO(enrichment_dict['result']),orient='split').to_csv(use_name,sep='\t',index=False)
                 elif file_config == 'upload-split':
                     export_destination = os.path.join(export_destination, file_name)
                     if not os.path.isdir(export_destination): os.makedirs(export_destination)
                     for key, data_table in d['props']['data'].items():
                         use_name = os.path.join(export_destination, '.'.join([f'{key}', export_format]))
-                        pd_df:pd.DataFrame = pd.read_json(data_table, orient='split')
+                        pd_df:pd.DataFrame = pd.read_json(StringIO(data_table),orient='split')
                         if pd_df.shape[1] < 2: continue
                         pd_df.to_csv(use_name,sep='\t')
                 elif file_config == 'saint-split':
@@ -196,7 +197,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             for line in saint_filelines:
                                 fil.write('\t'.join(line)+'\n')
                 elif 'volc-split' in file_config:
-                    df: pd.DataFrame = pd.read_json(d['props']['data'], orient='split')
+                    df: pd.DataFrame = pd.read_json(StringIO(d['props']['data']),orient='split')
                     df_dicts: list = []
                     df_dicts_all: list = []
                     for _, s_c_row in df[['Sample', 'Control']].drop_duplicates().iterrows():
@@ -240,8 +241,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
         except: # pylint: disable=bare-except
             with open(f'FAILED_{d["props"]["id"]}','w', encoding = 'utf-8') as fil:
                 fil.write(f'{d["props"]["data"]}')
-            print(d['props']['id'])
-            print(type(d['props']['data']))
         
         logger.warning(
             f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
