@@ -1,19 +1,24 @@
-"""Components for the user interface"""
+"""Components for the user interface.
 
+This module provides reusable UI components for building the application interface,
+including checklists, range inputs, and other common elements.
 
+Attributes:
+    HEADER_DICT (dict): Mapping of header levels to HTML header components
+"""
+
+from typing import Any, List, Dict, Tuple, Optional, Union
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 from element_styles import SIDEBAR_STYLE, UPLOAD_A_STYLE, UPLOAD_STYLE, UPLOAD_BUTTON_STYLE, CONTENT_STYLE, SIDEBAR_LIST_STYLES, UPLOAD_INDICATOR_STYLE
-from typing import Any
 from components import tooltips, text_handling
 from numpy import log2
 import uuid
 import dash_uploader as du
-from components.parsing import guess_controls
 from components.figures.figure_legends import INTERACTOMICS_LEGENDS as interactomics_legends
 from components.figures.figure_legends import saint_legend
 
-HEADER_DICT: dict = {
+HEADER_DICT: Dict[str, Dict[int, Any]] = {
     'component': {
         1: html.H1,
         2: html.H2,
@@ -27,16 +32,33 @@ HEADER_DICT: dict = {
 
 def checklist(
         label: str,
-        options: list,
-        default_choice: list,
-        disabled: list = None,
-        id_prefix: str = None,
+        options: List[str],
+        default_choice: List[str],
+        disabled: Optional[List[str]] = None,
+        id_prefix: Optional[str] = None,
         id_only: bool = False,
-        prefix_list: list = None,
-        postfix_list: list = None,
-        clean_id = True,
-        style_override: dict = None
-) -> dbc.Checklist:
+        prefix_list: Optional[List[Any]] = None,
+        postfix_list: Optional[List[Any]] = None,
+        clean_id: bool = True,
+        style_override: Optional[Dict[str, Any]] = None
+) -> List[Any]:
+    """Creates a Bootstrap checklist component with customizable options.
+
+    Args:
+        label (str): Label text for the checklist
+        options (list): List of options to display in the checklist
+        default_choice (list): List of pre-selected options
+        disabled (list, optional): List of options to disable. Defaults to None.
+        id_prefix (str, optional): Prefix for the component ID. Defaults to None.
+        id_only (bool, optional): If True, removes label from display. Defaults to False.
+        prefix_list (list, optional): Elements to prepend to checklist. Defaults to None.
+        postfix_list (list, optional): Elements to append to checklist. Defaults to None.
+        clean_id (bool, optional): If True, sanitizes the ID string. Defaults to True.
+        style_override (dict, optional): Custom CSS styles. Defaults to None.
+
+    Returns:
+        dbc.Checklist: Bootstrap checklist component with specified options and styling
+    """
     if disabled is None:
         disabled: set = set()
     else:
@@ -71,23 +93,63 @@ def checklist(
     return prefix_list + retlist + postfix_list
 
 
-def range_input(label, min, max, id_str, typestr = 'number', style_float: str = 'center', stepsize = 1):
+def range_input(
+    label: str, 
+    min_val: float, 
+    max_val: float, 
+    id_str: str, 
+    typestr: str = 'number', 
+    style_float: str = 'center', 
+    stepsize: float = 1
+) -> html.Div:
+    """Creates a range input component with min and max value inputs.
+
+    Args:
+        label (str): Label text for the range input
+        min (float): Initial minimum value
+        max (float): Initial maximum value
+        id_str (str): Base ID for the component
+        typestr (str, optional): Input type ('number', 'text', etc). Defaults to 'number'.
+        style_float (str, optional): Float style for positioning. Defaults to 'center'.
+        stepsize (float, optional): Step size for number inputs. Defaults to 1.
+
+    Returns:
+        html.Div: Div containing the range input component with label and min/max inputs
+    """
     pad = {
-        'padding': '0px 5px 0px 5px', 'margin': 'auto','margin-left': 'auto', 'margin-right': 'auto'
+        'padding': '0px 5px 0px 5px', 
+        'margin': 'auto',
+        'margin-left': 'auto', 
+        'margin-right': 'auto'
     }
     return html.Div(
         children = [
             html.P(label, style=pad|{'width': '50%'}),
-            dcc.Input(id=f'{id_str}-min', type=typestr,value=min,style=pad|{'width': '20%'},step=stepsize),
+            dcc.Input(id=f'{id_str}-min', type=typestr,value=min_val,style=pad|{'width': '20%'},step=stepsize),
             html.P('-', style=pad|{'width': '10%'}),
-            dcc.Input(id=f'{id_str}-max', type=typestr,value=max,style=pad|{'width': '20%'},step=stepsize),
+            dcc.Input(id=f'{id_str}-max', type=typestr,value=max_val,style=pad|{'width': '20%'},step=stepsize),
         ],
         style={'display': 'inline-flex', 'width': '100%', 'height': '20px',
                 'float': style_float, 'height': '20px'},
         id = id_str
     )
 
-def make_du_uploader(id_str: str, message):
+def make_du_uploader(id_str: str, message: str) -> Tuple[html.Div, str]:
+    """Creates a dash-uploader component with success indicator.
+
+    Args:
+        id_str (str): ID for the upload component
+        message (str): Display message for the upload area
+
+    Returns:
+        tuple[html.Div, str]: A tuple containing:
+            - html.Div: The upload component with success indicator
+            - str: A unique session ID for the upload
+
+    Notes:
+        Creates an upload area with a 50MB file size limit and 4MB chunks.
+        Includes a success indicator div that appears after successful upload.
+    """
     session_id = str(uuid.uuid1())
     asty = {k: v for k, v in UPLOAD_INDICATOR_STYLE.items()}
     asty['height'] = '100px'
@@ -112,7 +174,22 @@ def make_du_uploader(id_str: str, message):
         ],  
     ), session_id
 
-def upload_area(id_text, upload_id, indicator=True) -> html.Div:
+def upload_area(id_text: str, upload_id: str, indicator: bool = True) -> html.Div:
+    """Creates a drag-and-drop upload area with optional success indicator.
+
+    Args:
+        id_text (str): ID for the upload component
+        upload_id (str): Display text for the upload area
+        indicator (bool, optional): Whether to show upload success indicator. Defaults to True.
+
+    Returns:
+        html.Div: A div containing the upload area and optional success indicator
+
+    Notes:
+        Creates a drag-and-drop area with a clickable 'select' link.
+        Includes a loading spinner and optional success indicator.
+        Multiple file upload is disabled.
+    """
     ret: list = [
         html.Div(
             children=[
@@ -142,7 +219,23 @@ def upload_area(id_text, upload_id, indicator=True) -> html.Div:
         )
     return html.Div(ret)
 
-def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Div:
+def main_sidebar(figure_templates: List[str], implemented_workflows: List[str]) -> html.Div:
+    """Creates the main sidebar component with input controls and workflow options.
+
+    Args:
+        figure_templates (list): Available figure style templates
+        implemented_workflows (list): List of available workflow types
+
+    Returns:
+        html.Div: Sidebar component containing:
+            - Example data download buttons
+            - File upload areas
+            - Analysis options checklist
+            - Workflow selection dropdown
+            - Figure style selection
+            - Analysis control buttons
+            - Table of contents
+    """
     return html.Div(
         children = [
             html.H2(children='▼ Input', id='input-header', style={'textAlign': 'left'}),
@@ -231,6 +324,18 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
 
 
 def modals() -> html.Div:
+    """Creates modal dialogs for the application.
+
+    Returns:
+        html.Div: Container with modal components including:
+            - Sample discard modal with scrollable content
+            - Header with modal title
+            - Body with discard button and checklist container
+
+    Notes:
+        Modals are initially hidden (is_open=False) and can be triggered
+        by other components.
+    """
     return html.Div([
         dbc.Modal(
             id='discard-samples-modal',
@@ -255,6 +360,18 @@ def modals() -> html.Div:
 
 
 def main_content_div() -> html.Div:
+    """Creates the main content area for displaying analysis results.
+
+    Returns:
+        html.Div: Main content container with:
+            - Workflow-specific input area
+            - QC analysis area
+            - Workflow-specific results area
+
+    Notes:
+        Content areas are initially empty and populated based on
+        user interactions and analysis results.
+    """
     return html.Div(
         id='main-content-div',
         children=[
@@ -269,7 +386,28 @@ def main_content_div() -> html.Div:
     )
 
 
-def workflow_area(workflow: str, workflow_specific_parameters: dict, data_dictionary: dict) -> html.Div:
+def workflow_area(
+    workflow: str, 
+    workflow_specific_parameters: Dict[str, Any], 
+    data_dictionary: Dict[str, Any]
+) -> html.Div:
+    """Creates the appropriate workflow area based on the selected workflow type.
+
+    Args:
+        workflow (str): Selected workflow type ('Proteomics', 'Interactomics', or 'Phosphoproteomics')
+        workflow_specific_parameters (dict): Parameters specific to each workflow type
+        data_dictionary (dict): Data required for the workflow analysis
+
+    Returns:
+        html.Div: Workflow-specific component containing:
+            - Input controls specific to the workflow
+            - Analysis results area
+            - Visualization components
+
+    Notes:
+        The returned component structure varies based on the selected workflow type.
+        Each workflow type has its own layout and functionality.
+    """
     ret: html.Div
     if workflow == 'Proteomics':
         ret = proteomics_area(
@@ -283,7 +421,30 @@ def workflow_area(workflow: str, workflow_specific_parameters: dict, data_dictio
     return ret
 
 
-def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
+def proteomics_input_card(
+    parameters: Dict[str, Any], 
+    data_dictionary: Dict[str, Any]
+) -> dbc.Card:
+    """Creates a card component containing proteomics analysis input controls.
+
+    Args:
+        parameters (dict): Configuration parameters including:
+            - na_filter_default_value: Default NA filtering threshold
+            - imputation methods: Available imputation method options
+            - default imputation method: Pre-selected imputation method
+            - normalization methods: Available normalization method options
+            - default normalization method: Pre-selected normalization method
+        data_dictionary (dict): Data containing sample groups and normalization info
+
+    Returns:
+        dbc.Card: Card component containing:
+            - NA filtering controls with tooltip
+            - Imputation method selection
+            - Normalization method selection
+            - Control group selection or comparison file upload
+            - Fold change and p-value threshold controls
+            - Analysis execution button
+    """
     control_dropdown_options = ['']
     control_dropdown_options.extend(sorted(list(data_dictionary['sample groups']['norm'].keys())))
     return dbc.Card(
@@ -384,8 +545,33 @@ def proteomics_input_card(parameters: dict, data_dictionary: dict) -> dbc.Card:
         ])
     )
 
-def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
+def proteomics_area(
+    parameters: Dict[str, Any], 
+    data_dictionary: Dict[str, Any]
+) -> List[html.Div]:
+    """Creates the main proteomics analysis area with input controls and results display.
 
+    Args:
+        parameters (dict): Proteomics-specific configuration parameters
+        data_dictionary (dict): Data required for proteomics analysis
+
+    Returns:
+        list[html.Div]: List containing:
+            - Input div with proteomics-specific controls
+            - Results div with loading indicators for:
+                - NA filtering plots
+                - Normalization plots
+                - Missing value plots
+                - Imputation plots
+                - CV plots
+                - PCA plots
+                - Clustermap plots
+                - Volcano plots
+
+    Notes:
+        Each plot area includes a loading indicator that displays while
+        the corresponding analysis is being performed.
+    """
     return [
         html.Div(
             id={'type': 'input-div', 'id': 'proteomics-analysis-area'},
@@ -458,7 +644,28 @@ def proteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
     ]
 
 
-def discard_samples_checklist(count_plot, list_of_samples) -> html.Div:
+def discard_samples_checklist(
+    count_plot: html.Div, 
+    list_of_samples: List[str]
+) -> List[Any]:
+    """Creates a checklist for selecting samples to discard from analysis.
+
+    Args:
+        count_plot (html.Div): Plot component showing sample counts
+        list_of_samples (list): List of sample names that can be discarded
+
+    Returns:
+        list: List containing:
+            - Count plot visualization
+            - Checklist for sample selection with:
+                - All samples as options
+                - None pre-selected
+                - Checklist ID prefixed with 'checklist'
+
+    Notes:
+        The returned components are typically displayed in a modal dialog
+        for sample filtering.
+    """
     return [
         count_plot,
         html.Div(
@@ -473,7 +680,22 @@ def discard_samples_checklist(count_plot, list_of_samples) -> html.Div:
     ]
 
 
-def interactomics_control_col(all_sample_groups, chosen) -> dbc.Col:
+def interactomics_control_col(
+    all_sample_groups: List[str], 
+    chosen: List[str]
+) -> dbc.Col:
+    """Creates a column component for selecting uploaded control samples.
+
+    Args:
+        all_sample_groups (list): List of all available sample groups
+        chosen (list): List of pre-selected sample groups
+
+    Returns:
+        dbc.Col: Column component containing:
+            - "Select all" checkbox for uploaded controls
+            - Checklist of available sample groups
+            - Label for the control selection area
+    """
     return dbc.Col([
         html.Div(
             checklist(
@@ -500,7 +722,21 @@ def interactomics_control_col(all_sample_groups, chosen) -> dbc.Col:
     ])
 
 
-def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
+def interactomics_inbuilt_control_col(controls_dict: Dict[str, List[str]]) -> dbc.Col:
+    """Creates a column component for selecting built-in control sets.
+
+    Args:
+        controls_dict (dict): Dictionary containing:
+            - available (list): Available control set options
+            - default (list): Pre-selected control sets
+            - disabled (list): Control sets that should be disabled
+
+    Returns:
+        dbc.Col: Column component containing:
+            - "Select all" checkbox for built-in controls
+            - Checklist of available control sets
+            - Label for the control sets selection area
+    """
     return dbc.Col([
         html.Div(
             checklist(
@@ -524,7 +760,25 @@ def interactomics_inbuilt_control_col(controls_dict) -> dbc.Col:
         ),
     ])
 
-def interactomics_crapome_col(crapome_dict) -> dbc.Col:
+def interactomics_crapome_col(crapome_dict: Dict[str, List[str]]) -> dbc.Col:
+    """Creates a column component for selecting CRAPome control sets.
+
+    Args:
+        crapome_dict (dict): Dictionary containing:
+            - available (list): Available CRAPome set options
+            - default (list): Pre-selected CRAPome sets
+            - disabled (list): CRAPome sets that should be disabled
+
+    Returns:
+        dbc.Col: Column component containing:
+            - "Select all" checkbox for CRAPome sets
+            - Checklist of available CRAPome sets
+            - Label for the CRAPome selection area
+
+    Notes:
+        CRAPome (Contaminant Repository for Affinity Purification) sets are 
+        used to filter out common contaminants in interaction studies.
+    """
     return dbc.Col([
         html.Div(
             checklist(
@@ -549,7 +803,25 @@ def interactomics_crapome_col(crapome_dict) -> dbc.Col:
     ])
 
 
-def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
+def interactomics_enrichment_col(enrichment_dict: Dict[str, List[str]]) -> dbc.Col:
+    """Creates a column component for selecting enrichment analysis options.
+
+    Args:
+        enrichment_dict (dict): Dictionary containing:
+            - available (list): Available enrichment analysis options
+            - default (list): Pre-selected enrichment options
+            - disabled (list): Enrichment options that should be disabled
+
+    Returns:
+        dbc.Col: Column component containing:
+            - Checklist of available enrichment options
+            - "Deselect all" button
+            - Label for the enrichment selection area
+
+    Notes:
+        Unlike other selection columns, this one includes a deselect button
+        instead of a "Select all" checkbox.
+    """
     return dbc.Col([
         html.Div(
             checklist(
@@ -569,10 +841,36 @@ def interactomics_enrichment_col(enrichment_dict) -> dbc.Col:
     ])
 
 
-def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Div:
-    all_sample_groups: list = []
-    sample_groups: dict = data_dictionary['sample groups']['norm']
-    guessed_controls: list = data_dictionary['sample groups']['guessed control samples'][0]
+def interactomics_input_card(
+    parameters: Dict[str, Any], 
+    data_dictionary: Dict[str, Any]
+) -> html.Div:
+    """Creates the main input card for interactomics analysis configuration.
+
+    Args:
+        parameters (dict): Configuration parameters containing:
+            - controls (dict): Built-in control set options
+            - crapome (dict): CRAPome filtering options
+            - enrichment (dict): Enrichment analysis options
+        data_dictionary (dict): Data containing:
+            - sample groups (dict): Normalized sample groups
+            - guessed control samples (list): Auto-detected control samples
+
+    Returns:
+        html.Div: Input card containing:
+            - Control selection columns (uploaded, built-in, CRAPome)
+            - Rescue filtering options
+            - Nearest control filtering settings
+            - Enrichment selection
+            - SAINT analysis button
+
+    Notes:
+        Automatically sorts and combines guessed controls with other sample groups.
+        Includes tooltips for rescue and nearest control filtering options.
+    """
+    all_sample_groups: List[str] = []
+    sample_groups: Dict[str, Any] = data_dictionary['sample groups']['norm']
+    guessed_controls: List[str] = data_dictionary['sample groups']['guessed control samples'][0]
     for k in sample_groups.keys():
         if k not in guessed_controls:
             all_sample_groups.append(k)
@@ -654,7 +952,33 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
     )
 
 
-def saint_filtering_container(defaults, rescue) -> list:
+def saint_filtering_container(
+    defaults: Dict[str, Any], 
+    rescue: bool
+) -> html.Div:
+    """Creates a container for SAINT analysis filtering controls and visualizations.
+
+    Args:
+        defaults (dict): Default configuration including:
+            - config (dict): Graph configuration settings
+        rescue (bool): Whether rescue filtering is enabled
+
+    Returns:
+        html.Div: Container with:
+            - SAINT BFDR histogram
+            - Filtered prey counts visualization
+            - BFDR threshold slider
+            - CRAPome filtering controls
+            - SPC fold change threshold slider
+            - Filtering completion button
+
+    Notes:
+        SAINT (Significance Analysis of INTeractome) filtering allows users to:
+        - Visualize BFDR value distributions
+        - Set filtering thresholds for interactions
+        - Control CRAPome-based contaminant filtering
+        - Adjust rescue thresholds for borderline interactions
+    """
     return html.Div(
         id={'type': 'input-div', 'id': 'interactomics-saint-filtering-area'},
         children=[
@@ -683,7 +1007,23 @@ def saint_filtering_container(defaults, rescue) -> list:
     )
 
 
-def post_saint_cointainer() -> list:
+def post_saint_container() -> List[html.Div]:
+    """Creates a container for post-SAINT analysis visualizations.
+
+    Returns:
+        list: Container with loading indicators for:
+            - Known interactions plot
+            - Common interactions plot
+            - PCA analysis
+            - Network visualization
+            - Volcano plot
+            - MS microscopy analysis
+            - Enrichment analysis
+
+    Notes:
+        Each visualization has its own loading indicator that displays
+        while the corresponding analysis is being performed.
+    """
     return [
         html.Div(
             id={'type': 'workflow-area', 'id': 'interactomcis-count-plot-div'},
@@ -700,7 +1040,29 @@ def post_saint_cointainer() -> list:
     ]
 
 
-def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
+def interactomics_area(
+    parameters: Dict[str, Any], 
+    data_dictionary: Dict[str, Any]
+) -> List[html.Div]:
+    """Creates the main interactomics analysis area with input controls and results display.
+
+    Args:
+        parameters (dict): Interactomics-specific configuration parameters
+        data_dictionary (dict): Data required for interactomics analysis
+
+    Returns:
+        list: List containing:
+            - Input div with interactomics-specific controls
+            - Results div with:
+                - SAINT analysis container
+                - SAINT processing indicator
+                - Post-SAINT analysis area
+
+    Notes:
+        The area is organized into distinct sections for input controls
+        and analysis results, with loading indicators for long-running
+        operations.
+    """
     return [
         html.Div(
             id={'type': 'input-div', 'id': 'interactomics-analysis-area'},
@@ -726,11 +1088,46 @@ def interactomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
     ]
 
 
-def phosphoproteomics_area(parameters: dict, data_dictionary: dict) -> html.Div:
-    return html.Div(id={'type': 'analysis-div', 'id': 'phosphoproteomics-analysis-area'}),
+def phosphoproteomics_area(
+    parameters: Dict[str, Any], 
+    data_dictionary: Dict[str, Any]
+) -> html.Div:
+    """Creates the main phosphoproteomics analysis area.
+
+    Args:
+        parameters (dict): Phosphoproteomics-specific configuration parameters
+        data_dictionary (dict): Data required for phosphoproteomics analysis
+
+    Returns:
+        html.Div: Container for phosphoproteomics analysis components
+
+    Notes:
+        Currently returns an empty div as placeholder for future implementation.
+    """
+    return html.Div(id={'type': 'analysis-div', 'id': 'phosphoproteomics-analysis-area'})
 
 
 def qc_area() -> html.Div:
+    """Creates the quality control analysis area with multiple QC visualizations.
+
+    Returns:
+        html.Div: Container with loading indicators for QC plots including:
+            - Total Ion Current (TIC) plot
+            - Protein count plot
+            - Common protein plot
+            - Coverage plot
+            - Reproducibility plot
+            - Missing values plot
+            - Sum intensity plot
+            - Mean intensity plot
+            - Distribution plot
+            - Commonality plot
+
+    Notes:
+        Each QC plot has its own loading indicator that displays while
+        the corresponding analysis is being performed. The plots are
+        arranged vertically in the order listed above.
+    """
     return html.Div(
         id='qc-area',
         children=[
@@ -793,8 +1190,25 @@ def qc_area() -> html.Div:
         ])
 
 
-def navbar(navbar_pages) -> dbc.NavbarSimple:
-    navbar_items: list = [
+def navbar(navbar_pages: List[Tuple[str, str]]) -> dbc.NavbarSimple:
+    """Creates the main navigation bar for the application.
+
+    Args:
+        navbar_pages (list): List of tuples containing (name, link) pairs
+            for each navigation item
+
+    Returns:
+        dbc.NavbarSimple: Bootstrap navbar component with:
+            - Navigation items generated from navbar_pages
+            - 'Quick analysis' brand text
+            - Primary color theme
+            - Dark mode enabled
+
+    Notes:
+        Creates a simple horizontal navigation bar with consistent styling
+        across the application.
+    """
+    navbar_items: List[dbc.NavItem] = [
         dbc.NavItem(dbc.NavLink(name, href=link)) for name, link in navbar_pages
     ]
     return dbc.NavbarSimple(
@@ -806,8 +1220,42 @@ def navbar(navbar_pages) -> dbc.NavbarSimple:
     )
 
 
-def table_of_contents(main_div_children: list, itern=0) -> list:
-    ret: list = []
+def table_of_contents(
+    main_div_children: List[Dict[str, Any]], 
+    itern: int = 0
+) -> List[Any]:
+    """Recursively generates a table of contents from HTML header elements.
+
+    Args:
+        main_div_children (list): List of HTML components to process
+        itern (int, optional): Current recursion depth. Defaults to 0.
+
+    Returns:
+        list: List of HTML components representing the table of contents, including:
+            - Title ('Table of contents') at the root level
+            - Nested header elements with appropriate styling
+            - Links to corresponding sections in the document
+
+    Notes:
+        - Processes header elements (H1-H6) and creates corresponding TOC entries
+        - Maintains hierarchy through recursive processing of nested components
+        - Applies different padding/styling based on header level
+        - Creates clickable links using element IDs
+        - Skips elements without IDs or non-header elements
+        - Limits header levels to H1-H6 (higher levels are treated as H6)
+
+    Example:
+        >>> table_of_contents([
+        ...     {'type': 'H1', 'props': {'id': 'section1', 'children': 'Section 1'}},
+        ...     {'type': 'H2', 'props': {'id': 'subsection', 'children': 'Subsection'}}
+        ... ])
+        [
+            html.H3('Table of contents'),
+            html.Div(html.H1(html.A(href='#section1', children='Section 1'))),
+            html.Div(html.H2(html.A(href='#subsection', children='Subsection')))
+        ]
+    """
+    ret: List[Any] = []
     if itern == 0:
         ret.append(html.H3('Table of contents'))
     if main_div_children is None:
@@ -818,7 +1266,7 @@ def table_of_contents(main_div_children: list, itern=0) -> list:
     else:
         for element in main_div_children:
             try:
-                kids: list | str = element['props']['children']
+                kids: List[Any] | str | Dict[str, Any] = element['props']['children']
             except KeyError:
                 continue
             except TypeError:
@@ -832,11 +1280,9 @@ def table_of_contents(main_div_children: list, itern=0) -> list:
                     if level > 6:
                         level = 6
                     html_component: Any = HEADER_DICT['component'][level]
-                    # list_component: Any = html.Li
                     list_component: Any = html.Div
-                    style: dict = SIDEBAR_LIST_STYLES[level]
+                    style: Dict[str, Any] = SIDEBAR_LIST_STYLES[level]
                     if level == 1:
-                        # list_component = html.Div
                         style['padding-left'] = '0%'
                     try:
                         idstr: str = element['props']['id']

@@ -28,18 +28,20 @@ from components.figures import tic_graph
 import plotly.io as pio
 import logging
 from element_styles import CONTENT_STYLE
+from typing import Any, Dict, List, Tuple, Optional, Union
+import plotly.graph_objects as go
 
 
 register_page(__name__, path='/')
 logger = logging.getLogger(__name__)
 logger.warning(f'{__name__} loading')
 
-parameters = parsing.parse_parameters('parameters.json')
+parameters: Dict[str, Any] = parsing.parse_parameters('parameters.json')
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
-contaminant_list: list = db_functions.get_contaminants(db_file)
-figure_output_formats = ['html', 'png', 'pdf']
+contaminant_list: List[str] = db_functions.get_contaminants(db_file)
+figure_output_formats: List[str] = ['html', 'png', 'pdf']
 
-layout = html.Div([
+layout: html.Div = html.Div([
         ui.main_sidebar(
             parameters['Possible values']['Figure templates'],
             parameters['Possible values']['Implemented workflows']),
@@ -58,7 +60,8 @@ layout = html.Div([
     prevent_initial_call=True
 )
 #TODO: implement clearing.
-def clear_data_stores(begin_clicks):
+#TODO: Alternatively we could load the data store elements at this point, except for the ones needed to ingest files up to this point.
+def clear_data_stores(begin_clicks: Optional[int]) -> str:
     """Clears all data stores before analysis begins.
     
     Args:
@@ -84,7 +87,12 @@ def clear_data_stores(begin_clicks):
     State('upload-data-file-success', 'style'),
     prevent_initial_call=True
 )
-def handle_uploaded_data_table(file_contents, file_name: str, mod_date: int, current_upload_style: dict) -> tuple:
+def handle_uploaded_data_table(
+    file_contents: Optional[str], 
+    file_name: str, 
+    mod_date: int, 
+    current_upload_style: Dict[str, Any]
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     """Parses uploaded data table and sends data to data stores.
     
     Args:
@@ -118,7 +126,12 @@ def handle_uploaded_data_table(file_contents, file_name: str, mod_date: int, cur
     State('upload-sample_table-file-success', 'style'),
     prevent_initial_call=True
 )
-def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upload_style) -> tuple:
+def handle_uploaded_sample_table(
+    file_contents: Optional[str],
+    file_name: str,
+    mod_date: int,
+    current_upload_style: Dict[str, Any]
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     """Parses uploaded sample table and sends data to data stores.
     
     Args:
@@ -155,7 +168,15 @@ def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upl
     State('sidebar-options','value'),
     prevent_initial_call=True
 )
-def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_template, additional_options) -> tuple:
+def validate_data(
+    _: str,
+    data_tables: Dict[str, Any],
+    data_info: Dict[str, Any],
+    expdes_table: Dict[str, Any],
+    expdes_info: Dict[str, Any],
+    figure_template: str,
+    additional_options: Optional[List[str]]
+) -> Tuple[Dict[str, Any], bool]:
     """Validates and formats uploaded data for analysis.
     
     Args:
@@ -173,7 +194,7 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
             - Boolean indicating if download button should be disabled
     """
     logger.warning(f'Validating data: {datetime.now()}')
-    cont: list = []
+    cont: List[str] = []
     repnames: bool = False
     uniq_only: bool = False
     if additional_options is not None:
@@ -206,7 +227,10 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def remove_samples(discard_samples_list, data_dictionary) -> dict:
+def remove_samples(
+    discard_samples_list: Optional[List[str]], 
+    data_dictionary: Dict[str, Any]
+) -> Dict[str, Any]:
     """Removes selected samples from the data dictionary.
     
     Args:
@@ -227,7 +251,7 @@ def remove_samples(discard_samples_list, data_dictionary) -> dict:
     Input({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def create_qc_area(_) -> tuple:
+def create_qc_area(_: Dict[str, Any]) -> Tuple[html.Div, bool, str, str]:
     """Creates the quality control analysis area and shows sample discard button.
     
     Args:
@@ -250,7 +274,7 @@ def create_qc_area(_) -> tuple:
     Input({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def assign_replicate_colors(data_dictionary) -> dict:
+def assign_replicate_colors(data_dictionary: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Assigns colors to sample replicates for visualization.
     
     Args:
@@ -274,7 +298,7 @@ def assign_replicate_colors(data_dictionary) -> dict:
     Input('upload-data-file-success', 'style'),
     prevent_initial_call=True
 )
-def check_inputs(*args) -> bool:
+def check_inputs(*args: Any) -> bool:
     """Validates that all required inputs are present before analysis can begin.
 
     Returns True, if invalid so that the value can be used directly as input for dis/abling the begin analysis button.
@@ -300,7 +324,11 @@ def check_inputs(*args) -> bool:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def open_discard_samples_modal(_, count_plot: list, data_dictionary: dict) -> tuple[bool, list]:
+def open_discard_samples_modal(
+    _: Optional[int], 
+    count_plot: List[Any], 
+    data_dictionary: Dict[str, Any]
+) -> html.Div:
     """Creates modal dialog for selecting samples to discard.
     
     Args:
@@ -324,7 +352,7 @@ def open_discard_samples_modal(_, count_plot: list, data_dictionary: dict) -> tu
     State('discard-samples-modal', 'is_open'),
     prevent_initial_call=True
 )
-def toggle_discard_modal(n1, n2, is_open) -> bool:
+def toggle_discard_modal(n1: Optional[int], n2: Optional[int], is_open: bool) -> bool:
     """Toggles visibility of the discard samples modal dialog.
     
     Args:
@@ -346,7 +374,7 @@ def toggle_discard_modal(n1, n2, is_open) -> bool:
     State('checklist-select-samples-to-discard', 'value'),
     prevent_initial_call=True
 )
-def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
+def add_samples_to_discarded(n_clicks: Optional[int], chosen_samples: List[str]) -> Union[List[str], Any]:
     """Adds selected samples to the list of discarded samples.
     
     Args:
@@ -371,7 +399,7 @@ def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def parse_chromatogram_data(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+def parse_chromatogram_data(_: Any, data_dictionary: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates chromatogram plot data from sample information.
     
     Args:
@@ -396,7 +424,7 @@ def parse_chromatogram_data(_, data_dictionary: dict, replicate_colors: dict) ->
     State({'type': 'data-store', 'name': 'tic-data-store'}, 'data'),
     Input('qc-tic-dropdown','value')
 )
-def plot_tic(chromatogram_data, graph_type):
+def plot_tic(chromatogram_data: Dict[str, Any], graph_type: str) -> go.Figure:
     """Creates chromatogram plot figure.
     
     Args:
@@ -416,7 +444,11 @@ def plot_tic(chromatogram_data, graph_type):
     State({'type': 'data-store', 'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+def count_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any], 
+    replicate_colors: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates protein count plot for samples.
     
     Args:
@@ -443,7 +475,10 @@ def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def common_proteins_plot(_, data_dictionary: dict) -> tuple:
+def common_proteins_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates plot showing common proteins across samples.
     
     Args:
@@ -471,7 +506,10 @@ def common_proteins_plot(_, data_dictionary: dict) -> tuple:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def coverage_plot(_, data_dictionary: dict) -> tuple:
+def coverage_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates protein coverage plot across samples.
     
     Args:
@@ -495,7 +533,10 @@ def coverage_plot(_, data_dictionary: dict) -> tuple:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def reproducibility_plot(_, data_dictionary: dict) -> tuple:
+def reproducibility_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates plot showing reproducibility between sample replicates.
     
     Args:
@@ -522,7 +563,11 @@ def reproducibility_plot(_, data_dictionary: dict) -> tuple:
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def missing_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+def missing_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any], 
+    replicate_colors: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates plot showing missing values across samples.
     
     Args:
@@ -549,7 +594,11 @@ def missing_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def sum_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+def sum_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any], 
+    replicate_colors: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates plot showing sum of intensities across samples.
     
     Args:
@@ -576,7 +625,11 @@ def sum_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def mean_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+def mean_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any], 
+    replicate_colors: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates plot showing mean intensities across samples.
     
     Args:
@@ -603,7 +656,11 @@ def mean_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+def distribution_plot(
+    _: Any, 
+    data_dictionary: Dict[str, Any], 
+    replicate_colors: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Generates plot showing distribution of intensities across samples.
     
     Args:
@@ -630,7 +687,10 @@ def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple
     Input('qc-commonality-plot-update-plot-button','n_clicks'),
     State('qc-commonality-select-visible-sample-groups', 'value'),
 )
-def pass_selected_groups_to_data_store(_, selection):
+def pass_selected_groups_to_data_store(
+    _: Optional[int], 
+    selection: List[str]
+) -> Dict[str, List[str]]:
     """Stores selected sample groups for commonality plot visibility.
     
     Args:
@@ -646,7 +706,7 @@ def pass_selected_groups_to_data_store(_, selection):
     Output({'type': 'qc-plot', 'id': 'commonality-plot-div'}, 'children'),
     Input({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
 )
-def generate_commonality_container(data_dictionary):
+def generate_commonality_container(data_dictionary: Dict[str, Any]) -> html.Div:
     """Generates container for commonality plot showing shared proteins between samples.
     
     Args:
@@ -667,7 +727,11 @@ def generate_commonality_container(data_dictionary):
     Input({'type': 'data-store', 'name': 'qc-commonality-plot-visible-groups-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def commonality_plot(data_dictionary: dict, additional_options: list, show_only_groups: dict) -> tuple:
+def commonality_plot(
+    data_dictionary: Dict[str, Any], 
+    additional_options: List[str], 
+    show_only_groups: Optional[Dict[str, List[str]]]
+) -> Tuple[html.Div, Dict[str, Any], Dict[str, Any]]:
     """Creates commonality plot showing protein overlap between sample groups.
     
     Args:
@@ -681,7 +745,7 @@ def commonality_plot(data_dictionary: dict, additional_options: list, show_only_
             - Plot data for storage
             - PDF version of plot for export
     """
-    show_groups = None
+    show_groups: Union[str, List[str]] = None
     if show_only_groups is not None:
         show_groups = show_only_groups['groups']
     else:
@@ -698,7 +762,7 @@ def commonality_plot(data_dictionary: dict, additional_options: list, show_only_
     Input({'type': 'qc-plot', 'id': 'distribution-plot-div'},'children'),
     prevent_initial_call=True
 )
-def qc_done(_) -> str:
+def qc_done(_: Any) -> str:
     """Notifies that QC analysis is complete.
     
     Args:
@@ -717,7 +781,7 @@ def qc_done(_) -> str:
     State('proteomics-filter-minimum-percentage', 'value'),
     prevent_initial_call=True
 )
-def proteomics_filtering_plot(nclicks, uploaded_data: dict, filtering_percentage: int) -> tuple:
+def proteomics_filtering_plot(nclicks: Optional[int], uploaded_data: Dict[str, Any], filtering_percentage: int) -> Union[Tuple[html.Div, Dict[str, Any]], Tuple[Any, Any]]:
     """Creates plot showing results of NA filtering in proteomics workflow.
     
     Args:
@@ -743,7 +807,7 @@ def proteomics_filtering_plot(nclicks, uploaded_data: dict, filtering_percentage
     Input('proteomics-normalization-radio-option', 'value'),
     prevent_initial_call=True
 )
-def proteomics_normalization_plot(filtered_data: dict, normalization_option: str) -> html.Div:
+def proteomics_normalization_plot(filtered_data: Optional[Dict[str, Any]], normalization_option: str) -> Union[Tuple[html.Div, Dict[str, Any]], Any]:
     """Creates plot showing results of data normalization in proteomics workflow.
     
     Args:
@@ -766,13 +830,12 @@ def proteomics_normalization_plot(filtered_data: dict, normalization_option: str
         return no_update
     return proteomics.normalization(filtered_data, normalization_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
 
-
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-missing-in-other-plot-div'}, 'children'),
     Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_missing_in_other_samples(normalized_data: dict) -> html.Div:
+def proteomics_missing_in_other_samples(normalized_data: Dict[str, Any]) -> html.Div:
     """Creates plot showing patterns of missing values across samples after normalization.
     
     Args:
@@ -792,7 +855,7 @@ def proteomics_missing_in_other_samples(normalized_data: dict) -> html.Div:
     Input('proteomics-imputation-radio-option', 'value'),
     prevent_initial_call=True
 )
-def proteomics_imputation_plot(normalized_data: dict, imputation_option: str) -> html.Div:
+def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputation_option: str) -> Union[Tuple[html.Div, Dict[str, Any]], Any]:
     """Creates plot showing results of missing value imputation in proteomics workflow.
     
     Args:
@@ -830,7 +893,7 @@ def proteomics_imputation_plot(normalized_data: dict, imputation_option: str) ->
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_group, comparison_data, comparison_upload_success_style, replicate_colors):
+def proteomics_pertubation(imputed_data: Optional[Dict[str, Any]], data_dictionary: Dict[str, Any], control_group: Optional[str], comparison_data: Optional[Dict[str, Any]], comparison_upload_success_style: Dict[str, str], replicate_colors: Dict[str, Any]) -> Union[Tuple[html.Div, str], Any]:
     """Creates perturbation analysis plots for proteomics data.
     
     Args:
@@ -859,8 +922,8 @@ def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_gr
             return no_update
     if imputed_data is None:
         return no_update
-    sgroups: dict = data_dictionary['sample groups']['norm']
-    comparisons: list = parsing.parse_comparisons(
+    sgroups: Dict[str, Any] = data_dictionary['sample groups']['norm']
+    comparisons: List[Tuple[Any, ...]] = parsing.parse_comparisons(
         control_group, comparison_data, sgroups)
     
     return proteomics.pertubation(
@@ -881,7 +944,7 @@ def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_gr
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_cv_plot(uploaded_data: dict, na_filtered_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
+def proteomics_cv_plot(uploaded_data: Dict[str, Any], na_filtered_data: Dict[str, Any], upload_dict: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
     """Creates coefficient of variation (CV) plot for proteomics data.
     
     Generates a plot showing the coefficient of variation across samples using raw intensity
@@ -913,7 +976,7 @@ def proteomics_cv_plot(uploaded_data: dict, na_filtered_data: dict, upload_dict:
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_pca_plot(imputed_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
+def proteomics_pca_plot(imputed_data: Dict[str, Any], upload_dict: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
     """Creates principal component analysis (PCA) plot for proteomics data.
     
     Generates a PCA plot to visualize sample clustering and relationships using imputed
@@ -931,7 +994,6 @@ def proteomics_pca_plot(imputed_data: dict, upload_dict: dict, replicate_colors:
     """
     return proteomics.pca(imputed_data, upload_dict['sample groups']['rev'], parameters['Figure defaults']['full-height'], replicate_colors)
 
-
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-clustermap-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-clustermap-data-store'}, 'data'),
@@ -939,7 +1001,7 @@ def proteomics_pca_plot(imputed_data: dict, upload_dict: dict, replicate_colors:
     Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_clustermap(imputed_data: dict) -> html.Div:
+def proteomics_clustermap(imputed_data: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any], str]:
     """Creates hierarchical clustering heatmap for proteomics data.
     
     Generates a clustermap visualization showing hierarchical clustering of samples and
@@ -956,7 +1018,6 @@ def proteomics_clustermap(imputed_data: dict) -> html.Div:
     """
     return proteomics.clustermap(imputed_data, parameters['Figure defaults']['full-height']) + ('',)
 
-
 @callback(
     Output('proteomics-comparison-table-upload-success', 'style'),
     Output({'type': 'data-store',
@@ -967,7 +1028,12 @@ def proteomics_clustermap(imputed_data: dict) -> html.Div:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_check_comparison_table(contents, filename, current_style, data_dictionary):
+def proteomics_check_comparison_table(
+    contents: Optional[str], 
+    filename: str, 
+    current_style: Dict[str, str], 
+    data_dictionary: Dict[str, Any]
+) -> Tuple[Dict[str, str], Optional[Dict[str, Any]]]:
     """Validates uploaded comparison table for proteomics differential analysis.
     
     Checks the uploaded comparison table file for correct format and compatibility
@@ -987,7 +1053,6 @@ def proteomics_check_comparison_table(contents, filename, current_style, data_di
     """
     return parsing.check_comparison_file(contents, filename, data_dictionary['sample groups']['norm'], current_style)
 
-
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-volcano-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-volcano-data-store'}, 'data'),
@@ -1003,7 +1068,16 @@ def proteomics_check_comparison_table(contents, filename, current_style, data_di
     Input('proteomics-test-type', 'value'),
     prevent_initial_call=True
 )
-def proteomics_volcano_plots(imputed_data, control_group, comparison_data, comparison_upload_success_style, data_dictionary, fc_thr, p_thr, test_type) -> tuple:
+def proteomics_volcano_plots(
+    imputed_data: Optional[Dict[str, Any]], 
+    control_group: Optional[str], 
+    comparison_data: Optional[Dict[str, Any]], 
+    comparison_upload_success_style: Dict[str, str], 
+    data_dictionary: Dict[str, Any], 
+    fc_thr: float, 
+    p_thr: float, 
+    test_type: str
+) -> Union[Tuple[html.Div, Dict[str, Any], str], Any]:
     """Creates volcano plots for differential abundance analysis in proteomics workflow.
     
     Generates volcano plots showing differential protein abundance between sample groups,
@@ -1042,8 +1116,8 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_data, compa
         if comparison_upload_success_style['background-color'] in ('red', 'grey'):
             logger.warning(f'Proteomics volcano: comparison data failed validation: {datetime.now()}')
             return no_update
-    sgroups: dict = data_dictionary['sample groups']['norm']
-    comparisons: list = parsing.parse_comparisons(
+    sgroups: Dict[str, Any] = data_dictionary['sample groups']['norm']
+    comparisons: List[Tuple[Any, ...]] = parsing.parse_comparisons(
         control_group, comparison_data, sgroups)
     return proteomics.differential_abundance(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type) + ('',)
 
@@ -1057,7 +1131,7 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_data, compa
     [State('interactomics-choose-uploaded-controls', 'options')],
     prevent_initial_call=True
 )
-def select_all_none_controls(all_selected, options) -> list:
+def select_all_none_controls(all_selected: bool, options: List[Dict[str, str]]) -> List[str]:
     """Handles selection/deselection of all uploaded control samples.
     
     Args:
@@ -1069,7 +1143,7 @@ def select_all_none_controls(all_selected, options) -> list:
         list: List of all control sample values if all_selected is True,
             empty list otherwise
     """
-    all_or_none: list = [option['value'] for option in options if all_selected]
+    all_or_none: List[str] = [option['value'] for option in options if all_selected]
     return all_or_none
 
 @callback(
@@ -1077,16 +1151,16 @@ def select_all_none_controls(all_selected, options) -> list:
     [Input('interactomics-select-none-enrichments', 'n_clicks')],
     prevent_initial_call=True
 )
-def select_none_enrichments(deselect_click) -> list:
+def select_none_enrichments(deselect_click: Optional[int]) -> List[str]:
     """Deselects all enrichment options.
     
     Args:
-        deselect_click (int): Number of times the deselect button has been clicked
+        deselect_click (int): Number of times the deselect button has been clicked. Unused.
             
     Returns:
         list: Empty list to clear all enrichment selections
     """
-    all_or_none: list = []
+    all_or_none: List[str] = []
     return all_or_none
 
 @callback(
@@ -1097,12 +1171,16 @@ def select_none_enrichments(deselect_click) -> list:
     State('input-collapse','is_open'),
     prevent_initial_call=True
 )
-def collapse_or_uncollapse_input(header_click, begin_click, input_is_open):
+def collapse_or_uncollapse_input(
+    header_click: Optional[int], 
+    begin_click: Optional[int], 
+    input_is_open: bool
+) -> Tuple[str, bool]:
     """Toggles the collapse state of the input section.
     
     Args:
-        header_click (int): Number of clicks on the header
-        begin_click (int): Number of clicks on the begin analysis button
+        header_click (int): Number of clicks on the header. Not used. 
+        begin_click (int): Number of clicks on the begin analysis button. Nod used.
         input_is_open (bool): Current collapse state of the input section
             
     Returns:
@@ -1122,7 +1200,7 @@ def collapse_or_uncollapse_input(header_click, begin_click, input_is_open):
     [State('interactomics-choose-additional-control-sets', 'options')],
     prevent_initial_call=True
 )
-def select_all_none_inbuilt_controls(all_selected, options) -> list:
+def select_all_none_inbuilt_controls(all_selected: bool, options: List[Dict[str, str]]) -> List[str]:
     """Handles selection/deselection of all inbuilt control sets.
     
     Args:
@@ -1134,7 +1212,7 @@ def select_all_none_inbuilt_controls(all_selected, options) -> list:
         list: List of all inbuilt control set values if all_selected is True,
             empty list otherwise
     """
-    all_or_none: list = [option['value'] for option in options if all_selected]
+    all_or_none: List[str] = [option['value'] for option in options if all_selected]
     return all_or_none
 
 
@@ -1144,7 +1222,7 @@ def select_all_none_inbuilt_controls(all_selected, options) -> list:
     [State('interactomics-choose-crapome-sets', 'options')],
     prevent_initial_call=True
 )
-def select_all_none_crapomes(all_selected, options) -> list:
+def select_all_none_crapomes(all_selected: bool, options: List[Dict[str, str]]) -> List[str]:
     """Handles selection/deselection of all CRAPome control sets.
     
     Args:
@@ -1156,7 +1234,7 @@ def select_all_none_crapomes(all_selected, options) -> list:
         list: List of all CRAPome control set values if all_selected is True,
             empty list otherwise
     """
-    all_or_none: list = [option['value'] for option in options if all_selected]
+    all_or_none: List[str] = [option['value'] for option in options if all_selected]
     return all_or_none
 
 
@@ -1176,7 +1254,15 @@ def select_all_none_crapomes(all_selected, options) -> list:
     State('interactomics-num-controls', 'value'),
     prevent_initial_call=True
 )
-def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_controls: list, crapomes: list, uploaded_data: dict, proximity_filtering_checklist: list, n_controls: int) -> html.Div:
+def interactomics_saint_analysis(
+    nclicks: Optional[int], 
+    uploaded_controls: List[str], 
+    additional_controls: List[str], 
+    crapomes: List[str], 
+    uploaded_data: Dict[str, Any], 
+    proximity_filtering_checklist: List[str], 
+    n_controls: int
+) -> Union[Tuple[html.Div, Dict[str, Any], Dict[str, Any]], Tuple[Any, Any, Any]]:
     """Initializes SAINT analysis with selected control samples and parameters.
     
     Args:
@@ -1205,7 +1291,6 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
     do_proximity_filtering: bool = ('Select' in proximity_filtering_checklist)
     return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file, do_proximity_filtering, n_controls)
 
-
 @callback(
     Output({'type': 'data-store',
            'name': 'interactomics-saint-output-data-store'}, 'data'),
@@ -1215,7 +1300,10 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
     prevent_initial_call=True,
     background=True
 )
-def interactomics_run_saint(saint_input, data_dictionary):
+def interactomics_run_saint(
+    saint_input: Dict[str, Any], 
+    data_dictionary: Dict[str, Any]
+) -> Tuple[Union[Dict[str, Any], str], str]:
     """Executes SAINT analysis using prepared input data.
     
     Args:
@@ -1234,7 +1322,6 @@ def interactomics_run_saint(saint_input, data_dictionary):
         data_dictionary['other']['bait uniprots']
     ), '')
 
-
 @callback(
     Output({'type': 'data-store',
            'name': 'interactomics-saint-final-output-data-store'}, 'data'),
@@ -1243,7 +1330,10 @@ def interactomics_run_saint(saint_input, data_dictionary):
           'name': 'interactomics-saint-crapome-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def interactomics_add_crapome_to_saint(saint_output, crapome):
+def interactomics_add_crapome_to_saint(
+    saint_output: Union[Dict[str, Any], str], 
+    crapome: Dict[str, Any]
+) -> Union[Dict[str, Any], str]:
     """Integrates CRAPome data with SAINT analysis results.
     
     Args:
@@ -1257,7 +1347,6 @@ def interactomics_add_crapome_to_saint(saint_output, crapome):
         return saint_output
     return interactomics.add_crapome(saint_output, crapome)
 
-
 @callback(
     Output('workflow-done-notifier', 'children', allow_duplicate=True),
     Output('interactomics-saint-filtering-container', 'children'),
@@ -1266,7 +1355,10 @@ def interactomics_add_crapome_to_saint(saint_output, crapome):
     State('interactomics-rescue-filtered-out', 'value'),
     prevent_initial_call=True
 )
-def interactomics_create_saint_filtering_container(saint_output_ready, rescue):
+def interactomics_create_saint_filtering_container(
+    saint_output_ready: Union[Dict[str, Any], str], 
+    rescue: List[str]
+) -> Tuple[str, html.Div]:
     """Creates the filtering interface container for SAINT analysis results.
     
     Args:
@@ -1288,18 +1380,21 @@ def interactomics_create_saint_filtering_container(saint_output_ready, rescue):
     else:
         return ('',ui.saint_filtering_container(parameters['Figure defaults']['half-height'], rescue_bool))
 
-
 @callback(
     Output('interactomics-saint-bfdr-histogram', 'figure'),
     Output({'type': 'data-store',
            'name': 'interactomics-saint-bfdr-histogram-data-store'}, 'data'),
-    Input('interactomics-saint-filtering-container', 'children'),
+    Input({'type': 'input-div', 'id': 'interactomics-saint-filtering-area'}, 'children'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
     State({'type': 'data-store',
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data')
 )
-def interactomics_draw_saint_histogram(container_ready: list, saint_output: str, saint_output_filtered: str):
+def interactomics_draw_saint_histogram(
+    container_ready: List[Any], 
+    saint_output: str, 
+    saint_output_filtered: Optional[str]
+) -> Tuple[go.Figure, Dict[str, Any]]:
     """Generates histogram visualization of SAINT BFDR scores.
     
     Args:
@@ -1319,7 +1414,6 @@ def interactomics_draw_saint_histogram(container_ready: list, saint_output: str,
         saint_output = saint_output_filtered
     return interactomics.saint_histogram(saint_output, parameters['Figure defaults']['half-height'])
 
-
 @callback(
     Output({'type': 'data-store',
            'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
@@ -1330,7 +1424,13 @@ def interactomics_draw_saint_histogram(container_ready: list, saint_output: str,
           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
     State('interactomics-rescue-filtered-out', 'value')
 )
-def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentage: int, crapome_fc: int, saint_output: str, rescue: list):
+def interactomics_apply_saint_filtering(
+    bfdr_threshold: float, 
+    crapome_percentage: int, 
+    crapome_fc: int, 
+    saint_output: str, 
+    rescue: List[str]
+) -> Dict[str, Any]:
     """Applies filtering criteria to SAINT analysis results.
     
     Args:
@@ -1352,7 +1452,6 @@ def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentag
     """
     return interactomics.saint_filtering(saint_output, bfdr_threshold, crapome_percentage, crapome_fc, len(rescue) > 0)
 
-
 @callback(
     Output('interactomics-saint-graph', 'figure'),
     Output({'type': 'data-store',
@@ -1362,7 +1461,7 @@ def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentag
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
+def interactomics_draw_saint_filtered_figure(filtered_output: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[go.Figure, Dict[str, Any]]:
     """Creates visualization of filtered SAINT analysis results.
     
     Args:
@@ -1376,14 +1475,13 @@ def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
     """
     return interactomics.saint_counts(filtered_output, parameters['Figure defaults']['half-height'], replicate_colors)
 
-
 @callback(
     Output({'type': 'analysis-div',
            'id': 'interactomics-analysis-post-saint-area'}, 'children'),
     Input('interactomics-button-done-filtering', 'n_clicks'),
     prevent_initial_call=True
 )
-def interactomics_initiate_post_saint(_) -> html.Div:
+def interactomics_initiate_post_saint(_: Optional[int]) -> html.Div:
     """Initializes the post-SAINT analysis interface container.
     
     Args:
@@ -1403,7 +1501,7 @@ def interactomics_initiate_post_saint(_) -> html.Div:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_callback=True
 )
-def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary) -> str:
+def interactomics_map_intensity(n_clicks: Optional[int], unfiltered_saint_data: Dict[str, Any], data_dictionary: Dict[str, Any]) -> Union[str, Any]:
     """Maps intensity values to filtered SAINT results.
     
     Args:
@@ -1434,7 +1532,7 @@ def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary
           'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
+def interactomics_known_plot(saint_output: Dict[str, Any], rep_colors_with_cont: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
     """Creates plot showing known interactions in SAINT results.
     
     Args:
@@ -1457,7 +1555,10 @@ def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def interactomics_common_proteins_plot(_, saint_data: dict) -> tuple:
+def interactomics_common_proteins_plot(
+    _: Dict[str, Any], 
+    saint_data: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Creates plot showing common proteins across SAINT results.
     
     Args:
@@ -1492,7 +1593,11 @@ def interactomics_common_proteins_plot(_, saint_data: dict) -> tuple:
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def interactomics_pca_plot(_, saint_data, replicate_colors) -> html.Div:
+def interactomics_pca_plot(
+    _: Dict[str, Any], 
+    saint_data: Dict[str, Any], 
+    replicate_colors: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Creates principal component analysis (PCA) plot for interactomics data.
     
     Args:
@@ -1520,7 +1625,10 @@ def interactomics_pca_plot(_, saint_data, replicate_colors) -> html.Div:
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def interactomics_ms_microscopy_plots(_, saint_output) -> tuple:
+def interactomics_ms_microscopy_plots(
+    _: Dict[str, Any], 
+    saint_output: Dict[str, Any]
+) -> Tuple[html.Div, Dict[str, Any]]:
     """Creates MS microscopy visualization plots.
     
     Args:
@@ -1550,7 +1658,10 @@ def interactomics_ms_microscopy_plots(_, saint_output) -> tuple:
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def interactomics_network_plot(_, saint_output):
+def interactomics_network_plot(
+    _: Dict[str, Any], 
+    saint_output: Dict[str, Any]
+) -> Tuple[str, html.Div, Dict[str, Any], Dict[str, Any]]:
     """Creates interactive network visualization of protein interactions.
     
     Args:
@@ -1584,7 +1695,11 @@ def interactomics_network_plot(_, saint_output):
     prevent_initial_call=True,
     background=True
 )
-def interactomics_enrichment(_, saint_output, chosen_enrichments):
+def interactomics_enrichment(
+    _: Dict[str, Any], 
+    saint_output: Dict[str, Any], 
+    chosen_enrichments: List[str]
+) -> Tuple[str, html.Div, Dict[str, Any], Dict[str, Any]]:
     """Performs enrichment analysis on filtered interactomics data.
     
     Args:
@@ -1624,7 +1739,7 @@ def interactomics_enrichment(_, saint_output, chosen_enrichments):
     State({'type': 'data-store',
           'name': 'interactomics-network-interactions-data-store'},'data')
 )
-def display_tap_node(node_data, int_data, network_type: str = 'Cytoscape'):
+def display_tap_node(node_data: Optional[Dict[str, Any]], int_data: Dict[str, Any], network_type: str = 'Cytoscape') -> Optional[html.Div]:
     """Displays detailed information for a selected node in the network visualization.
     
     Args:
@@ -1652,7 +1767,7 @@ def display_tap_node(node_data, int_data, network_type: str = 'Cytoscape'):
     Output("cytoscape", "layout"),
     Input("dropdown-layout", "value")
 )
-def update_cytoscape_layout(layout):
+def update_cytoscape_layout(layout: str) -> Dict[str, Any]:
     """Updates the layout of the Cytoscape network visualization.
     
     Args:
@@ -1664,7 +1779,7 @@ def update_cytoscape_layout(layout):
     Notes:
         Applies additional layout parameters if defined in parameters['Cytoscape layout parameters']
     """
-    ret_dic = {"name": layout}
+    ret_dic: Dict[str, Any] = {"name": layout}
     if layout in parameters['Cytoscape layout parameters']:
         for k, v in parameters['Cytoscape layout parameters'][layout]:
             ret_dic[k] = v
@@ -1682,7 +1797,13 @@ def update_cytoscape_layout(layout):
     State('main-content-div', 'children'),
     prevent_initial_call=True
 )
-def table_of_contents(_, __, ___, ____, main_div_contents: list) -> html.Div:
+def table_of_contents(
+    _: Any, 
+    __: Any, 
+    ___: Any, 
+    ____: Any, 
+    main_div_contents: List[Any]
+) -> html.Div:
     """Updates table of contents based on main content.
     
     Args:
@@ -1702,7 +1823,11 @@ def table_of_contents(_, __, ___, ____, main_div_contents: list) -> html.Div:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True,
 )
-def workflow_area(_, workflow: str, data_dictionary: dict) -> html.Div:
+def workflow_area(
+    _: Any, 
+    workflow: str, 
+    data_dictionary: Dict[str, Any]
+) -> Tuple[html.Div, html.Div]:
     """Updates workflow-specific areas based on selected workflow.
     
     Args:
@@ -1720,7 +1845,7 @@ def workflow_area(_, workflow: str, data_dictionary: dict) -> html.Div:
     Input('button-download-sample_table-template', 'n_clicks'),
     prevent_initial_call=True,
 )
-def sample_table_example_download(_) -> dict:
+def sample_table_example_download(_: Optional[int]) -> Dict[str, Any]:
     """Handles download of sample table template file.
     
     Args:
@@ -1736,7 +1861,7 @@ def sample_table_example_download(_) -> dict:
     Input('download-proteomics-comparison-example-button', 'n_clicks'),
     prevent_initial_call=True
 )
-def download_example_comparison_file(n_clicks) -> dict:
+def download_example_comparison_file(n_clicks: Optional[int]) -> Optional[Dict[str, Any]]:
     """Handles download of example proteomics comparison file.
     
     Args:
@@ -1751,14 +1876,13 @@ def download_example_comparison_file(n_clicks) -> dict:
         return None
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example proteomics comparison file']))
 
-
 @callback(
     Output('download-datafile-example', 'data'),
     Input('button-download-datafile-example', 'n_clicks'),
     prevent_initial_call=True,
     background=True
 )
-def download_data_table_example(_) -> dict:
+def download_data_table_example(_: Optional[int]) -> Dict[str, Any]:
     """Handles download of example data table file in the background.
     
     Args:
@@ -1774,7 +1898,11 @@ def download_data_table_example(_) -> dict:
     logger.warning(f'received DT download request at {datetime.now()}')
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
 
-def get_adiv_by_id(divs: list, idvals: list, idval_to_find: str):
+def get_adiv_by_id(
+    divs: List[Any], 
+    idvals: List[Dict[str, str]], 
+    idval_to_find: str
+) -> Optional[Any]:
     """Retrieves a specific div element from a list by matching its ID.
     
     Args:
@@ -1813,7 +1941,10 @@ def get_adiv_by_id(divs: list, idvals: list, idval_to_find: str):
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def prepare_for_download(_, main_data):
+def prepare_for_download(
+    _: Optional[int], 
+    main_data: Dict[str, Any]
+) -> Tuple[str, html.Div]:
     """Prepares directory structure and README for data export.
     
     Args:
@@ -1830,7 +1961,7 @@ def prepare_for_download(_, main_data):
         - Removes existing directory if present
         - Converts output guide markdown to HTML for README
     """
-    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M")
+    timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
     export_dir: str = os.path.join(*parameters['Data paths']['Cache dir'],  
                                  main_data['other']['session name'], 
                                  f'{timestamp} Proteogyver output')
@@ -1838,10 +1969,10 @@ def prepare_for_download(_, main_data):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
     with open(os.path.join('data','output_guide.md')) as fil:
-        text = fil.read()
-        html = markdown.markdown(text)
+        text: str = fil.read()
+        html_content: str = markdown.markdown(text)
     with open(os.path.join(export_dir, 'README.html'),'w',encoding='utf-8') as fil:
-        fil.write(html)
+        fil.write(html_content)
     return export_dir, infra.temporary_download_button_loading_divs()
 
 @callback(
@@ -1851,7 +1982,7 @@ def prepare_for_download(_, main_data):
     State('input-stores', 'children'),
     prevent_initial_call=True
 )
-def save_input_stores(export_dir, stores) -> dict:
+def save_input_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[str, str]:
     """Saves input data stores to export directory.
     
     Args:
@@ -1880,7 +2011,7 @@ def save_input_stores(export_dir, stores) -> dict:
     State('workflow-stores', 'children'),
     prevent_initial_call=True
 )
-def save_workflow_stores(export_dir, stores) -> dict:
+def save_workflow_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[str, str]:
     """Saves workflow data stores to export directory.
     
     Args:
@@ -1912,7 +2043,13 @@ def save_workflow_stores(export_dir, stores) -> dict:
     State('workflow-dropdown', 'value'),
     prevent_initial_call=True
 )
-def save_qc_figures(export_dir, analysis_divs, analysis_div_ids, commonality_pdf_data, workflow) -> dict:
+def save_qc_figures(
+    export_dir: str, 
+    analysis_divs: List[html.Div], 
+    analysis_div_ids: List[Dict[str, str]], 
+    commonality_pdf_data: Optional[Dict[str, Any]], 
+    workflow: str
+) -> Tuple[str, str]:
     """Saves quality control figures to export directory.
     
     Args:
@@ -1953,7 +2090,7 @@ def save_qc_figures(export_dir, analysis_divs, analysis_div_ids, commonality_pdf
     State({'type': 'input-div', 'id': ALL}, 'children'),
     prevent_initial_call=True
 )
-def save_input_information(export_dir, input_divs) -> dict:
+def save_input_information(export_dir: str, input_divs: List[html.Div]) -> Tuple[str, str]:
     """Saves input information to export directory.
     
     Args:
@@ -1984,7 +2121,12 @@ def save_input_information(export_dir, input_divs) -> dict:
     State('workflow-dropdown', 'value'),
     prevent_initial_call=True
 )
-def save_interactomics_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_interactomics_figures(
+    export_dir: str, 
+    analysis_divs: List[html.Div], 
+    analysis_div_ids: List[Dict[str, str]], 
+    workflow: str
+) -> Tuple[str, str]:
     """Saves interactomics analysis figures to export directory.
     
     Args:
@@ -2023,7 +2165,12 @@ def save_interactomics_figures(export_dir, analysis_divs, analysis_div_ids, work
     State('workflow-dropdown', 'value'),
     prevent_initial_call=True
 )
-def save_interactomics_post_saint_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_interactomics_post_saint_figures(
+    export_dir: str, 
+    analysis_divs: List[html.Div], 
+    analysis_div_ids: List[Dict[str, str]], 
+    workflow: str
+) -> Tuple[str, str]:
     """Saves post-SAINT interactomics analysis figures to export directory.
     
     Args:
@@ -2061,7 +2208,12 @@ def save_interactomics_post_saint_figures(export_dir, analysis_divs, analysis_di
     State('workflow-dropdown', 'value'),
     prevent_initial_call=True
 )
-def save_proteomics_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_proteomics_figures(
+    export_dir: str, 
+    analysis_divs: List[html.Div], 
+    analysis_div_ids: List[Dict[str, str]], 
+    workflow: str
+) -> Tuple[str, str]:
     """Saves proteomics analysis figures to export directory.
     
     Args:
@@ -2099,7 +2251,12 @@ def save_proteomics_figures(export_dir, analysis_divs, analysis_div_ids, workflo
     State('workflow-dropdown', 'value'),
     prevent_initial_call=True
 )
-def save_phosphoproteomics_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_phosphoproteomics_figures(
+    export_dir: str, 
+    analysis_divs: List[html.Div], 
+    analysis_div_ids: List[Dict[str, str]], 
+    workflow: str
+) -> Tuple[str, str]:
     """Saves phosphoproteomics analysis figures to export directory.
     
     Args:
@@ -2143,7 +2300,7 @@ def save_phosphoproteomics_figures(export_dir, analysis_divs, analysis_div_ids, 
     Input('download_temp8', 'children'),
     prevent_initial_call=True
 )
-def send_data(export_dir, *args) -> dict:
+def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], Tuple[Any, Any]]:
     """Creates and sends a ZIP archive containing all exported analysis data.
     
     Args:
