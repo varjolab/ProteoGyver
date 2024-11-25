@@ -141,7 +141,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
                         dict_to_write = json.loads(d['props']['data'])
                     json.dump(dict_to_write, fil, indent=2)
             elif export_format == 'txt':
-                'txt', 'Input data info', 'Data table', 'input-file'
                 if file_config == 'enrich-split':
                     for enrichment_name, file_contents in d['props']['data']:
                         with open(os.path.join(export_destination, f'{file_name} {enrichment_name}.{export_format}'), 'w', encoding='utf-8') as fil:
@@ -429,9 +428,10 @@ def save_input_information(input_divs, export_dir) -> None:
         'Input'
     ]
     input_options: list = []
-    with open('DEBUG input_divs.json','w') as fil:
-        json.dump(input_divs, fil, indent=2)
     labels_and_inputs: list = get_all_types(input_divs, these)
+    with open('labs.pickle','wb') as fil:
+        import pickle
+        pickle.dump(labels_and_inputs, fil)
     for i, label in enumerate(labels_and_inputs):
         if label['type'] != 'Label':
             continue
@@ -457,9 +457,9 @@ def save_input_information(input_divs, export_dir) -> None:
             input_options.append(
                 ['Number of used controls:', input['props']['value']])
     # Grab all input filenames:
-    
-
-    with open(os.path.join(export_dir, 'Options used in analysis.txt'), 'w', encoding='utf-8') as fil:
+    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M")
+    with open(os.path.join(export_dir, 'Workflow information and parameters.txt'), 'w', encoding='utf-8') as fil:
+        fil.write(f'ProteoGyver QC and preliminary analysis\nExported at {timestamp}\nOptions used in analysis:\n')
         for name, values in input_options:
             val_str: str = format_nested_list(values)
             if len(val_str) == 0:

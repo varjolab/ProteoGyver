@@ -1,3 +1,9 @@
+# PG specific additions
+api_data/
+debugging/
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -60,7 +66,6 @@ logs/
 .cache/
 __pycache__/
 *.pyc
-
 .vscode/
 
 # OS specific

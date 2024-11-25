@@ -87,5 +87,11 @@
         "randomize": true,
         "nodeSpacing": 15
 
-    }
+    },
+    "Navbar page order": [
+        "qc and data analysis",
+        "ms inspector",
+        "windowmaker",
+        "colocalizer"
+    ]
 }

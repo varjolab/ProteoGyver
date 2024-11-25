@@ -7,7 +7,7 @@ import numpy as np
 from collections.abc import Mapping
 import os
 import json
-from components import db_functions
+from components import db_functions, text_handling
 from components import EnrichmentAdmin as ea
 
 
@@ -259,25 +259,27 @@ def read_matrix(
             break
     table.index = table[protein_id_column]
     table = table[table.index != 'na']
+    drop_cols: list = []
+    # Remove non-numeric columns and convert numeric-looking columns to numeric
     for column in table.columns:
         isnumber: bool = np.issubdtype(table[column].dtype, np.number)
         if not isnumber:
             try:
                 table[column] = pd.to_numeric(table[column])
             except ValueError:
+                drop_cols.append(column)
                 continue
+    if table.select_dtypes(include=[np.number]).max().max() <= max_spc_ever:
+        is_spc_table = True
     # Replace zeroes with missing values
     table.replace(0, np.nan, inplace=True)
-    table.drop(columns=[protein_id_column,], inplace=True)
+    table.drop(columns=drop_cols, inplace=True)
     spc_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
     intensity_table: pd.DataFrame = pd.DataFrame({'No data': ['No data']})
     if is_spc_table:
         spc_table = table
     else:
-        if table.select_dtypes(include=[np.number]).max().max() <= max_spc_ever:
-            spc_table = table
-        else:
-            intensity_table = table
+        intensity_table = table
     return (intensity_table, spc_table, protein_lengths)
 
 
@@ -342,7 +344,8 @@ def read_data_from_content(file_contents, filename, maxpsm) -> pd.DataFrame:
 
     info_dict: dict = {
         'protein lengths': protein_length_dict,
-        'data type': data_type,
+        'Data type': data_type[0],
+        'Data source guess': data_type[1]
     }
     table_dict: dict = {
         'spc': spc_table.to_json(orient='split'),
@@ -514,6 +517,7 @@ def format_data(
     spc_table: pd.DataFrame = pd.read_json(io.StringIO(data_tables['spc']),orient='split')
     expdesign: pd.DataFrame = pd.read_json(io.StringIO(expdes_table),orient='split')
 
+
     sample_groups: dict
     discarded_columns: list
     used_columns: list
@@ -571,7 +575,7 @@ def format_data(
         'info': {
             'discarded columns': discarded_columns,
             'used columns': used_columns,
-            'data type': data_info['data type'],
+            'data type': data_info['Data type'],
             'Expdes based experiment type': experiment_type
         },
         'file info': {
@@ -670,9 +674,11 @@ def clean_sample_names(expdesign: pd.DataFrame, bait_id_column_names: list) -> p
         expdesign[col] = expdesign[col].apply(_to_str)
     # Remove file paths from sample names (handles both Windows and Unix paths)
     expdesign.loc[:, 'Sample name'] = expdesign['Sample name'].apply(
-        lambda x: x.rsplit('\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
+        lambda x: text_handling.replace_special_characters(
+            clean_column_name(x),
+            replacewith='_',make_lowercase=False
+        )
     )
-    
     # Standardize bait column name if it exists
     for bid in bait_id_column_names:
         matching_cols = [c for c in expdesign.columns if c.lower().strip() == bid]
@@ -682,8 +688,8 @@ def clean_sample_names(expdesign: pd.DataFrame, bait_id_column_names: list) -> p
     return expdesign
 def clean_column_name(col_name: str) -> str:
     """Remove file paths and extensions from column names."""
-    col = col_name.rsplit('\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1]
-    return col.rsplit('.d', maxsplit=1)[0]
+    col = col_name.rsplit('\\', maxsplit=1)[-1].rsplit('/', maxsplit=1)[-1].rsplit('_SPC', maxsplit=1)[0].rsplit('.d', maxsplit=1)[0]
+    return col
 
 def format_sample_group_name(sample_group) -> str:
     """Format sample group names, handling numeric cases."""
@@ -733,11 +739,16 @@ def rename_columns_and_update_expdesign(
             
         table_mapping = {}
         for col in table.columns:
-            clean_col = clean_column_name(col)
-            
+            clean_col = col
+            # Attempt cleaning up the column name if not found as is.
+            if clean_col not in expdesign['Sample name'].values:
+                clean_col = clean_column_name(col)
+            if clean_col not in expdesign['Sample name'].values:
+                clean_col = text_handling.replace_special_characters(clean_col,replacewith='_',make_lowercase=False)
             # Skip if column not in experimental design
             if clean_col not in expdesign['Sample name'].values:
                 discarded_columns.append(clean_col)
+                discarded_columns.append(col)
                 continue
                 
             # Get and format sample group
@@ -753,11 +764,9 @@ def rename_columns_and_update_expdesign(
             table_mapping[col] = {'clean_name': clean_col, 'group': group_name}
             
         column_mappings.append(table_mapping)
-    
     # Second pass: Generate final column names and build sample groups
     sample_groups = {'norm': {}, 'rev': {}}
     used_columns = [{} for _ in tables]
-    
     for table_idx, mapping in enumerate(column_mappings):
         final_names = {}
         for orig_col, info in mapping.items():
@@ -779,7 +788,7 @@ def rename_columns_and_update_expdesign(
             used_columns[table_idx][new_name] = orig_col
             
         # Apply renames to table
-        tables[table_idx] = tables[table_idx].rename(columns=final_names)
+        tables[table_idx].rename(columns=final_names, inplace=True)
     
     # Get rid of duplicates introduced due to multiple tables being processed in previous step
     for group in sample_groups['norm']:

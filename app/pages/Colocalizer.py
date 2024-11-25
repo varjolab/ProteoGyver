@@ -24,7 +24,7 @@ from element_styles import UPLOAD_INDICATOR_STYLE, UPLOAD_STYLE,GENERIC_PAGE
 #upload_dir:str = os.path.join(*parameters['Data paths']['Cache dir'])
 #upload_dir = os.path.join(upload_dir, 'uploads','microscopy-imager')
 
-register_page(__name__, path='/colocalizator')
+register_page(__name__, path='/colocalizer')
 parameters = parse_parameters('parameters.json')
 logger = logging.getLogger(__name__)
 logger.warning(f'{__name__} loading')
@@ -93,9 +93,6 @@ def load_image(image_data:str):
     prevent_initial_call=True
 )
 def load_names_options(image_metadata: dict):
-    import json
-    with open('imgdata.json','w') as fil:
-        json.dump(image_metadata,fil,indent=2)
     vals: list = sorted(list(image_metadata.keys()))
     return (
         [

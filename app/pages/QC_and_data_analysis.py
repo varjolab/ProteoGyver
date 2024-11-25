@@ -1,7 +1,19 @@
-""" Restructured frontend for proteogyver app"""
+"""Restructured frontend for proteogyver app.
+
+This module contains the main frontend logic for the Proteogyver application,
+including callbacks for data processing, analysis, and visualization.
+
+Attributes:
+    parameters (dict): Application parameters loaded from parameters.json
+    db_file (str): Path to the database file
+    contaminant_list (list): List of contaminant proteins
+    figure_output_formats (list): Supported figure export formats
+    layout (html.Div): Main application layout
+"""
 from io import StringIO
 import os
 import shutil
+import zipfile
 import markdown
 import pandas as pd
 from uuid import uuid4
@@ -45,13 +57,18 @@ layout = html.Div([
     Input('begin-analysis-button', 'n_clicks'),
     prevent_initial_call=True
 )
+#TODO: implement clearing.
 def clear_data_stores(begin_clicks):
-    '''Clears all data stores before analysis begins'''
-# TODO: implement data clear operation.
+    """Clears all data stores before analysis begins.
+    
+    Args:
+        begin_clicks (int): Number of times the begin analysis button has been clicked
+        
+    Returns:
+        str: Empty string to clear notification
+    """
     logger.warning(
         f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
-    # return (tuple(True for _ in range(NUM_DATA_STORES)), '')
-    # return (working_data_stores(), '')
     return ''
 
 
@@ -67,12 +84,26 @@ def clear_data_stores(begin_clicks):
     State('upload-data-file-success', 'style'),
     prevent_initial_call=True
 )
-def handle_uploaded_data_table(file_contents, file_name, mod_date, current_upload_style) -> tuple:
-    """Parses uploaded data table and sends data to data stores"""
+def handle_uploaded_data_table(file_contents, file_name: str, mod_date: int, current_upload_style: dict) -> tuple:
+    """Parses uploaded data table and sends data to data stores.
+    
+    Args:
+        file_contents: Contents of the uploaded file
+        file_name (str): Name of the uploaded file
+        mod_date: Last modified date of the file
+        current_upload_style (dict): Current style of the upload success indicator
+        
+    Returns:
+        tuple: Contains:
+            - Updated upload success style
+            - Data table info for storage
+            - Data table contents for storage
+    """
     if file_contents is not None:
         return parsing.parse_data_file(
             file_contents, file_name, mod_date, current_upload_style, parameters['file loading']
         )
+    return no_update, no_update, no_update
 
 
 @callback(
@@ -88,9 +119,23 @@ def handle_uploaded_data_table(file_contents, file_name, mod_date, current_uploa
     prevent_initial_call=True
 )
 def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upload_style) -> tuple:
-    """Parses uploaded data table and sends data to data stores"""
+    """Parses uploaded sample table and sends data to data stores.
+    
+    Args:
+        file_contents: Contents of the uploaded file
+        file_name (str): Name of the uploaded file
+        mod_date: Last modified date of the file
+        current_upload_style (dict): Current style of the upload success indicator
+        
+    Returns:
+        tuple: Contains:
+            - Updated upload success style
+            - Sample table info for storage
+            - Sample table contents for storage
+    """
     if file_contents is not None:
         return parsing.parse_sample_table(file_contents, file_name, mod_date, current_upload_style)
+    return no_update, no_update, no_update
 
 
 @callback(
@@ -111,8 +156,21 @@ def handle_uploaded_sample_table(file_contents, file_name, mod_date, current_upl
     prevent_initial_call=True
 )
 def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_template, additional_options) -> tuple:
-    """Sets the figure template, and \
-        sends data to preliminary analysis and returns the resulting dictionary.
+    """Validates and formats uploaded data for analysis.
+    
+    Args:
+        _ (str): Placeholder for start analysis notifier
+        data_tables: Uploaded data tables
+        data_info: Information about uploaded data tables
+        expdes_table: Experimental design table
+        expdes_info: Information about experimental design
+        figure_template (str): Selected figure template
+        additional_options (list): Selected additional processing options
+        
+    Returns:
+        tuple: Contains:
+            - Formatted data dictionary
+            - Boolean indicating if download button should be disabled
     """
     logger.warning(f'Validating data: {datetime.now()}')
     cont: list = []
@@ -149,7 +207,14 @@ def validate_data(_, data_tables, data_info, expdes_table, expdes_info, figure_t
     prevent_initial_call=True
 )
 def remove_samples(discard_samples_list, data_dictionary) -> dict:
-    """Sends data to preliminary analysis and returns the resulting dictionary.
+    """Removes selected samples from the data dictionary.
+    
+    Args:
+        discard_samples_list (list): List of sample names to remove
+        data_dictionary (dict): Current data dictionary containing all samples
+        
+    Returns:
+        dict: Updated data dictionary with selected samples removed
     """
     return parsing.delete_samples(discard_samples_list, data_dictionary)
 
@@ -163,7 +228,18 @@ def remove_samples(discard_samples_list, data_dictionary) -> dict:
     prevent_initial_call=True
 )
 def create_qc_area(_) -> tuple:
-    """Creates the qc area div and unhides sample discard button"""
+    """Creates the quality control analysis area and shows sample discard button.
+    
+    Args:
+        _ (dict): Placeholder for replicate colors data store
+        
+    Returns:
+        tuple: Contains:
+            - QC area UI components
+            - Boolean for sample discard button visibility
+            - Empty string for workflow input div
+            - Empty string for workflow div
+    """
     return (ui.qc_area(), False,'','')
 
 
@@ -175,33 +251,66 @@ def create_qc_area(_) -> tuple:
     prevent_initial_call=True
 )
 def assign_replicate_colors(data_dictionary) -> dict:
+    """Assigns colors to sample replicates for visualization.
+    
+    Args:
+        data_dictionary (dict): Data dictionary containing sample information
+        
+    Returns:
+        dict: Two color dictionaries:
+            - One for regular samples
+            - One including contaminant colors
+    """
     return get_assigned_colors(data_dictionary['sample groups']['norm'])
 
 
 @callback(
     Output('begin-analysis-button', 'disabled'),
-    Input({'type': 'uploaded-data-store', 'name': 'uploaded-data-table-info-data-store'},
-          'data'),
-    Input({'type': 'uploaded-data-store',
-          'name': 'uploaded-sample-table-info-data-store'}, 'data'),
-    Input('workflow-dropdown', 'value'), Input('figure-theme-dropdown', 'value'),
-    Input('upload-data-file-success',
-          'style'), Input('upload-data-file-success', 'style'),
+    Input({'type': 'uploaded-data-store', 'name': 'uploaded-data-table-info-data-store'}, 'data'),
+    Input({'type': 'uploaded-data-store', 'name': 'uploaded-sample-table-info-data-store'}, 'data'),
+    Input('workflow-dropdown', 'value'), 
+    Input('figure-theme-dropdown', 'value'),
+    Input('upload-data-file-success', 'style'), 
+    Input('upload-data-file-success', 'style'),
     prevent_initial_call=True
 )
 def check_inputs(*args) -> bool:
-    """Checks that all inputs are present and we can begin."""
+    """Validates that all required inputs are present before analysis can begin.
+
+    Returns True, if invalid so that the value can be used directly as input for dis/abling the begin analysis button.
+    
+    Args:
+        *args: Variable length argument list containing:
+            - Data table info
+            - Sample table info
+            - Selected workflow
+            - Selected figure theme
+            - Upload success styles
+            
+    Returns:
+        bool: True if inputs are invalid, False if valid
+    """
     return parsing.validate_basic_inputs(*args)
 
 
 @callback(
     Output('discard-sample-checklist-container', 'children'),
-    Input('discard-samples-button',
-          'n_clicks'), State({'type': 'qc-plot', 'id': 'count-plot-div'}, 'children'),
+    Input('discard-samples-button', 'n_clicks'), 
+    State({'type': 'qc-plot', 'id': 'count-plot-div'}, 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def open_discard_samples_modal(_, count_plot: list, data_dictionary: dict) -> tuple[bool, list]:
+    """Creates modal dialog for selecting samples to discard.
+    
+    Args:
+        _ (int): Number of clicks on discard samples button
+        count_plot (list): Current count plot components
+        data_dictionary (dict): Data dictionary containing sample information
+        
+    Returns:
+        tuple: Contains checklist UI components for sample selection
+    """
     return ui.discard_samples_checklist(
         count_plot,
         sorted(list(data_dictionary['sample groups']['rev'].keys()))
@@ -216,6 +325,16 @@ def open_discard_samples_modal(_, count_plot: list, data_dictionary: dict) -> tu
     prevent_initial_call=True
 )
 def toggle_discard_modal(n1, n2, is_open) -> bool:
+    """Toggles visibility of the discard samples modal dialog.
+    
+    Args:
+        n1 (int): Number of clicks on discard samples button
+        n2 (int): Number of clicks on done discarding button
+        is_open (bool): Current modal visibility state
+        
+    Returns:
+        bool: New modal visibility state
+    """
     if (n1 > 0) or (n2 > 0):
         return not is_open
     return is_open
@@ -228,6 +347,15 @@ def toggle_discard_modal(n1, n2, is_open) -> bool:
     prevent_initial_call=True
 )
 def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
+    """Adds selected samples to the list of discarded samples.
+    
+    Args:
+        n_clicks (int): Number of clicks on done discarding button
+        chosen_samples (list): List of sample names selected for discarding
+        
+    Returns:
+        list: Updated list of discarded samples or no update if conditions not met
+    """
     if n_clicks is None:
         return no_update
     if n_clicks < 1:
@@ -236,16 +364,26 @@ def add_samples_to_discarded(n_clicks, chosen_samples: list) -> list:
 
 
 @callback(
-    Output({'type': 'qc-plot', 'id': 'tic-plot-div'},
-           'children'), 
+    Output({'type': 'qc-plot', 'id': 'tic-plot-div'}, 'children'), 
     Output({'type': 'data-store', 'name': 'tic-data-store'}, 'data'),
     Input('qc-area', 'children'),
-    State({'type': 'data-store', 'name': 'upload-data-store'},
-          'data'), State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), 
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def parse_tic_data(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
-    """Calls qc_analysis.count_plot function to generate a count plot from the samples."""
+def parse_chromatogram_data(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+    """Generates chromatogram plot data from sample information.
+    
+    Args:
+        _ (list): Placeholder for QC area children
+        data_dictionary (dict): Data dictionary containing sample information
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - TIC plot components
+            - TIC data for storage
+    """
     return qc_analysis.parse_tic_data(
         data_dictionary['data tables']['experimental design'],
         replicate_colors,
@@ -258,23 +396,39 @@ def parse_tic_data(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
     State({'type': 'data-store', 'name': 'tic-data-store'}, 'data'),
     Input('qc-tic-dropdown','value')
 )
-def plot_tic(tic_data, graph_type):
-    return tic_graph.tic_figure(parameters['Figure defaults']['full-height'], tic_data, graph_type)
+def plot_tic(chromatogram_data, graph_type):
+    """Creates chromatogram plot figure.
     
+    Args:
+        tic_data (dict): Processed chromatogram data
+        graph_type (str): Type of chromatogram graph to display
+        
+    Returns:
+        dict: Plotly figure object for chromatogram plot
+    """
+    return tic_graph.tic_figure(parameters['Figure defaults']['full-height'], chromatogram_data, graph_type)
 
 @callback(
-    Output({'type': 'qc-plot', 'id': 'count-plot-div'},
-           'children'), 
+    Output({'type': 'qc-plot', 'id': 'count-plot-div'}, 'children'), 
     Output({'type': 'data-store', 'name': 'count-data-store'}, 'data'),
-    Input({'type': 'qc-plot', 'id': 'tic-plot-div'},
-          'children'), 
-    State({'type': 'data-store', 'name': 'upload-data-store'},
-          'data'), 
+    Input({'type': 'qc-plot', 'id': 'tic-plot-div'}, 'children'), 
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), 
     State({'type': 'data-store', 'name': 'replicate-colors-with-contaminants-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
-    """Calls qc_analysis.count_plot function to generate a count plot from the samples."""
+    """Generates protein count plot for samples.
+    
+    Args:
+        _ (list): Placeholder for TIC plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        replicate_colors (dict): Color assignments for samples including contaminants
+        
+    Returns:
+        tuple: Contains:
+            - Count plot components
+            - Count data for storage
+    """
     return qc_analysis.count_plot(
         data_dictionary['data tables']['with-contaminants'][data_dictionary['data tables']['table to use']],
         replicate_colors,
@@ -283,13 +437,24 @@ def count_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
     )
 
 @callback(
-    Output({'type': 'qc-plot', 'id': 'common-protein-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'common-protein-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'common-protein-plot-div'}, 'children'), 
+    Output({'type': 'data-store', 'name': 'common-protein-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'count-plot-div'}, 'children'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def common_proteins_plot(_, data_dictionary: dict) -> tuple:
+    """Generates plot showing common proteins across samples.
+    
+    Args:
+        _ (list): Placeholder for count plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        
+    Returns:
+        tuple: Contains:
+            - Common proteins plot components
+            - Common proteins data for storage
+    """
     return qc_analysis.common_proteins(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         db_file,
@@ -299,101 +464,160 @@ def common_proteins_plot(_, data_dictionary: dict) -> tuple:
         }
     )
 
-
 @callback(
-    Output({'type': 'qc-plot', 'id': 'coverage-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'coverage-data-store'}, 'data'),
-    Input({'type': 'qc-plot', 'id': 'common-protein-plot-div'},
-          'children'), State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'coverage-plot-div'}, 'children'), 
+    Output({'type': 'data-store', 'name': 'coverage-data-store'}, 'data'),
+    Input({'type': 'qc-plot', 'id': 'common-protein-plot-div'}, 'children'), 
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def coverage_plot(_, data_dictionary: dict) -> tuple:
+    """Generates protein coverage plot across samples.
+    
+    Args:
+        _ (list): Placeholder for common proteins plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        
+    Returns:
+        tuple: Contains:
+            - Coverage plot components
+            - Coverage data for storage
+    """
     return qc_analysis.coverage_plot(
-        data_dictionary['data tables'][data_dictionary['data tables']
-                                       ['table to use']],
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         parameters['Figure defaults']['half-height']
     )
 
-
 @callback(
-    Output({'type': 'qc-plot', 'id': 'reproducibility-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'reproducibility-data-store'}, 'data'),
-    Input({'type': 'qc-plot', 'id': 'coverage-plot-div'},
-          'children'), State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'reproducibility-plot-div'}, 'children'), 
+    Output({'type': 'data-store', 'name': 'reproducibility-data-store'}, 'data'),
+    Input({'type': 'qc-plot', 'id': 'coverage-plot-div'}, 'children'), 
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def reproducibility_plot(_, data_dictionary: dict) -> tuple:
+    """Generates plot showing reproducibility between sample replicates.
+    
+    Args:
+        _ (list): Placeholder for coverage plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        
+    Returns:
+        tuple: Contains:
+            - Reproducibility plot components
+            - Reproducibility data for storage
+    """
     return qc_analysis.reproducibility_plot(
-        data_dictionary['data tables'][data_dictionary['data tables']
-                                       ['table to use']],
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         data_dictionary['sample groups']['norm'],
         data_dictionary['data tables']['table to use'],
         parameters['Figure defaults']['full-height']
     )
 
-
 @callback(
-    Output({'type': 'qc-plot', 'id': 'missing-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'missing-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'missing-plot-div'}, 'children'), 
+    Output({'type': 'data-store', 'name': 'missing-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'reproducibility-plot-div'}, 'children'),
-    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
-        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), 
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def missing_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+    """Generates plot showing missing values across samples.
+    
+    Args:
+        _ (list): Placeholder for reproducibility plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - Missing values plot components
+            - Missing values data for storage
+    """
     return qc_analysis.missing_plot(
-        data_dictionary['data tables'][data_dictionary['data tables']
-                                       ['table to use']],
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         replicate_colors,
         parameters['Figure defaults']['half-height']
     )
 
-
 @callback(
-    Output({'type': 'qc-plot', 'id': 'sum-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'sum-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'sum-plot-div'}, 'children'), 
+    Output({'type': 'data-store', 'name': 'sum-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'missing-plot-div'}, 'children'),
-    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
-        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), 
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def sum_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+    """Generates plot showing sum of intensities across samples.
+    
+    Args:
+        _ (list): Placeholder for missing plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - Sum plot components
+            - Sum data for storage
+    """
     return qc_analysis.sum_plot(
-        data_dictionary['data tables'][data_dictionary['data tables']
-                                       ['table to use']],
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         replicate_colors,
         parameters['Figure defaults']['half-height']
     )
 
-
 @callback(
-    Output({'type': 'qc-plot', 'id': 'mean-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'mean-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'mean-plot-div'}, 'children'), 
+    Output({'type': 'data-store', 'name': 'mean-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'sum-plot-div'}, 'children'),
-    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
-        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), 
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def mean_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+    """Generates plot showing mean intensities across samples.
+    
+    Args:
+        _ (list): Placeholder for sum plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - Mean plot components
+            - Mean data for storage
+    """
     return qc_analysis.mean_plot(
-        data_dictionary['data tables'][data_dictionary['data tables']
-                                       ['table to use']],
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         replicate_colors,
         parameters['Figure defaults']['half-height']
     )
 
 @callback(
-    Output({'type': 'qc-plot', 'id': 'distribution-plot-div'},
-           'children'), Output({'type': 'data-store', 'name': 'distribution-data-store'}, 'data'),
+    Output({'type': 'qc-plot', 'id': 'distribution-plot-div'}, 'children'), 
+    Output({'type': 'data-store', 'name': 'distribution-data-store'}, 'data'),
     Input({'type': 'qc-plot', 'id': 'mean-plot-div'}, 'children'),
-    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), State(
-        {'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'), 
+    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple:
+    """Generates plot showing distribution of intensities across samples.
+    
+    Args:
+        _ (list): Placeholder for mean plot children
+        data_dictionary (dict): Data dictionary containing sample information
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - Distribution plot components
+            - Distribution data for storage
+    """
     return qc_analysis.distribution_plot(
-        data_dictionary['data tables'][data_dictionary['data tables']
-                                       ['table to use']],
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         replicate_colors,
         data_dictionary['sample groups']['rev'],
         parameters['Figure defaults']['full-height'],
@@ -402,12 +626,20 @@ def distribution_plot(_, data_dictionary: dict, replicate_colors: dict) -> tuple
     )
 
 @callback(
-    Output({'type': 'data-store',
-           'name': 'qc-commonality-plot-visible-groups-data-store'}, 'data'),
+    Output({'type': 'data-store', 'name': 'qc-commonality-plot-visible-groups-data-store'}, 'data'),
     Input('qc-commonality-plot-update-plot-button','n_clicks'),
     State('qc-commonality-select-visible-sample-groups', 'value'),
 )
 def pass_selected_groups_to_data_store(_, selection):
+    """Stores selected sample groups for commonality plot visibility.
+    
+    Args:
+        _ (int): Number of clicks on update plot button
+        selection (list): List of selected sample groups
+        
+    Returns:
+        dict: Dictionary containing selected groups for visibility
+    """
     return {'groups': selection}
 
 @callback(
@@ -415,6 +647,14 @@ def pass_selected_groups_to_data_store(_, selection):
     Input({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
 )
 def generate_commonality_container(data_dictionary):
+    """Generates container for commonality plot showing shared proteins between samples.
+    
+    Args:
+        data_dictionary (dict): Data dictionary containing sample group information
+        
+    Returns:
+        html.Div: Container component for commonality plot
+    """
     sample_groups = sorted(list(data_dictionary['sample groups']['norm'].keys()))
     return qc_analysis.generate_commonality_container(sample_groups)
 
@@ -422,22 +662,32 @@ def generate_commonality_container(data_dictionary):
     Output('qc-commonality-graph-div','children'),
     Output({'type': 'data-store', 'name': 'commonality-data-store'}, 'data'),
     Output({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
-    State({'type': 'qc-plot', 'id': 'commonality-plot-div'}, 'children'),# TODO: remove if unneeded
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State('toggle-additional-supervenn-options', 'value'),
-    Input({'type': 'data-store',
-           'name': 'qc-commonality-plot-visible-groups-data-store'}, 'data'),
+    Input({'type': 'data-store', 'name': 'qc-commonality-plot-visible-groups-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def commonality_plot(_, data_dictionary: dict, additional_options: list, show_only_groups: dict) -> tuple:
+def commonality_plot(data_dictionary: dict, additional_options: list, show_only_groups: dict) -> tuple:
+    """Creates commonality plot showing protein overlap between sample groups.
+    
+    Args:
+        data_dictionary (dict): Data dictionary containing sample information
+        additional_options (list): List of selected additional plot options
+        show_only_groups (dict): Dictionary specifying which groups to display
+        
+    Returns:
+        tuple: Contains:
+            - Commonality plot components
+            - Plot data for storage
+            - PDF version of plot for export
+    """
     show_groups = None
     if show_only_groups is not None:
         show_groups = show_only_groups['groups']
     else:
         show_groups = 'all'
     return qc_analysis.commonality_plot(
-        data_dictionary['data tables'][data_dictionary['data tables']
-                                       ['table to use']],
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         data_dictionary['sample groups']['rev'],
         parameters['Figure defaults']['full-height'],
         ('Use supervenn' in additional_options), only_groups=show_groups
@@ -449,19 +699,37 @@ def commonality_plot(_, data_dictionary: dict, additional_options: list, show_on
     prevent_initial_call=True
 )
 def qc_done(_) -> str:
+    """Notifies that QC analysis is complete.
+    
+    Args:
+        _ (list): Placeholder for distribution plot children
+        
+    Returns:
+        str: Empty string to trigger completion notification
+    """
     return ''
 
 @callback(
-    Output({'type': 'workflow-plot',
-           'id': 'proteomics-na-filtered-plot-div'}, 'children'),
+    Output({'type': 'workflow-plot', 'id': 'proteomics-na-filtered-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
-    # Input('proteomics-loading-filtering', 'children'),
     Input('proteomics-run-button', 'n_clicks'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State('proteomics-filter-minimum-percentage', 'value'),
     prevent_initial_call=True
 )
 def proteomics_filtering_plot(nclicks, uploaded_data: dict, filtering_percentage: int) -> tuple:
+    """Creates plot showing results of NA filtering in proteomics workflow.
+    
+    Args:
+        nclicks (int): Number of clicks on run button
+        uploaded_data (dict): Data dictionary containing proteomics data
+        filtering_percentage (int): Minimum percentage threshold for filtering
+        
+    Returns:
+        tuple: Contains:
+            - NA filtering plot components
+            - Filtered data for storage
+    """
     if nclicks is None:
         return (no_update, no_update)
     if nclicks < 1:
@@ -469,42 +737,86 @@ def proteomics_filtering_plot(nclicks, uploaded_data: dict, filtering_percentage
     return proteomics.na_filter(uploaded_data, filtering_percentage, parameters['Figure defaults']['full-height'])
 
 @callback(
-    Output({'type': 'workflow-plot',
-           'id': 'proteomics-normalization-plot-div'}, 'children'),
-    Output({'type': 'data-store',
-           'name': 'proteomics-normalization-data-store'}, 'data'),
+    Output({'type': 'workflow-plot', 'id': 'proteomics-normalization-plot-div'}, 'children'),
+    Output({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
     Input({'type': 'data-store', 'name': 'proteomics-na-filtered-data-store'}, 'data'),
     Input('proteomics-normalization-radio-option', 'value'),
     prevent_initial_call=True
 )
 def proteomics_normalization_plot(filtered_data: dict, normalization_option: str) -> html.Div:
+    """Creates plot showing results of data normalization in proteomics workflow.
+    
+    Args:
+        filtered_data (dict): NA-filtered proteomics data containing intensity values
+            and sample information
+        normalization_option (str): Selected normalization method (e.g., 'median', 
+            'mean', 'vsn', etc.)
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: Normalization plot components showing data distribution
+                before and after normalization
+            - dict: Normalized data for storage and downstream analysis
+            
+    Notes:
+        Returns no_update if filtered_data is None. Uses figure height parameters
+        from config and writes any R errors to specified error file.
+    """
     if filtered_data is None:
         return no_update
     return proteomics.normalization(filtered_data, normalization_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
 
 
 @callback(
-    Output({'type': 'workflow-plot',
-           'id': 'proteomics-missing-in-other-plot-div'}, 'children'),
+    Output({'type': 'workflow-plot', 'id': 'proteomics-missing-in-other-plot-div'}, 'children'),
     Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def proteomics_missing_in_other_samples(normalized_data: dict) -> html.Div:
+    """Creates plot showing patterns of missing values across samples after normalization.
+    
+    Args:
+        normalized_data (dict): Normalized proteomics data containing intensity values
+            and sample information
+        
+    Returns:
+        html.Div: Plot components showing the distribution and patterns of missing
+            values across different samples, using half-height figure parameters
+    """
     return proteomics.missing_values_in_other_samples(normalized_data, parameters['Figure defaults']['half-height'])
 
 @callback(
-    Output({'type': 'workflow-plot',
-           'id': 'proteomics-imputation-plot-div'}, 'children'),
+    Output({'type': 'workflow-plot', 'id': 'proteomics-imputation-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
     Input('proteomics-imputation-radio-option', 'value'),
     prevent_initial_call=True
 )
 def proteomics_imputation_plot(normalized_data: dict, imputation_option: str) -> html.Div:
+    """Creates plot showing results of missing value imputation in proteomics workflow.
+    
+    Args:
+        normalized_data (dict): Normalized proteomics data containing intensity values
+            and sample information
+        imputation_option (str): Selected imputation method (e.g., 'knn', 'mean', 
+            'median', etc.)
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: Imputation plot components showing data distribution
+                before and after imputation
+            - dict: Imputed data for storage and downstream analysis
+            
+    Notes:
+        Returns no_update if normalized_data is None. Uses figure height parameters
+        from config and writes any R errors to specified error file.
+    """
     if normalized_data is None:
         return no_update
     return proteomics.imputation(normalized_data, imputation_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
 
+
+# TODO: Either implement or get rid of. need to decide, which.
 @callback(
     Output({'type': 'workflow-plot',
            'id': 'proteomics-pertubation-plot-div'}, 'children'),
@@ -519,6 +831,21 @@ def proteomics_imputation_plot(normalized_data: dict, imputation_option: str) ->
     prevent_initial_call=True
 )
 def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_group, comparison_data, comparison_upload_success_style, replicate_colors):
+    """Creates perturbation analysis plots for proteomics data.
+    
+    Args:
+        imputed_data (dict): Imputed proteomics data
+        data_dictionary (dict): Main data dictionary containing sample information
+        control_group (str): Selected control group name
+        comparison_data (dict): Comparison table data
+        comparison_upload_success_style (dict): Style indicating comparison upload status
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - Perturbation plot components
+            - Perturbation data for storage
+    """
     return (html.Div(), '')
     if control_group is None:
         if (comparison_data is None):
@@ -555,6 +882,23 @@ def proteomics_pertubation(imputed_data: dict, data_dictionary: dict, control_gr
     prevent_initial_call=True
 )
 def proteomics_cv_plot(uploaded_data: dict, na_filtered_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
+    """Creates coefficient of variation (CV) plot for proteomics data.
+    
+    Generates a plot showing the coefficient of variation across samples using raw intensity
+    data filtered to match the NA-filtered dataset. Uses sample grouping information and
+    replicate colors for visualization.
+    
+    Args:
+        uploaded_data (dict): Original uploaded data dictionary containing raw intensity values
+        na_filtered_data (dict): NA-filtered proteomics data for filtering raw data
+        upload_dict (dict): Main data dictionary containing sample grouping information
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: CV plot components showing variation across samples
+            - dict: CV analysis data for storage
+    """
     raw_int_data: pd.DataFrame = pd.read_json(StringIO(uploaded_data['data tables']['raw intensity']), orient='split')
     na_filtered_table: pd.DataFrame = pd.read_json(StringIO(na_filtered_data), orient='split')
     # Drop rows that are no longer present in filtered data
@@ -570,18 +914,46 @@ def proteomics_cv_plot(uploaded_data: dict, na_filtered_data: dict, upload_dict:
     prevent_initial_call=True
 )
 def proteomics_pca_plot(imputed_data: dict, upload_dict: dict, replicate_colors: dict) -> html.Div:
+    """Creates principal component analysis (PCA) plot for proteomics data.
+    
+    Generates a PCA plot to visualize sample clustering and relationships using imputed
+    proteomics data. Uses sample grouping information and replicate colors for visualization.
+    
+    Args:
+        imputed_data (dict): Imputed proteomics data for PCA analysis
+        upload_dict (dict): Main data dictionary containing sample grouping information
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: PCA plot components showing sample relationships
+            - dict: PCA analysis data for storage
+    """
     return proteomics.pca(imputed_data, upload_dict['sample groups']['rev'], parameters['Figure defaults']['full-height'], replicate_colors)
 
 
 @callback(
-    Output({'type': 'workflow-plot',
-           'id': 'proteomics-clustermap-plot-div'}, 'children'),
+    Output({'type': 'workflow-plot', 'id': 'proteomics-clustermap-plot-div'}, 'children'),
     Output({'type': 'data-store', 'name': 'proteomics-clustermap-data-store'}, 'data'),
     Output({'type': 'done-notifier','name': 'proteomics-clustering-done-notifier'}, 'children', allow_duplicate=True),
     Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def proteomics_clustermap(imputed_data: dict) -> html.Div:
+    """Creates hierarchical clustering heatmap for proteomics data.
+    
+    Generates a clustermap visualization showing hierarchical clustering of samples and
+    proteins based on imputed proteomics data. Uses default figure height parameters.
+    
+    Args:
+        imputed_data (dict): Imputed proteomics data for clustering analysis
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: Clustermap plot components showing hierarchical clustering
+            - dict: Clustering analysis data for storage
+            - str: Empty string for completion notification
+    """
     return proteomics.clustermap(imputed_data, parameters['Figure defaults']['full-height']) + ('',)
 
 
@@ -596,6 +968,23 @@ def proteomics_clustermap(imputed_data: dict) -> html.Div:
     prevent_initial_call=True
 )
 def proteomics_check_comparison_table(contents, filename, current_style, data_dictionary):
+    """Validates uploaded comparison table for proteomics differential analysis.
+    
+    Checks the uploaded comparison table file for correct format and compatibility
+    with the sample groups in the dataset.
+    
+    Args:
+        contents (str): Base64 encoded contents of uploaded comparison file
+        filename (str): Name of uploaded comparison file
+        current_style (dict): Current style settings for upload success indicator
+        data_dictionary (dict): Main data dictionary containing sample group information
+        
+    Returns:
+        tuple: Contains:
+            - dict: Updated style for upload success indicator (green for success,
+                   red for failure)
+            - dict: Validated comparison table data if successful, None if validation fails
+    """
     return parsing.check_comparison_file(contents, filename, data_dictionary['sample groups']['norm'], current_style)
 
 
@@ -615,6 +1004,32 @@ def proteomics_check_comparison_table(contents, filename, current_style, data_di
     prevent_initial_call=True
 )
 def proteomics_volcano_plots(imputed_data, control_group, comparison_data, comparison_upload_success_style, data_dictionary, fc_thr, p_thr, test_type) -> tuple:
+    """Creates volcano plots for differential abundance analysis in proteomics workflow.
+    
+    Generates volcano plots showing differential protein abundance between sample groups,
+    using either a control group or comparison table approach. Includes statistical testing
+    and fold change thresholding.
+    
+    Args:
+        imputed_data (dict): Imputed proteomics data for analysis
+        control_group (str): Selected control group name, if using control-based comparisons
+        comparison_data (dict): Comparison table data for custom comparisons
+        comparison_upload_success_style (dict): Style indicating comparison table validation status
+        data_dictionary (dict): Main data dictionary containing sample information
+        fc_thr (float): Fold change threshold for significance
+        p_thr (float): P-value threshold for significance
+        test_type (str): Statistical test type to use for comparisons
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: Volcano plot components showing differential abundance results
+            - dict: Differential analysis data for storage
+            - str: Empty string for completion notification
+            
+    Notes:
+        Returns no_update if input validation fails. Logs warnings for various
+        failure conditions related to comparison data validation.
+    """
     if imputed_data is None:
         return no_update
     if control_group is None:
@@ -643,6 +1058,17 @@ def proteomics_volcano_plots(imputed_data, control_group, comparison_data, compa
     prevent_initial_call=True
 )
 def select_all_none_controls(all_selected, options) -> list:
+    """Handles selection/deselection of all uploaded control samples.
+    
+    Args:
+        all_selected (bool): Whether the "select all" checkbox is checked
+        options (list): List of available control sample options, each containing
+            a 'value' key
+            
+    Returns:
+        list: List of all control sample values if all_selected is True,
+            empty list otherwise
+    """
     all_or_none: list = [option['value'] for option in options if all_selected]
     return all_or_none
 
@@ -652,6 +1078,14 @@ def select_all_none_controls(all_selected, options) -> list:
     prevent_initial_call=True
 )
 def select_none_enrichments(deselect_click) -> list:
+    """Deselects all enrichment options.
+    
+    Args:
+        deselect_click (int): Number of times the deselect button has been clicked
+            
+    Returns:
+        list: Empty list to clear all enrichment selections
+    """
     all_or_none: list = []
     return all_or_none
 
@@ -664,6 +1098,18 @@ def select_none_enrichments(deselect_click) -> list:
     prevent_initial_call=True
 )
 def collapse_or_uncollapse_input(header_click, begin_click, input_is_open):
+    """Toggles the collapse state of the input section.
+    
+    Args:
+        header_click (int): Number of clicks on the header
+        begin_click (int): Number of clicks on the begin analysis button
+        input_is_open (bool): Current collapse state of the input section
+            
+    Returns:
+        tuple: Contains:
+            - str: Updated header text with arrow indicator (► or ▼)
+            - bool: New collapse state (True for open, False for closed)
+    """
     if input_is_open:
         return ('► Input', False)
     else:
@@ -677,6 +1123,17 @@ def collapse_or_uncollapse_input(header_click, begin_click, input_is_open):
     prevent_initial_call=True
 )
 def select_all_none_inbuilt_controls(all_selected, options) -> list:
+    """Handles selection/deselection of all inbuilt control sets.
+    
+    Args:
+        all_selected (bool): Whether the "select all" checkbox is checked
+        options (list): List of available inbuilt control set options, each containing
+            a 'value' key
+            
+    Returns:
+        list: List of all inbuilt control set values if all_selected is True,
+            empty list otherwise
+    """
     all_or_none: list = [option['value'] for option in options if all_selected]
     return all_or_none
 
@@ -688,6 +1145,17 @@ def select_all_none_inbuilt_controls(all_selected, options) -> list:
     prevent_initial_call=True
 )
 def select_all_none_crapomes(all_selected, options) -> list:
+    """Handles selection/deselection of all CRAPome control sets.
+    
+    Args:
+        all_selected (bool): Whether the "select all" checkbox is checked
+        options (list): List of available CRAPome control set options, each containing
+            a 'value' key
+            
+    Returns:
+        list: List of all CRAPome control set values if all_selected is True,
+            empty list otherwise
+    """
     all_or_none: list = [option['value'] for option in options if all_selected]
     return all_or_none
 
@@ -709,6 +1177,27 @@ def select_all_none_crapomes(all_selected, options) -> list:
     prevent_initial_call=True
 )
 def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_controls: list, crapomes: list, uploaded_data: dict, proximity_filtering_checklist: list, n_controls: int) -> html.Div:
+    """Initializes SAINT analysis with selected control samples and parameters.
+    
+    Args:
+        nclicks (int): Number of clicks on run analysis button
+        uploaded_controls (list): List of selected uploaded control samples
+        additional_controls (list): List of selected additional control sets
+        crapomes (list): List of selected CRAPome control sets
+        uploaded_data (dict): Dictionary containing uploaded experimental data
+        proximity_filtering_checklist (list): List of selected filtering options
+        n_controls (int): Number of nearest controls to use if proximity filtering enabled
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: SAINT analysis container components
+            - dict: SAINT input data for storage
+            - dict: CRAPome data for storage
+            
+    Notes:
+        Returns no_update if button not clicked. Uses proximity filtering if 'Select'
+        is in the filtering checklist.
+    """
     if nclicks is None:
         return (no_update, no_update, no_update)
     if nclicks < 1:
@@ -727,6 +1216,17 @@ def interactomics_saint_analysis(nclicks, uploaded_controls: list, additional_co
     background=True
 )
 def interactomics_run_saint(saint_input, data_dictionary):
+    """Executes SAINT analysis using prepared input data.
+    
+    Args:
+        saint_input (dict): Prepared SAINT input data
+        data_dictionary (dict): Main data dictionary containing session and bait information
+        
+    Returns:
+        tuple: Contains:
+            - dict: SAINT analysis output data
+            - str: Empty string to clear loading indicator
+    """
     return (interactomics.run_saint(
         saint_input,
         parameters['External tools']['SAINT tempdir'],
@@ -744,6 +1244,15 @@ def interactomics_run_saint(saint_input, data_dictionary):
     prevent_initial_call=True
 )
 def interactomics_add_crapome_to_saint(saint_output, crapome):
+    """Integrates CRAPome data with SAINT analysis results.
+    
+    Args:
+        saint_output (dict): Results from SAINT analysis
+        crapome (dict): CRAPome control data to integrate
+        
+    Returns:
+        dict: Combined SAINT and CRAPome data, or error message if SAINT failed
+    """
     if saint_output == 'SAINT failed. Can not proceed.':
         return saint_output
     return interactomics.add_crapome(saint_output, crapome)
@@ -758,6 +1267,21 @@ def interactomics_add_crapome_to_saint(saint_output, crapome):
     prevent_initial_call=True
 )
 def interactomics_create_saint_filtering_container(saint_output_ready, rescue):
+    """Creates the filtering interface container for SAINT analysis results.
+    
+    Args:
+        saint_output_ready (dict): Final SAINT analysis output data
+        rescue (list): Selected rescue options for filtered interactions
+        
+    Returns:
+        tuple: Contains:
+            - str: Empty string for workflow completion notification
+            - html.Div: Either error message if SAINT failed or filtering interface container
+            
+    Notes:
+        Enables rescue functionality if "Rescue interactions that pass filter in any 
+        sample group" is selected.
+    """
     rescue_bool: bool = ('Rescue interactions that pass filter in any sample group' in rescue)
     if 'SAINT failed.' in saint_output_ready:
         return ('',html.Div(id='saint-failed', children=saint_output_ready))
@@ -776,6 +1300,21 @@ def interactomics_create_saint_filtering_container(saint_output_ready, rescue):
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data')
 )
 def interactomics_draw_saint_histogram(container_ready: list, saint_output: str, saint_output_filtered: str):
+    """Generates histogram visualization of SAINT BFDR scores.
+    
+    Args:
+        container_ready (list): Trigger input indicating filtering container is ready
+        saint_output (str): Original SAINT analysis results
+        saint_output_filtered (str): Filtered SAINT results if available
+        
+    Returns:
+        tuple: Contains:
+            - dict: Plotly figure object for BFDR histogram
+            - dict: Histogram data for storage
+            
+    Notes:
+        Uses filtered output data if available, otherwise uses original SAINT output.
+    """
     if saint_output_filtered is not None:
         saint_output = saint_output_filtered
     return interactomics.saint_histogram(saint_output, parameters['Figure defaults']['half-height'])
@@ -790,9 +1329,27 @@ def interactomics_draw_saint_histogram(container_ready: list, saint_output: str,
     State({'type': 'data-store',
           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
     State('interactomics-rescue-filtered-out', 'value')
-    # prevent_initial_call=True
 )
 def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentage: int, crapome_fc: int, saint_output: str, rescue: list):
+    """Applies filtering criteria to SAINT analysis results.
+    
+    Args:
+        bfdr_threshold (float): BFDR score threshold for filtering
+        crapome_percentage (int): CRAPome frequency percentage threshold
+        crapome_fc (int): CRAPome fold change threshold
+        saint_output (str): SAINT analysis results to filter
+        rescue (list): Selected rescue options for filtered interactions
+        
+    Returns:
+        dict: Filtered SAINT analysis results based on specified thresholds
+        
+    Notes:
+        Applies multiple filtering criteria:
+        - BFDR score threshold
+        - CRAPome frequency threshold
+        - CRAPome fold change threshold
+        Rescue functionality is enabled if rescue list is not empty.
+    """
     return interactomics.saint_filtering(saint_output, bfdr_threshold, crapome_percentage, crapome_fc, len(rescue) > 0)
 
 
@@ -806,6 +1363,17 @@ def interactomics_apply_saint_filtering(bfdr_threshold: float, crapome_percentag
     prevent_initial_call=True
 )
 def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
+    """Creates visualization of filtered SAINT analysis results.
+    
+    Args:
+        filtered_output (dict): Filtered SAINT analysis results
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - dict: Plotly figure object showing filtered SAINT results
+            - dict: Graph data for storage
+    """
     return interactomics.saint_counts(filtered_output, parameters['Figure defaults']['half-height'], replicate_colors)
 
 
@@ -813,10 +1381,17 @@ def interactomics_draw_saint_filtered_figure(filtered_output, replicate_colors):
     Output({'type': 'analysis-div',
            'id': 'interactomics-analysis-post-saint-area'}, 'children'),
     Input('interactomics-button-done-filtering', 'n_clicks'),
-    # State({'type': 'data-store', 'name': 'interactomics-saint-final-output-data-store'},'data'),
     prevent_initial_call=True
 )
 def interactomics_initiate_post_saint(_) -> html.Div:
+    """Initializes the post-SAINT analysis interface container.
+    
+    Args:
+        _ (int): Number of clicks on done filtering button (unused)
+        
+    Returns:
+        html.Div: Container component for post-SAINT analysis interface
+    """
     return ui.post_saint_cointainer()
 
 @callback(
@@ -829,6 +1404,20 @@ def interactomics_initiate_post_saint(_) -> html.Div:
     prevent_initial_callback=True
 )
 def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary) -> str:
+    """Maps intensity values to filtered SAINT results.
+    
+    Args:
+        n_clicks (int): Number of clicks on done filtering button
+        unfiltered_saint_data (dict): Filtered SAINT analysis results
+        data_dictionary (dict): Main data dictionary containing intensity values
+            and sample group information
+            
+    Returns:
+        str: JSON string containing SAINT results with mapped intensity values
+        
+    Notes:
+        Returns no_update if button not clicked or clicked less than once.
+    """
     if (n_clicks is None):
         return no_update
     if (n_clicks < 1):
@@ -846,6 +1435,17 @@ def interactomics_map_intensity(n_clicks, unfiltered_saint_data, data_dictionary
     prevent_initial_call=True
 )
 def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
+    """Creates plot showing known interactions in SAINT results.
+    
+    Args:
+        saint_output (dict): SAINT results with mapped intensity values
+        rep_colors_with_cont (dict): Color assignments for samples including contaminants
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: Plot components showing known interactions
+            - dict: Known interactions data for storage
+    """
     return interactomics.known_plot(saint_output, db_file, rep_colors_with_cont, parameters['Figure defaults']['half-height'])
 
 @callback(
@@ -858,6 +1458,21 @@ def interactomics_known_plot(saint_output, rep_colors_with_cont) -> html.Div:
     prevent_initial_call=True
 )
 def interactomics_common_proteins_plot(_, saint_data: dict) -> tuple:
+    """Creates plot showing common proteins across SAINT results.
+    
+    Args:
+        _ (dict): Trigger input from known interactions plot (unused)
+        saint_data (dict): Filtered SAINT analysis results
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: Plot components showing common proteins
+            - dict: Common proteins data for storage
+            
+    Notes:
+        Converts SAINT data to matrix format before analysis. Includes contaminant
+        proteins as an additional group in the visualization.
+    """
     saint_data = interactomics.get_saint_matrix(saint_data)
     return qc_analysis.common_proteins(
         saint_data.to_json(orient='split'),
@@ -876,17 +1491,26 @@ def interactomics_common_proteins_plot(_, saint_data: dict) -> tuple:
           'name': 'interactomics-saint-filtered-output-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
     prevent_initial_call=True
-
 )
 def interactomics_pca_plot(_, saint_data, replicate_colors) -> html.Div:
+    """Creates principal component analysis (PCA) plot for interactomics data.
+    
+    Args:
+        _ (dict): Trigger input from common proteins plot (unused)
+        saint_data (dict): Filtered SAINT analysis results
+        replicate_colors (dict): Color assignments for sample replicates
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: PCA plot components showing sample relationships
+            - dict: PCA analysis data for storage
+    """
     return interactomics.pca(
         saint_data,
         parameters['Figure defaults']['full-height'],
         replicate_colors
     )
 
-                #dcc.Loading(id='interactomics-volcano-loading'),
-                
 @callback(
     Output('interactomics-msmic-loading', 'children'),
     Output({'type': 'data-store',
@@ -897,7 +1521,23 @@ def interactomics_pca_plot(_, saint_data, replicate_colors) -> html.Div:
     prevent_initial_call=True
 )
 def interactomics_ms_microscopy_plots(_, saint_output) -> tuple:
-    res =  interactomics.do_ms_microscopy(saint_output, db_file, parameters['Figure defaults']['full-height'], version='v1.0')
+    """Creates MS microscopy visualization plots.
+    
+    Args:
+        _ (dict): Trigger input from PCA plot (unused)
+        saint_output (dict): Filtered SAINT analysis results
+        
+    Returns:
+        tuple: Contains:
+            - html.Div: MS microscopy plot components
+            - dict: MS microscopy analysis data for storage
+            
+    Notes:
+        Uses version 1.0 of MS microscopy visualization.
+    """
+    res = interactomics.do_ms_microscopy(saint_output, db_file, 
+                                       parameters['Figure defaults']['full-height'], 
+                                       version='v1.0')
     return res
 
 @callback(
@@ -911,7 +1551,23 @@ def interactomics_ms_microscopy_plots(_, saint_output) -> tuple:
     prevent_initial_call=True
 )
 def interactomics_network_plot(_, saint_output):
-    container, c_elements, interactions = interactomics.do_network(saint_output, parameters['Figure defaults']['full-height']['height'])
+    """Creates interactive network visualization of protein interactions.
+    
+    Args:
+        _ (dict): Trigger input from MS microscopy plot (unused)
+        saint_output (dict): Filtered SAINT analysis results
+        
+    Returns:
+        tuple: Contains:
+            - str: Empty string for workflow completion notification
+            - html.Div: Network plot container components
+            - dict: Network visualization elements data
+            - dict: Interaction data for network
+    """
+    container, c_elements, interactions = interactomics.do_network(
+        saint_output, 
+        parameters['Figure defaults']['full-height']['height']
+    )
     return ('', container, c_elements, interactions)
 
 @callback(
@@ -929,8 +1585,29 @@ def interactomics_network_plot(_, saint_output):
     background=True
 )
 def interactomics_enrichment(_, saint_output, chosen_enrichments):
-    print('ENRICHMENT CALLED')
-    return ('',) + interactomics.enrich(parameters['Enrichment'], saint_output, chosen_enrichments, parameters['Figure defaults']['full-height'])
+    """Performs enrichment analysis on filtered interactomics data.
+    
+    Args:
+        _ (dict): Trigger input from network plot (unused)
+        saint_output (dict): Filtered SAINT analysis results
+        chosen_enrichments (list): List of selected enrichment analyses to perform
+        
+    Returns:
+        tuple: Contains:
+            - str: Empty string for workflow completion notification
+            - html.Div: Enrichment analysis plot components
+            - dict: Enrichment analysis results data
+            - dict: Additional enrichment information data
+            
+    Notes:
+        Runs as a background callback to handle potentially long computation times.
+    """
+    return ('',) + interactomics.enrich(
+        parameters['Enrichment'], 
+        saint_output, 
+        chosen_enrichments, 
+        parameters['Figure defaults']['full-height']
+    )
 
 ########################################
 # Interactomics network plot callbacks #
@@ -948,9 +1625,19 @@ def interactomics_enrichment(_, saint_output, chosen_enrichments):
           'name': 'interactomics-network-interactions-data-store'},'data')
 )
 def display_tap_node(node_data, int_data, network_type: str = 'Cytoscape'):
-    print(node_data)
-    print(f'Node data: {node_data}')
-    print(f'Network type: {network_type}')
+    """Displays detailed information for a selected node in the network visualization.
+    
+    Args:
+        node_data (dict): Data associated with the tapped network node
+        int_data (dict): Network interaction data store
+        network_type (str, optional): Type of network visualization. Defaults to 'Cytoscape'
+        
+    Returns:
+        html.Div: Component containing detailed node information, or None if no node selected
+        
+    Notes:
+        Currently only supports Cytoscape network type. visdcc network support is commented out.
+    """
     if not node_data:
         return None
     if network_type == 'Cytoscape':
@@ -959,13 +1646,25 @@ def display_tap_node(node_data, int_data, network_type: str = 'Cytoscape'):
             int_data,
             parameters['Figure defaults']['full-height']['height']
         )
+    return ret
 
 @callback(
     Output("cytoscape", "layout"),
     Input("dropdown-layout", "value")
 )
 def update_cytoscape_layout(layout):
-    ret_dic =  {"name": layout}
+    """Updates the layout of the Cytoscape network visualization.
+    
+    Args:
+        layout (str): Selected layout type from dropdown
+        
+    Returns:
+        dict: Layout configuration dictionary with name and optional parameters
+        
+    Notes:
+        Applies additional layout parameters if defined in parameters['Cytoscape layout parameters']
+    """
+    ret_dic = {"name": layout}
     if layout in parameters['Cytoscape layout parameters']:
         for k, v in parameters['Cytoscape layout parameters'][layout]:
             ret_dic[k] = v
@@ -984,9 +1683,16 @@ def update_cytoscape_layout(layout):
     prevent_initial_call=True
 )
 def table_of_contents(_, __, ___, ____, main_div_contents: list) -> html.Div:
-    """updates table of contents to reflect the main div"""
+    """Updates table of contents based on main content.
+    
+    Args:
+        _,__,___,____ (any): Trigger inputs from various workflow completion notifiers (unused)
+        main_div_contents (list): Current contents of main div
+        
+    Returns:
+        html.Div: Updated table of contents component
+    """
     return ui.table_of_contents(main_div_contents)
-
 
 @callback(
     Output('workflow-specific-input-div', 'children',allow_duplicate = True),
@@ -997,8 +1703,17 @@ def table_of_contents(_, __, ___, ____, main_div_contents: list) -> html.Div:
     prevent_initial_call=True,
 )
 def workflow_area(_, workflow: str, data_dictionary: dict) -> html.Div:
+    """Updates workflow-specific areas based on selected workflow.
+    
+    Args:
+        _ (any): Trigger input from QC completion notifier (unused)
+        workflow (str): Selected workflow type
+        data_dictionary (dict): Main data dictionary containing uploaded data
+        
+    Returns:
+        tuple: Contains workflow-specific input and content areas
+    """
     return ui.workflow_area(workflow, parameters['workflow parameters'], data_dictionary)
-
 
 @callback(
     Output('download-sample_table-template', 'data'),
@@ -1006,8 +1721,15 @@ def workflow_area(_, workflow: str, data_dictionary: dict) -> html.Div:
     prevent_initial_call=True,
 )
 def sample_table_example_download(_) -> dict:
+    """Handles download of sample table template file.
+    
+    Args:
+        _ (int): Number of clicks on download button (unused)
+        
+    Returns:
+        dict: File download configuration for sample table template
+    """
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example sample table file']))
-
 
 @callback(
     Output('download-proteomics-comparison-example', 'data'),
@@ -1015,6 +1737,14 @@ def sample_table_example_download(_) -> dict:
     prevent_initial_call=True
 )
 def download_example_comparison_file(n_clicks) -> dict:
+    """Handles download of example proteomics comparison file.
+    
+    Args:
+        n_clicks (int): Number of clicks on download button
+        
+    Returns:
+        dict: File download configuration for example comparison file, or None if button not clicked
+    """
     if n_clicks is None:
         return None
     if n_clicks == 0:
@@ -1029,10 +1759,37 @@ def download_example_comparison_file(n_clicks) -> dict:
     background=True
 )
 def download_data_table_example(_) -> dict:
+    """Handles download of example data table file in the background.
+    
+    Args:
+        _ (int): Number of clicks on download button (unused)
+        
+    Returns:
+        dict: File download configuration for example data table
+        
+    Notes:
+        - Runs as a background callback to handle potentially large files
+        - Logs warning message when download request is received
+    """
     logger.warning(f'received DT download request at {datetime.now()}')
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
 
 def get_adiv_by_id(divs: list, idvals: list, idval_to_find: str):
+    """Retrieves a specific div element from a list by matching its ID.
+    
+    Args:
+        divs (list): List of div elements
+        idvals (list): List of dictionaries containing ID values
+        idval_to_find (str): Target ID value to search for
+        
+    Returns:
+        Any: The matching div element if found, None otherwise
+        
+    Notes:
+        - Used for finding specific analysis div elements in the UI
+        - Returns None if no matching ID is found
+        - Assumes idvals list contains dictionaries with 'id' key
+    """
     use_index: int = -1
     for i, idval in enumerate(idvals):
         if idval['id'] == idval_to_find:
@@ -1054,11 +1811,29 @@ def get_adiv_by_id(divs: list, idvals: list, idval_to_find: str):
     Output('button-download-all-data-text','children',allow_duplicate = True),
     Input('button-download-all-data', 'n_clicks'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
 def prepare_for_download(_, main_data):
-    export_dir: str = os.path.join(*parameters['Data paths']['Cache dir'],  main_data['other']['session name'], 'Proteogyver output')
+    """Prepares directory structure and README for data export.
+    
+    Args:
+        _ (int): Number of clicks on download button (unused)
+        main_data (dict): Main data dictionary containing session information
+        
+    Returns:
+        tuple: Contains:
+            - str: Path to created export directory
+            - html.Div: Temporary loading indicator components
+            
+    Notes:
+        - Creates timestamped export directory
+        - Removes existing directory if present
+        - Converts output guide markdown to HTML for README
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M")
+    export_dir: str = os.path.join(*parameters['Data paths']['Cache dir'],  
+                                 main_data['other']['session name'], 
+                                 f'{timestamp} Proteogyver output')
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
@@ -1074,30 +1849,58 @@ def prepare_for_download(_, main_data):
     Output('download_loading_temp1', 'children'),
     Input('download-temp-dir-ready','children'),
     State('input-stores', 'children'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data1(export_dir, stores) -> dict:
+def save_input_stores(export_dir, stores) -> dict:
+    """Saves input data stores to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        stores (list): List of input data stores to save
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Uses infrastructure function to save data stores
+    """
     start = datetime.now()
-    logger.warning(f'received download request data1 at {start}')
+    logger.warning(f'received download request save_input_stores at {start}')
     infra.save_data_stores(stores, export_dir)
-    logger.warning(f'done with download request data1, took {datetime.now()-start}')
-    return 'data1 done', ''
+    logger.warning(f'done with download request save_input_stores, took {datetime.now()-start}')
+    return 'save_input_stores done', ''
 
 @callback(
     Output('download_temp2', 'children'),
     Output('download_loading_temp2', 'children'),
     Input('download-temp-dir-ready','children'),
     State('workflow-stores', 'children'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data2(export_dir, stores) -> dict:
+def save_workflow_stores(export_dir, stores) -> dict:
+    """Saves workflow data stores to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        stores (list): List of workflow data stores to save
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Uses infrastructure function to save data stores
+    """
     start = datetime.now()
-    logger.warning(f'received download request data2 at {start}')
+    logger.warning(f'received download request save_workflow_stores at {start}')
     infra.save_data_stores(stores, export_dir)
-    logger.warning(f'done with download request data2, took {datetime.now()-start}')
-    return 'data2 done', ''
+    logger.warning(f'done with download request save_workflow_stores, took {datetime.now()-start}')
+    return 'save_workflow_stores done', ''
 
 @callback(
     Output('download_temp3', 'children'),
@@ -1107,35 +1910,70 @@ def prepare_data2(export_dir, stores) -> dict:
     State({'type': 'analysis-div', 'id': ALL}, 'id'),
     State({'type': 'data-store', 'name': 'commonality-figure-pdf-data-store'}, 'data'),
     State('workflow-dropdown', 'value'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data3(export_dir, analysis_divs, analysis_div_ids, commonality_pdf_data, workflow) -> dict:
+def save_qc_figures(export_dir, analysis_divs, analysis_div_ids, commonality_pdf_data, workflow) -> dict:
+    """Saves quality control figures to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        analysis_divs (list): List of analysis div elements
+        analysis_div_ids (list): List of analysis div IDs
+        commonality_pdf_data (dict): PDF data for commonality figures
+        workflow (str): Current workflow type
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Handles errors by writing to error file
+        - Uses infrastructure function to save figures
+    """
     start = datetime.now()
-    logger.warning(f'received download request data3 at {start}')
+    logger.warning(f'received download request save_qc_figures at {start}')
     try:
-        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'qc-analysis-area')], export_dir,
-                    figure_output_formats, commonality_pdf_data, workflow)
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'qc-analysis-area')], 
+                          export_dir,
+                          figure_output_formats, 
+                          commonality_pdf_data, 
+                          workflow)
     except Exception as e:
-        with open(os.path.join(export_dir, 'data3_errors'),'w') as fil:
+        with open(os.path.join(export_dir, 'save_qc_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request data3, took {datetime.now()-start}')
-    return 'data3 done', ''
+    logger.warning(f'done with download request save_qc_figures, took {datetime.now()-start}')
+    return 'save_qc_figures done', ''
 
 @callback(
     Output('download_temp4', 'children'),
     Output('download_loading_temp4', 'children'),
     Input('download-temp-dir-ready','children'),
     State({'type': 'input-div', 'id': ALL}, 'children'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data4(export_dir, input_divs) -> dict:
+def save_input_information(export_dir, input_divs) -> dict:
+    """Saves input information to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        input_divs (list): List of input div elements
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Uses infrastructure function to save input information
+    """
     start = datetime.now()
-    logger.warning(f'received download request data4 at {start}')
+    logger.warning(f'received download request save_input_information at {start}')
     infra.save_input_information(input_divs, export_dir)
-    logger.warning(f'done with download request data4, took {datetime.now()-start}')
-    return 'data4 done',''
+    logger.warning(f'done with download request save_input_information, took {datetime.now()-start}')
+    return 'save_input_information done',''
 
 @callback(
     Output('download_temp5', 'children'),
@@ -1144,20 +1982,37 @@ def prepare_data4(export_dir, input_divs) -> dict:
     State({'type': 'analysis-div', 'id': ALL}, 'children'),
     State({'type': 'analysis-div', 'id': ALL}, 'id'),
     State('workflow-dropdown', 'value'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data5(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_interactomics_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    """Saves interactomics analysis figures to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        analysis_divs (list): List of analysis div elements
+        analysis_div_ids (list): List of analysis div IDs
+        workflow (str): Current workflow type
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Handles errors by writing to error file
+        - Uses infrastructure function to save figures
+    """
     start = datetime.now()
-    logger.warning(f'received download request data5 at {start}')
+    logger.warning(f'received download request save_interactomics_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-results-area')], export_dir,
                     figure_output_formats, None, workflow)
     except Exception as e:
-        with open(os.path.join(export_dir, 'data5_errors'),'w') as fil:
+        with open(os.path.join(export_dir, 'save_interactomics_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request data5, took {datetime.now()-start}')
-    return 'data5 done', ''
+    logger.warning(f'done with download request save_interactomics_figures, took {datetime.now()-start}')
+    return 'save_interactomics_figures done', ''
 
 @callback(
     Output('download_temp6', 'children'),
@@ -1166,20 +2021,36 @@ def prepare_data5(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict
     State({'type': 'analysis-div', 'id': ALL}, 'children'),
     State({'type': 'analysis-div', 'id': ALL}, 'id'),
     State('workflow-dropdown', 'value'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data6(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_interactomics_post_saint_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    """Saves post-SAINT interactomics analysis figures to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        analysis_divs (list): List of analysis div elements
+        analysis_div_ids (list): List of analysis div IDs
+        workflow (str): Current workflow type
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Handles errors by writing to error file
+    """
     start = datetime.now()
-    logger.warning(f'received download request data6 at {start}')
+    logger.warning(f'received download request save_interactomics_post_saint_figures at {start}')
     try:
-        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-post-saint-area')], export_dir,
-                    figure_output_formats, None, workflow)
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-post-saint-area')], 
+                          export_dir, figure_output_formats, None, workflow)
     except Exception as e:
-        with open(os.path.join(export_dir, 'data6_errors'),'w') as fil:
+        with open(os.path.join(export_dir, 'save_interactomics_post_saint_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request data6, took {datetime.now()-start}')
-    return 'data6 done', ''
+    logger.warning(f'done with download request save_interactomics_post_saint_figures, took {datetime.now()-start}')
+    return 'save_interactomics_post_saint_figures done', ''
 
 @callback(
     Output('download_temp7', 'children'),
@@ -1188,20 +2059,36 @@ def prepare_data6(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict
     State({'type': 'analysis-div', 'id': ALL}, 'children'),
     State({'type': 'analysis-div', 'id': ALL}, 'id'),
     State('workflow-dropdown', 'value'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data7(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_proteomics_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    """Saves proteomics analysis figures to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        analysis_divs (list): List of analysis div elements
+        analysis_div_ids (list): List of analysis div IDs
+        workflow (str): Current workflow type
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Handles errors by writing to error file
+    """
     start = datetime.now()
-    logger.warning(f'received download request data7 at {start}')
+    logger.warning(f'received download request save_proteomics_figures at {start}')
     try:
-        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'proteomics-analysis-results-area')], export_dir,
-                    figure_output_formats, None, workflow)
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'proteomics-analysis-results-area')], 
+                          export_dir, figure_output_formats, None, workflow)
     except Exception as e:
-        with open(os.path.join(export_dir, 'data7_errors'),'w') as fil:
+        with open(os.path.join(export_dir, 'save_proteomics_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request data7, took {datetime.now()-start}')
-    return 'data7 done', ''
+    logger.warning(f'done with download request save_proteomics_figures, took {datetime.now()-start}')
+    return 'save_proteomics_figures done', ''
 
 @callback(
     Output('download_temp8', 'children'),
@@ -1210,20 +2097,36 @@ def prepare_data7(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict
     State({'type': 'analysis-div', 'id': ALL}, 'children'),
     State({'type': 'analysis-div', 'id': ALL}, 'id'),
     State('workflow-dropdown', 'value'),
-    prevent_initial_call=True,
-    #background=True
+    prevent_initial_call=True
 )
-def prepare_data8(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+def save_phosphoproteomics_figures(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict:
+    """Saves phosphoproteomics analysis figures to export directory.
+    
+    Args:
+        export_dir (str): Path to export directory
+        analysis_divs (list): List of analysis div elements
+        analysis_div_ids (list): List of analysis div IDs
+        workflow (str): Current workflow type
+        
+    Returns:
+        tuple: Contains:
+            - str: Completion message
+            - str: Empty string to clear loading indicator
+            
+    Notes:
+        - Logs start and completion times
+        - Handles errors by writing to error file
+    """
     start = datetime.now()
-    logger.warning(f'received download request data8 at {start}')
+    logger.warning(f'received download request save_phosphoproteomics_figures at {start}')
     try:
-        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'phosphoproteomics-analysis-area')], export_dir,
-                    figure_output_formats, None, workflow)
+        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'phosphoproteomics-analysis-area')], 
+                          export_dir, figure_output_formats, None, workflow)
     except Exception as e:
-        with open(os.path.join(export_dir, 'data8_errors'),'w') as fil:
+        with open(os.path.join(export_dir, 'save_phosphoproteomics_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request data8, took {datetime.now()-start}')
-    return 'data8 done', ''
+    logger.warning(f'done with download request save_phosphoproteomics_figures, took {datetime.now()-start}')
+    return 'save_phosphoproteomics_figures done', ''
 
     
 @callback(
@@ -1238,21 +2141,85 @@ def prepare_data8(export_dir, analysis_divs, analysis_div_ids, workflow) -> dict
     Input('download_temp6', 'children'),
     Input('download_temp7', 'children'),
     Input('download_temp8', 'children'),
-    prevent_initial_call=True,
-    #background=True,
+    prevent_initial_call=True
 )
 def send_data(export_dir, *args) -> dict:
+    """Creates and sends a ZIP archive containing all exported analysis data.
+    
+    Args:
+        export_dir (str): Path to the temporary export directory
+        *args: Variable number of completion status inputs from previous export steps:
+            - download_temp1: Input stores
+            - download_temp2: Workflow stores
+            - download_temp3: QC figures
+            - download_temp4: Input information
+            - download_temp5: Interactomics figures
+            - download_temp6: Post-SAINT figures
+            - download_temp7: Proteomics figures
+            - download_temp8: Phosphoproteomics figures
+        
+    Returns:
+        tuple: Contains:
+            - dict: Download configuration for ZIP file using dcc.send_bytes
+            - str: Updated button text indicating download is ready
+            
+    Notes:
+        - Verifies all export steps are complete by checking for 'done' in status
+        - Creates timestamped ZIP archive containing all exported files
+        - Preserves directory structure relative to export directory
+        - Excludes the ZIP file itself from the archive
+        - Cleans up temporary export directory after ZIP creation
+        - Logs start time and duration of packaging process
+        - Returns no_update if any export step is incomplete
+        - Handles errors with logging and returns no_update on failure
+        
+    Example ZIP structure:
+        timestamp ProteoGyver output.zip/
+        ├── README.html
+        ├── figures/
+        │   ├── qc/
+        │   ├── interactomics/
+        │   ├── proteomics/
+        │   └── phosphoproteomics/
+        ├── data/
+        │   ├── input_stores/
+        │   └── workflow_stores/
+        └── errors/
+            └── *_errors (if any occurred)
+    """
+    # Verify all export steps are complete
     for a in args:
         if not 'done' in a:
             return no_update, no_update
-    start = datetime.now()
+            
+    start = datetime.now()    
+    timestamp = start.strftime("%Y-%m-%d %H-%M")
+    zip_filename = f"{timestamp} ProteoGyver output.zip"
     logger.warning(f'Started packing data at {start}')
-    export_zip_name: str = export_dir.rstrip(os.sep)
-    shutil.make_archive(export_zip_name, 'zip', export_dir)
-    export_zip_name +=  '.zip'
-    logger.warning(f'done packing data, took {datetime.now()-start}')
-    return dcc.send_file(export_zip_name), 'Download all data'
+    
+    try:
+        # Create ZIP archive
+        with zipfile.ZipFile(os.path.join(export_dir, zip_filename), 'w') as zipf:
+            for root, dirs, files in os.walk(export_dir):
+                for file in files:
+                    if file != zip_filename:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, export_dir)
+                        zipf.write(file_path, arcname)
+        logger.warning(f'done packing data, took {datetime.now()-start}')
+        
+        # Read ZIP file and encode for download
+        with open(os.path.join(export_dir, zip_filename), 'rb') as f:
+            zip_data = f.read()
+        
+        # Clean up temporary files
+        shutil.rmtree(export_dir)
+    
+    except Exception as e:
+        logger.error(f"Error creating download package: {str(e)}")
+        return no_update, no_update
 
+    return dcc.send_bytes(zip_data, zip_filename), 'Download all data'
 ##################################
 ##    End of export section     ##
 ##################################

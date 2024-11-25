@@ -144,7 +144,7 @@ def upload_area(id_text, upload_id, indicator=True) -> html.Div:
 
 def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Div:
     return html.Div(
-        [
+        children = [
             html.H2(children='▼ Input', id='input-header', style={'textAlign': 'left'}),
             dbc.Collapse([
                 dbc.Button(
@@ -159,23 +159,27 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
                     id='button-download-datafile-example',
                     className='btn-info',
                 ),
-                html.H4('Upload files:'),
+                html.Label('Upload files:'),
                 upload_area('upload-data-file', 'Data file'),
                 upload_area('upload-sample_table-file', 'Sample table'),
-                html.Div([
+                html.Div(
+                    [
+                        html.Label('Options:'),
                         dcc.Checklist(
                             id='sidebar-options',
                             options=['Remove common contaminants', 'Rename replicates', 'Use unique proteins only (remove protein groups)'], value=['Remove common contaminants'],
                         )
-                    ],style={'display': 'inline-block'}),
-                html.H4('Select workflow:'),
+                    ],
+                    style={'display': 'inline-block'}
+                ),
+                html.Label('Select workflow:'),
                 dbc.Select(
                     options=[
                         {'label': item, 'value': item} for item in implemented_workflows
                     ],
                     id='workflow-dropdown',
                 ),
-                html.H4('Select figure style:'),
+                html.Label('Select figure style:'),
                 dbc.Select(
                     value=figure_templates[0],
                     options=[
@@ -221,6 +225,7 @@ def main_sidebar(figure_templates: list, implemented_workflows: list) -> html.Di
             dcc.Download(id='download-all-data')
         ],
         className='card text-white bg-primary mb-3',
+        id={'type': 'input-div','id': 'sidebar-input'},
         style=SIDEBAR_STYLE
     )
 
@@ -607,7 +612,7 @@ def interactomics_input_card(parameters: dict, data_dictionary: dict) -> html.Di
                                         checklist(
                                             'Nearest control filtering',
                                             ['Select'],
-                                            [''],
+                                            [],
                                             id_only=True,
                                             id_prefix='interactomics',
                                             style_override={
