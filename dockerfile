@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 USER root
 RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
+    apt-get -yq dist-upgrade
 RUN apt-get install -yq locales
 
 ENV PATH="/root/miniconda3/bin:${PATH}"
