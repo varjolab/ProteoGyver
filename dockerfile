@@ -14,7 +14,6 @@ RUN mkdir -p /proteogyver/data/Server_output/stats
 WORKDIR /
 # Create mounts for the data
 COPY docker_entrypoint.sh /
-COPY app/update.sh /update.sh
 COPY app /proteogyver
 COPY docker_entrypoint.sh /docker_entrypoint.sh
 COPY jupyterhub.py /etc/jupyterhub/
