@@ -1,5 +1,10 @@
 FROM ubuntu:24.04
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
+USER root
+RUN apt-get update && \
+    apt-get -yq dist-upgrade && \
+RUN apt-get install -yq locales
+
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
 # Configure locale to avoid runtime errors
@@ -13,15 +18,12 @@ ENV LANGUAGE="en_US:en"
 ENV R_BASE_VERSION="3.6.1"
 ENV DEBIAN_FRONTEND="noninteractive"
 
-USER root
-RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
-    apt-get install -yq \
+RUN apt-get install -yq \
     software-properties-common dirmngr wget xz-utils cron
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 
-RUN apt-get install -yq apt-utils software-properties-common locales \
+RUN apt-get install -yq apt-utils software-properties-common  \
     git python3 python3-pip nodejs npm  \
     dos2unix ca-certificates nano postgresql \
     littler gnupg \
