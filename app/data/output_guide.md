@@ -1,3 +1,4 @@
+# Proteogyver QC and preliminary analysis output guide
 ## Description of output files
 Output consists of files in the zip base directory, as well as several subdirectories. For figures, Html format retains figure legends, and the functionalities to zoom figures, see only specific sample groups etc. For examining and discussing Html format is recommended, while pdf is typically best for publication. Png can be used e.g. for presentations or, in the worst case, publication.
 

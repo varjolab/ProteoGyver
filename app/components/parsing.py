@@ -538,7 +538,6 @@ def guess_controls(sample_groups: Dict[str, List[str]], ctrl_indicators: List[st
     for group_name, samples in sample_groups['norm'].items():
         might_be_control: bool = False
         for ctrl_ind in ctrl_indicators:
-            print(group_name, ctrl_ind)
             if ctrl_ind in group_name.lower():
                 might_be_control = True
                 break

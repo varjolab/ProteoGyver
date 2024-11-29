@@ -90,7 +90,7 @@ def count_knowns(saint_output: pd.DataFrame,
 
 
 def do_network(saint_output_json: str, 
-              plot_height: int) -> Tuple[html.Div, List[Dict[str, Any]], List[Dict[str, Any]]]:
+              plot_height: int) -> Tuple[html.Div, List[Dict[str, Any]], Dict[str, Any]]:
     """Creates a network plot from filtered SAINT output data.
 
     Converts JSON-formatted SAINT output into a network visualization using Cytoscape.
@@ -120,10 +120,12 @@ def do_network(saint_output_json: str,
     return (plot_container, cyto_elements, interactions)
 
 
-def network_display_data(node_data: Dict[str, List[Dict[str, str]]], 
-                        int_data: Dict[str, Dict[str, List[Any]]], 
-                        table_height: int, 
-                        datatype: str = 'Cytoscape') -> List[Union[html.Label, dash_table.DataTable]]:
+def network_display_data(
+    node_data: dict[str, list[dict]], 
+    int_data: dict[str, dict[str, list[str|float]]], 
+    table_height: int, 
+    datatype: str = 'Cytoscape'
+) -> list[html.Label | dash_table.DataTable]:
     """Creates a table displaying the connections between nodes in the network plot.
 
     Processes network node and interaction data into a tabular format for display.
@@ -156,7 +158,7 @@ def network_display_data(node_data: Dict[str, List[Dict[str, str]]],
     ret = [['Bait','Prey', 'PreyGene','AvgSpec']]
     if datatype == 'Cytoscape':
         for e in node_data['edgesData']: 
-            ret.append([e['source'], e["target"]])
+            ret.append([e['source'], e['target']])
             ret[-1].extend(int_data[e['source']][e['target']])
     elif datatype == 'visdcc':
         for e in node_data['edges']:
@@ -642,7 +644,6 @@ def saint_cmd(saint_input: Dict[str, List[List[str]]],
         baitfile.flush()
         preyfile.flush()
         intfile.flush()
-        
         print(f'running saint in {temp_dir}, {intfile.name} {preyfile.name} {baitfile.name}: {datetime.now()}')
         sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
     return temp_dir
@@ -948,10 +949,12 @@ def do_ms_microscopy(saint_output_json: str,
         StringIO(saint_output_json), orient='split'
     )
     db_conn = db_functions.create_connection(db_file)
+    print(db_file)
     msmic_reference = db_functions.get_full_table_as_pd(
         db_conn, 'msmicroscopy', index_col='Interaction'
     )
-    db_conn.close()
+    print('GOT DB')
+    db_conn.close() # type: ignore
     msmic_results: pd.DataFrame = ms_microscopy.generate_msmic_dataframes(saint_output, msmic_reference, )
 
     polar_plots: list = [

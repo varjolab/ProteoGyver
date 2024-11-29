@@ -46,8 +46,14 @@ def generate_msmic_dataframes(saint_data:pd.DataFrame, reference_data: pd.DataFr
             data_rows_sum[-1].append(loc_sum)
     #bd_max = pd.DataFrame(index=index,columns=cols,data=data_rows)
     bd_sum = pd.DataFrame(index=index,columns=cols,data=data_rows_sum).fillna(0)
+    import os
+    bd_sum.to_csv(os.path.join('debugging','bd_sum.csv'))
+    saint_data.to_csv(os.path.join('debugging','saint_data.csv'))
+    reference_data.to_csv(os.path.join('debugging','reference_data.csv'))
     #bd_max = bd_max.div(bd_max.max(axis=1),axis=0)*plot_max
     bd_sum = bd_sum.div(bd_sum.max(axis=1),axis=0)*plot_max
+    bd_sum.fillna(0,inplace=True)
+    #bd_max.fillna(0,inplace=True)
     #bd_max = bd_max.apply(round).astype(int)
     bd_sum = bd_sum.apply(round).astype(int)
 

@@ -109,7 +109,7 @@ def replace_special_characters(
     return ret
 
 def replace_accent_and_special_characters(
-    text: str,
+    text: str, # type: ignore
     replacewith: str = '.',
     replacement_dict: Optional[Dict[str, str]] = None
 ) -> str:

@@ -1490,7 +1490,7 @@ def interactomics_initiate_post_saint(_: Optional[int]) -> html.Div:
     Returns:
         html.Div: Container component for post-SAINT analysis interface
     """
-    return ui.post_saint_cointainer()
+    return ui.post_saint_container()
 
 @callback(
     Output({'type': 'data-store',
