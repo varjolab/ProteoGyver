@@ -2,7 +2,7 @@
 
 # Start dash app
 cd /proteogyver
-conda activate proteogyver
+source activate proteogyver
 redis-cli shutdown
 killall celery
 redis-server --daemonize yes
