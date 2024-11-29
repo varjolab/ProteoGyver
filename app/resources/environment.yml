@@ -1,4 +1,4 @@
-name: /home/kmsaloka/Data/WIP_inprogress/2024_ProteoGyver/Development/.conda
+name: proteogyver
 channels:
   - conda-forge
   - defaults
