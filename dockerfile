@@ -1,8 +1,52 @@
-FROM pgbase:1.3
+FROM ubuntu:24.04
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
+ENV PATH="/root/miniconda3/bin:${PATH}"
+ARG PATH="/root/miniconda3/bin:${PATH}"
+# Configure locale to avoid runtime errors
+RUN locale-gen en_US.UTF-8 && \
+    update-locale LANG=en_US.UTF-8
 
-# First steps
+ENV LC_CTYPE en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV R_BASE_VERSION 3.6.1
+ENV DEBIAN_FRONTEND noninteractive
+
 USER root
+RUN apt-get update && \
+    apt-get -yq dist-upgrade && \
+    apt-get install -yq \
+    software-properties-common dirmngr wget xz-utils cron
+RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+
+RUN apt-get install -yq apt-utils software-properties-common locales \
+    git python3 python3-pip nodejs npm  \
+    dos2unix ca-certificates nano postgresql \
+    littler gnupg \
+    r-cran-littler \
+    r-base \
+    r-base-dev \
+    r-recommended \
+    redis psmisc
+RUN wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc
+RUN echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" > /etc/apt/sources.list.d/cranapt.list
+RUN apt-get update -qq
+RUN npm install -g configurable-http-proxy
+RUN apt-get -y install libcurl4-gnutls-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+
+RUN echo "Package: *" > /etc/apt/preferences.d/99cranapt
+RUN echo "Pin: release o=CRAN-Apt Project" >> /etc/apt/preferences.d/99cranapt
+RUN echo "Pin: release l=CRAN-Apt Packages" >> /etc/apt/preferences.d/99cranapt
+RUN echo "Pin-Priority: 700"  >> /etc/apt/preferences.d/99cranapt
+
+## Then install bspm (as root) and enable it, and enable a speed optimization
+RUN Rscript -e 'install.packages("bspm")'
+RUN RHOME=$(R RHOME)
+RUN echo "suppressMessages(bspm::enable())" >> ${RHOME}/etc/Rprofile.site
+RUN echo "options(bspm.version.check=FALSE)" >> ${RHOME}/etc/Rprofile.site
+RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"))' >> /etc/R/Rprofile.site
 
 RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/MS_rundata
@@ -12,7 +56,6 @@ RUN mkdir -p /proteogyver/data/unparsed_stats
 RUN mkdir -p /proteogyver/data/Server_output/stats
 
 WORKDIR /
-# Create mounts for the data
 COPY app /proteogyver
 COPY jupyterhub.py /etc/jupyterhub/
 COPY nm_pack.py /nm_pack.py
@@ -29,8 +72,6 @@ RUN chmod 0644 /etc/cron.d/cron_maintenance_jobs
 RUN touch /var/log/cron.log
 RUN crontab /etc/cron.d/cron_maintenance_jobs
 
-
-# Unpack database
 RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
 
 WORKDIR /proteogyver
@@ -40,29 +81,13 @@ RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json
 # This will fix a bug in the 0.6 version of dash_uploader. It's a very crude method, but it works for this application.
 RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
 
-
-# Install miniconda and create conda environment
-
-ENV PATH="/root/miniconda3/bin:${PATH}"
-ARG PATH="/root/miniconda3/bin:${PATH}"
-
-
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
     mkdir -p /root/.conda && \
     bash miniconda.sh -b -p /root/miniconda3 && \
     rm -f miniconda.sh
-
-
-    # Python installs
 WORKDIR /proteogyver
-#RUN pip3 install --upgrade pip
-#RUN pip3 install --ignore-installed -r requirements.txt
-#ENV PATH="/opt/conda/bin:${PATH}"
-
-# Create and activate conda environment from yml file
 RUN conda env create -f resources/environment.yml
 RUN conda clean -afy
-#SHELL ["/bin/bash", "-c"]
 RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate proteogyver" >> ~/.bashrc
 
