@@ -13,9 +13,7 @@ RUN mkdir -p /proteogyver/data/Server_output/stats
 
 WORKDIR /
 # Create mounts for the data
-COPY docker_entrypoint.sh /
 COPY app /proteogyver
-COPY docker_entrypoint.sh /docker_entrypoint.sh
 COPY jupyterhub.py /etc/jupyterhub/
 COPY nm_pack.py /nm_pack.py
 
@@ -42,23 +40,36 @@ RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json
 # This will fix a bug in the 0.6 version of dash_uploader. It's a very crude method, but it works for this application.
 RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
 
+
+# Install miniconda and create conda environment
+
+ENV PATH="/root/miniconda3/bin:${PATH}"
+ARG PATH="/root/miniconda3/bin:${PATH}"
+
+# Install Miniconda on x86 or ARM platforms
+RUN arch=$(uname -m) && \
+    MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"; && \
+    wget $MINICONDA_URL -O miniconda.sh && \
+    mkdir -p /root/.conda && \
+    bash miniconda.sh -b -p /root/miniconda3 && \
+    rm -f miniconda.sh
 # Python installs
-WORKDIR /proteogyver/resources
+WORKDIR /proteogyver
 #RUN pip3 install --upgrade pip
 #RUN pip3 install --ignore-installed -r requirements.txt
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
-    bash miniconda.sh -b -p /opt/conda && \
-    rm miniconda.sh
-ENV PATH="/opt/conda/bin:${PATH}"
+#RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
+#    bash miniconda.sh -b -p /opt/conda && \
+#    rm miniconda.sh
+#ENV PATH="/opt/conda/bin:${PATH}"
 
 # Create and activate conda environment from yml file
-RUN conda env create -f environment.yml && \
-    conda clean -afy
-SHELL ["/bin/bash", "-c"]
+RUN conda env create -f resources/environment.yml
+RUN conda clean -afy
+#SHELL ["/bin/bash", "-c"]
 RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate proteogyver" >> ~/.bashrc
 
-# Expose ports (jupyterHub. dash), jupyterhub not in use right now.
+COPY docker_entrypoint.sh /docker_entrypoint.sh
+RUN chmod +x /docker_entrypoint.sh
 EXPOSE 8090 8050
-# Finished.
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
