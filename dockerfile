@@ -96,5 +96,10 @@ RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
 COPY docker_entrypoint.sh /docker_entrypoint.sh
 RUN chmod +x /docker_entrypoint.sh
 EXPOSE 8090 8050
+
+
+RUN echo "source activate proteogyver" >> ~/.bashrc
+ENV PATH /opt/conda/envs/proteogyver/bin:$PATH
+
 ENTRYPOINT ["/docker_entrypoint.sh"]
 
