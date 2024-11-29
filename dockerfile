@@ -3,8 +3,8 @@ LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
 # Configure locale to avoid runtime errors
-RUN locale-gen en_US.UTF-8 && \
-    update-locale LANG=en_US.UTF-8
+RUN locale-gen en_US.UTF-8
+RUN update-locale LANG=en_US.UTF-8
 
 ENV LC_CTYPE="en_US.UTF-8"
 ENV LC_ALL="en_US.UTF-8"
