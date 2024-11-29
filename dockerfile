@@ -34,18 +34,31 @@ RUN crontab /etc/cron.d/cron_maintenance_jobs
 
 # Unpack database
 RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
-# Python installs
-WORKDIR /proteogyver/resources
-RUN pip3 install --upgrade pip
-RUN pip3 install --ignore-installed -r requirements.txt
+
 WORKDIR /proteogyver
 RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.json  
 RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json  
 
 # This will fix a bug in the 0.6 version of dash_uploader. It's a very crude method, but it works for this application.
 RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
-# Expose ports (jupyterHub. dash)
-EXPOSE 8090 8050
 
+# Python installs
+WORKDIR /proteogyver/resources
+#RUN pip3 install --upgrade pip
+#RUN pip3 install --ignore-installed -r requirements.txt
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
+    bash miniconda.sh -b -p /opt/conda && \
+    rm miniconda.sh
+ENV PATH="/opt/conda/bin:${PATH}"
+
+# Create and activate conda environment from yml file
+RUN conda env create -f environment.yml && \
+    conda clean -afy
+SHELL ["/bin/bash", "-c"]
+RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    echo "conda activate proteogyver" >> ~/.bashrc
+
+# Expose ports (jupyterHub. dash), jupyterhub not in use right now.
+EXPOSE 8090 8050
 # Finished.
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]

@@ -1,9 +1,8 @@
-version: "3"
 name: proteogyver
 services:
   pgyver_testing:
-    image: pgyver:1.45
-    container_name: pgtest145
+    image: pgyver:1.46
+    container_name: pgtest146
     ports:
       - 8060:8050
     environment:
