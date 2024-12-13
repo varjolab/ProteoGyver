@@ -36,8 +36,8 @@ def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict,
     zmi: int = 0
     if autorange:
         zmi = matrix_df.min().min()
-        zmi = zmi = zmi*0.1
-        zmi = -ceil(abs(zmi))
+        zmi = zmi - zmi*0.1
+    #    zmi = -ceil(abs(zmi))
     zma: int = matrix_df.max().max()
     if cluster is not None:
         matrix_df = matrix_functions.hierarchical_clustering(matrix_df,cluster=cluster)

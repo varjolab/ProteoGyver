@@ -1,5 +1,3 @@
-version: "3"
-name: proteogyver
 services:
   pgyver_testing:
     image: pgyver:1.46

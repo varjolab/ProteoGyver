@@ -9,6 +9,6 @@ redis-cli shutdown
 killall celery
 redis-server --daemonize yes
 celery -A app.celery_app worker --loglevel DEBUG --logfile ./logs/$(date +"%Y-%m-%d")_celery.log &
-sleep 10
+sleep 2
 echo "Starting app.py"
 python app.py 

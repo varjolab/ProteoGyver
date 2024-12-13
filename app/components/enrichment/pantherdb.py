@@ -178,7 +178,7 @@ class handler():
     def get_default_panel(self) -> list:
         return self._defaults
 
-    def enrich(self, parameters,data_lists: list, options: str) -> list:
+    def enrich(self, parameters,data_lists: list, options: str, filter_out_negative: bool = True) -> list:
         """
         """
         if options == 'defaults':
@@ -194,6 +194,8 @@ class handler():
             for data_type_key, result in self.run_panther_overrepresentation_analysis(datasets, preylist, bait).items():
                 results_df: pd.DataFrame = result['Results']
                 results_df.insert(1, 'Bait', bait)
+                if filter_out_negative:
+                    results_df = results_df[results_df['fold_enrichment'] > 0]
                 if data_type_key not in results:
                     results[data_type_key] = []
                     legends[data_type_key] = []
@@ -304,9 +306,13 @@ class handler():
                     reference_string += f'{key}: {value}\n'
             reference_string += '-----\n'
             if 'unmapped_id' in req_json['results']['input_list']:
+                if isinstance(req_json["results"]["input_list"]["unmapped_id"],str):
+                    unmapped_ids = [req_json["results"]["input_list"]["unmapped_id"]]
+                else:
+                    unmapped_ids = req_json["results"]["input_list"]["unmapped_id"]
                 reference_string += (
                     f'Unmapped IDs: '
-                    f'{", ".join(req_json["results"]["input_list"]["unmapped_id"])}\n'
+                    f'{", ".join(unmapped_ids)}\n'
                 )
             reference_string += '-----\n'
             reference_string += (

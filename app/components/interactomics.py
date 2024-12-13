@@ -432,7 +432,8 @@ def enrich(parameters: Dict[str, Any],
                 f'interactomics-enrichment-{enrichment_names[i]}',
                 rescol.replace('_', ' '),
                 figure_defaults,
-                cmap = 'dense'
+                cmap = 'dense',
+                symmetrical = False
             )
 
         table_label: str = f'{enrichment_names[i]} data table'
@@ -742,7 +743,7 @@ def prepare_controls(input_data_dict: Dict[str, Any],
         additional_controls: List of additional control names from database
         db_conn: SQLite database connection
         select_most_similar_only: If True, selects most similar controls
-        top_n: Number of top controls to keep when proximity filtering
+        top_n: Number of top controls to keep when similarity filtering
 
     Returns:
         tuple: (
@@ -771,7 +772,7 @@ def prepare_controls(input_data_dict: Dict[str, Any],
     if (len(controls) > 0) and select_most_similar_only:
         # groupby to merge possible duplicate columns that are annotated in multiple sets
         # mean grouping should have no effect, since PSM values SHOULD be the same in any case.
-        control_table = filter_controls(spc_table, controls, top_n)
+        control_table = filter_controls_by_similarity(spc_table, controls, top_n)
         controls = [control_table]
     control_cols: list = []
     for cg in uploaded_controls:
@@ -788,7 +789,7 @@ def prepare_controls(input_data_dict: Dict[str, Any],
 
     return (spc_table, control_table)
 
-def filter_controls(spc_table: pd.DataFrame, 
+def filter_controls_by_similarity(spc_table: pd.DataFrame, 
                    controls: List[pd.DataFrame], 
                    top_n: int) -> pd.DataFrame:
     """Filters controls based on similarity to sample runs.
@@ -808,9 +809,12 @@ def filter_controls(spc_table: pd.DataFrame,
         >>> filtered_controls = filter_controls(samples_df, [control1_df, control2_df], 30)
     """
     control_table: pd.DataFrame = pd.concat(controls, axis=1).T.groupby(level=0).mean().T
-    controls_ranked_by_similarity: list = matrix_functions.ranked_dist(
-        spc_table, control_table)
-    control_table = control_table[[s[0] for s in controls_ranked_by_similarity[:top_n]]]
+    chosen_controls: list = []
+    for c in spc_table.columns:
+        controls_ranked_by_similarity: list = matrix_functions.ranked_dist(
+            spc_table[[c]], control_table)
+        chosen_controls.extend([s[0] for s in controls_ranked_by_similarity[:top_n]])
+    control_table = control_table[list(set(chosen_controls))]
     return control_table
 
 def add_crapome(saint_output_json: str, 
@@ -949,11 +953,9 @@ def do_ms_microscopy(saint_output_json: str,
         StringIO(saint_output_json), orient='split'
     )
     db_conn = db_functions.create_connection(db_file)
-    print(db_file)
     msmic_reference = db_functions.get_full_table_as_pd(
         db_conn, 'msmicroscopy', index_col='Interaction'
     )
-    print('GOT DB')
     db_conn.close() # type: ignore
     msmic_results: pd.DataFrame = ms_microscopy.generate_msmic_dataframes(saint_output, msmic_reference, )
 
@@ -1037,7 +1039,7 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
         crapomes: List of CRAPome datasets to use for filtering
         db_file: Path to the SQLite database file
         select_most_similar_only: If True, selects most similar controls
-        n_controls: Number of controls to keep when proximity filtering
+        n_controls: Number of controls to keep when similarity filtering
 
     Returns:
         tuple: (

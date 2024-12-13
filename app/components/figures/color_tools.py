@@ -37,7 +37,9 @@ def darken(color: str, percent: int) -> str:
     tp, col_ints = color.split('(')
     col_ints = [int(x) for x in col_ints.split(')')[0].split(',')]
     multiplier: float = ((100-percent)/100)
-    col_ints = [str(int(c*multiplier)) for c in col_ints]
+    col_ints = [str(max(0,int(c*multiplier))) for c in col_ints]
+    if len(col_ints) == 4: # Make sure alpha is not 0 (=invisible)
+        col_ints[-1] = '1'
     return f'{tp}({",".join(col_ints)})'
 
 def get_cut_colors(colormapname: str = 'gist_ncar', number_of_colors: int = 15,

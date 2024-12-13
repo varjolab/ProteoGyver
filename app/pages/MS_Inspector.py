@@ -225,9 +225,8 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     datatype = datatype.lower()
     ticlist.sort()
     next_offset: int = 0
-    #tic_index = tic_index - prev_btn_nclicks + next_btn_nclicks
     if ctx.triggered_id == 'reset-animation-button':
-        tic_index = 0# + prev_btn_nclicks - next_btn_nclicks
+        tic_index = 0
     elif ctx.triggered_id == 'prev-btn':
         tic_index -= 1
     elif ctx.triggered_id == 'next-btn':
@@ -241,8 +240,8 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     elif tic_index > (len(ticlist)-1):
         tic_index = 0
     if return_tic_index >= len(ticlist):
-        return_tic_index = 0# + prev_btn_nclicks - next_btn_nclicks
-    these_tics: list = [traces[t] for t in ticlist][:tic_index+1]
+        return_tic_index = 0
+    these_tics: list = [traces[str(t)] for t in ticlist][:tic_index+1]
     these_tics = these_tics[-num_of_traces_visible:]
     tic_figure: go.Figure = go.Figure()
     these_tics = these_tics[:num_of_traces_visible]
@@ -257,7 +256,6 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     max_intensity_graph_max_y += max_intensity_graph_max_y/20
     mean_intensity_graph_max_y += mean_intensity_graph_max_y/20
     data_to_use = data_to_use.head(tic_index+1).copy()
-
 
     data_to_use['Run index'] = list(range(data_to_use.shape[0]))
     auc_figure: go.Figure = go.Figure(
@@ -330,8 +328,6 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
         #paper_bgcolor= 'rgba(0, 0, 0, 0)',
         margin=dict(l=5, r=5, t=20, b=5)
     )
-
-
     return tic_figure, auc_figure, mean_intensity_figure, max_intensity, return_tic_index
 
 def sort_dates(date1, date2):
@@ -397,6 +393,7 @@ def update_run_choices(_, start, end, sample_types, run_id_list, button_text) ->
     Returns:
         list: Contains [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks]
     """
+    print(run_id_list)
     if (run_id_list is None ) or (run_id_list.strip() == ''):
         start:str
         end: str

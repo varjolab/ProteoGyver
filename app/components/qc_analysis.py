@@ -55,7 +55,7 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
         f'count_plot - graph drawn: {datetime.now() }')
     return (graph_div, count_data.to_json(orient='split'))
 
-def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additional_groups: dict = None) -> tuple:
+def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additional_groups: dict = None, id_str: str = 'qc') -> tuple:
     table: DataFrame = pd_read_json(StringIO(data_table),orient='split')
     db_conn = db_functions.create_connection(db_file)
     common_proteins: DataFrame = db_functions.get_from_table_by_list_criteria(db_conn, 'common_proteins','uniprot_id',list(table.index))
@@ -103,12 +103,12 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
     
     return (
         html.Div(
-            id='qc-common-proteins-plot',
+            id=f'{id_str}-common-proteins-plot',
             children=[
-                html.H4(id='qc-common-proteins-header',
-                        children='Common proteins in data'),
+                html.H4(id=f'{id_str}-common-proteins-header',
+                        children=f'Common proteins in data ({id_str})'),
                 bar_graph.make_graph(
-                    'qc-common-proteins-graph',
+                    f'{id_str}-common-proteins-graph',
                     figure_defaults,
                     plot_frame,
                     '', color_col='Protein class',y_name='ValueSum', x_name='Sample name'
@@ -124,7 +124,13 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
 def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,defaults: dict) -> tuple:
     expdesign = pd_read_json(StringIO(expdesign_json),orient='split')
     expdesign['color'] = [replicate_colors['samples'][rep_name] for rep_name in expdesign['Sample name']]
-    expdesign['Sampleid'] = [s.split('_')[0] for s in expdesign['Sample name']]
+    sam_ids = []
+    for _, row in expdesign.iterrows():
+        if not '_Tomppa' in row['Sample name']:
+            sam_ids.append(row['Sample name'].split('_')[0])
+        else:
+            sam_ids.append(row['Sample name'].split('_Tomppa')[0]+'_Tomppa')
+    expdesign['Sampleid'] = sam_ids
     db_conn = db_functions.create_connection(db_file)
     ms_runs = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_runs','run_id',expdesign['Sampleid'].values)
     db_conn.close()
@@ -136,7 +142,7 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
         max_y: float = 1.0
         for _,row in ms_runs.iterrows():
             sample_row = expdesign[expdesign['Sampleid']==row['run_id']].iloc[0]
-            trace = json.loads(row[f'{trace_type}_trace'])
+            trace = json.loads(row[f'{trace_type}_trace_smooth6'])
             max_x = max(max_x, max(trace['x']))
             max_y = max(max_y, max(trace['y']))
             trace['line'] = {'color': sample_row['color'], 'width': 1}

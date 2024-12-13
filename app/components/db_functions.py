@@ -17,6 +17,14 @@ def dump_full_database_to_csv(database_file, output_directory) -> None:
     cursor.close()
     conn.close()
 
+def list_tables(database_file) -> list[str]:
+    conn = sqlite3.connect(database_file)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cursor.fetchall()
+    conn.close()
+    return [table[0] for table in tables]
+
 def add_column(db_conn, tablename, colname, coltype):
     sql_str: str = f"""
         ALTER TABLE {tablename} 
@@ -146,3 +154,12 @@ def get_contaminants(db_file: str, protein_list:list = None, error_file: str = N
     ]
     conn.close()
     return ret_list
+
+def drop_table(conn:sqlite3.Connection, table_name: str) -> None:
+    """Drop a table from the database.
+    :param conn: database connection
+    :param table_name: name of the table to drop
+    """
+    sql_str: str = f'DROP TABLE IF EXISTS {table_name}'
+    conn.cursor().execute(sql_str)
+

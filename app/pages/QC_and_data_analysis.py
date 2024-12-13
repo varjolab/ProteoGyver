@@ -496,7 +496,8 @@ def common_proteins_plot(
         parameters['Figure defaults']['full-height'],
         additional_groups = {
             'Other contaminants': contaminant_list
-        }
+        },
+        id_str = 'qc'
     )
 
 @callback(
@@ -1581,7 +1582,8 @@ def interactomics_common_proteins_plot(
         parameters['Figure defaults']['full-height'],
         additional_groups = {
             'Other contaminants': contaminant_list
-        }
+        },
+        id_str='interactomics'
     )
 
 @callback(
@@ -1970,9 +1972,33 @@ def prepare_for_download(
     os.makedirs(export_dir)
     with open(os.path.join('data','output_guide.md')) as fil:
         text: str = fil.read()
-        html_content: str = markdown.markdown(text)
+        html_content: str = markdown.markdown(text, extensions=['markdown.extensions.nl2br', 'markdown.extensions.sane_lists'])
     with open(os.path.join(export_dir, 'README.html'),'w',encoding='utf-8') as fil:
-        fil.write(html_content)
+        html_template = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    margin: 40px;
+                }}
+                ul, ol {{
+                    padding-left: 20px;
+                    margin-bottom: 20px;
+                }}
+                li {{
+                    margin-bottom: 8px;
+                }}
+            </style>
+        </head>
+        <body>
+        {html_content}
+        </body>
+        </html>
+        """
+        fil.write(html_template)
     return export_dir, infra.temporary_download_button_loading_divs()
 
 @callback(

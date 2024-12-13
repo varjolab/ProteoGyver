@@ -57,7 +57,6 @@ def handle_timsfile(root, run_name, errorfile):
     timsfile = os.path.join(root, run_name)
     alphatims_file = alphatims.bruker.TimsTOF(timsfile,drop_polarity=False,convert_polarity_to_int=True)
     data = {}
-    start = datetime.now()
     basedf = alphatims_file.frames.query('MsMsType == 8') # ddapasef
     data['DataType'] = 'DDAPASEF'
     msname = 'Timppa'
@@ -115,7 +114,6 @@ def handle_timsfile(root, run_name, errorfile):
         sers['bpc filtered df'] = pser.to_dict()
         
         sdata = {}
-        start = datetime.now()
         i = -10
         for _, row in basedf[basedf['Polarity']==polarity].iterrows():
             if row['Time'] > i:
@@ -129,7 +127,6 @@ def handle_timsfile(root, run_name, errorfile):
         sers['bpc unfiltered df'] = pser.to_dict()
         
         sdata = {}
-        start = datetime.now()
         i = -10
         for _, row in basedf2[basedf2['Polarity']==polarity].iterrows():
             if row['Time'] > i:

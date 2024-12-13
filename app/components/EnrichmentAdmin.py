@@ -97,9 +97,9 @@ class EnrichmentAdmin:
             except Exception as e:
                 #TODO move to logging module
                 print(f'Error in enrichment {api}: {e}')
-                result_names = ['DAVID']
-                return_dataframes = [pd.DataFrame()]
-                done_information = ['DAVID enrichment failed.']
+                result_names = ['Error']
+                return_dataframes = ['','','',pd.DataFrame()]
+                done_information = ['Enrichment failed.']
                 continue
             enrichment_results.extend(return_dataframes)
             enrichment_names.extend(result_names)

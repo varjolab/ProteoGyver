@@ -1,6 +1,5 @@
 """Infrastructure components for Proteogyver"""
 
-from uu import Error
 from dash import dcc, html
 import os
 from plotly import io as pio
@@ -32,7 +31,7 @@ data_store_export_configuration: dict = {
     'replicate-colors-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
     'discard-samples-data-store': ['json', 'Debug', '', ''],
-    'commonality-data-store': ['txt', 'Data', 'Commonality proteins', ''],
+    'commonality-data-store': ['txt', 'Data', 'Shared proteins', ''],
     'reproducibility-data-store': ['json', 'Data', 'Reproducibility data', ''],
     
     'uploaded-sample-table-data-store': ['tsv', 'Data', ['Input data tables', 'Uploaded expdesign'],'noindex'],
@@ -91,7 +90,8 @@ figure_export_directories: dict = {
     'Missing value filtering': 'Proteomics figures',
     'Coefficients of variation': 'Proteomics figures',
     'High-confidence interactions and identified known interactions': 'Interactomics figures',
-    'Common proteins in data': ';REP:WORKFLOW; figures',
+    'Common proteins in data (qc)': 'QC figures',
+    'Common proteins in data (interactomics)': 'Interactomics figures',
     'Intensity of proteins with missing values in other samples': 'Proteomics figures',
     'Normalization': 'Proteomics figures',
     'PCA': 'Proteomics figures',
@@ -143,7 +143,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
             elif export_format == 'txt':
                 if file_config == 'enrich-split':
                     for enrichment_name, file_contents in d['props']['data']:
-                        with open(os.path.join(export_destination, f'{file_name} {enrichment_name}.{export_format}'), 'w', encoding='utf-8') as fil:
+                        with open(os.path.join(export_destination, 'Enrichment',f'{file_name} {enrichment_name}.{export_format}'), 'w', encoding='utf-8') as fil:
                             fil.write(file_contents)
                 elif file_config == 'input-file':
                     with open(os.path.join(export_destination, f'{file_name}.{export_format}'),'w',encoding='utf-8') as fil:
@@ -151,9 +151,10 @@ def save_data_stores(data_stores, export_dir) -> dict:
                             fil.write('\n'.join([
                                 f'File modified timestamp: {d["props"]["data"]["Modified time"]}',
                                 f'File name: {d["props"]["data"]["File name"]}',
-                                f'Data type: {d["props"]["data"]["Data type"][0]}',
-                                f'Data source guess {d["props"]["data"]["Data type"][1]}'
+                                f'Data type: {d["props"]["data"]["Data type"]}',
                             ]))
+                            if 'Data source guess' in d['props']['data']:
+                                fil.write(f'\nData source guess: {d["props"]["data"]["Data source guess"]}\n')
                         if file_name == 'Sample table':
                             fil.write('\n'.join([
                                 f'File modified timestamp: {d["props"]["data"]["Modified time"]}',
@@ -452,19 +453,20 @@ def save_input_information(input_divs, export_dir) -> None:
                 if input['props']['value'][0] is not None:
                     usebool = True
             input_options.append(
-                ['Use only most-similar controls:', usebool])
+                ['Use only most-similar controls', usebool])
         elif input['props']['id'] == 'interactomics-num-controls':
             input_options.append(
-                ['Number of used controls:', input['props']['value']])
-    # Grab all input filenames:
+                ['Number of used controls (If similarity scoring used for controls)', input['props']['value']])
     timestamp = datetime.now().strftime("%Y-%m-%d %H-%M")
-    with open(os.path.join(export_dir, 'Workflow information and parameters.txt'), 'w', encoding='utf-8') as fil:
-        fil.write(f'ProteoGyver QC and preliminary analysis\nExported at {timestamp}\nOptions used in analysis:\n')
+    with open(os.path.join(export_dir, 'Workflow information and parameters.tsv'), 'w', encoding='utf-8') as fil:
+        fil.write('Parameter\tValue\n')
+        fil.write('Tool\tProteoGyver QC and preliminary analysis\n')
+        fil.write(f'Export time\t{timestamp}\n')
         for name, values in input_options:
             val_str: str = format_nested_list(values)
             if len(val_str) == 0:
                 val_str = 'None'
-            fil.write(f'{name} {val_str}\n')
+            fil.write(f'{name}\t{val_str}\n')
     logger.warning(f'saving input info - done: {datetime.now() - prev_time}')
 
 def upload_data_stores() -> html.Div:

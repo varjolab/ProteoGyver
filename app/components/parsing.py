@@ -749,7 +749,6 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
     elif 'bait uniprot' in info:
         indicator_color = 'blue'
     new_upload_style['background-color'] = indicator_color
-
     return (new_upload_style, info, decoded_table.to_json(orient='split'))
 
 
@@ -780,7 +779,7 @@ def check_bait(bait_entry: Optional[str]) -> str:
 
 
 def format_data(session_uid: str, data_tables: Dict[str, str], 
-                data_info: Dict[str, Any], expdes_table: Dict[str, Any],
+                data_info: Dict[str, Any], expdes_table: Dict[str, str],
                 expdes_info: Dict[str, Any], contaminants_to_remove: List[str],
                 replace_replicate_names: bool, use_unique_only: bool,
                 control_indicators: List[str], 
@@ -1035,7 +1034,7 @@ def clean_sample_names(expdesign: pd.DataFrame,
         Name: Sample name, dtype: object
     """
     # Remove rows with missing required values
-    expd_columns = ['Sample group','Sample name']
+    expd_columns = ['Sample name','Sample group']
     expdesign = expdesign[~(expdesign[expd_columns].isna().sum(axis=1)>0)].copy()
     expd_columns.extend([c for c in expdesign.columns if c not in expd_columns])
     # Convert all values to strings

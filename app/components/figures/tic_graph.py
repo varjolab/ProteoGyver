@@ -14,11 +14,14 @@ def tic_figure(defaults:dict, traces: dict, datatype: str = 'TIC', height: int =
     for trace in traces[datatype.lower()]['traces']:
         #print(json.dumps(trace, indent=2))
         tic_figure.add_traces(pio.from_json(json.dumps(trace))['data'][0])
+    hmode: str = 'closest'
+    if len(traces[datatype.lower()]['traces']) < 10:
+        hmode = 'x unified' # Gets cluttered with too many traces
     tic_figure.update_layout(
         height=400,
         xaxis_range=[0,max_x],
         yaxis_range=[0,max_y],
         margin=dict(l=5, r=5, t=20, b=5),
-        hovermode='x unified'
+        hovermode = hmode
     )
     return tic_figure
