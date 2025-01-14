@@ -11,6 +11,8 @@
 - [Cross-species PTM mapping and comparison](https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(24)00237-6)
 - [Protein topology](https://github.com/izzilab/protodeviser)
 - [Protein sequence -based phosphorylation prediction](https://sitetack.net/)
+- [Multiple analysis tools](https://analyst-suites.org/)
+- [Flexible analysis platform](https://bioapps.maxperutzlabs.ac.at/app/amica)
 ### Pathways
 
 ### Enrichment

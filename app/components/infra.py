@@ -101,6 +101,15 @@ figure_export_directories: dict = {
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
 
 def save_data_stores(data_stores, export_dir) -> dict:
+    """Saves data from data stores to files in the specified export directory.
+    
+    Args:
+        data_stores: List of data store components containing data to export
+        export_dir: Directory path where files should be saved
+        
+    Returns:
+        dict: Mapping of data store names to their modification timestamps
+    """
     timestamps: dict = {}
     prev_time: datetime = datetime.now()
     logger.warning(f'save data stores - started: {prev_time}')
@@ -252,6 +261,16 @@ def save_data_stores(data_stores, export_dir) -> dict:
 
 
 def get_all_props(elements, marker_key, match_partial=True) -> list:
+    """Recursively finds all props containing the marker key in a nested element structure.
+    
+    Args:
+        elements: Nested dictionary/list structure of dash components
+        marker_key: Key to search for in props
+        match_partial: Whether to match partial key names
+        
+    Returns:
+        list: Tuples of (marker_key, element) for matching elements
+    """
     ret: list = []
     if isinstance(elements, dict):
         mkey: str = None
@@ -273,6 +292,15 @@ def get_all_props(elements, marker_key, match_partial=True) -> list:
 
 
 def get_all_types(elements, get_types) -> list:
+    """Recursively finds all elements of specified types in a nested element structure.
+    
+    Args:
+        elements: Nested dictionary/list structure of dash components
+        get_types: List of element types to find (e.g. ['h4', 'graph'])
+        
+    Returns:
+        list: Elements matching the specified types
+    """
     ret = []
     if isinstance(elements, dict):
         # return [elements]
@@ -293,7 +321,15 @@ def get_all_types(elements, get_types) -> list:
 
 
 def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, workflow) -> None:
-    """"""
+    """Saves figures from the analysis to files in various formats.
+    
+    Args:
+        analysis_divs: Div elements containing the figures
+        export_dir: Directory to save figures in
+        output_formats: List of formats to save figures in (e.g. ['html', 'pdf', 'png'])
+        commonality_pdf_data: PDF data for commonality figures
+        workflow: Name of the current workflow
+    """
     logger.warning(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
@@ -406,6 +442,14 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
 
 
 def format_nested_list(input_list: list):
+    """Formats a nested list structure into a comma-separated string.
+    
+    Args:
+        input_list: Nested list structure to format
+        
+    Returns:
+        str: Comma-separated string representation
+    """
     if not isinstance(input_list, list):
         return str(input_list)
     rlist: list = []
@@ -418,6 +462,12 @@ def format_nested_list(input_list: list):
 
 
 def save_input_information(input_divs, export_dir) -> None:
+    """Saves information about input parameters and settings to a TSV file.
+    
+    Args:
+        input_divs: Div elements containing input components
+        export_dir: Directory to save the output file in
+    """
     logger.warning(f'saving input info: {datetime.now()}')
     prev_time: datetime = datetime.now()
     these: list = [
@@ -470,7 +520,11 @@ def save_input_information(input_divs, export_dir) -> None:
     logger.warning(f'saving input info - done: {datetime.now() - prev_time}')
 
 def upload_data_stores() -> html.Div:
-    """Returns all the needed data store components"""
+    """Creates data store components for uploaded data.
+    
+    Returns:
+        html.Div: Container with data store components for uploaded data
+    """
     stores: list = []
     for ID_STR in DATA_STORE_IDS:
         if 'uploaded' in ID_STR:
@@ -483,7 +537,11 @@ def upload_data_stores() -> html.Div:
 
 
 def working_data_stores() -> html.Div:
-    """Returns all the needed data store components"""
+    """Creates data store components for working/processed data.
+    
+    Returns:
+        html.Div: Container with data store components for working data
+    """
     stores: list = []
     for ID_STR in DATA_STORE_IDS:
         if 'uploaded' in ID_STR:
@@ -492,12 +550,22 @@ def working_data_stores() -> html.Div:
     return html.Div(id='workflow-stores', children=stores)
 
 def temporary_download_divs():
+    """Creates temporary divs used for downloads.
+    
+    Returns:
+        html.Div: Container with temporary download divs
+    """
     return html.Div(
         id='download-temporary-things',
         children=[html.Div(id=f'download_temp{i}',children='') for i in range(1,9)]+ [html.Div(id='download-temp-dir-ready',children='')]
     )
 
 def temporary_download_button_loading_divs():
+    """Creates loading indicators for download buttons.
+    
+    Returns:
+        html.Div: Container with loading indicator divs
+    """
     return html.Div(
         [
             html.Div([dcc.Loading(id=f'download_loading_temp{i}',children='') for i in range(1,9)], hidden=True),
@@ -506,6 +574,11 @@ def temporary_download_button_loading_divs():
     )
 
 def invisible_utilities() -> html.Div:
+    """Creates container for utility components that should be hidden.
+    
+    Returns:
+        html.Div: Hidden container with utility components
+    """
     return html.Div(
         id='utils-div',
         children = [
@@ -518,7 +591,11 @@ def invisible_utilities() -> html.Div:
     )
 
 def notifiers() -> html.Div:
-    """Returns divs used for various callbacks only."""
+    """Creates notification components used by callbacks.
+    
+    Returns:
+        html.Div: Hidden container with notification components
+    """
     return html.Div(
         id='notifiers-div',
         children=[

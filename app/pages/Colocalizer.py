@@ -1,6 +1,13 @@
-# Run this app with `python app.py` and
-# visit http://127.0.0.1:8050/ in your web browser.
+"""Dash app for visualization and analysis of microscopy images.
 
+This module provides functionality to:
+1. Load and parse .lif microscopy files
+2. Display individual channels with customizable colormaps
+3. Generate merged views of selected channels
+4. Allow synchronized zooming across all views
+
+The app uses Dash callbacks to handle user interactions and update visualizations dynamically.
+"""
 
 from dash import Dash, html, dcc, get_app, callback, MATCH, ctx, no_update, ALL, register_page
 import plotly.express as px
@@ -21,8 +28,6 @@ import dash_uploader as du
 from dash.dependencies import Input, Output, State
 
 from element_styles import UPLOAD_INDICATOR_STYLE, UPLOAD_STYLE,GENERIC_PAGE
-#upload_dir:str = os.path.join(*parameters['Data paths']['Cache dir'])
-#upload_dir = os.path.join(upload_dir, 'uploads','microscopy-imager')
 
 register_page(__name__, path='/colocalizer')
 parameters = parse_parameters('parameters.json')
@@ -44,6 +49,17 @@ available_cmaps = sorted(list(set(available_cmaps)))#[u for u in usable if u.low
     prevent_initial_call = True
 )
 def handle_uploaded_data_table(file_contents, file_name, mod_date, current_upload_style) -> tuple:
+    """Handle uploaded microscopy file and update UI elements.
+    
+    Args:
+        file_contents: Base64 encoded file contents
+        file_name: Name of uploaded file
+        mod_date: Modification timestamp of file
+        current_upload_style: Current style dictionary for upload indicator
+        
+    Returns:
+        tuple: (parsed image data, UI elements for file info, updated upload style)
+    """
     if file_contents is not None:
         current_upload_style['background-color'] = 'green'
         mod_date = datetime.fromtimestamp(mod_date).strftime('%Y-%m-%d %H:%M:%S')
@@ -59,6 +75,18 @@ def handle_uploaded_data_table(file_contents, file_name, mod_date, current_uploa
     return no_update,no_update,no_update
 
 def load_image(image_data:str):
+    """Parse and load microscopy image data from base64 encoded string.
+    
+    Args:
+        image_data: Base64 encoded .lif file contents
+        
+    Returns:
+        dict: Parsed image data organized by:
+            - Image name
+            - Timepoint
+            - Z-stack level
+            - Channel
+    """
     content_string: str
     _, content_string = image_data.split(',')
     decoded_content: bytes = base64.b64decode(content_string)
@@ -93,6 +121,14 @@ def load_image(image_data:str):
     prevent_initial_call=True
 )
 def load_names_options(image_metadata: dict):
+    """Generate radio options for available image series names.
+    
+    Args:
+        image_metadata: Dictionary containing image metadata
+        
+    Returns:
+        tuple: (radio options list, default selected value)
+    """
     vals: list = sorted(list(image_metadata.keys()))
     return (
         [
@@ -111,6 +147,15 @@ def load_names_options(image_metadata: dict):
     prevent_initial_call=True
 )
 def load_timepoint_options(image_metadata: dict, img_name: str):
+    """Generate radio options for available timepoints in selected image.
+    
+    Args:
+        image_metadata: Dictionary containing image metadata
+        img_name: Selected image series name
+        
+    Returns:
+        tuple: (radio options list, default selected value)
+    """
     if image_metadata is None: # TODO: check if this still happens;; There is no reason why this gets triggered with a none value in metadata, but it does. Even with prevent_initial_call.
         return no_update
     vals: list = sorted(list(image_metadata[img_name].keys()))
@@ -132,6 +177,16 @@ def load_timepoint_options(image_metadata: dict, img_name: str):
     prevent_initial_call = True
 )
 def load_zleveloptions(image_metadata: dict, img_name: str, timepoint: int):
+    """Generate radio options for available Z-stack levels.
+    
+    Args:
+        image_metadata: Dictionary containing image metadata
+        img_name: Selected image series name
+        timepoint: Selected timepoint
+        
+    Returns:
+        tuple: (radio options list, default middle Z-level as selected value)
+    """
     vals: list = image_metadata[img_name][timepoint]
     default = vals[int(len(vals)/2)]
     return [
@@ -148,6 +203,16 @@ def load_zleveloptions(image_metadata: dict, img_name: str, timepoint: int):
     prevent_initial_call=True
 )
 def update_cmap(channel_cmap: str, reverse: list, fig: go.Figure):
+    """Update colormap settings for a channel visualization.
+    
+    Args:
+        channel_cmap: Name of colormap to use
+        reverse: Whether to reverse the colormap
+        fig: Current figure object
+        
+    Returns:
+        go.Figure: Updated figure with new colormap settings
+    """
     fig=go.Figure(fig)
     fig.update_coloraxes(colorscale=channel_cmap,reversescale = reverse)
     return fig
@@ -162,6 +227,17 @@ def update_cmap(channel_cmap: str, reverse: list, fig: go.Figure):
     prevent_initial_call=True
 )
 def load_image_slice(image_data, name, t, z):
+    """Load specific image slice based on selected parameters.
+    
+    Args:
+        image_data: Full image dataset
+        name: Selected image series name
+        t: Selected timepoint
+        z: Selected Z-level
+        
+    Returns:
+        numpy.ndarray: Image data for selected slice
+    """
     if (name is None) or (t is None) or (z is None) or (image_data is None): # TODO: check if this still happens;; This also gets called when app loads, even with prevent
         return no_update
     else:
@@ -173,6 +249,14 @@ def load_image_slice(image_data, name, t, z):
     Input('selected-image-data-store','data')
 )
 def generate_figures(image_data:list):
+    """Generate channel and merged view figures.
+    
+    Args:
+        image_data: List of channel image data arrays
+        
+    Returns:
+        tuple: (list of channel figures, merged view area components)
+    """
     if image_data is None:
         return no_update
     channel_figs = []
@@ -255,6 +339,14 @@ def generate_figures(image_data:list):
     Input('image-data-store','data'),
 )
 def parse_metadata(image_data):
+    """Extract metadata from image data structure.
+    
+    Args:
+        image_data: Full image dataset
+        
+    Returns:
+        dict: Metadata organized by image name, timepoint and Z-levels
+    """
     if image_data is None:
         return no_update
     metadata = {}
@@ -270,6 +362,15 @@ def parse_metadata(image_data):
     State('channel-selection','options')
 )
 def update_channel_selection(value, options):
+    """Update channel selection options based on current selection.
+    
+    Args:
+        value: Currently selected channels
+        options: All available channel options
+        
+    Returns:
+        list: Updated options with appropriate disabled states
+    """
     if len(value) >= 2:
         options = [
             {
@@ -292,6 +393,15 @@ def update_channel_selection(value, options):
     prevent_initial_call=True
 )
 def LinkedZoom(relayout_data, figure_states):
+    """Synchronize zoom/pan across all channel views.
+    
+    Args:
+        relayout_data: Layout update data from user interaction
+        figure_states: Current state of all figures
+        
+    Returns:
+        tuple: (updated layout data, updated figure states)
+    """
     unique_data = None
     for data in relayout_data:
         if relayout_data.count(data) == 1:
@@ -325,6 +435,19 @@ def LinkedZoom(relayout_data, figure_states):
     State({'type': 'channel-image', 'name': 'Overview'}, 'figure'),
 )
 def load_merge(image_data: list, channel_selection: list, method:str, channel_cmap: str, reverse: list, fig: go.Figure):
+    """Generate merged view of selected channels.
+    
+    Args:
+        image_data: List of channel image data arrays
+        channel_selection: List of selected channel indices
+        method: Merge method ('Multiply' or 'Add')
+        channel_cmap: Colormap for merged view
+        reverse: Whether to reverse the colormap
+        fig: Current figure object
+        
+    Returns:
+        go.Figure: Updated figure with merged channels
+    """
     trigger = ctx.triggered_id
     if isinstance(trigger, dict):
         if trigger['type'] == 'overview-cmap-tool':
@@ -365,6 +488,11 @@ def load_merge(image_data: list, channel_selection: list, method:str, channel_cm
 
 
 def microscopy_content_div():
+    """Create the main content area for microscopy images.
+    
+    Returns:
+        dbc.Col: Column containing rows for channel images and colocalization analysis
+    """
     return dbc.Col(
         [
             dbc.Row(id='channels-row'),
@@ -374,13 +502,30 @@ def microscopy_content_div():
     )
 
 def utils():
+    """Create hidden utility components for storing application state.
+    
+    Returns:
+        html.Div: Container with Store components for:
+            - image-data-store: Raw image data
+            - image-metadata-only-store: Image metadata
+            - selected-image-data-store: Currently selected image data
+    """
     return html.Div([
         dcc.Store(id = 'image-data-store'),#,data=load_image(os.path.join('..','..','..','202410 PG microscopy/SP8/EFN1-GLI3-STAV.lif'))),
         dcc.Store(id = 'image-metadata-only-store'),
         dcc.Store(id = 'selected-image-data-store')
     ],hidden=True)
 
-def make_du_uploader(id_str: str, message):
+def make_du_uploader(id_str: str, message: str):
+    """Create a dash-uploader component with success indicator.
+    
+    Args:
+        id_str: ID for the uploader component
+        message: Display text for the upload area
+        
+    Returns:
+        tuple: (html.Div containing uploader and indicator, session_id)
+    """
     session_id = str(uuid.uuid1())
     asty = {k: v for k, v in UPLOAD_INDICATOR_STYLE.items()}
     asty['height'] = '100px'
@@ -406,7 +551,17 @@ def make_du_uploader(id_str: str, message):
     ), session_id
 
 def sidebar():
-    #du_uploader, session_id = make_du_uploader('microscopy-uploader', 'Upload .lif file')
+    """Create the sidebar containing file upload and image selection controls.
+    
+    Returns:
+        dbc.Col: Column containing:
+            - File upload area
+            - Image metadata display
+            - Series selection radio buttons
+            - Timepoint selection radio buttons
+            - Z-level selection radio buttons
+            - Download button
+    """
     return dbc.Col(
         [
             html.Div(
