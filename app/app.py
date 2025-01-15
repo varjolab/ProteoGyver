@@ -22,6 +22,7 @@ from celery import Celery
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
 
+
 celery_app = Celery(
     __name__, broker="redis://localhost:6379/0", backend="redis://localhost:6379/1"
 )
@@ -30,7 +31,7 @@ long_callback_manager = CeleryLongCallbackManager(celery_app, expire=300)
 app = Dash(__name__, use_pages=True, external_stylesheets=[
            FLATLY], suppress_callback_exceptions=True, long_callback_manager=long_callback_manager)
 
-app.title = 'Data analysis beta version'
+app.title = 'ProteoGyver beta version'
 app.enable_dev_tools(debug=True)
 #app.config.from_pyfile('app_config.py')
 # Logging levels:
@@ -93,17 +94,18 @@ def create_navbar(parameters: dict) -> dbc.Navbar:
     navbar = dbc.Navbar(
         dbc.Container(
             [
-                html.Img(src=LOGO, height='100px'),
+                html.Img(src=LOGO, height='100px',id='proteogyver-logo'),
                 dbc.NavbarBrand('ProteoGyver', className='ms-2', style = {'paddingRight': '50px','font-size': '30px'} ),
-                dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
+                dbc.NavbarToggler(id="proteogyver-navbar-toggler", n_clicks=0),
                 dbc.Collapse(
                     navbar_items,
-                    id="navbar-collapse",
+                    id="proteogyver-navbar-collapse",
                     is_open=False,
                     navbar=True,
                 ),
             ]
         ),
+        id='proteogyver-navbar',
         color='primary',
         style={'zIndex':2147483647, 'position': 'fixed', 'width': '100%', 'height': '85px', 'Top': 0},
         dark=True,
@@ -111,9 +113,9 @@ def create_navbar(parameters: dict) -> dbc.Navbar:
     return navbar
 
 @app.callback(
-    Output("navbar-collapse", "is_open"),
-    [Input("navbar-toggler", "n_clicks")],
-    [State("navbar-collapse", "is_open")],
+    Output("proteogyver-navbar-collapse", "is_open"),
+    [Input("proteogyver-navbar-toggler", "n_clicks")],
+    [State("proteogyver-navbar-collapse", "is_open")],
 )
 def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
     """Callback to toggle the navbar collapse state.
@@ -143,7 +145,7 @@ logger.warning('Site pages:')
 app.layout = html.Div([
     create_navbar(parameters),
     page_container,
-])
+],id='proteogyver-layout')
 logger.warning('End app.')
 
 if __name__ == '__main__':

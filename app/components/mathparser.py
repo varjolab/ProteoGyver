@@ -3,7 +3,7 @@ import ast
 import operator as op
 
 class MathParser:
-    """ Basic parser with local variable and math functions courtesy of https://stackoverflow.com/a/69540962
+    """ Basic parser with local variable and math functions courtesy of user3240484 on stackoverflow: https://stackoverflow.com/a/69540962
     
     Args:
        vars (mapping): mapping object where obj[name] -> numerical value 
@@ -39,6 +39,17 @@ class MathParser:
             self._alt_name = self._no_alt_name
         
     def _Name(self, name):
+        """Look up a variable name in the parser's namespace.
+        
+        Args:
+            name (str): The variable name to look up
+            
+        Returns:
+            The value associated with the name from either vars or math module
+            
+        Raises:
+            NameError: If name cannot be found in vars or math module
+        """
         try:
             return  self._vars[name]
         except KeyError:
@@ -46,6 +57,17 @@ class MathParser:
                 
     @staticmethod
     def _alt_name(name):
+        """Look up a name in the math module if not found in vars.
+        
+        Args:
+            name (str): The name to look up in math module
+            
+        Returns:
+            The math module function/constant
+            
+        Raises:
+            NameError: If name starts with underscore or isn't in math module
+        """
         if name.startswith("_"):
             raise NameError(f"{name!r}") 
         try:
@@ -58,6 +80,17 @@ class MathParser:
         raise NameError(f"{name!r}") 
     
     def eval_(self, node):
+        """Evaluate an AST node recursively.
+        
+        Args:
+            node (ast.AST): The AST node to evaluate
+            
+        Returns:
+            The result of evaluating the expression
+            
+        Raises:
+            TypeError: If node type is not supported
+        """
         if isinstance(node, ast.Expression):
             return self.eval_(node.body)
         if isinstance(node, ast.Num): # <number>
@@ -83,5 +116,13 @@ class MathParser:
             raise TypeError(node)
     
     def parse(self, expr):
+        """Parse and evaluate a mathematical expression string.
+        
+        Args:
+            expr (str): The expression string to parse
+            
+        Returns:
+            The numerical result of evaluating the expression
+        """
         return  self.eval_(ast.parse(expr, mode='eval'))          
     

@@ -1,0 +1,26 @@
+# Use a lightweight Python base image
+FROM python:3.9-slim
+
+# Set environment variables to reduce buffer issues and configure the application
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the requirements file into the container
+COPY app/resources/updater_requirements.txt /app/requirements.txt
+
+# Install system dependencies (if needed) and Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && pip install --upgrade pip \
+    && pip install -r requirements.txt \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the updater script and any additional files into the container
+COPY database_updater.py /app/
+COPY parameters.json /app/
+# Specify the default entry point to run the updater script
+ENTRYPOINT ["python", "/app/database_updater.py"]

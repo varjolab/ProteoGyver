@@ -50,6 +50,53 @@
             "height": 350
         }
     },
+    "Database creation": {
+        "Database directory": ["data","db"],
+        "Database build files directory": ["data","db","db build files"],
+        "Crapome table": "crapome table.tsv",
+        "Contaminants table": "contaminant_list.tsv",
+        "Control table": "control table.tsv",
+        "MS data import dir": "/run/user/1237916/gvfs/smb-share:server=dept0.ad.helsinki.fi,share=bi_varjosalo/Kari/20241118_parse/ms_runs/",
+        "Uniprot fields": [
+            "Entry",
+            "Reviewed",
+            "Gene names (primary)",
+            "Entry name",
+            "Gene names",
+            "Organism",
+            "Length",
+            "Alternative products",
+            "Alternative sequence",
+            "Sequence"
+        ]
+    },
+    "Database updater": {
+        "Update interval seconds": 900,
+        "External data update interval days": 7,
+        "Log table": "update_log",
+        "Update files": {
+            "common_proteins": ["data","db_updates","common_proteins"],
+            "contaminants": ["data","db_updates","contaminants"],
+            "control_sets": ["data","db_updates","control_sets"],
+            "crapome_sets": ["data","db_updates","crapome_sets"],
+            "known_interactions": ["data","db_updates","known_interactions"],
+            "ms_runs": ["data","db_updates","ms_runs"],
+            "msmicroscopy": ["data","db_updates","msmicroscopy"],
+            "proteins": ["data","db_updates","proteins"]
+        },
+        "Allowed new columns": 2,
+        "Allowed missing columns": 2,
+        "Database table primary keys": {
+            "common_proteins": "uniprot_id",
+            "contaminants": "uniprot_id",
+            "control_sets": "control_set",
+            "crapome_sets": "crapome_set",
+            "known_interactions": "interaction",
+            "ms_runs": "run_id",
+            "msmicroscopy": "Interaction",
+            "proteins": "uniprot_id"
+        }
+    },
     "Possible values": {
         "Figure-config-toImageButtonOptions-format": ["png", "svg", "jpeg", "webp"],
         "Implemented workflows": ["Proteomics","Interactomics"],

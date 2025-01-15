@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 import os
+import csv
 
 def get_full_table_as_pd(db_conn, table_name, index_col: str = None) -> pd.DataFrame:
     return pd.read_sql_query(f'SELECT * from {table_name}', db_conn, index_col=index_col)
@@ -103,6 +104,52 @@ def create_connection(db_file, error_file: str = None):
             with open(error_file,'a') as fil:
                 fil.write(str(e)+'\n')
     return conn
+
+def generate_database_table_templares_as_tsvs(db_conn, output_dir, primary_keys):
+    """Generate TSV templates for each table in an SQLite database.
+
+    Args:
+        db_conn (sqlite3.Connection): Connection to the SQLite3 database.
+        output_dir (str): Directory to save the TSV template files.
+        primary_keys (dict): Dictionary containing primary keys for each database table that a template is generated for.
+    
+    Notes:
+    - The db_conn is not closed after the function is called.
+    - The primary keys are used to ensure that the correct columns are included in the TSV file.
+    - The TSV files are saved in the output directory.
+    """
+
+    # Connect to the SQLite database
+    cursor = db_conn.cursor()
+
+    # Get the list of tables in the database
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = [row[0] for row in cursor.fetchall()]
+    # Discard tables that are not in the parameter file
+    tables = [table for table in tables if table in primary_keys]
+
+    if not tables:
+        print("No tables found in the database.")
+        return
+
+    for table in tables:
+        # Get column names for the table
+        cursor.execute(f"PRAGMA table_info({table});")
+        columns = [row[1] for row in cursor.fetchall()]
+        if not columns:
+            print(f"Table '{table}' has no columns.")
+            continue
+
+        primary_key = primary_keys.get(table)
+        if primary_key not in columns:
+            print(f"Primary key '{primary_key}' specified for table '{table}' is not a valid column.")
+            continue
+        columns.insert(0, primary_key)  # Ensure the primary key is the first column
+        tsv_file_path = os.path.join(output_dir, f"{table}.tsv")
+        with open(tsv_file_path, "w", encoding="utf-8") as tsv_file:
+            tsv_writer = csv.writer(tsv_file, delimiter="\t")
+            tsv_writer.writerow(columns)
+        print(f"Template generated for table '{table}' at '{tsv_file_path}'.")
 
 def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False, pandas_index_col:str = None, operator:str = '='):
     """"""

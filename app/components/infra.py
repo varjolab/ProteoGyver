@@ -1,4 +1,30 @@
-"""Infrastructure components for Proteogyver"""
+"""Infrastructure components for the Proteogyver web application.
+
+This module provides core infrastructure components and utilities for the Proteogyver web app,
+including data storage, figure export, and utility functions. Key functionality includes:
+
+- Data store configuration and management
+- Figure export in multiple formats (HTML, PDF, PNG)
+- Input parameter tracking and export
+- Utility functions for component traversal and data formatting
+- Hidden utility components for app functionality
+
+The module defines configurations for data store exports and figure directories, and provides
+functions for saving data, figures, and input parameters to files. It also creates various
+Dash components used throughout the application.
+
+Key Classes/Functions:
+    - save_data_stores: Saves data from data stores to files
+    - save_figures: Exports figures in various formats
+    - save_input_information: Saves input parameters to TSV
+    - get_all_props/get_all_types: Utility functions for traversing Dash components
+    - Various component creation functions (upload_data_stores, working_data_stores, etc.)
+
+Constants:
+    - DATA_STORE_IDS: List of all data store IDs
+    - data_store_export_configuration: Export settings for each data store
+    - figure_export_directories: Output directory mapping for figures
+"""
 
 from dash import dcc, html
 import os

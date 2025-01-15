@@ -1,3 +1,20 @@
+"""
+IntAct database interaction module for protein-protein interaction data.
+
+This module provides functionality to download, parse, and manage protein interaction data
+from the IntAct database (https://www.ebi.ac.uk/intact/). It handles:
+- Automated updates from IntAct's FTP server
+- Parsing of PSI-MITAB formatted files
+- Conversion to pandas DataFrames with standardized column names
+- Version tracking and data freshness checks
+- Methods text generation for citations
+
+The main entry points are:
+- update(): Check for and download new IntAct releases
+- get_latest(): Retrieve the most recent downloaded data as a DataFrame
+- methods_text(): Generate citation text for the data source
+"""
+
 import sys
 import os
 import zipfile

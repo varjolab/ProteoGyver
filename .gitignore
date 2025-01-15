@@ -71,3 +71,5 @@ __pycache__/
 # OS specific
 .DS_Store
 Thumbs.db
+app/data/db/db build files/
+app/data/db/db build files/*

@@ -4,11 +4,36 @@ This module provides a web interface for visualizing and analyzing Mass Spectrom
 performance through Total Ion Current (TIC) graphs and related metrics. It allows users to 
 explore MS runs based on time periods, run IDs, or sample types.
 
+Features:
+    - Interactive TIC visualization with animation controls
+    - Multiple trace types support (TIC, MSn_unfiltered)
+    - Supplementary metrics tracking (AUC, mean intensity, max intensity)
+    - Sample type filtering and date range selection
+    - Data export functionality in multiple formats (HTML, PNG, PDF, TSV)
+
+Components:
+    - Main TIC graph with adjustable opacity for temporal comparison
+    - Three supplementary metric graphs (AUC, mean intensity, max intensity)
+    - Control panel for MS selection, date ranges, and sample types
+    - Animation controls for TIC visualization
+    - Data download functionality
+
+Dependencies:
+    - dash: Web application framework
+    - plotly: Interactive plotting library
+    - pandas: Data manipulation and analysis
+    - dash_bootstrap_components: Bootstrap components for Dash
+
 Attributes:
     num_of_traces_visible (int): Maximum number of traces visible at once
     trace_color (str): RGB color code for traces
     trace_types (list): List of supported trace types (TIC, MSn_unfiltered)
     run_limit (int): Maximum number of runs that can be loaded at once
+
+Notes:
+    - The application enforces a run limit to maintain performance
+    - Traces are displayed with decreasing opacity for temporal comparison
+    - All graphs are synchronized for consistent data visualization
 """
 
 import os
@@ -163,7 +188,7 @@ def toggle_graphs(n_clicks, current) -> tuple:
         current (str): Current button text ('Start' or 'Stop')
 
     Returns:
-        tuple: (bool, str) - (disabled state, button text)
+        tuple: (disabled state, button text)
     """
     if (int(n_clicks)==0) or (n_clicks is None) or (current == 'Stop'):
         text = 'Start'
@@ -338,21 +363,21 @@ def sort_dates(date1, date2):
         date2 (str): Second date in YYYY-MM-DD format
 
     Returns:
-        tuple: (earlier_date, later_date)
+        tuple[str, str]: A tuple containing (earlier_date, later_date)
     """
     if datetime.strptime(date1, '%Y-%m-%d') > datetime.strptime(date2, '%Y-%m-%d'):
         return (date2,date1)
     return (date1, date2)
 
 def delim_runs(runs):
-    """Parses a string of run IDs into a list.
+    """Parses a string of run IDs into a list of valid run identifiers.
 
     Args:
         runs (str): String containing run IDs separated by spaces, tabs, commas, 
             semicolons, or colons
 
     Returns:
-        list: Sorted list of valid run IDs
+        list[str]: Sorted list of valid run IDs
     """
     retruns = []
     for run in sorted([
@@ -453,8 +478,15 @@ def update_run_choices(_, start, end, sample_types, run_id_list, button_text) ->
 def ms_analytics_layout():
     """Creates the main layout for the MS analytics dashboard.
 
+    The layout includes:
+    - A description card explaining the dashboard's purpose
+    - Control panel for selecting MS instruments, date ranges, and sample types
+    - TIC visualization area with animation controls
+    - Supplementary metrics graphs (AUC, mean intensity, max intensity)
+
     Returns:
-        html.Div: Main container with all dashboard components
+        html.Div: Main container with all dashboard components organized in a 
+            responsive grid layout
     """
     return html.Div(
         id="app-container",
@@ -528,17 +560,25 @@ def ms_analytics_layout():
 def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
     """Creates a ZIP file containing graphs and data for download.
 
+    Saves the current graphs in multiple formats (HTML, PNG, PDF) and the underlying
+    data as a TSV file. All files are bundled into a ZIP archive for download.
+
     Args:
         n_clicks (int): Number of clicks on download button
-        tic_fig (go.Figure): TIC plot figure
-        auc_fig (go.Figure): AUC plot figure
-        mean_fig (go.Figure): Mean intensity plot figure
-        max_fig (go.Figure): Max intensity plot figure
+        tic_fig (plotly.graph_objects.Figure): TIC plot figure
+        auc_fig (plotly.graph_objects.Figure): AUC plot figure
+        mean_fig (plotly.graph_objects.Figure): Mean intensity plot figure
+        max_fig (plotly.graph_objects.Figure): Max intensity plot figure
         plot_data (str): JSON string containing plot data
 
     Returns:
-        dcc.send_bytes: ZIP file containing HTML, PNG, and PDF versions of plots
-            plus TSV data file
+        dcc.send_bytes: ZIP file containing:
+            - HTML, PNG, and PDF versions of all plots
+            - TSV file with the underlying data
+            - Named with timestamp prefix
+            
+    Raises:
+        Exception: If there's an error during file creation or zipping process
     """
     if not n_clicks:
         return no_update

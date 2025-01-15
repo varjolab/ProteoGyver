@@ -1,4 +1,5 @@
 
+from datetime import datetime
 import sys
 import os
 import re
@@ -392,6 +393,35 @@ def __get_uniprot_next_link(headers: requests.structures.CaseInsensitiveDict) ->
             return match.group(1)
     return None
 
+def download_uniprot_for_database():
+    params = {
+    "query": "reviewed:true",
+    "fields": [
+        "accession",
+        "reviewed",
+        "gene_primary",
+        "id",
+        "gene_names",
+        "organism_name",
+        "length",
+        "cc_alternative_products",
+        "ft_var_seq",
+        "sequence"
+    ],
+    "sort": "accession desc"
+    }
+    headers = {
+    "accept": "application/json"
+    }
+    base_url = "https://rest.uniprot.org/uniprotkb/search"
+
+    response = requests.get(base_url, headers=headers, params=params)
+    if not response.ok:
+        response.raise_for_status()
+    else:
+        data = response.json()
+        print(json.dumps(data, indent=2))
+
 
 def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
                             fields: list = None, reviewed_only: bool = True) -> pd.DataFrame:
@@ -401,7 +431,7 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     Entry -column will always be the first column and used as the index in the output dataframe.
 
     :param progress: Progress report printing
-    :param organism: human by default, otherwise specify organism ID (e.g. human is 9606)
+    :param organism: human by default, otherwise specify organism ID (e.g. human is 9606). if -1, all organisms will be downloaded
     :param fields: uniprot field labels for fields to retrieve. Refer to \
         https://www.uniprot.org/help/return_fields for help with field Labels \
         (from the label column). If None, download a default selection.
@@ -409,11 +439,19 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     
     :returns: the requested uniprot data in a pandas dataframe.
     """
+    if organism > 0:
+        taxonomy = f'%28taxonomy_id%3A{organism}'
+        if reviewed_only:
+            taxonomy += '%29%20AND%20'
+    else:
+        taxonomy = ''
     if reviewed_only:
-        reviewed:str = '%29%20AND%20%28reviewed%3Atrue'
+        reviewed:str = '%28reviewed%3Atrue%29'
     else:
         reviewed = ''
-
+    filter_str = f'{taxonomy}{reviewed}'
+    if (organism > 0) or reviewed_only:
+        filter_str = f'query={filter_str}&'
     fieldstr: list = []
     headers: list = []
     output_format: str = 'tsv'
@@ -456,9 +494,14 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     fieldstr = '%2C'.join(fieldstr)
     pagination_url: str = (
         f'https://rest.uniprot.org/uniprotkb/search?fields={fieldstr}&format={output_format}&'
-        f'query=%28taxonomy_id%3A{organism}{reviewed}%29&size=500'
+        f'{filter_str}size=500'
     )
     return download_uniprot_pagination_url(pagination_url, headers, progress)
+
+def __format_seconds_into_estimate(total_seconds: int, append:str = ''):
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"estimated: {hours}:{minutes:02}:{seconds:02}{append}"
 
 def download_uniprot_pagination_url(pag_url: str, headers: list, progress:bool) -> pd.DataFrame:
     """
@@ -477,13 +520,23 @@ def download_uniprot_pagination_url(pag_url: str, headers: list, progress:bool) 
 
     alltext: list = []
     index: list = []
+    times_taken: list = []
+    prev_time = datetime.now()
     for batch, total in __get_uniprot_batch(pag_url, session):
         for line in batch.text.splitlines()[1:]:
             line: list = line.split('\t')
             alltext.append(line[1:])
             index.append(line[0])
         if progress:
-            print(f'{len(alltext)} / {total}')
+            time_taken = int((datetime.now() - prev_time).total_seconds())
+            if time_taken > 0:
+                times_taken.append(time_taken)
+                est_time = int(((int(total)-len(alltext))/500)*(sum(times_taken)/len(times_taken)))
+                estimate = __format_seconds_into_estimate(est_time, append = ' to finish')
+            else:
+                estimate = ''
+            print(f'{len(alltext)} / {total}, took {time_taken} seconds, {estimate}')
+            prev_time = datetime.now()
     return pd.DataFrame(columns=headers[1:], data=alltext, index=pd.Series(index, name='Entry'))
 
 def retrieve_protein_group(name:str, query_col:str = 'protein_name', reviewed:bool = True) -> pd.DataFrame:
