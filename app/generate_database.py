@@ -1,3 +1,4 @@
+from io import StringIO
 import sqlite3
 import os
 import pandas as pd
@@ -10,8 +11,9 @@ from components.api_tools.annotation import biogrid
 from components.api_tools.annotation import uniprot
 
 with open('parameters.json') as fil:
-    parameters = json.load(fil)['Database creation']
-
+    parameters = json.load(fil)
+time_format = parameters['Config']['Time format']
+parameters = parameters['Database creation']
 dbdir = os.path.join('data','db')
 datadir = os.path.join(dbdir,'db build files')
 crapome = pd.read_csv(os.path.join(datadir,parameters['Crapome table']),sep='\t')
@@ -22,7 +24,19 @@ for f in os.listdir(datadir):
     if f.split('.')[-1]=='json':
         with open(os.path.join(datadir,f)) as fil:
             jsons[f'data_{f}'] = json.load(fil)
+# Update runlist to only include these columns:
+"""    samplename = samplerow['Sample name']
+    author = samplerow['Who']
+    sample_type = samplerow['Sample type']
+    bait = samplerow['Bait name']
+    bait_uniprot = samplerow['Bait / other uniprot or ID']
+    bait_mut = samplerow['Bait mutation']
+    cell_line = samplerow['Cell line / material']
+    project = samplerow['Project']
+    author_notes = samplerow['Notes']
+    bait_tag = samplerow['tag']"""
 runlist = pd.read_excel(os.path.join('..','..','..','combined runlist.xlsx'))
+
 
 ms_run_datadir = parameters['MS data import dir']
 sets = {
@@ -256,6 +270,8 @@ for vals in control_entries:
         control_insert_sql.append(add_str)
 print('control:', len(control_insert_sql))
 
+
+
 crapome_insert_sql = []
 for vals in crapome_entries:
     tablename = vals[0]
@@ -274,23 +290,26 @@ for vals in crapome_entries:
         crapome_insert_sql.append(add_str)
 print('crapome:',len(crapome_insert_sql))
 
-#TODO: Download uniprot data here
-uniprot_df = uniprot.download_uniprot_chunks(reviewed_only=True,fields=parameters['Uniprot fields'])
+
+#uniprot_df_full = uniprot.download_uniprot_chunks(progress=True,reviewed_only=True,fields=parameters['Uniprot fields'], organism=-1)
+#uniprot_df_full.to_csv('uniprot_df_full.tsv',sep='\t')
+#uniprot_df = uniprot_df_full
+uniprot_df = pd.read_csv('uniprot_df_full.tsv',sep='\t',index_col='Entry')
 uniprots = set(uniprot_df.index.values)
 proteins_insert_sql = []
 for protid, row in uniprot_df.iterrows():
-    gn = row['Gene Names (primary)']
+    gn = row['Gene names (primary)']
     if pd.isna(gn):
-        gn = row['Entry Name']
-    gns = row['Gene Names']
+        gn = row['Entry name']
+    gns = row['Gene names']
     if pd.isna(gns):
-        gns = row['Entry Name']
+        gns = row['Entry name']
     row = row.fillna('')
     data = [
         protid,
         int(row['Reviewed']=='reviewed'),
         gn,
-        row['Entry Name'],
+        row['Entry name'],
         gns,
         row['Organism'],
         row['Length'],
@@ -337,17 +356,48 @@ cont_exts = [
 contaminants_insert_sql = []
 conts = pd.read_csv(os.path.join(datadir,parameters['Contaminants table']),sep='\t')
 conts = conts[~conts['Uniprot ID'].isin(['P0C1U8','Q2FZL2'])]
+old_ids = {
+    'Q32MB2':'Q86Y46',
+    'Q7RTT2':'Q8N1N4',
+    'Q9R4J5':'Q9R4J4',
+    'Q6IFU5':'Q6A162',
+    'Q6IFU6':'Q6A163',
+    'A3EZ79':'Q6E0U4',
+    'A3EZ82':'Q6E0U4',
+    'Q3SX28':'Q5KR48',
+    'Q0V8M9':'P56652',
+    'Q3SX09':'P02081',
+    'Q2KJ62':'P01044',
+    'Q0IIK2':'Q29443',
+    'A2VCT4':'Q6IFX4',
+    'A2A5Y0':'Q61765'
+}
+
+
 #TODO: Download idmapping data here
-dd = pd.read_csv(os.path.join(datadir,'idmapping_2023_09_11.tsv'),sep='\t')
-for _,row in dd.iterrows():
-    conts.loc[conts[conts['Uniprot ID']==row['Entry']].index,'Length'] = row['Length']
-dd2 = pd.read_csv(os.path.join(datadir,'idmapping_2023_09_121.tsv'),sep='\t')
-for _, row in dd2.iterrows():
-    ctloc = conts[conts['Uniprot ID']==row['From']]
-    conts.loc[ctloc.index, 'Sequence'] = row['Sequence']
-    conts.loc[ctloc.index, 'Gene names'] = row['Gene Names']
-    conts.loc[ctloc.index, 'Length'] = row['Length']
-    conts.loc[ctloc.index, 'Status'] = row['Reviewed']
+for index,row in conts.iterrows():
+    if row['Uniprot ID'] in old_ids:
+        conts.loc[index,'Uniprot ID'] = old_ids[row['Uniprot ID']]
+    if row['Uniprot ID'] in uniprots:
+        uprow = uniprot_df.loc[row['Uniprot ID']]
+        conts.loc[index,'Length'] = uprow['Length']
+        conts.loc[index,'Sequence'] = uprow['Sequence']
+        conts.loc[index,'Gene names'] = uprow['Gene names']
+        conts.loc[index,'Status'] = uprow['Reviewed']
+conts = conts.drop_duplicates(subset='Uniprot ID', keep='first')
+#dd = pd.read_csv(os.path.join(datadir,'idmapping_2023_09_11.tsv'),sep='\t')
+
+
+
+#for upid,row in dd.iterrows():
+#    conts.loc[conts[conts['Uniprot ID']==row['Entry']].index,'Length'] = row['Length']
+#dd2 = pd.read_csv(os.path.join(datadir,'idmapping_2023_09_121.tsv'),sep='\t')
+#for _, row in dd2.iterrows():
+ #   ctloc = conts[conts['Uniprot ID']==row['From']]
+  #  conts.loc[ctloc.index, 'Sequence'] = row['Sequence']
+   # conts.loc[ctloc.index, 'Gene names'] = row['Gene Names']
+    #conts.loc[ctloc.index, 'Length'] = row['Length']
+    #conts.loc[ctloc.index, 'Status'] = row['Reviewed']
 
 seqs = {entry: row['Sequence'] for entry, row in uniprot_df.iterrows()}
 seq_col = []
@@ -395,7 +445,8 @@ for _, row in conts.iterrows():
 table_create_sql.append(cont_table_str)
 print('contaminants:',len(contaminants_insert_sql))
 
-from io import StringIO
+
+
 mstable_create = ['CREATE TABLE IF NOT EXISTS ms_runs (']
 ms_cols = [
     'run_id TEXT PRIMARY KEY',
@@ -449,6 +500,7 @@ banned_run_dirs = [
     'BRE_20_xxxxx_Helsinki',
     'TrapTrouble_3'
 ]
+ms_run_datadir = '/media/kmsaloka/Expansion/20241118_parse/ms_runs/'#parameters['MS data import dir']
 for i, datafilename in enumerate(os.listdir(ms_run_datadir)):
     with open(os.path.join(ms_run_datadir, datafilename)) as fil:
         try:
@@ -504,7 +556,7 @@ for i, datafilename in enumerate(os.listdir(ms_run_datadir)):
             dat['SampleInfo']['SampleTable']['AnalysisHeader']['@CreationDateTime'].split('+')[0],
             '%Y-%m-%dT%H:%M:%S'
         ),
-        parameters['Config']['Time format']
+        time_format
     )
     
     samplename = samplerow['Sample name']
