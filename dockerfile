@@ -38,6 +38,12 @@ RUN apt-get update -qq
 RUN npm install -g configurable-http-proxy
 RUN apt-get -y install libcurl4-gnutls-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
 
+#COPY app/update.sh /update.sh
+WORKDIR /
+WORKDIR /proteogyver/resources
+#Needed for R
+#/usr/local/lib/R/etc/Rprofile.site
+RUN Rscript R_requirements.R
 RUN echo "Package: *" > /etc/apt/preferences.d/99cranapt
 RUN echo "Pin: release o=CRAN-Apt Project" >> /etc/apt/preferences.d/99cranapt
 RUN echo "Pin: release l=CRAN-Apt Packages" >> /etc/apt/preferences.d/99cranapt
