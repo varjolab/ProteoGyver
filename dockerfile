@@ -40,6 +40,18 @@ RUN apt-get -y install libcurl4-gnutls-dev libxml2-dev libfontconfig1-dev libhar
 
 #COPY app/update.sh /update.sh
 WORKDIR /
+RUN echo "Package: *" > /etc/apt/preferences.d/99cranapt
+RUN echo "Pin: release o=CRAN-Apt Project" >> /etc/apt/preferences.d/99cranapt
+RUN echo "Pin: release l=CRAN-Apt Packages" >> /etc/apt/preferences.d/99cranapt
+RUN echo "Pin-Priority: 700"  >> /etc/apt/preferences.d/99cranapt
+
+## Then install bspm (as root) and enable it, and enable a speed optimization
+RUN Rscript -e 'install.packages("bspm")'
+RUN RHOME=$(R RHOME)
+RUN echo "suppressMessages(bspm::enable())" >> ${RHOME}/etc/Rprofile.site
+RUN echo "options(bspm.version.check=FALSE)" >> ${RHOME}/etc/Rprofile.site
+RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"))' >> /etc/R/Rprofile.site
+
 WORKDIR /proteogyver/resources
 #Needed for R
 #/usr/local/lib/R/etc/Rprofile.site
@@ -57,17 +69,6 @@ RUN Rscript R_requirements11.R
 RUN Rscript R_requirements12.R
 RUN Rscript R_requirements13.R
 RUN Rscript R_requirements14.R
-RUN echo "Package: *" > /etc/apt/preferences.d/99cranapt
-RUN echo "Pin: release o=CRAN-Apt Project" >> /etc/apt/preferences.d/99cranapt
-RUN echo "Pin: release l=CRAN-Apt Packages" >> /etc/apt/preferences.d/99cranapt
-RUN echo "Pin-Priority: 700"  >> /etc/apt/preferences.d/99cranapt
-
-## Then install bspm (as root) and enable it, and enable a speed optimization
-RUN Rscript -e 'install.packages("bspm")'
-RUN RHOME=$(R RHOME)
-RUN echo "suppressMessages(bspm::enable())" >> ${RHOME}/etc/Rprofile.site
-RUN echo "options(bspm.version.check=FALSE)" >> ${RHOME}/etc/Rprofile.site
-RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"))' >> /etc/R/Rprofile.site
 
 RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/MS_rundata
