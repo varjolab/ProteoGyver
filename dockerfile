@@ -52,30 +52,6 @@ RUN echo "suppressMessages(bspm::enable())" >> ${RHOME}/etc/Rprofile.site
 RUN echo "options(bspm.version.check=FALSE)" >> ${RHOME}/etc/Rprofile.site
 RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"))' >> /etc/R/Rprofile.site
 
-WORKDIR /proteogyver/resources
-#Needed for R
-#/usr/local/lib/R/etc/Rprofile.site
-RUN Rscript R_requirements.R
-RUN Rscript R_requirements2.R
-RUN Rscript R_requirements3.R
-RUN Rscript R_requirements4.R
-RUN Rscript R_requirements5.R
-RUN Rscript R_requirements6.R
-RUN Rscript R_requirements7.R
-RUN Rscript R_requirements8.R
-RUN Rscript R_requirements9.R
-RUN Rscript R_requirements10.R
-RUN Rscript R_requirements11.R
-RUN Rscript R_requirements12.R
-RUN Rscript R_requirements13.R
-RUN Rscript R_requirements14.R
-
-RUN mkdir -p /proteogyver/data/Server_output
-RUN mkdir -p /proteogyver/data/MS_rundata
-RUN mkdir -p /etc/supervisor/conf.d
-RUN mkdir -p /etc/jupyterhub
-RUN mkdir -p /proteogyver/data/unparsed_stats
-RUN mkdir -p /proteogyver/data/Server_output/stats
 
 WORKDIR /
 COPY app /proteogyver
@@ -115,8 +91,33 @@ RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
 
 COPY docker_entrypoint.sh /docker_entrypoint.sh
 RUN chmod +x /docker_entrypoint.sh
-EXPOSE 8090 8050
 
+WORKDIR /proteogyver/resources
+#Needed for R
+#/usr/local/lib/R/etc/Rprofile.site
+RUN Rscript R_requirements.R
+RUN Rscript R_requirements2.R
+RUN Rscript R_requirements3.R
+RUN Rscript R_requirements4.R
+RUN Rscript R_requirements5.R
+RUN Rscript R_requirements6.R
+RUN Rscript R_requirements7.R
+RUN Rscript R_requirements8.R
+RUN Rscript R_requirements9.R
+RUN Rscript R_requirements10.R
+RUN Rscript R_requirements11.R
+RUN Rscript R_requirements12.R
+RUN Rscript R_requirements13.R
+RUN Rscript R_requirements14.R
+
+RUN mkdir -p /proteogyver/data/Server_output
+RUN mkdir -p /proteogyver/data/MS_rundata
+RUN mkdir -p /etc/supervisor/conf.d
+RUN mkdir -p /etc/jupyterhub
+RUN mkdir -p /proteogyver/data/unparsed_stats
+RUN mkdir -p /proteogyver/data/Server_output/stats
+
+EXPOSE 8090 8050
 
 RUN echo "source activate proteogyver" >> ~/.bashrc
 ENV PATH="/opt/conda/envs/proteogyver/bin:${PATH}"
