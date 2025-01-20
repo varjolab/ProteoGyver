@@ -44,6 +44,19 @@ WORKDIR /proteogyver/resources
 #Needed for R
 #/usr/local/lib/R/etc/Rprofile.site
 RUN Rscript R_requirements.R
+RUN Rscript R_requirements2.R
+RUN Rscript R_requirements3.R
+RUN Rscript R_requirements4.R
+RUN Rscript R_requirements5.R
+RUN Rscript R_requirements6.R
+RUN Rscript R_requirements7.R
+RUN Rscript R_requirements8.R
+RUN Rscript R_requirements9.R
+RUN Rscript R_requirements10.R
+RUN Rscript R_requirements11.R
+RUN Rscript R_requirements12.R
+RUN Rscript R_requirements13.R
+RUN Rscript R_requirements14.R
 RUN echo "Package: *" > /etc/apt/preferences.d/99cranapt
 RUN echo "Pin: release o=CRAN-Apt Project" >> /etc/apt/preferences.d/99cranapt
 RUN echo "Pin: release l=CRAN-Apt Packages" >> /etc/apt/preferences.d/99cranapt
