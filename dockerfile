@@ -69,6 +69,13 @@ COPY app/Utilities/cron_maintenance_jobs /etc/cron.d/cron_maintenance_jobs
 RUN chmod 0644 /etc/cron.d/cron_maintenance_jobs
 RUN touch /var/log/cron.log
 RUN crontab /etc/cron.d/cron_maintenance_jobs
+RUN mkdir -p /proteogyver/data/Server_output
+RUN mkdir -p /proteogyver/data/MS_rundata
+RUN mkdir -p /etc/supervisor/conf.d
+RUN mkdir -p /etc/jupyterhub
+RUN mkdir -p /proteogyver/data/unparsed_stats
+RUN mkdir -p /proteogyver/data/Server_output/stats
+
 
 RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
 
@@ -109,13 +116,6 @@ RUN Rscript R_requirements11.R
 RUN Rscript R_requirements12.R
 RUN Rscript R_requirements13.R
 RUN Rscript R_requirements14.R
-
-RUN mkdir -p /proteogyver/data/Server_output
-RUN mkdir -p /proteogyver/data/MS_rundata
-RUN mkdir -p /etc/supervisor/conf.d
-RUN mkdir -p /etc/jupyterhub
-RUN mkdir -p /proteogyver/data/unparsed_stats
-RUN mkdir -p /proteogyver/data/Server_output/stats
 
 EXPOSE 8090 8050
 
