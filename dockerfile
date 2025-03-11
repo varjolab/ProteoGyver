@@ -115,7 +115,7 @@ RUN Rscript R_requirements10.R
 RUN Rscript R_requirements11.R
 RUN Rscript R_requirements12.R
 RUN Rscript R_requirements13.R
-#RUN Rscript R_requirements14.R
+RUN Rscript R_requirements14.R
 
 EXPOSE 8090 8050
 
