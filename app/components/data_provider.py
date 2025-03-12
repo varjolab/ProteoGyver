@@ -1,9 +1,8 @@
-from components import db_functions
-import json
+from components import db_functions, parsing
 import os
 
-with open('parameters.json') as fil:
-    db_file = os.path.join(*json.load(fil)['Data paths']['Database file'])
+parameters = parsing.read_toml('parameters.toml')
+db_file = os.path.join(*parameters['Data paths']['Database file'])
 
 def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: list | str = None):
     """Map information from the protein table.

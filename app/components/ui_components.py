@@ -34,7 +34,7 @@ def checklist(
         label: str,
         options: List[str],
         default_choice: List[str],
-        disabled: Optional[List[str]] = None,
+        disabled_options: Optional[List[str]] = None,
         id_prefix: Optional[str] = None,
         id_only: bool = False,
         prefix_list: Optional[List[Any]] = None,
@@ -48,7 +48,7 @@ def checklist(
         label (str): Label text for the checklist
         options (list): List of options to display in the checklist
         default_choice (list): List of pre-selected options
-        disabled (list, optional): List of options to disable. Defaults to None.
+        disabled_options (list, optional): List of options to disable. Defaults to None.
         id_prefix (str, optional): Prefix for the component ID. Defaults to None.
         id_only (bool, optional): If True, removes label from display. Defaults to False.
         prefix_list (list, optional): Elements to prepend to checklist. Defaults to None.
@@ -59,10 +59,10 @@ def checklist(
     Returns:
         dbc.Checklist: Bootstrap checklist component with specified options and styling
     """
-    if disabled is None:
+    if disabled_options is None:
         disabled: set = set()
     else:
-        disabled: set = set(disabled)
+        disabled: set = set(disabled_options)
     if clean_id:
         checklist_id: str
         checklist_id = text_handling.replace_special_characters(
@@ -76,7 +76,7 @@ def checklist(
         prefix_list = []
     if postfix_list is None:
         postfix_list = []
-    retlist: html.Div = [
+    retlist: list = [
         label,
         dbc.Checklist(
             options=[
@@ -408,7 +408,7 @@ def workflow_area(
         The returned component structure varies based on the selected workflow type.
         Each workflow type has its own layout and functionality.
     """
-    ret: html.Div
+    ret: list
     if workflow == 'Proteomics':
         ret = proteomics_area(
             workflow_specific_parameters['proteomics'], data_dictionary)
@@ -418,7 +418,7 @@ def workflow_area(
     elif workflow == 'Phosphoproteomics':
         ret = phosphoproteomics_area(
             workflow_specific_parameters['phosphoproteomics'], data_dictionary)
-    return ret
+    return ret # type: ignore
 
 
 def proteomics_input_card(
@@ -752,7 +752,7 @@ def interactomics_inbuilt_control_col(controls_dict: Dict[str, List[str]]) -> db
                 'Choose additional control sets:',
                 controls_dict['available'],
                 controls_dict['default'],
-                disabled=controls_dict['disabled'],
+                disabled_options=controls_dict['disabled'],
                 id_prefix='interactomics',
                 id_only=True,
                 prefix_list=[dbc.Label('Choose additional control sets:')]
@@ -794,7 +794,7 @@ def interactomics_crapome_col(crapome_dict: Dict[str, List[str]]) -> dbc.Col:
                 'Choose Crapome sets:',
                 crapome_dict['available'],
                 crapome_dict['default'],
-                disabled=crapome_dict['disabled'],
+                disabled_options=crapome_dict['disabled'],
                 id_prefix='interactomics',
                 id_only=True,
                 prefix_list=[dbc.Label('Choose Crapome sets:')]
@@ -828,7 +828,7 @@ def interactomics_enrichment_col(enrichment_dict: Dict[str, List[str]]) -> dbc.C
                 'Choose enrichments:',
                 enrichment_dict['available'],
                 enrichment_dict['default'],
-                disabled=enrichment_dict['disabled'],
+                disabled_options=enrichment_dict['disabled'],
                 id_prefix='interactomics',
                 id_only=True,
                 prefix_list=[
@@ -1091,7 +1091,7 @@ def interactomics_area(
 def phosphoproteomics_area(
     parameters: Dict[str, Any], 
     data_dictionary: Dict[str, Any]
-) -> html.Div:
+) -> list:
     """Creates the main phosphoproteomics analysis area.
 
     Args:
@@ -1104,7 +1104,7 @@ def phosphoproteomics_area(
     Notes:
         Currently returns an empty div as placeholder for future implementation.
     """
-    return html.Div(id={'type': 'analysis-div', 'id': 'phosphoproteomics-analysis-area'})
+    return [html.Div(id={'type': 'analysis-div', 'id': 'phosphoproteomics-analysis-area'})]
 
 
 def qc_area() -> html.Div:
@@ -1262,7 +1262,7 @@ def table_of_contents(
         return ret
     if isinstance(main_div_children, dict):
         ret.extend(table_of_contents(
-            main_div_children['props']['children'], itern+1))
+            main_div_children['props']['children'], itern+1)) # type: ignore
     else:
         for element in main_div_children:
             try:

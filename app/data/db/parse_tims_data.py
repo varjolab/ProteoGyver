@@ -1,3 +1,4 @@
+import re
 import xmltodict
 import sys
 import alphatims.bruker
@@ -9,6 +10,13 @@ from plotly import io as pio
 from plotly import graph_objects as go
 import json
 from scipy.ndimage import gaussian_filter1d
+import tomlkit
+
+def read_toml(toml_file):
+    with open(toml_file, 'r') as tf:
+        data = tomlkit.load(tf)
+    return data
+
 
 def count_intercepts(xydata):
     mean = xydata.mean()
@@ -53,7 +61,7 @@ def per_time_window(pdSer, windowsize=5):
 
 def smooth_tic(tic_ser: pd.Series, sigma: int = 6):
     return pd.Series(gaussian_filter1d(tic_ser, sigma))
-def handle_timsfile(root, run_name, errorfile):
+def handle_timsfile(root, run_name, run_id_regex):
     timsfile = os.path.join(root, run_name)
     alphatims_file = alphatims.bruker.TimsTOF(timsfile,drop_polarity=False,convert_polarity_to_int=True)
     data = {}
@@ -94,10 +102,18 @@ def handle_timsfile(root, run_name, errorfile):
                 data['HasMGF'] = True
     data['SampleInfo'] = sampleinfo
     data['ParsedDate'] = datetime.now().strftime('%Y.%m.%d')
-    sample_id_number = datafolder_name.split('_',maxsplit=1)[0]
+    sample_id_number = 'NoID'
     if datafolder_name.startswith(sample_name):
+        # Some early cases where the ID number is at the very end of the folder name
         sample_id_number = datafolder_name.rsplit('_',maxsplit=1)[-1].replace('.d','')
+    else:
+        match = re.match(run_id_regex, datafolder_name)
+        if match:
+            num_id, tomppa = match.groups()
+            result = num_id + (tomppa if tomppa else '')
+            sample_id_number = result
     data['SampleID'] = sample_id_number
+    
     for polarity in basedf['Polarity'].unique():
         sers = {}
         sdata = {}
@@ -106,7 +122,6 @@ def handle_timsfile(root, run_name, errorfile):
                 i = int(row['Time'])
                 sdata[i] = []
             frame_df = alphatims_file[int(row['Id'])]
-            starts = frame_df.shape
             sdata[i].append(frame_df[frame_df['mz_values'].between(350,2200,inclusive='both')]['intensity_values'].sum())
         ind = sorted(list(sdata.keys()))
         vals = [sum(sdata[i]) for i in ind]
@@ -175,18 +190,20 @@ def handle_timsfile(root, run_name, errorfile):
         data[f'polarity_{polarity}'] = new_set
     return data
 
-if len(sys.argv)<4:
-    print('Input: indir, outdir, error file')
-indir, outdir, errorfile = sys.argv[1:]
+if len(sys.argv) != 5:
+    print('Input: indir, outdir, error file, parameters file')
+indir, outdir, errorfile, parameters_file = sys.argv[1:]
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
+parameters = read_toml(parameters_file)
+run_id_regex = parameters['MS run ID regex']
 for root, dirs, files in os.walk(indir):
     for d in dirs:
         if d.endswith('.d'):
             if os.path.isfile(os.path.join(outdir,f'{d}.json')):
                 continue
             try:
-                data = handle_timsfile(root, d, errorfile)
+                data = handle_timsfile(root, d, run_id_regex)
                 with open(os.path.join(outdir,f'{d}.json'),'w',encoding='utf-8') as fil:
                     json.dump(data, fil, indent=2)
             except Exception as e:

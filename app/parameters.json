@@ -56,6 +56,11 @@
         "Crapome table": "crapome table.tsv",
         "Contaminants table": "contaminant_list.tsv",
         "Control table": "control table.tsv",
+        "MS run ID regex": "^(\\d+)(?:(_Tomppa))?",
+        "ignore_runs_from_dirs": [
+            "BRE_20_xxxxx_Helsinki",
+            "TrapTrouble_3"
+        ],
         "MS data import dir": "/run/user/1237916/gvfs/smb-share:server=dept0.ad.helsinki.fi,share=bi_varjosalo/Kari/20241118_parse/ms_runs/",
         "Uniprot fields": [
             "Entry",
@@ -133,7 +138,6 @@
         "padding": 10,
         "randomize": true,
         "nodeSpacing": 15
-
     },
     "Navbar page order": [
         "qc and data analysis",

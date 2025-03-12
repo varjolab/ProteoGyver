@@ -4,7 +4,7 @@ This module contains the main frontend logic for the Proteogyver application,
 including callbacks for data processing, analysis, and visualization.
 
 Attributes:
-    parameters (dict): Application parameters loaded from parameters.json
+    parameters (dict): Application parameters loaded from parameters.toml
     db_file (str): Path to the database file
     contaminant_list (list): List of contaminant proteins
     figure_output_formats (list): Supported figure export formats
@@ -36,7 +36,7 @@ register_page(__name__, path='/')
 logger = logging.getLogger(__name__)
 logger.warning(f'{__name__} loading')
 
-parameters: Dict[str, Any] = parsing.parse_parameters('parameters.json')
+parameters: Dict[str, Any] = parsing.parse_parameters('parameters.toml')
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: List[str] = db_functions.get_contaminants(db_file)
 figure_output_formats: List[str] = ['html', 'png', 'pdf']

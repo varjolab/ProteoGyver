@@ -80,8 +80,8 @@ RUN mkdir -p /proteogyver/data/Server_output/stats
 RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
 
 WORKDIR /proteogyver
-RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.json  
-RUN sed -i 's\"Local debug": true\"Local debug": false\g' parameters.json  
+RUN sed -i 's\"/home", "kmsaloka", "Documents", "PG_cache"\"/proteogyver", "cache"\g' parameters.toml  
+RUN sed -i 's\"Local debug" = true\"Local debug" = false\g' parameters.toml
 
 # This will fix a bug in the 0.6 version of dash_uploader. It's a very crude method, but it works for this application.
 #RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py

@@ -117,11 +117,25 @@ Detailed documentation for each module and workflow is available in the applicat
 - Windowmaker guide
 - Output file documentation
 
+
+## Advanced use cases
+
+### Embedding other tools as tabs within Proteogyver
+To embed another tool within Proteogyver, add a line to embed_pages.tsv, and run the embedded_page_updater.py script. Preferably these will be things hosted on the same server, but this is not required. Current examples include jupyterhub (locally hosted in the container), and proteomics.fi (hosted externally).
+
+### Adding custom workflows to Proteogyver
+Adding custom workflows is supported as pages in the app/pages folder. Here the following rules should be followed:
+- Use dash.register_page to register the page (register_page(__name__, path='/YOUR_PAGE_NAME') )
+- Use GENERIC_PAGE from element_styles.py for styling starting point. Mostly required from this is the offset on top of the page to fit the navbar
+
+### Updating the database
+To update the database, use the updater container (supported use case), or run the database_updater.py script.
+
 ## License
 
 [Add your license information here]
 
 ## Citation
 
-If you use Proteogyver in your research, please cite:
+If you use Proteogyver or a part of it in your research, please cite:
 [Add citation information here]

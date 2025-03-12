@@ -59,7 +59,7 @@ pio.templates.default = 'plotly_white'
 logger = logging.getLogger(__name__)
 dash.register_page(__name__, path=f'/MS_inspector')
 logger.warning(f'{__name__} loading')
-parameters = parsing.parse_parameters('parameters.json')
+parameters = parsing.parse_parameters('parameters.toml')
 database_file = os.path.join(*parameters['Data paths']['Database file'])
 
 num_of_traces_visible = 7
@@ -75,7 +75,7 @@ for tracename in trace_types:
 
 db_conn = db_functions.create_connection(database_file)
 data = db_functions.get_full_table_as_pd(db_conn, 'ms_runs', index_col='run_id').replace('',np.nan)
-db_conn.close()
+db_conn.close() # type: ignore
 data.drop(columns=[c for c in data.columns if c not in required_columns],inplace=True)
 
 ms_list = data['instrument'].unique()
@@ -277,9 +277,9 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     auc_graph_max_y: int = data_to_use[f'{supp_datatype}_auc'].max()
     max_intensity_graph_max_y: int = data_to_use[f'{supp_datatype}_max_intensity'].max()
     mean_intensity_graph_max_y: int = data_to_use[f'{supp_datatype}_mean_intensity'].max()
-    auc_graph_max_y += auc_graph_max_y/20
-    max_intensity_graph_max_y += max_intensity_graph_max_y/20
-    mean_intensity_graph_max_y += mean_intensity_graph_max_y/20
+    auc_graph_max_y += int(auc_graph_max_y/20)
+    max_intensity_graph_max_y += int(max_intensity_graph_max_y/20)
+    mean_intensity_graph_max_y += int(mean_intensity_graph_max_y/20)
     data_to_use = data_to_use.head(tic_index+1).copy()
 
     data_to_use['Run index'] = list(range(data_to_use.shape[0]))
@@ -405,12 +405,12 @@ def delim_runs(runs):
     State('load-runs-spinner-div','children'),
     prevent_initial_call=True
 ) 
-def update_run_choices(_, start, end, sample_types, run_id_list, button_text) -> list:
+def update_run_choices(_, start_date, end_date, sample_types, run_id_list, button_text) -> list:
     """Updates the list of runs based on selected criteria.
 
     Args:
-        start (str): Start date
-        end (str): End date
+        start_date (str): Start date
+        end_date (str): End date
         sample_types (list): List of selected sample types
         run_id_list (str): String of run IDs to load
         button_text (str): Current button text
@@ -422,23 +422,23 @@ def update_run_choices(_, start, end, sample_types, run_id_list, button_text) ->
     if (run_id_list is None ) or (run_id_list.strip() == ''):
         start:str
         end: str
-        start, end = sort_dates(start,end)
+        start, end = sort_dates(start_date,end_date)
         start = start+' 00:00:00'
         end = end+' 23:59:59'
         #start: datetime = datetime.strptime(start+' 00:00:00',parameters['Config']['Time format'])
         #end: datetime = datetime.strptime(end+' 23:59:59',parameters['Config']['Time format'])
         db_conn = db_functions.create_connection(database_file)
         chosen_runs: pd.DataFrame = db_functions.get_from_table(
-            db_conn,
+            db_conn, # type: ignore
             'ms_runs',
             'run_time',
             f'"{start}" AND "{end}"',
-            select_col=required_columns,
+            select_col=', '.join(required_columns),
             as_pandas=True,
             pandas_index_col='run_id',
             operator = 'BETWEEN'
         )
-        db_conn.close()
+        db_conn.close() # type: ignore
         chosen_runs = chosen_runs[chosen_runs['sample_type'].isin(sample_types)]
         chosen_runs.sort_values(by='run_time',ascending=True, inplace=True)
         chosen_runs.to_csv('chosen_runs.csv')
@@ -449,7 +449,7 @@ def update_run_choices(_, start, end, sample_types, run_id_list, button_text) ->
         run_ids = delim_runs(run_id_list)
         db_conn = db_functions.create_connection(database_file)
         chosen_runs = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_runs','run_id',run_ids)
-        db_conn.close()
+        db_conn.close() # type: ignore
         chosen_runs.sort_values(by='run_time',ascending=True, inplace=True)
     max_y = {}
     for t in trace_types:

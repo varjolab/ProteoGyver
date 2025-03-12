@@ -10,11 +10,16 @@ import io
 import pandas as pd
 import numpy as np
 from collections.abc import Mapping
+import tomlkit
 import os
 import json
 from components import db_functions, text_handling
 from components import EnrichmentAdmin as ea
 
+def read_toml(toml_file):
+    with open(toml_file, 'r') as tf:
+        data = tomlkit.load(tf)
+    return data
 
 def update_nested_dict(base_dict: Dict[str, Any], update_dict: Dict[str, Any]) -> Dict[str, Any]:
     """Updates a nested dictionary with values from another dictionary.
@@ -144,8 +149,7 @@ def parse_parameters(parameters_file: str) -> Dict[str, Any]:
         - Adds enrichment analysis options
         - Updates SAINT temporary directory path
     """
-    with open(parameters_file, encoding='utf-8') as fil:
-        parameters: dict = json.load(fil)
+    parameters = read_toml(parameters_file)
     db_conn = db_functions.create_connection(
         os.path.join(*parameters['Data paths']['Database file']))
     control_sets: list = db_functions.get_from_table(

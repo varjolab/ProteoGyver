@@ -9,10 +9,9 @@ This module provides functionality to:
 The app uses Dash callbacks to handle user interactions and update visualizations dynamically.
 """
 
-from dash import Dash, html, dcc, get_app, callback, MATCH, ctx, no_update, ALL, register_page
+from dash import html, dcc, callback, MATCH, ctx, no_update, ALL, register_page
 import plotly.express as px
 from components.ui_components import upload_area
-import os
 import logging
 import numpy as np
 import base64
@@ -30,7 +29,7 @@ from dash.dependencies import Input, Output, State
 from element_styles import UPLOAD_INDICATOR_STYLE, UPLOAD_STYLE,GENERIC_PAGE
 
 register_page(__name__, path='/colocalizer')
-parameters = parse_parameters('parameters.json')
+parameters = parse_parameters('parameters.toml')
 logger = logging.getLogger(__name__)
 logger.warning(f'{__name__} loading')
 available_cmaps = 'blackbody blues icefire bugn bupu cividis electric greens hot ylorbr gnbu greens amp thermal ice dense pubugn purd purp algae hot gray greys inferno magma pubu oranges reds purples rdpu tempo teal'.split()

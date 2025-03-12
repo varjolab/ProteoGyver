@@ -160,8 +160,6 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = 
              ((criteria is None) & (criteria_col is None))),\
              'Both criteria and criteria_col must be supplied, or both need to be none.'
 
-    if isinstance(select_col, list):
-        select_col = ', '.join(select_col)
     if criteria_col is not None:
         selection_string: str = f'SELECT {select_col} FROM {table_name} WHERE {criteria_col} {operator} {criteria}'
     else:

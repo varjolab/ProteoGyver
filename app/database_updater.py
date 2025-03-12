@@ -1,13 +1,26 @@
 import os
-import sqlite3
 import time
-from app.components import db_functions
+from app.components import db_functions, parsing
 import pandas as pd
 from datetime import datetime
-import json
 
 
 def update_table_with_file(cursor, table_name, file_path, parameters):
+    """
+    Updates a database table with data from a TSV file, handling column additions and value updates.
+
+    Args:
+        cursor: SQLite database cursor object
+        table_name (str): Name of the table to update
+        file_path (str): Path to the TSV file containing new data
+        parameters (dict): Configuration parameters including 'Allowed new columns' and 'Allowed missing columns'
+
+    Returns:
+        tuple: (insertions, modifications) count of new entries and modified entries
+
+    Raises:
+        ValueError: If there are too many new or missing columns compared to parameters
+    """
     try:
         # Get database table columns and their types
         cursor.execute(f"PRAGMA table_info({table_name})")
@@ -92,6 +105,19 @@ def update_table_with_file(cursor, table_name, file_path, parameters):
     return insertions, modifications
 
 def update_database(conn, parameters):
+    """
+    Updates multiple database tables using TSV files from specified directories.
+
+    Args:
+        conn: SQLite database connection object
+        parameters (dict): Configuration parameters including 'Update files' with table-to-directory mappings
+
+    Returns:
+        tuple: (inmod_names, inmod_vals, hasmods)
+            - inmod_names (list): Names of tables with their modification types
+            - inmod_vals (list): Corresponding counts of insertions and modifications
+            - hasmods (bool): Whether any modifications were made
+    """
     update_files = parameters['Update files']
     inmod_names = []
     inmod_vals = []
@@ -119,6 +145,17 @@ def update_database(conn, parameters):
         return inmod_names, inmod_vals, hasmods
 
 def update_log_table(conn, inmod_names, inmod_vals):
+    """
+    Records database update statistics in a log table.
+
+    Args:
+        conn: SQLite database connection object
+        inmod_names (list): Names of tables with their modification types
+        inmod_vals (list): Corresponding counts of insertions and modifications
+
+    The log table is created if it doesn't exist, and new columns are added as needed.
+    Each entry includes a timestamp and the counts of insertions and modifications for each table.
+    """
     # Create update_log table if it doesn't exist
     cursor = conn.cursor()
     cursor.execute("""
@@ -145,8 +182,7 @@ def update_log_table(conn, inmod_names, inmod_vals):
 
 if __name__ == "__main__":
     while True:
-        with open('parameters.json', 'r') as file:
-            parameters = json.load(file)
+        parameters = parsing.read_toml('parameters.toml')
         database_path = parameters['Data paths']['Database file']
         uniprot_fields = parameters['Database creation']['Uniprot fields']
         parameters = parameters['Database updater']
@@ -163,7 +199,7 @@ if __name__ == "__main__":
             if hasmods:
                 update_log_table(conn, inmod_names, inmod_vals)
             db_functions.generate_database_table_templares_as_tsvs(conn, output_dir, parameters['Database table primary keys'])
-            conn.close()
+            conn.close() # type: ignore
         except Exception as e:
             print(f"Failed to update database: {e}")
         time.sleep(update_interval)

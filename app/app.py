@@ -17,11 +17,10 @@ from dash_bootstrap_components.themes import FLATLY
 from dash.dependencies import Input, Output, State
 import logging
 import os
-import json
 from celery import Celery
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
-
+from components import parsing
 
 celery_app = Celery(
     __name__, broker="redis://localhost:6379/0", backend="redis://localhost:6379/1"
@@ -131,8 +130,7 @@ def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
         return not is_open
     return is_open
 
-with open('parameters.json') as fil:
-    parameters = json.load(fil)
+parameters = parsing.read_toml('parameters.toml')
 server = app.server
 if not os.path.isdir('logs'):
     os.makedirs('logs')

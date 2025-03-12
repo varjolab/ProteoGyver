@@ -1,11 +1,9 @@
 from importlib import util as import_util
-import json
 import os
 import pandas as pd
-import scipy as sp
+from components import parsing
 
-with open('parameters.json', encoding='utf-8') as fil:
-    parameters: dict = json.load(fil)
+parameters: dict = parsing.read_toml('parameters.toml')
 
 _enrichment_handlers: dict = {}
 _enrichments: dict = {}

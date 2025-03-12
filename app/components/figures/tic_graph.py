@@ -5,9 +5,13 @@ from plotly import io as pio
 
 def tic_figure(defaults:dict, traces: dict, datatype: str = 'TIC', height: int = None, width: int = None):
     if height is None:
-        height: int = defaults['height']
+        use_height: int = defaults['height']
+    else:
+        use_height: int = height
     if width is None:
-        width: int = defaults['width']
+        use_width: int = defaults['width']
+    else:
+        use_width: int = width
     tic_figure: go.Figure = go.Figure()
     max_x: float = traces[datatype.lower()]['max_x']
     max_y: float = traces[datatype.lower()]['max_y']
@@ -18,7 +22,8 @@ def tic_figure(defaults:dict, traces: dict, datatype: str = 'TIC', height: int =
     if len(traces[datatype.lower()]['traces']) < 10:
         hmode = 'x unified' # Gets cluttered with too many traces
     tic_figure.update_layout(
-        height=400,
+        height=use_height,
+        width=use_width,
         xaxis_range=[0,max_x],
         yaxis_range=[0,max_y],
         margin=dict(l=5, r=5, t=20, b=5),

@@ -1,4 +1,4 @@
-from io import StringIO
+import re
 import sqlite3
 import os
 import pandas as pd
@@ -6,12 +6,12 @@ import json
 import numpy as np
 from datetime import datetime
 from components import text_handling
+from components import parsing
 from components.api_tools.annotation import intact
 from components.api_tools.annotation import biogrid
 from components.api_tools.annotation import uniprot
 
-with open('parameters.json') as fil:
-    parameters = json.load(fil)
+parameters = parsing.read_toml('parameters.toml')
 time_format = parameters['Config']['Time format']
 parameters = parameters['Database creation']
 dbdir = os.path.join('data','db')
@@ -496,11 +496,14 @@ table_create_sql.append(mstable_create)
 data_to_enter = []
 failed_json_files = []
 runs_done = set()
-banned_run_dirs = [
-    'BRE_20_xxxxx_Helsinki',
-    'TrapTrouble_3'
-]
-ms_run_datadir = '/media/kmsaloka/Expansion/20241118_parse/ms_runs/'#parameters['MS data import dir']
+banned_run_dirs = parameters['ignore_runs_from_dirs']
+run_id_regex = parameters['MS run ID regex']
+
+if parameters['Additional info excel'] != '':
+    runlist = pd.read_excel(parameters['Additional info excel'])
+else:
+    runlist = pd.DataFrame(columns=['Sample name','Who','Sample type','Bait name','Bait / other uniprot or ID','Bait mutation','Cell line / material','Project','Notes','tag'])
+ms_run_datadir = parameters['MS data import dir']
 for i, datafilename in enumerate(os.listdir(ms_run_datadir)):
     with open(os.path.join(ms_run_datadir, datafilename)) as fil:
         try:
@@ -524,6 +527,9 @@ for i, datafilename in enumerate(os.listdir(ms_run_datadir)):
         continue
     if not 'polarity_1' in dat:
         failed_json_files.append(['no polarity',datafilename, dat])
+        continue
+    if not re.match(run_id_regex, dat['SampleID']):
+        failed_json_files.append(['run ID mismatch',datafilename, dat])
         continue
     for propdic in dat['SampleInfo']['SampleTable']['SampleTableProperties']['Property']:
         if propdic['@Name'] == 'HyStar_LC_Method_Name':
@@ -549,8 +555,6 @@ for i, datafilename in enumerate(os.listdir(ms_run_datadir)):
     else:
         samplerow = samplerow.iloc[0]
     instrument = 'TimsTOF 1'
-    frame_df_name = f'{instrument} {dat["SampleID"]}'
-    frame_df = pd.read_json(StringIO(json.dumps(dat['Frames'])),orient='split')
     runtime = datetime.strftime(
         datetime.strptime(
             dat['SampleInfo']['SampleTable']['AnalysisHeader']['@CreationDateTime'].split('+')[0],

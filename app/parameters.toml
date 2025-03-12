@@ -1,0 +1,127 @@
+"Navbar page order" = ["qc and data analysis", "ms inspector", "windowmaker", "colocalizer"]
+[Config]
+"Local debug" = true
+LogDir = "logs"
+LogLevel = 20
+"R error file" = "R_errors.log"
+"TIC information refresh interval in seconds" = 900
+"Time format" = "%Y-%m-%d %H:%M:%S"
+
+["Cytoscape layout parameters"]
+maxSimulationTime = 12000
+nodeSpacing = 15
+padding = 10
+randomize = true
+
+["Data paths"]
+"Cache dir" = ["/home", "kmsaloka", "Documents", "PG_cache"]
+"Database file" = ["data", "db", "proteogyver.db"]
+"Example data file" = ["data", "example files", "datafile.tsv"]
+"Example proteomics comparison file" = ["data", "example files", "proteomics comparisons.tsv"]
+"Example sample table file" = ["data", "example files", "sampletable.tsv"]
+"Run list" = ["data_assets", "combined runlist.xlsx"]
+
+["Data paths"."Data import and export"]
+"Data import dir" = ["/proteogyver", "data", "MS_rundata"]
+"Data export dir" = ["/proteogyver", "data", "Server_output"]
+
+
+["Database creation"]
+"Contaminants table" = "contaminant_list.tsv"
+"Control table" = "control table.tsv"
+"Crapome table" = "crapome table.tsv"
+"Database build files directory" = ["data", "db", "db build files"]
+"Database directory" = ["data", "db"]
+#These directories should be ignored when loading run data into the database. 
+ignore_runs_from_dirs = ["BRE_20_xxxxx_Helsinki", "TrapTrouble_3"]
+#Directory containing parsed run jsons from parse_tims_data.py (or equivalent)
+"MS data import dir" = "/media/kmsaloka/Expansion/20241118_parse/ms_runs/"
+#This regex should capture the run ID from the MS run folder name. In our case, it is in the form of either "1234_RUN_NAME_HERE" or "1234_Tomppa_RUN_NAME_HERE"
+"MS run ID regex" = "^(\\d+)(?:(_Tomppa))?"
+"Uniprot fields" = ["Entry", "Reviewed", "Gene names (primary)", "Entry name", "Gene names", "Organism", "Length", "Alternative products", "Alternative sequence", "Sequence"]
+# This excel should contain columns defined by Additional info excel columns.
+# Column name changes requires changes to database_generator.py, and also anywhere where such columns are referenced.
+"Additional info excel" = "combined runlist.xlsx"
+"Additional info excel columns" = ["Sample name","Who","Sample type","Bait name","Bait / other uniprot or ID","Bait mutation","Cell line / material","Project","Notes","tag"]
+
+["Database updater"]
+"Allowed missing columns" = 2
+"Allowed new columns" = 2
+"External data update interval days" = 7
+"Log table" = "update_log"
+"Update interval seconds" = 900
+
+["Database updater"."Database table primary keys"]
+common_proteins = "uniprot_id"
+contaminants = "uniprot_id"
+control_sets = "control_set"
+crapome_sets = "crapome_set"
+known_interactions = "interaction"
+ms_runs = "run_id"
+msmicroscopy = "Interaction"
+proteins = "uniprot_id"
+
+["Database updater"."Update files"]
+common_proteins = ["data", "db_updates", "common_proteins"]
+contaminants = ["data", "db_updates", "contaminants"]
+control_sets = ["data", "db_updates", "control_sets"]
+crapome_sets = ["data", "db_updates", "crapome_sets"]
+known_interactions = ["data", "db_updates", "known_interactions"]
+ms_runs = ["data", "db_updates", "ms_runs"]
+msmicroscopy = ["data", "db_updates", "msmicroscopy"]
+proteins = ["data", "db_updates", "proteins"]
+
+[Enrichment]
+#Change this to your own username, if you plan to use DAVID.
+"DAVID username" = "kari.salokas@helsinki.fi"
+
+["External tools"]
+"SAINT tempdir" = ["external", "SAINTexpress"]
+
+["Figure defaults".full-height]
+width = 1000
+height = 700
+["Figure defaults".full-height.config.toImageButtonOptions]
+format = "png"
+
+["Figure defaults".half-height]
+width = 1000
+height = 350
+["Figure defaults".half-height.config.toImageButtonOptions]
+format = "png"
+
+["file loading"]
+"Bait ID column names" = ["bait uniprot", "bait id", "bait identifier"]
+"Do not show in enrichment default" = []
+"Maximum psm ever theoretically encountered" = 5000
+
+["Module paths"]
+Enrichers = ["components", "enrichment"]
+
+["Possible values"]
+"Figure templates" = ["plotly_white", "simple_white", "plotly_dark"]
+Figure-config-toImageButtonOptions-format = ["png", "svg", "jpeg", "webp"]
+"Implemented workflows" = ["Proteomics", "Interactomics"]
+
+["workflow parameters"]
+phosphoproteomics = "Not implemented"
+["workflow parameters".interactomics]
+"control indicators" = ["ctrl", "gfp", "control"]
+
+["workflow parameters".proteomics]
+na_filter_default_value = 60
+"default imputation method" = "QRILC"
+"default normalization method" = "no_normalization"
+
+["workflow parameters".proteomics."imputation methods"]
+QRILC = "QRILC"
+minProb = "minProb"
+gaussian = "gaussian"
+minValue = "minValue"
+
+["workflow parameters".proteomics."normalization methods"]
+Median = "Median"
+Quantile = "Quantile"
+Vsn = "Vsn"
+"No normalization" = "no_normalization"
+
