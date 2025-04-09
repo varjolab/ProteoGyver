@@ -42,18 +42,6 @@ def get_ids(df, col1, col2, uniprots_to_get: set|None) -> list[str]:
 def get_iso(ser: pd.Series) -> list[str]:
     return [';'.join(s.split('-')[0] for s in sv.split(';')) for sv in ser.values]
 
-def deduplicate_str_dataframe_by_index(df):
-    def merge_row_group(group):
-        merged_row = {}
-        for col in group.columns:
-            split_vals = group[col].dropna().astype(str).str.split(';')
-            all_vals = list(chain.from_iterable(split_vals))
-            deduped = sorted(set(all_vals))
-            merged_row[col] = ';'.join(deduped) if deduped else None
-        return pd.Series(merged_row)
-
-    return df.groupby(df.index).apply(merge_row_group)
-
 def split_and_save_by_prefix(df: pd.DataFrame, column: str, num_chars: int, output_dir: str, index: bool = False, sep: str = '\t') -> None:
     os.makedirs(output_dir, exist_ok=True)
     for (prefix, result) in df.groupby(df[column].str[:num_chars]):
@@ -106,16 +94,17 @@ def handle_and_split_save(df: pd.DataFrame, temp_dir: str, sep: str = '\t') -> N
         'Interaction type(s)',
         'Interaction detection method(s)',
         'Publication Identifier(s)',
-        'Confidence value(s)',
-        'organism_interactor_a',
-        'organism_interactor_b'
+        'Confidence value(s)'
     ]
     swcols = [
         'Biological role(s) interactor A',
         'Annotation(s) interactor A',
+        'organism_interactor_a',
         'Biological role(s) interactor B',
-        'Annotation(s) interactor B'
+        'Annotation(s) interactor B',
+        'organism_interactor_b'
     ]
+
     renames = {c: c.lower().replace('(s)','').replace(' ','_') for c in normcols+swcols}
     normcols = [renames[c] for c in normcols]
     swcols = [renames[c] for c in swcols]
@@ -145,33 +134,38 @@ def handle_and_split_save(df: pd.DataFrame, temp_dir: str, sep: str = '\t') -> N
         'isoform_a',
         'isoform_b',
     ]  + normcols + swcols + ['source_database', 'notes', 'update_time', 'interaction']
-    datarows = []
+    datarows = {}
     # Use list comprehension instead of multiple append operations
     for row in df.itertuples(index=False):
         new_rows = [
             [
-                id1.split('-')[0] if '-' in id1 else id1,  # uniprot_id_a
-                id2.split('-')[0] if '-' in id2 else id2,  # uniprot_id_b
+                id1, # uniprot_id_a
+                id2,  # uniprot_id_b
                 noiso1[i],  # uniprot_id_a_noiso
                 noiso2[j],  # uniprot_id_b_noiso
                 id1,  # isoform_a
                 id2,  # isoform_b
             ] + 
             [getattr(row, f'{c}_processed') for c in normcols] +
-            [getattr(row, f'{c[:-1]}{n1}') for c in swcols[:2]] +
-            [getattr(row, f'{c[:-1]}{n2}') for c in swcols[:2]] +
+            [getattr(row, f'{c[:-1]}{n1}') for c in swcols[:3]] +
+            [getattr(row, f'{c[:-1]}{n2}') for c in swcols[:3]] +
             ['IntAct', '', f'IntAct:{str(datetime.today()).split()[0]}', f'{id1.split("-")[0]}_-_{id2.split("-")[0]}']
             for n1, n2 in [('a', 'b'), ('b', 'a')]
             for i, id1 in enumerate(getattr(row, f'ids{n1}_split'))
             for j, id2 in enumerate(getattr(row, f'ids{n2}_split'))
             for noiso1, noiso2 in [(getattr(row, f'noiso{n1}_split'), getattr(row, f'noiso{n2}_split'))]
         ]
-        datarows.extend(new_rows)
-
+        for n in new_rows:
+            index = n[-1]
+            keys = dfcols[:-1]
+            datarows.setdefault(index, {v: set() for v in keys})
+            for i, k in enumerate(keys):
+                datarows[index][k]|= set(n[i].split(';'))
     # Create DataFrame in one go
-    findf = pd.DataFrame(datarows, columns=dfcols)
+    findf = pd.DataFrame.from_dict({ind: {key: ';'.join(sorted(list(val))) for key, val in ind_dict.items()} for ind, ind_dict in datarows.items()},orient='index')
     findf['publication_identifier'] = findf['publication_identifier'].str.lower()
-    split_and_save_by_prefix(findf, 'uniprot_id_a', 3, temp_dir, index=False, sep=sep)
+    findf.index.name = 'interaction'
+    split_and_save_by_prefix(findf, 'uniprot_id_a', 3, temp_dir, index=True, sep=sep)
     
 # super inefficient, but run rarely, so good enough.
 def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set|None, organisms: set|None = None) -> None:
