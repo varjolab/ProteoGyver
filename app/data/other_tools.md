@@ -20,6 +20,7 @@
 ### Organism-specific
 
 ## Visualization
+- [Simple online tool for rapid figure generation](https://pharmaco-omicslab.shinyapps.io/EasyPubPlot/)
 - [Public domain vector illustrator](https://bioart.niaid.nih.gov/)
 - [Curtain](https://curtain.proteo.info/#/)
 - [Subcellular images](http://www.digizyme.com/cst_landscapes.html)

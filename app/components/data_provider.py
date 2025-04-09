@@ -1,7 +1,8 @@
-from components import db_functions, parsing
+from components import db_functions
+from components.tools import utils
 import os
 
-parameters = parsing.read_toml('parameters.toml')
+parameters = utils.read_toml('parameters.toml')
 db_file = os.path.join(*parameters['Data paths']['Database file'])
 
 def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: list | str = None):

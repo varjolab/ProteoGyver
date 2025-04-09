@@ -1,8 +1,8 @@
 # Proteogyver
 
-Proteogyver is a comprehensive web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data.
+Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).
 
-## Features
+## QC and quick analysis toolset
 
 ### Core Analysis Workflows
 - **Proteomics Analysis**
@@ -19,11 +19,22 @@ Proteogyver is a comprehensive web-based platform for proteomics and interactomi
   - MS-microscopy analysis
   - Known interaction mapping
 
-### Additional Tools
+
+### Usage
+
+1. Access the web interface at `http://localhost:8050`
+2. Upload your data and sample tables
+3. Choose your workflow (Proteomics or Interactomics)
+4. Configure analysis parameters
+5. Export results in various formats (HTML, PNG, PDF, TSV)
+
+See the User guide for more information
+
+## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs
 - **Microscopy Image Colocalizer**: Analysis tool for .lif image files
 
-### Microscopy Colocalizer Guide
+### Microscopy Colocalizer
 
 The Microscopy Colocalizer is a tool for analyzing spatial relationships between different fluorescent channels in microscopy images.
 
@@ -39,7 +50,7 @@ The Microscopy Colocalizer is a tool for analyzing spatial relationships between
 4. Generate colocalization maps
 5. Export results as merged channel visualizations
 
-### MS Inspector Guide
+### MS Inspector
 
 The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) performance through chromatogram graphs and related metrics.
 
@@ -91,13 +102,6 @@ Run the container
 docker run -p 8050:8050 -p 8090:8090 proteogyver
 ```
 
-## Usage
-
-1. Access the web interface at `http://localhost:8050`
-2. Upload your data and sample tables
-3. Choose your workflow (Proteomics or Interactomics)
-4. Configure analysis parameters
-5. Export results in various formats (HTML, PNG, PDF, TSV)
 
 ### Input Data Format
 - Sample table must include:
@@ -109,27 +113,60 @@ docker run -p 8050:8050 -p 8090:8090 proteogyver
   - DIA-NN (pg_matrix.tsv, report.tsv (discouraged due to size))
   - Generic matrix format
 
-## Documentation
+## Updating the database
+To update the database, use the updater container. E.g. docker run proteogyver_updater.
+On the first run, it will create a new database file in the specified db directory (specified in parameters.toml), if the file does not exist. In other cases, it will update the existing database. For updates, data will be added to existing tables from the update files directory (specified in parameters.toml). If it does not exist, the updater will create it, as well as example files for each database table. Crapome and control set table examples will not be created, because they would clutter up the output. For each of these tables, lines in them represent either new data rows, or modifications to existing rows. Deletions are handled differently, and are described below.
 
-Detailed documentation for each module and workflow is available in the application:
-- QC and analysis guide
-- MS Analytics dashboard guide
-- Windowmaker guide
-- Output file documentation
+IF the files handed to updater contain columns, that are not in the existing tables, the updater will add them. However, the column names will be sanitized to only contain lowercase letters, numbers, and underscores, and any consecutive underscores will be removed. E.g. "gene name" will be changed to "gene_name". If a column starts with a number, "c" will be added to the beginning of the name. E.g. "1.2.3" will be changed to "c1_2_3".
 
+When updating existing entries in the database, if the update file does not contain a column that is present in the database, or a row of the update file has no value for a column,the updater will impute values from the existing entries in the database.
+
+Keep in mind that the updater will delete the files from the db_updates directories after it has finished running.
+
+### Update running order:
+1) External data is updated first.
+2) Deletions are handled next.
+3) Additions and replacements are handled next. 
+4) Finally other modifications are applied.
+
+If the tools that provide the external data provide ANY new columns that do not already exist in the database, the new columns will need to be manually added to the database FIRST. Otherwise the updater will throw an error.
+
+### Adding new crapome or control sets:
+Two files per set are needed:
+1) The crapome/control overall table needs an update, and for that the control_sets.tsv or crapome_sets.tsv example file can be added to, and then put into the db_updates/crpaome_sets or db_updates/control_sets directory.
+2) The individual crapome/control set needs its own update file added to the db_updates/add_or_replace directory. The file should have the same columns, as existing crapome/control set tables (specified in parameters.toml at "database creation"."control and crapome db detailed columns"). The column types can be found in "database creation"."control and crapome db detailed types". 
+
+### Adding other new tables:
+In order to add any other new tables, two updates and two files are needed:
+1) .tsv file in the "add_or_replace" directory. Column names MUST NOT contain any spaces. Otherwise the updater will throw an error.
+2) .txt file in the "add_or_replace" directory with the exact same name as the .tsv file, except it MUST have a .txt extension. This file contains the column types for the new table. One line per column, in the same order as the columns in the .tsv file. It should contain only the types. For example, if the .tsv file has the following columns: "uniprot_id", "gene_name", "description", "spectral_count", the .txt file should have the following lines: "TEXT PRIMARY KEY", "TEXT", "TEXT", "INTEGER". Empty lines and lines starting with '#' are ignored.
+3) The new table needs to be added to the ["Database updater"."Update files"] list with the same name as the .tsv file, but without the .tsv extension.
+4) In order to generate an empty template file for future updates, the ["Database updater"."Database table primary keys"] list in parameters.toml needs to be added to. 
+
+### Deleting data
+To delete data rows, the syntax is different. Each file in the remove_data -directory should be named exactly the same as the table it is deleting from + .tsv. E.g. to delete from table "proteins", name the file proteins.tsv. One row should contain one criteria in the format of "column_name, value\tcolumn_name2, value2", without quotes. The tab separates criterias from one another, and all criteria of a row will have to match for the deletion. E.g.
+uniprot_id, UPID1\tgene_name, GENE12
+will match the rows in the database where uniprot_id is UPID1 and gene_name is GENE12.
+
+Empty lines and lines starting with '#' are ignored.
+
+Deleting columns from tables is not supported this way, nor is deleting entire tables. These need to be done manually. The database is sqlite3, and thus easy to work with. Please make a backup first.
+
+### Update logging
+Updates will be logged to the update_log table.
 
 ## Advanced use cases
 
-### Embedding other tools as tabs within Proteogyver
-To embed another tool within Proteogyver, add a line to embed_pages.tsv, and run the embedded_page_updater.py script. Preferably these will be things hosted on the same server, but this is not required. Current examples include jupyterhub (locally hosted in the container), and proteomics.fi (hosted externally).
+### Embedding other websites as tabs within Proteogyver
+To embed another website/tool within Proteogyver, add a line to embed_pages.tsv, and run the embedded_page_updater.py script. Preferably these will be things hosted on the same server, but this is not required. Current example is proteomics.fi (hosted externally). Keep in mind that most websites ban browsers from accessing if they are embedded in an html.Embed element.
 
-### Adding custom workflows to Proteogyver
-Adding custom workflows is supported as pages in the app/pages folder. Here the following rules should be followed:
+### Adding custom tools as tabs to Proteogyver
+Adding custom tools to Proteogyver is supported as pages in the app/pages folder. Here the following rules should be followed:
 - Use dash.register_page to register the page (register_page(__name__, path='/YOUR_PAGE_NAME') )
 - Use GENERIC_PAGE from element_styles.py for styling starting point. Mostly required from this is the offset on top of the page to fit the navbar
 
-### Updating the database
-To update the database, use the updater container (supported use case), or run the database_updater.py script.
+### Accessing the database from other tools
+Other tools can access the database, preferably using methods contained within the db_functions.py file. Writes to the database should not require any specific precautions. However, please check that the database is not locked, and another transaction is not in progress. Other scenarios when one should not write to the database include if it is in the process of being backed up (currently not implemented, but planned), or while the updater is actively running.
 
 ## License
 

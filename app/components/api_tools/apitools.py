@@ -1,6 +1,8 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import nbib
+import random
+import string
 
 def get_timestamp() -> str:
     """
@@ -10,7 +12,7 @@ def get_timestamp() -> str:
     """
     return datetime.now().strftime('%Y-%m-%d')
 
-def parse_timestamp_from_str(stamp_text:str) -> str:
+def parse_timestamp_from_str(stamp_text:str) -> date:
     """
     Parses standardized time stamp from string.
     :param stamp_text: str with the timestamp
@@ -29,9 +31,9 @@ def is_newer(reference:str, new_date:str) -> bool:
 
     :returns: True, if new_date is more recent than reference.
     """
-    reference: datetime.date = parse_timestamp_from_str(reference)
-    new_date: datetime.date = parse_timestamp_from_str(new_date)
-    return (new_date>reference)
+    reference_date: date = parse_timestamp_from_str(reference)
+    new_date_date: date = parse_timestamp_from_str(new_date)
+    return (new_date_date>reference_date)
 
 def get_save_location(databasename) -> str:
     """
@@ -88,12 +90,14 @@ def get_newest_file(directory:str, namefilter:str = None) -> str:
     :param directory: where to search
     :param namefilter: only consider files with this in their name
 
-    :returns: name of the newest file, not the full path.
+    :returns: name of the newest file, not the full path. If no files are found, returns a randomized string.
     """
     if not os.path.isdir(directory):
         return ''
-    # Initialize variables to store the name and modification time of the newest file
-    newest_file: str = ''
+    existing_files = set(os.listdir(directory))
+    newest_file = ''.join(random.choices(string.ascii_letters + string.digits, k=3))
+    while newest_file in existing_files:
+        newest_file += ''.join(random.choices(string.ascii_letters + string.digits, k=3))
     newest_time = datetime.min
     for filename in os.listdir(directory):
         # Check if the file should be checked, if namefilter is set:

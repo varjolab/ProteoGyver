@@ -9,7 +9,7 @@ services:
     volumes:
       - /data/PG_containers/cache/PG_test:/proteogyver/cache
       - /data/PG_containers/db/PG_test:/proteogyver/data/db
-      - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
+      - /mnt/varjosalo_MS_rundata:/proteogyver/data/Server_input
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
     restart: unless-stopped
   pgyver_production:
@@ -25,3 +25,4 @@ services:
       - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
     restart: unless-stopped
+  

@@ -2,8 +2,9 @@ from importlib import util as import_util
 import os
 import pandas as pd
 from components import parsing
+from components.tools import utils
 
-parameters: dict = parsing.read_toml('parameters.toml')
+parameters: dict = utils.read_toml('parameters.toml')
 
 _enrichment_handlers: dict = {}
 _enrichments: dict = {}

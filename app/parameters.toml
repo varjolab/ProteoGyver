@@ -15,14 +15,14 @@ randomize = true
 
 ["Data paths"]
 "Cache dir" = ["/home", "kmsaloka", "Documents", "PG_cache"]
-"Database file" = ["data", "db", "proteogyver.db"]
+"Database file" = ["data", "db", "proteogyver3.db"]
 "Example data file" = ["data", "example files", "datafile.tsv"]
 "Example proteomics comparison file" = ["data", "example files", "proteomics comparisons.tsv"]
 "Example sample table file" = ["data", "example files", "sampletable.tsv"]
 "Run list" = ["data_assets", "combined runlist.xlsx"]
 
 ["Data paths"."Data import and export"]
-"Data import dir" = ["/proteogyver", "data", "MS_rundata"]
+"Data import dir" = ["/proteogyver", "data", "Server_input"]
 "Data export dir" = ["/proteogyver", "data", "Server_output"]
 
 
@@ -31,25 +31,93 @@ randomize = true
 "Control table" = "control table.tsv"
 "Crapome table" = "crapome table.tsv"
 "Database build files directory" = ["data", "db", "db build files"]
+"Organisms to include in database" = [9606]
 "Database directory" = ["data", "db"]
+"Sets not included in controls" = ["Nesvilab"]
+"Control and crapome db detailed columns" = [
+    "protein_id",
+    "identified_in",
+    "frequency",
+    "spc_sum",
+    "spc_avg",
+    "spc_min",
+    "spc_max",
+    "spc_stdev"
+]
+"Control and crapome db detailed types" = [
+    "TEXT PRIMARY KEY",
+    "INTEGER NOT NULL",
+    "REAL NOT NULL",
+    "INTEGER NOT NULL",
+    "REAL NOT NULL",
+    "INTEGER NOT NULL",
+    "INTEGER NOT NULL",
+    "REAL NOT NULL"
+]
+"Default control disabled regex list" = [".*[Mm][Aa][Cc]2.*"]
+
+["Database creation"."MS runs information"]
 #These directories should be ignored when loading run data into the database. 
-ignore_runs_from_dirs = ["BRE_20_xxxxx_Helsinki", "TrapTrouble_3"]
+"Ignore runs from dirs" = ["BRE_20_xxxxx_Helsinki", "TrapTrouble_3"]
 #Directory containing parsed run jsons from parse_tims_data.py (or equivalent)
 "MS data import dir" = "/media/kmsaloka/Expansion/20241118_parse/ms_runs/"
 #This regex should capture the run ID from the MS run folder name. In our case, it is in the form of either "1234_RUN_NAME_HERE" or "1234_Tomppa_RUN_NAME_HERE"
 "MS run ID regex" = "^(\\d+)(?:(_Tomppa))?"
-"Uniprot fields" = ["Entry", "Reviewed", "Gene names (primary)", "Entry name", "Gene names", "Organism", "Length", "Alternative products", "Alternative sequence", "Sequence"]
 # This excel should contain columns defined by Additional info excel columns.
 # Column name changes requires changes to database_generator.py, and also anywhere where such columns are referenced.
-"Additional info excel" = "combined runlist.xlsx"
+"Additional info excel" = ["data", "db", "db build files", "combined runlist for PG.xlsx"]
 "Additional info excel columns" = ["Sample name","Who","Sample type","Bait name","Bait / other uniprot or ID","Bait mutation","Cell line / material","Project","Notes","tag"]
+"MS run data dir for updater" = ["data", "Server_input", "MS run data"]
+
+["Database creation"."Control and crapome sets"]
+"VL GFP MAC3 10min AP" = ["VL GFP MAC3-N AP-MS"]
+"VL GFP MAC3 10min BioID" = ["VL GFP MAC3-N BioID"]
+"VL GFP MAC2 18h AP" = [
+    "VL GFP MAC2-C AP-MS",
+    "VL GFP MAC2-N AP-MS"
+]
+"VL GFP MAC2 18h BioID" = [
+    "VL GFP MAC2-C BioID",
+    "VL GFP MAC2-N BioID"
+]
+"VL GFP MAC 24h AP" = [
+    "VL GFP MAC-C AP-MS",
+    "VL GFP MAC-N AP-MS"
+]
+"VL GFP MAC 24h AP NLS" = [
+    "VL GFP MAC-MED-NLS AP-MS",
+    "VL GFP MAC-MYC-NLS AP-MS",
+    "VL GFP MAC-NLS AP-MS"
+]
+"VL GFP MAC 24h BioID" = [
+    "VL GFP MAC-C BioID",
+    "VL GFP MAC-N BioID"
+]
+"VL GFP MAC 24h BioID NLS" = [
+    "VL GFP MAC-MED-NLS BioID",
+    "VL GFP MAC-MYC-NLS BioID",
+    "VL GFP MAC-NLS BioID"
+]
+"Nesvilab" = ["nesvilab"]
+
+["Database creation"."Control and crapome column mapping"]
+"crapome" = ["data", "db", "db build files", "crapome sets.json"]
+"control" = ["data", "db", "db build files", "control sets.json"]
 
 ["Database updater"]
 "Allowed missing columns" = 2
 "Allowed new columns" = 2
-"External data update interval days" = 7
 "Log table" = "update_log"
 "Update interval seconds" = 900
+"External data update interval days" = 14
+"Tsv templates directory" = ["data", "Server_output", "db update tsv templates"]
+"Database clean interval days" = 30
+# These specify whether we should delete data from the database that is no longer in uniprot or known databases during database update.
+# Uniprot especially should probably be left to false, as custom added proteins do exist in the database, e.g. tags and old crapome entries.
+"Delete old uniprots" = false
+"Delete old interactions" = true
+# These columns are not compared when checking for differences between existing database and new incoming data from update tables.
+"Ignore diffs" = ["is_latest","contamination_source", "entry_source", "version_update_time", "prev_version", "update_time"]
 
 ["Database updater"."Database table primary keys"]
 common_proteins = "uniprot_id"
@@ -62,14 +130,24 @@ msmicroscopy = "Interaction"
 proteins = "uniprot_id"
 
 ["Database updater"."Update files"]
-common_proteins = ["data", "db_updates", "common_proteins"]
-contaminants = ["data", "db_updates", "contaminants"]
-control_sets = ["data", "db_updates", "control_sets"]
-crapome_sets = ["data", "db_updates", "crapome_sets"]
-known_interactions = ["data", "db_updates", "known_interactions"]
-ms_runs = ["data", "db_updates", "ms_runs"]
-msmicroscopy = ["data", "db_updates", "msmicroscopy"]
-proteins = ["data", "db_updates", "proteins"]
+common_proteins = ["data", "Server_input", "db_updates", "common_proteins"]
+contaminants = ["data", "Server_input", "db_updates", "contaminants"]
+control_sets = ["data", "Server_input", "db_updates", "control_sets"]
+crapome_sets = ["data", "Server_input", "db_updates", "crapome_sets"]
+known_interactions = ["data", "Server_input", "db_updates", "known_interactions"]
+ms_runs = ["data", "Server_input", "db_updates", "ms_runs"]
+msmicroscopy = ["data", "Server_input", "db_updates", "msmicroscopy"]
+proteins = ["data", "Server_input", "db_updates", "proteins"]
+add_or_replace = ["data", "Server_input", "db_updates", "add_or_replace"]
+remove_data = ["data", "Server_input", "db_updates", "remove_data"]
+
+["Database updater"."Versions to keep"]
+biogrid = 3
+intact = 3
+biogrid_path = "components/api_tools/api_data/BioGRID/"
+intact_path = "components/api_tools/api_data/IntAct/"
+biogrid_regex = "BIOGRID-ALL-(\\d+\\.\\d+\\.\\d+)"
+intact_regex = "^(\\d{4}-\\d{2}-\\d{2})_intact"
 
 [Enrichment]
 #Change this to your own username, if you plan to use DAVID.

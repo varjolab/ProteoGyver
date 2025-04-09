@@ -378,7 +378,7 @@ def __get_uniprot_batch(batch_url: str, session: requests.Session) -> tuple: #TO
         batch_url: str = __get_uniprot_next_link(response.headers)
 
 
-def __get_uniprot_next_link(headers: requests.structures.CaseInsensitiveDict) -> str:
+def __get_uniprot_next_link(headers) -> str|None:
     """
     Parses link to the next page of results in a UniProt query
 
@@ -393,38 +393,33 @@ def __get_uniprot_next_link(headers: requests.structures.CaseInsensitiveDict) ->
             return match.group(1)
     return None
 
-def download_uniprot_for_database():
-    params = {
-    "query": "reviewed:true",
-    "fields": [
-        "accession",
-        "reviewed",
-        "gene_primary",
-        "id",
-        "gene_names",
-        "organism_name",
-        "length",
-        "cc_alternative_products",
-        "ft_var_seq",
-        "sequence"
-    ],
-    "sort": "accession desc"
-    }
-    headers = {
-    "accept": "application/json"
-    }
-    base_url = "https://rest.uniprot.org/uniprotkb/search"
+def download_uniprot_for_database(organisms: set|None) -> pd.DataFrame:
+    db_fields = [
+        "Entry",
+        "Reviewed",
+        "Gene names (primary)",
+        "Entry name",
+        "Gene names",
+        "Organism",
+        "Length",
+        "Alternative products",
+        "Alternative sequence",
+        "Sequence"
+    ]
 
-    response = requests.get(base_url, headers=headers, params=params)
-    if not response.ok:
-        response.raise_for_status()
+    if organisms is None:
+        organisms = {-1}
     else:
-        data = response.json()
-        print(json.dumps(data, indent=2))
+        organisms = {int(i) for i in organisms}
+    dfs = []
+    for organism_id in organisms:
+        dfs.append(download_uniprot_chunks(progress=True, organism=organism_id, fields = db_fields, reviewed_only=True))
+    return pd.concat(dfs)
 
 
-def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
-                            fields: list = None, reviewed_only: bool = True) -> pd.DataFrame:
+
+def download_uniprot_chunks(progress: bool = False, organism: int = -1,
+                            fields: list|None = None, reviewed_only: bool = True) -> pd.DataFrame:
     """
     Downloads whole uniprot for a given organism using pagination.
 
@@ -457,7 +452,7 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
     output_format: str = 'tsv'
     if not fields:
         field_dict: dict = get_default_uniprot_column_map()
-        fields: list = [
+        fields = [
             'Entry', 'Entry version', 'Reactome', 'Entry name', 'Gene names',
             'Protein names', 'Reviewed', 'Organism', 'Comment Count', 'Keywords',
             'Modified residue', 'PubMed ID', 'Post-translational modification',
@@ -491,9 +486,9 @@ def download_uniprot_chunks(progress: bool = False, organism: int = 9606,
         'Empty UniProt label list. Refer to '
         'https://www.uniprot.org/help/return_fields for help with field Labels.'
     )
-    fieldstr = '%2C'.join(fieldstr)
+    final_fieldstr: str = '%2C'.join(fieldstr)
     pagination_url: str = (
-        f'https://rest.uniprot.org/uniprotkb/search?fields={fieldstr}&format={output_format}&'
+        f'https://rest.uniprot.org/uniprotkb/search?fields={final_fieldstr}&format={output_format}&'
         f'{filter_str}size=500'
     )
     return download_uniprot_pagination_url(pagination_url, headers, progress)

@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the updater script and any additional files into the container
-COPY database_updater.py /app/
-COPY parameters.json /app/
+#COPY database_updater.py /app/
+#COPY parameters.toml /app/
 # Specify the default entry point to run the updater script
-ENTRYPOINT ["python", "/app/database_updater.py"]
+ENTRYPOINT ["python", "/app/database_admin.py"]

@@ -8,7 +8,7 @@ and general text cleaning operations. It includes utilities for:
     - Simplified text cleaning interface
 
 Example:
-    >>> from app.components.text_handling import clean_text
+    >>> from components.text_handling import clean_text
     >>> clean_text("Hello, café!")
     "hello.cafe"
 
@@ -46,7 +46,9 @@ def replace_special_characters(
     replacement_dict: Optional[Dict[str, str]] = None,
     stripresult: bool = True,
     remove_duplicates: bool = False,
-    make_lowercase: bool = True
+    make_lowercase: bool = True,
+    allow_numbers: bool = True,
+    mask_first_digit: str|None = None
 ) -> str:
     """Replaces special characters in a string with specified replacements.
     
@@ -63,7 +65,11 @@ def replace_special_characters(
             characters. Defaults to False
         make_lowercase (bool, optional): Whether to convert result to lowercase. 
             Defaults to True
-            
+        allow_numbers (bool, optional): Whether to allow numbers in the result. 
+            Defaults to True
+        mask_first_digit (str|None, optional): Character to mask the first digit with. 
+            Defaults to None
+
     Returns:
         str: String with special characters replaced according to specifications
         
@@ -75,15 +81,18 @@ def replace_special_characters(
         "hello COMMA world"
     """
     ret: str
+    regex_pat = r'[^a-zA-Z0-9]'
+    if not allow_numbers:
+        regex_pat = r'[^a-zA-Z]'
     if not replacement_dict:
-        ret = re.sub(r'[^a-zA-Z0-9]', replacewith, text)
+        ret = re.sub(regex_pat, replacewith, text)
     else:
         # Sort replacement keys by length (longest first) to handle overlapping patterns
         for key in sorted(list(replacement_dict.keys()), key=lambda x: len(x), reverse=True):
             if key in text:
                 text = text.replace(key, replacement_dict[key])
         if dict_and_re:
-            ret = re.sub(r'[^a-zA-Z0-9]', replacewith, text)
+            ret = re.sub(regex_pat, replacewith, text)
         else:
             new_text: list[str] = []
             for character in text:
@@ -106,10 +115,13 @@ def replace_special_characters(
             ret = ret.replace(f'{replacewith}{replacewith}', replacewith)
     if make_lowercase:
         ret = ret.lower()
+    if mask_first_digit:
+        if ret[0].isdigit():
+            ret = mask_first_digit + ret[1:]
     return ret
 
 def replace_accent_and_special_characters(
-    text: str, # type: ignore
+    text: str,
     replacewith: str = '.',
     replacement_dict: Optional[Dict[str, str]] = None
 ) -> str:
@@ -129,9 +141,8 @@ def replace_accent_and_special_characters(
         >>> replace_accent_and_special_characters("café, étude!")
         "cafe.etude"
     """
-    text: str = replace_special_characters(text, replacewith=replacewith, 
+    return replace_special_characters(remove_accent_characters(text), replacewith=replacewith, 
                                          replacement_dict=replacement_dict)
-    return remove_accent_characters(text)
 
 def clean_text(text: str) -> str:
     """Simplified alias for replace_accent_and_special_characters.
@@ -147,3 +158,18 @@ def clean_text(text: str) -> str:
         "hello.cafe"
     """
     return replace_accent_and_special_characters(text)
+
+def sanitize_for_database_use(text: str) -> str:
+    """Sanitizes a string for use in a database column name.
+    
+    Args:
+        text (str): The input string to sanitize
+        
+    Returns:
+        str: The sanitized string
+        
+    Example:
+        >>> sanitize_for_database_use("1.2.3")
+        "c1_2_3"
+    """
+    return  replace_special_characters(remove_accent_characters(text), replacewith='_', allow_numbers=False, mask_first_digit = 'c')

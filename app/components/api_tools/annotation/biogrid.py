@@ -6,24 +6,36 @@ import pandas as pd
 import numpy as np
 from requests import get
 from urllib.request import urlretrieve
+from itertools import chain
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 import apitools
 
+def deduplicate_str_dataframe_by_index(df) -> pd.DataFrame:
+    def merge_row_group(group):
+        merged_row = {}
+        for col in group.columns:
+            split_vals = group[col].dropna().astype(str).str.split(';')
+            all_vals = list(chain.from_iterable(split_vals))
+            deduped = sorted(set(all_vals))
+            merged_row[col] = ';'.join(deduped) if deduped else None
+        return pd.Series(merged_row)
+
+    return df.groupby(df.index).apply(merge_row_group)
 # super inefficient, but run rarely, so good enough.
-def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
+def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None = None) -> None:
     """
     Inefficiently generates a pandas dataframe from a given biogrid file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.
 
     :param file_path: path to the downloaded .tab3 file
-    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file
+    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file. If None, all uniprots will be included.
+    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
     """
     newpath:str = file_path.replace('.txt','.tsv')
-    os.rename(file_path, newpath)
-    df = pd.read_csv(newpath,sep='\t', low_memory=False)
-    df = df.replace('-',np.nan)
+    df = pd.read_csv(file_path,sep='\t', low_memory=False)
+    df = df.replace('-',np.nan).infer_objects(copy=False)
     df = df[['Experimental System', 'Experimental System Type', 'Publication Source', 'Organism ID Interactor A', 
             'Organism ID Interactor B', 'Throughput', 'Score', 'Modification', 'Qualifications', 
             'Tags', 'Source Database', 'SWISS-PROT Accessions Interactor A', 'SWISS-PROT Accessions Interactor B', 
@@ -36,9 +48,11 @@ def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
     not_used = [
         'Co-localization','Co-fractionation'
     ]
+    if organisms:
+        organisms = {str(o) for o in organisms}
+        df = df[(df['Organism ID Interactor A'].astype(str).isin(organisms)) | (df['Organism ID Interactor B'].astype(str).isin(organisms))]
     for c in df.columns:
         df[c] = [str(v).replace(';',',') for v in df[c].values]
-
     df = df[~df['Experimental System'].isin(not_used)]
     df = df.dropna(how='all',axis=1)
     #df['Experimental system details'] = [legend[x] for x in df['Experimental System'].values]
@@ -50,8 +64,9 @@ def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
     for _, row in df.iterrows():
         ids_a = [row['SWISS-PROT Accessions Interactor A']]
         ids_b = [row['SWISS-PROT Accessions Interactor B']]
-        ids_a = [i for i in ids_a if i in uniprots_to_get]
-        ids_b = [i for i in ids_b if i in uniprots_to_get]
+        if uniprots_to_get:
+            ids_a = [i for i in ids_a if i in uniprots_to_get]
+            ids_b = [i for i in ids_b if i in uniprots_to_get]
         if len(ids_a) == 0:continue
         if len(ids_b) == 0:continue
         for i in ids_a:
@@ -106,11 +121,13 @@ def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
     findf = findf.rename(columns = {
         'UPID A': 'uniprot_id_a',
         'UPID B': 'uniprot_id_b',
-        'Experimental system': 'BioGRID experiment',
         'Source Database': 'source_database',
         'Experimental System Type': 'interaction_type',
         'Experimental System': 'interaction_detection_method',
         'Publication Source': 'publication_identifier',
+        'Organism ID Interactor A': 'organism_interactor_a',
+        'Organism ID Interactor B': 'organism_interactor_b',
+        'Modification': 'modification',
         'Score': 'confidence_value'
     })
     nc = []
@@ -121,8 +138,8 @@ def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
         if pd.notna(row["Qualifications"]):
             if len(row["Qualifications"].strip().strip(";"))>0:
                 nc[-1] += f'+Q:{row["Qualifications"].strip().strip(";")}'
-        if pd.notna(row['Modification']):
-            nc[-1] += f'+Mod:{row["Modification"]}'
+        if pd.notna(row['modification']):
+            nc[-1] += f'+Mod:{row["modification"]}'
         id1 = row['uniprot_id_a']
         id2 = row['uniprot_id_b']
         if '-' in id1:
@@ -136,18 +153,16 @@ def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
     findf['uniprot_id_a_noiso'] = id1c
     findf['uniprot_id_b_noiso'] = id2c
     findf['interaction'] = findf['uniprot_id_a'] + '_-_' + findf['uniprot_id_b']
-    findf['experimental_role_interactor_a'] = np.nan
     findf['biological_role_interactor_a'] = np.nan
     findf['annotation_interactor_a'] = np.nan
-    findf['experimental_role_interactor_b'] = np.nan
     findf['biological_role_interactor_b'] = np.nan
     findf['annotation_interactor_b'] = np.nan
 
     findf = findf[[
         'interaction','uniprot_id_a', 'uniprot_id_b', 'uniprot_id_a_noiso', 'uniprot_id_b_noiso',
-        'isoform_a', 'isoform_b', 'publication_identifier', 
+        'isoform_a', 'isoform_b', 'publication_identifier',
         'interaction_detection_method', 'interaction_type', 'confidence_value',
-        'source_database', 'experimental_role_interactor_a','experimental_role_interactor_b',
+        'source_database', 'organism_interactor_a','organism_interactor_b',
         'biological_role_interactor_a', 'biological_role_interactor_b','annotation_interactor_a',
         'annotation_interactor_b', 'notes','update_time'
     ]]
@@ -164,23 +179,32 @@ def generate_pandas(file_path:str, uniprots_to_get:set) -> None:
             nvals = [str(v).strip(nullval).strip() for v in nvals]
         if sum([len(v)==0 for v in nvals]) > 0:
             findf[c] = nvals
-    findf = findf.replace('',np.nan)
+    findf.set_index('interaction', inplace=True, drop=True)
+    # Especially would be good to avoid this step:
+    findf = deduplicate_str_dataframe_by_index(findf)
+    findf = findf.replace('',np.nan).infer_objects(copy=False)
     findf['publication_identifier'] = findf['publication_identifier'].str.lower()
-    findf.to_csv(newpath, sep='\t', index=False)
+    findf.to_csv(newpath, sep='\t', index=True)
+    
 
-def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set) -> None:
+def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set|None, organisms: set|None = None) -> None:
     """
     Handles practicalities of updating the biogrid tsv file on disk
 
     :param save_dir: directory where the datafiles will be put
     :param save_zipname: filename for the zipfile that will be downloaded
     :param latest_zip_url: url for the zip to download from BioGRID
-    :param uniprots_to_get: a set of which uniprots should be retained.
+    :param uniprots_to_get: a set of which uniprots should be retained. If None, all uniprots will be retained.
+    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
     """
     urlretrieve(latest_zip_url,os.path.join(save_dir, save_zipname))
-    with ZipFile(os.path.join(save_dir, save_zipname), 'r') as zip_ref:
-        zip_ref.extractall(save_dir)
-    generate_pandas(os.path.join(save_dir, save_zipname.replace('.zip','.txt')), uniprots_to_get)
+    datafile_path = os.path.join(save_dir, save_zipname.replace('.zip','.txt'))
+    if not os.path.exists(datafile_path):
+        with ZipFile(os.path.join(save_dir, save_zipname), 'r') as zip_ref:
+            zip_ref.extractall(save_dir)
+    generate_pandas(datafile_path, uniprots_to_get, organisms)
+    #os.remove(os.path.join(save_dir, save_zipname))
+    #os.remove(datafile_path)
 
 def get_latest() -> pd.DataFrame:
     """
@@ -189,19 +213,23 @@ def get_latest() -> pd.DataFrame:
     :returns: Pandas dataframe of the latest BioGRID data.
     """
     current_version: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'),namefilter='.tsv')
-    return pd.read_csv(
-        os.path.join(apitools.get_save_location('BioGRID'), current_version),
-        index_col = 'interaction',
-        sep='\t',
-        low_memory=False
-    )
+    try:
+        return pd.read_csv(
+            os.path.join(apitools.get_save_location('BioGRID'), current_version),
+            index_col = 'interaction',
+            sep='\t',
+            low_memory=False
+        )
+    except FileNotFoundError:
+        return pd.DataFrame()
 
-#TODO: check uniprots in should_update bool check too, not just version.
-def update(uniprots_to_get:set) -> None:
+#TODO: check uniprots in should_update bool check too, not just version. Also organisms should be checked too.
+def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
     """
     Updates the database, if required
 
-    :param uniprots_to_get: uniprots to retain in the database    
+    :param uniprots_to_get: uniprots to retain in the database. if None, all uniprots will be retained.
+    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
     """
     url = 'https://downloads.thebiogrid.org/BioGRID/Release-Archive'
     r = get(url).text.split('\n')
@@ -210,13 +238,13 @@ def update(uniprots_to_get:set) -> None:
     latest_zipname = f'{latest.replace(".org/",".org/Download/")}{latest.rsplit("/",maxsplit=2)[-2].replace("BIOGRID","BIOGRID-ALL")}.tab3.zip'
     uzip = latest_zipname.rsplit('/',maxsplit=1)[1]
     save_location:str = apitools.get_save_location('BioGRID')
-    should_update:bool = False
-    try:
-        should_update = uzip != apitools.get_newest_file(save_location)
-    except ValueError:
+    current_file = apitools.get_newest_file(save_location, namefilter='.tsv')
+    if os.path.exists(os.path.join(save_location, current_file)):
+        should_update = uzip.rsplit('.',maxsplit=1)[0] != current_file.rsplit('.',maxsplit=1)[0]
+    else:
         should_update = True
     if should_update:
-        do_update(save_location, uzip, latest_zipname, uniprots_to_get)
+        do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms)
         
 def get_version_info() -> str:
     """

@@ -20,7 +20,7 @@ import os
 from celery import Celery
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
-from components import parsing
+from components.tools import utils
 
 celery_app = Celery(
     __name__, broker="redis://localhost:6379/0", backend="redis://localhost:6379/1"
@@ -130,7 +130,7 @@ def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
         return not is_open
     return is_open
 
-parameters = parsing.read_toml('parameters.toml')
+parameters = utils.read_toml('parameters.toml')
 server = app.server
 if not os.path.isdir('logs'):
     os.makedirs('logs')

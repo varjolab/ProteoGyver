@@ -23,6 +23,7 @@ def list_tables(database_file) -> list[str]:
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = cursor.fetchall()
+    cursor.close()
     conn.close()
     return [table[0] for table in tables]
 
@@ -32,21 +33,49 @@ def add_column(db_conn, tablename, colname, coltype):
         ADD COLUMN {colname} '{coltype}'
         """
     try:
-        db_conn.cursor().execute(sql_str)
+        cursor: sqlite3.Cursor = db_conn.cursor()
+        cursor.execute(sql_str)
     except sqlite3.Error as error:
         print("Failed to add column to sqlite table", error, sql_str)
         raise
+    finally:
+        cursor.close()
 
-def modify_record(db_conn, table, criteria_col, criteria, columns, values):
+def modify_multiple_records(db_conn, table, updates):
+    """Modify multiple records in a table.
+    
+    Args:
+        db_conn: SQLite database connection
+        table (str): Name of the table to update
+        updates (list): List of dictionaries, each containing:
+            - criteria_col (str): Column name for WHERE clause
+            - criteria: Value to match in WHERE clause
+            - columns (list): List of column names to update
+            - values (list): List of values corresponding to columns
+    """
     try:
-        add_str = f'UPDATE {table} SET {" = ?, ".join(columns)} = ? WHERE {criteria_col} = ?'
-        add_data = values.copy()
-        add_data.append(criteria)
-        db_conn.cursor().execute(add_str, add_data)
-        return add_str
+        cursor: sqlite3.Cursor = db_conn.cursor()
+        for update in updates:
+            add_str = f'UPDATE {table} SET {" = ?, ".join(update["columns"])} = ? WHERE {update["criteria_col"]} = ?'
+            add_data = update["values"].copy()
+            add_data.append(update["criteria"])
+            cursor.execute(add_str, add_data)
     except sqlite3.Error as error:
-        print("Failed to modify sqlite table", error, add_str)
+        print("Failed to modify sqlite table", error)
         raise
+    finally:
+        cursor.close()
+
+# Original function maintained for backwards compatibility
+def modify_record(db_conn, table, criteria_col, criteria, columns, values):
+    update = {
+        "criteria_col": criteria_col,
+        "criteria": criteria,
+        "columns": columns,
+        "values": values
+    }
+    modify_multiple_records(db_conn, table, [update])
+    return f'UPDATE {table} SET {" = ?, ".join(columns)} = ? WHERE {criteria_col} = ?'
 
 def remove_column(db_conn, tablename, colname):
     sql_str: str = f"""
@@ -55,37 +84,76 @@ def remove_column(db_conn, tablename, colname):
         """
     try:
         # Create a cursor object
-        db_conn.cursor().execute(sql_str)
+        cursor: sqlite3.Cursor = db_conn.cursor()
+        cursor.execute(sql_str)
     except sqlite3.Error as error:
         print("Failed to remove column from sqlite table", error, sql_str)
         raise
+    finally:
+        cursor.close()
 
 def rename_column(db_conn, tablename, old_col, new_col):
     sql_str = f'ALTER TABLE {tablename} RENAME COLUMN {old_col} TO {new_col};'
     try:
-        db_conn.cursor().execute(sql_str)
+        cursor: sqlite3.Cursor = db_conn.cursor()
+        cursor.execute(sql_str)
     except sqlite3.Error as error:
         print(f'Failed to rename column in sqlite table. Error: {error}', sql_str)
         raise
 
+def delete_multiple_records(db_conn, table, deletes):
+    """Delete multiple records from a table.
     
-def delete_record(db_conn, tablename, criteria_col, criteria):
-    sql_str: str = f"""DELETE from {tablename} where {criteria_col} = ?"""
+    Args:
+        db_conn: SQLite database connection
+        table (str): Name of the table to delete from
+        deletes (list): List of dictionaries, each containing:
+            - criteria_col (str): Column name for WHERE clause
+            - criteria: Value to match in WHERE clause
+    """
     try:
-        db_conn.cursor().execute(sql_str, [criteria])
+        cursor: sqlite3.Cursor = db_conn.cursor()
+        for delete in deletes:
+            sql_str = f"""DELETE from {table} where {delete["criteria_col"]} = ?"""
+            cursor.execute(sql_str, [delete["criteria"]])
     except sqlite3.Error as error:
-        print("Failed to delete record from sqlite table", error, sql_str)
+        print("Failed to delete records from sqlite table", error)
         raise
+    finally:
+        cursor.close()
+
+def delete_record(db_conn, tablename, criteria_col, criteria):
+    delete = {
+        "criteria_col": criteria_col,
+        "criteria": criteria
+    }
+    delete_multiple_records(db_conn, tablename, [delete])
 
 def add_record(db_conn, tablename, column_names, values):
     sql_str: str = f"""
         INSERT INTO {tablename} ({", ".join(column_names)}) VALUES ({", ".join(["?" for _ in column_names])})
         """
     try:
-        db_conn.cursor().execute(sql_str, values)
+        cursor: sqlite3.Cursor = db_conn.cursor()
+        cursor.execute(sql_str, values)
     except sqlite3.Error as error:
         print("Failed to add record to sqlite table", error, sql_str)
         raise
+    finally:
+        cursor.close()
+
+def add_multiple_records(db_conn, tablename, column_names, list_of_values) -> None:
+    sql_str: str = f"""
+        INSERT INTO {tablename} ({", ".join(column_names)}) VALUES ({", ".join(["?" for _ in column_names])})
+    """
+    try:
+        cursor: sqlite3.Cursor = db_conn.cursor()
+        cursor.executemany(sql_str, list_of_values)
+    except sqlite3.Error as error:
+        print("Failed to add multiple records to sqlite table", error, sql_str)
+        raise
+    finally:
+        cursor.close()
         
 def create_connection(db_file, error_file: str = None):
     """ create a database connection to the SQLite database
@@ -105,7 +173,7 @@ def create_connection(db_file, error_file: str = None):
                 fil.write(str(e)+'\n')
     return conn
 
-def generate_database_table_templares_as_tsvs(db_conn, output_dir, primary_keys):
+def generate_database_table_templates_as_tsvs(db_conn, output_dir, primary_keys):
     """Generate TSV templates for each table in an SQLite database.
 
     Args:
@@ -150,6 +218,7 @@ def generate_database_table_templares_as_tsvs(db_conn, output_dir, primary_keys)
             tsv_writer = csv.writer(tsv_file, delimiter="\t")
             tsv_writer.writerow(columns)
         print(f"Template generated for table '{table}' at '{tsv_file_path}'.")
+    cursor.close()
 
 def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False, pandas_index_col:str = None, operator:str = '='):
     """"""
@@ -169,6 +238,7 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = 
     else:
         cursor.execute(selection_string)
         ret: list = cursor.fetchall()
+    cursor.close()
     return ret
 
 def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, criteria_col:str, criteria:list,as_pandas:bool = True, select_col: str = None):
@@ -184,6 +254,7 @@ def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, cr
     else:
         cursor.execute(query, criteria)
         ret: list = cursor.fetchall()
+    cursor.close()
     return ret
 
 def get_contaminants(db_file: str, protein_list:list = None, error_file: str = None) -> list:
@@ -206,5 +277,7 @@ def drop_table(conn:sqlite3.Connection, table_name: str) -> None:
     :param table_name: name of the table to drop
     """
     sql_str: str = f'DROP TABLE IF EXISTS {table_name}'
-    conn.cursor().execute(sql_str)
+    cursor: sqlite3.Cursor = conn.cursor()
+    cursor.execute(sql_str)
+    cursor.close()
 
