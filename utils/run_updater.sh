@@ -7,6 +7,9 @@ TODAY=$(date +%Y/%m/%d)
 VOLUMES=(
     "/data/PG_containers/db/PG_prod" "/proteogyver/data/db"
     "/data/PG_containers/conf/PG_prod/parameters.toml" "/proteogyver/parameters.toml"
+    "/mnt/varjosalo_MS_rundata" "/proteogyver/data/Server_input"
+    "/mnt/varjosalo_Server_output" "/proteogyver/data/Server_output"
+    "/data/PG_containers/cache/PG_updater" "/proteogyver/cache"
 )
 
 # Build the -v options

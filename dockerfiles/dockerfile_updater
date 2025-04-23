@@ -8,6 +8,9 @@ ENV PYTHONUNBUFFERED=1 \
 # Set the working directory in the container
 WORKDIR /app
 
+RUN mkdir -p /proteogyver/data/Server_output
+RUN mkdir -p /proteogyver/data/Server_input
+RUN mkdir -p /proteogyver/data/Server_output/logs
 # Requirement and config
 COPY app/resources/updater_requirements.txt requirements.txt
 COPY app/parameters.toml parameters.toml
@@ -16,6 +19,9 @@ COPY app/parameters.toml parameters.toml
 COPY app/database_updater.py database_updater.py
 COPY app/database_generator.py database_generator.py
 COPY app/database_admin.py database_admin.py
+
+# Needed data
+COPY app/data /proteogyver/data
 
 # Needed extras
 COPY app/components/text_handling.py components/text_handling.py
