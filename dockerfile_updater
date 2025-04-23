@@ -20,7 +20,7 @@ COPY app/database_admin.py database_admin.py
 # Needed extras
 COPY app/components/text_handling.py components/text_handling.py
 COPY app/components/db_functions.py components/db_functions.py
-COPY app/components/api_tools/api_tools.py components/api_tools/api_tools.py
+COPY app/components/api_tools/apitools.py components/api_tools/apitools.py
 COPY app/components/api_tools/annotation components/api_tools/annotation
 
 
