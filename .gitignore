@@ -4,6 +4,8 @@ debugging/
 *.ipynb
 Server_output/
 Server_input/
+app/data/db/db build files/
+app/data/db/db build files/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -72,5 +74,3 @@ __pycache__/
 # OS specific
 .DS_Store
 Thumbs.db
-app/data/db/db build files/
-app/data/db/db build files/*
