@@ -1,8 +1,9 @@
 # PG specific additions
 api_data/
 debugging/
-
-
+*.ipynb
+Server_output/
+Server_input/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
