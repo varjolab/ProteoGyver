@@ -4,19 +4,10 @@ FROM ubuntu:22.04
 LABEL maintainer "Kari Salokas kari.salokas@helsinki.fi"
 USER root
 
-
-
-# Install and setup R and other software
-# Updates and packages
-
-
-
-# User management not needed for now
-#RUN adduser --quiet --disabled-password --shell /bin/bash --gecos "Kari" kamms && \
-#    echo "kamms:kamms" | chpasswd
 WORKDIR /
+COPY dockerfiles/docker_entrypoint.sh /
+COPY utils/resource_monitoring.sh /
 COPY app /proteogyver
-COPY app/resources /proteogyver/resources
 # Python installs
 WORKDIR /proteogyver/resources
 RUN pip3 install --upgrade pip
@@ -26,11 +17,7 @@ RUN pip3 install jupyter jupyterlab jupyterhub pandas jupyter-dash gunicorn
 
 # JupyterHub
 # R things
-#RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
-COPY dockerfiles/docker_entrypoint.sh /
-COPY utils/resource_monitoring.sh /
-#COPY app/update.sh /update.sh
-WORKDIR /
+RUN echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
 WORKDIR /proteogyver/resources
 #Needed for R
 #/usr/local/lib/R/etc/Rprofile.site
