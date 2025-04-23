@@ -31,10 +31,3 @@ services:
       - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
     restart: unless-stopped
-  pgyver_updater:
-    image: pgyver_updater:1.0
-    container_name: pgupdater10
-    restart: unless-stopped
-    volumes:
-      - /data/PG_containers/db/PG_prod:/proteogyver/data/db
-      - /data/PG_containers/conf/PG_prod/parameters.toml:/proteogyver/parameters.toml
