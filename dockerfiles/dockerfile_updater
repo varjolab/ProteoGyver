@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /proteogyver
 
 RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/Server_input
@@ -43,4 +43,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #COPY database_updater.py /app/
 #COPY parameters.toml /app/
 # Specify the default entry point to run the updater script
-ENTRYPOINT ["python", "/app/database_admin.py"]
+ENTRYPOINT ["python", "/proteogyver/database_admin.py"]
