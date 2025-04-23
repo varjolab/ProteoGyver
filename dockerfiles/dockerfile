@@ -85,9 +85,6 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 WORKDIR /proteogyver
 RUN conda env create -f resources/environment.yml
 RUN conda clean -afy
-RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    echo "conda activate proteogyver" >> ~/.bashrc
-
 WORKDIR /proteogyver/resources
 #Needed for R
 #/usr/local/lib/R/etc/Rprofile.site
@@ -107,7 +104,6 @@ RUN Rscript R_requirements13.R
 
 EXPOSE 8090 8050
 
-RUN echo "source activate proteogyver" >> ~/.bashrc
 ENV PATH="/opt/conda/envs/proteogyver/bin:${PATH}"
 
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]

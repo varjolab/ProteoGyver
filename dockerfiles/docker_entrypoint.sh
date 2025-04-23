@@ -9,7 +9,7 @@ fi
 
 # --- Activate environment and move to project folder ---
 cd /proteogyver
-source activate proteogyver
+conda activate PG
 
 # --- Ensure clean Redis and Celery state ---
 echo "[INIT] Shutting down old Redis and Celery processes (if any)..."
