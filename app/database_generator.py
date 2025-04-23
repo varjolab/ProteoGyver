@@ -499,6 +499,9 @@ def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[l
     else:
         runlist = pd.DataFrame(columns=['Sample name','Who','Sample type','Bait name','Bait / other uniprot or ID','Bait mutation','Cell line / material','Project','Notes','tag'])
     ms_run_datadir = parameters['MS data import dir']
+    if not os.path.exists(ms_run_datadir):
+        print('MS data import directory does not exist')
+        return table_create_sql, insert_sql
     for i, datafilename in enumerate(os.listdir(ms_run_datadir)):
         with open(os.path.join(ms_run_datadir, datafilename)) as fil:
             try:
