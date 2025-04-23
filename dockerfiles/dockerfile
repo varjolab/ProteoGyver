@@ -55,8 +55,8 @@ RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__li
 
 WORKDIR /
 COPY app /proteogyver
-COPY jupyterhub.py /etc/jupyterhub/
-COPY nm_pack.py /nm_pack.py
+COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
+RUN chmod +x /docker_entrypoint.sh
 
 # Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
@@ -65,18 +65,9 @@ RUN chmod 777 SAINTexpress-int
 RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc
 RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt
 
-COPY app/Utilities/cron_maintenance_jobs /etc/cron.d/cron_maintenance_jobs
-RUN chmod 0644 /etc/cron.d/cron_maintenance_jobs
-RUN touch /var/log/cron.log
-RUN crontab /etc/cron.d/cron_maintenance_jobs
 RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/MS_rundata
-RUN mkdir -p /etc/supervisor/conf.d
-RUN mkdir -p /etc/jupyterhub
-RUN mkdir -p /proteogyver/data/unparsed_stats
-RUN mkdir -p /proteogyver/data/Server_output/stats
-
-
+RUN mkdir -p /proteogyver/data/Server_output/logs
 RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
 
 WORKDIR /proteogyver
@@ -95,9 +86,6 @@ RUN conda env create -f resources/environment.yml
 RUN conda clean -afy
 RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate proteogyver" >> ~/.bashrc
-
-COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
-RUN chmod +x /docker_entrypoint.sh
 
 WORKDIR /proteogyver/resources
 #Needed for R

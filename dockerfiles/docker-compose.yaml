@@ -20,7 +20,7 @@ services:
     environment:
       - TZ=Europe/Helsinki
       - MONITOR_RESOURCES=true
-      - RESOURCE_LOG_DIR=/tmp/resource_logs
+      - RESOURCE_LOG_DIR=/proteogyver/data/Server_output/logs/resources
       - RESOURCE_LOG_INTERVAL_SECONDS=5
       - RESOURCE_LOG_KEEP_DAYS=30
 
