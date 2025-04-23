@@ -68,6 +68,7 @@ RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpr
 RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/MS_rundata
 RUN mkdir -p /proteogyver/data/Server_output/logs
+RUN mkdir -p /etc/supervisor/conf.d
 RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
 
 WORKDIR /proteogyver
