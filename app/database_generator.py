@@ -1,17 +1,19 @@
 import re
+import shutil
 import sqlite3
 import os
 import pandas as pd
 import json
 import numpy as np
-from datetime import datetime
 from components import text_handling
 from components.api_tools.annotation import intact
 from components.api_tools.annotation import biogrid
 from components.api_tools.annotation import uniprot
-from components.tools import utils
-from concurrent.futures import ProcessPoolExecutor
-import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from typing import Iterator
+import pandas as pd
+import numpy as np
+from datetime import datetime
 
 def do_crapome_or_controls(parameters: dict, sets: dict, crapome:pd.DataFrame, col_map: dict, timestamp: str, control_or_crapome: str = 'crapome') -> tuple[list, list]:
     overall_columns = [f'{control_or_crapome}_set',f'{control_or_crapome}_set_name','runs','is_disabled','is_default',f'{control_or_crapome}_table_name','version_update_time','prev_version']
@@ -135,35 +137,92 @@ def crapome_and_controls(parameters: dict, timestamp: str) -> tuple[list, list]:
     control_sql, control_insert_sql = do_crapome_or_controls(parameters, sets, controls, data_cols, timestamp, 'control')
     print('crapome_and_controls done')
     return (crapome_sql+control_sql, crapome_insert_sql+control_insert_sql)
+
+
+def stream_flattened_rows(df: pd.DataFrame) -> Iterator[dict]:
+    if 'interaction' in df.columns:
+        df.set_index('interaction', inplace=True)
+
+    for interaction, row in df.iterrows():
+        out_row: dict = {'interaction': interaction}
+        for col in df.columns:
+            if pd.isna(row[col]):
+                continue
+            values = [v.strip(';') for v in str(row[col]).split(';') if v]
+            key = col
+            if key in out_row:
+                out_row[key].update(values)
+            else:
+                out_row[key] = set(values)
+        yield out_row
+
+def get_merg_chunk(organisms: set | None, timestamp: str, L: str, inttable_cols: list, tmpdir: str) -> None:
     
-def merge_multiple_string_dataframes(dfs) -> pd.DataFrame:
-    if not dfs:
-        return pd.DataFrame()
+    def stream_cleaned_rows():
+        sources = [
+            intact.get_latest(organisms, subset_letter=L),   # type: ignore
+            biogrid.get_latest(organisms, subset_letter=L),  # type: ignore
+        ]
+        merged = {}
+        for df in sources:
+            for row in stream_flattened_rows(df):
+                interaction = row.pop('interaction')
+                merged.setdefault(interaction, {})
+                for k, v in row.items():
+                    merged[interaction].setdefault(k, set()).update(v)
 
-    # Get union of all indices and columns
-    all_indices = dfs[0].index
-    all_columns = dfs[0].columns
+        for interaction, fields in merged.items():
+            row_data = {
+                'interaction': interaction,
+                **{k: ';'.join(sorted(v)).strip(';') for k, v in fields.items()}
+            }
 
-    for df in dfs[1:]:
-        all_indices = all_indices.union(df.index)
-        all_columns = all_columns.union(df.columns)
+            for badval in ['nan', '', '-', 'None']:
+                for k, v in row_data.items():
+                    if v == badval:
+                        row_data[k] = None
 
-    # Create empty dataframe with full shape
-    merged = pd.DataFrame(index=all_indices, columns=all_columns)
+            pubid = row_data.get('publication_identifier') or ''
+            row_data['publication_count'] = len(pubid.strip(';').split(';')) if pubid else 0
 
-    for idx in all_indices:
-        for col in all_columns:
-            cell_values = []
-            for df in dfs:
-                if idx in df.index and col in df.columns:
-                    val = df.at[idx, col]
-                    if pd.notna(val):
-                        cell_values.extend(str(val).split(';'))  # handles pre-merged cells
-            dedup = sorted(set(cell_values))
-            merged.at[idx, col] = ';'.join(dedup) if dedup else None
-    return merged
+            row_data['version_update_time'] = timestamp
+            row_data['prev_version'] = -1
 
-def prot_knownint_and_contaminant_table(parameters: dict, timestamp: str, organisms: set|None = None) -> tuple[list, list]:
+            required = [
+                'uniprot_id_a', 'uniprot_id_b',
+                'uniprot_id_a_noiso', 'uniprot_id_b_noiso',
+                'isoform_a', 'isoform_b'
+            ]
+            if any(row_data.get(k) in [None, '', np.nan] for k in required):
+                continue
+
+            yield row_data
+
+    add_str = f'INSERT INTO known_interactions ({", ".join([c.split()[0] for c in inttable_cols])}) VALUES ({", ".join(["?" for _ in inttable_cols])})'
+
+    data = []
+    for row in stream_cleaned_rows():
+        out = []
+        for c in inttable_cols:
+            val = row.get(c.split()[0], '')
+            out.append(val)
+        data.append(out)
+
+    if data:
+        with open(os.path.join(tmpdir, f'{L}.json'), 'w') as fil:
+            json.dump({'add_str': add_str, 'data': data}, fil)
+
+def write_int_insert_sql(inttable_cols: list, organisms: set|None, timestamp: str, tmpdir: str, ncpu: int) -> None:
+    get_chunks = sorted(list(set(intact.get_available()) | set(biogrid.get_available())))
+    num_cpus = ncpu
+    with ProcessPoolExecutor(max_workers=num_cpus) as executor:
+        futures = []
+        for L in get_chunks:
+            futures.append(executor.submit(get_merg_chunk, organisms, timestamp, L, inttable_cols, tmpdir))
+        for future in as_completed(futures):
+            future.result()
+    
+def prot_knownint_and_contaminant_table(parameters: dict, timestamp: str, tmpdir:str, ncpu: int, organisms: set|None = None) -> tuple[list, list]:
     table_create_sql = []
     insert_sql = []
     prot_cols = [
@@ -203,9 +262,11 @@ def prot_knownint_and_contaminant_table(parameters: dict, timestamp: str, organi
     prot_table_str = '\n'.join(prot_table_str).strip(',')
     prot_table_str += '\n);'
     table_create_sql.append(prot_table_str)
+    
 
-    #uniprot_df = uniprot.download_uniprot_for_database(organisms = organisms)
-    uniprot_df = pd.read_csv('uniprot_df_full.tsv',sep='\t',index_col='Entry')
+    uniprot_df = uniprot.download_uniprot_for_database(organisms = organisms)
+    #uniprot_df.to_csv('uniprot_df_full.tsv',sep='\t',index=True)
+    #uniprot_df = pd.read_csv('uniprot_df_full.tsv',sep='\t',index_col='Entry')
     uniprots = set(uniprot_df.index.values)
     for protid, row in uniprot_df.iterrows():
         gn = row['Gene names (primary)']
@@ -286,7 +347,7 @@ def prot_knownint_and_contaminant_table(parameters: dict, timestamp: str, organi
             conts.at[index,'Uniprot ID'] = old_ids[row['Uniprot ID']]
         if row['Uniprot ID'] in uniprots:
             uprow = uniprot_df.loc[row['Uniprot ID']]
-            conts.at[index,'Length'] = uprow['Length']
+            conts.at[index,'Length'] = float(uprow['Length'])
             conts.at[index,'Sequence'] = uprow['Sequence']
             conts.at[index,'Gene names'] = uprow['Gene names']
             conts.at[index,'Status'] = uprow['Reviewed']
@@ -343,26 +404,27 @@ def prot_knownint_and_contaminant_table(parameters: dict, timestamp: str, organi
         'uniprot_id_b TEXT NOT NULL',
         'uniprot_id_a_noiso TEXT NOT NULL',
         'uniprot_id_b_noiso TEXT NOT NULL',
-        'source_database TEXT NOT NULL',
         'isoform_a TEXT',
         'isoform_b TEXT',
         'organism_interactor_a TEXT',
         'organism_interactor_b TEXT',
-        'experimental_role_interactor_a TEXT',
-        'interaction_detection_method TEXT',
-        'publication_identifier TEXT',
-        'biological_role_interactor_b TEXT',
         'annotation_interactor_a TEXT',
-        'confidence_value TEXT',
-        'interaction_type TEXT',
-        'experimental_role_interactor_b TEXT',
         'annotation_interactor_b TEXT',
         'biological_role_interactor_a TEXT',
+        'biological_role_interactor_b TEXT',
+        'interaction_detection_method TEXT',
+        'publication_identifier TEXT',
+        'confidence_value TEXT',
+        'interaction_type TEXT',
+        'source_database TEXT NOT NULL',
         'publication_count TEXT',
+        'throughput TEXT',
         'notes TEXT',
         'version_update_time TEXT',
+        'update_time TEXT',
         'prev_version TEXT'
     ]
+
     inttable_create = ['CREATE TABLE IF NOT EXISTS known_interactions (']
     for col in inttable_cols:
         inttable_create.append(f'    {col},')
@@ -370,44 +432,14 @@ def prot_knownint_and_contaminant_table(parameters: dict, timestamp: str, organi
     inttable_create += '\n);'
     table_create_sql.append(inttable_create)
 
-    #biogrid.update(uniprots, organisms)
-    #intact.update(uniprots, organisms)
-    dbtables = [biogrid.get_latest(), intact.get_latest()]
-    dbtables[0].to_csv('biogrid.tsv',sep='\t')
-    dbtables[1].to_csv('intact.tsv',sep='\t')
-    merg = merge_multiple_string_dataframes(dbtables)
-    merg = merg[merg['uniprot_id_a'].isin(uniprots) & merg['uniprot_id_b'].isin(uniprots)]
-    merg['publication_count'] = [len(x.split(';')) for x in merg['publication_identifier'].values]
-    merg.to_csv('merg.tsv', sep='\t')
-    pm = []
-    npubs = []
-    for _,row in merg.iterrows():
-        pmids = set()
-        for p in row['publication_identifier'].split('__'):
-            for pp in p.split(';'):
-                if 'pubmed' in pp.lower():
-                    pmids.add(pp)
-        pm.append(len(pmids))
-        npubs.append(';'.join(sorted(list(pmids))))
-    merg['publication_count'] = pm
-    merg['publication_identifier'] = npubs
-    merg['version_update_time'] = timestamp
-    merg['prev_version'] = -1
-
-    int_df_slim = merg[merg['uniprot_id_a'].isin(uniprots) & merg['uniprot_id_b'].isin(uniprots)]
-    int_df_slim = int_df_slim.reset_index()
-    merg.to_csv('merg.tsv',sep='\t')
-    int_df_slim.to_csv('int_df_slim.tsv',sep='\t')
-    for _,row in int_df_slim.iterrows():
-        data = [
-            row[c.split()[0]] for c in inttable_cols
-        ]
-        add_str = f'INSERT INTO known_interactions ({", ".join([c.split()[0] for c in inttable_cols])}) VALUES ({", ".join(["?" for _ in inttable_cols])})'
-        insert_sql.append([add_str, data])
+    intact.update(organisms=organisms)
+    biogrid.update(organisms=organisms)
+    write_int_insert_sql(inttable_cols, organisms, timestamp, tmpdir, ncpu)
     print('prot_knownint_and_contaminant_table done')
     return table_create_sql, insert_sql
 
 def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[list, list]:
+    parameters = parameters['MS runs information']
     table_create_sql = []
     insert_sql = []
 
@@ -740,37 +772,32 @@ def run_table_generation(func, parameters, timestamp, time_format=None):
         return func(parameters, timestamp, time_format)
     return func(parameters, timestamp)
 
-def generate_database(parameters: dict, database_filename: str, time_format, organisms: set|None = None) -> None:
-    timestamp = datetime.now().strftime(time_format)
+def generate_database(parameters: dict, database_filename: str, time_format, timestamp: str,tmpdir:str, num_cpus: int,  organisms: set|None = None) -> None:
     full_table_create_sql = []
-    # Run all table generations in parallel using processes
-    num_cpus = multiprocessing.cpu_count()
-    pkic_create_sql, pkic_insert_sql = prot_knownint_and_contaminant_table(parameters, timestamp, organisms)
+    num_cpus = num_cpus
+    ms_create_sql, ms_insert_sql = ms_runs_table(parameters, timestamp, time_format)
+    pkic_create_sql, pkic_insert_sql = prot_knownint_and_contaminant_table(parameters, timestamp, tmpdir, num_cpus, organisms)
     with ProcessPoolExecutor(max_workers=num_cpus) as executor:
-        # Start all tasks
         cc_future = executor.submit(run_table_generation, crapome_and_controls, parameters, timestamp)
-    #    pkic_future = executor.submit(run_table_generation, prot_knownint_and_contaminant_table, parameters, timestamp, organisms)
         #ms_future = executor.submit(run_table_generation, ms_runs_table, parameters, timestamp, time_format)
         msmic_future = executor.submit(run_table_generation, msmicroscopy_table, parameters, timestamp)
         com_future = executor.submit(run_table_generation, common_proteins_table, parameters, timestamp)
 
-        # Get results as they complete
         cc_create_sql, cc_insert_sql = cc_future.result()
-    #    pkic_create_sql, pkic_insert_sql = pkic_future.result()
         #ms_create_sql, ms_insert_sql = ms_future.result()
         msmic_create_sql, msmic_insert_sql = msmic_future.result()
         com_create_sql, com_insert_sql = com_future.result()
 
     full_table_create_sql.extend(cc_create_sql)
     full_table_create_sql.extend(pkic_create_sql)
-    #full_table_create_sql.extend(ms_create_sql)
+    full_table_create_sql.extend(ms_create_sql)
     full_table_create_sql.extend(msmic_create_sql)
     full_table_create_sql.extend(com_create_sql)
 
     insert_sql_list = [
         ('crapome+controls', cc_insert_sql),
         ('proteins+knowns+contaminants', pkic_insert_sql),
-       # ('ms_runs', ms_insert_sql),
+        ('ms_runs', ms_insert_sql),
         ('msmicroscopy', msmic_insert_sql),
         ('common_proteins', com_insert_sql),
     ]
@@ -786,14 +813,18 @@ def generate_database(parameters: dict, database_filename: str, time_format, org
         for insert_str, insert_data in table_insert_sql:
             cursor.execute(insert_str, insert_data)
         total += table_sql_len
+    int_start = total
+    for filename in os.listdir(tmpdir):
+        with open(os.path.join(tmpdir, filename),'r') as fil:
+            data = json.load(fil)
+            for dline in data['data']:
+                cursor.execute(data['add_str'], dline)
+                total += 1
+    print('interactions', total-int_start, 'rows')
+    if os.path.exists(tmpdir):
+        shutil.rmtree(tmpdir)
     print('Table creation and data insertion took', (datetime.now() - start).seconds, 'seconds')
     print('Total number of rows inserted:', total)
-    # Commit changes and close the connection
+    
     conn.commit()
     conn.close()
-
-
-if __name__ == '__main__':
-    parameters = utils.read_toml('parameters.toml')
-    dbfile = os.path.join(*parameters['Data paths']['Database file'])
-    generate_database(parameters, dbfile) 

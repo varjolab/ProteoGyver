@@ -1,4 +1,5 @@
 "Navbar page order" = ["qc and data analysis", "ms inspector", "windowmaker", "colocalizer"]
+
 [Config]
 "Local debug" = true
 LogDir = "logs"
@@ -6,6 +7,8 @@ LogLevel = 20
 "R error file" = "R_errors.log"
 "TIC information refresh interval in seconds" = 900
 "Time format" = "%Y-%m-%d %H:%M:%S"
+# Either integer or "ncpus"
+"CPU count limit" = "ncpus"
 
 ["Cytoscape layout parameters"]
 maxSimulationTime = 12000
@@ -28,6 +31,7 @@ randomize = true
 
 ["Database creation"]
 "Contaminants table" = "contaminant_list.tsv"
+"Temporary directory for database generation" = "db_tmp"
 "Control table" = "control table.tsv"
 "Crapome table" = "crapome table.tsv"
 "Database build files directory" = ["data", "db", "db build files"]
@@ -117,7 +121,7 @@ randomize = true
 "Delete old uniprots" = false
 "Delete old interactions" = true
 # These columns are not compared when checking for differences between existing database and new incoming data from update tables.
-"Ignore diffs" = ["is_latest","contamination_source", "entry_source", "version_update_time", "prev_version", "update_time"]
+"Ignore diffs" = [ "biological_role_interactor_a", "annotation_interactor_a", "annotation_interactor_b", "biological_role_interactor_b", "is_latest", "contamination_source", "entry_source", "version_update_time", "prev_version", "update_time", "modification", "ontology_term_categories",    "intact_creation_date",    "intact_update_date",    "experimental_role_interactor_a",    "experimental_role_interactor_b",    "ontology_term_ids",    "ontology_term_names",    "ontology_term_qualifier_ids",    "ontology_term_qualifier_names",    "ontology_term_types",    "qualifications",    "tags",    "publication_count",    "throughput"]
 
 ["Database updater"."Database table primary keys"]
 common_proteins = "uniprot_id"

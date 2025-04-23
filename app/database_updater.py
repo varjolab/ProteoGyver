@@ -1,9 +1,13 @@
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime
 import os
+from typing import Iterator
 import pandas as pd
 import numpy as np
 from components import text_handling
 from components import db_functions
-
+from components.api_tools.annotation import intact
+from components.api_tools.annotation import biogrid
 
 def update_table_with_file(cursor, table_name, file_path, parameters, timestamp):
     """
@@ -34,6 +38,8 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp)
     # Compare columns
     missing_cols = db_columns - file_columns
     extra_cols = file_columns - db_columns
+    missing_cols = [col for col in missing_cols if col not in ignore_diffs]
+    extra_cols = [col for col in extra_cols if col not in ignore_diffs]
 
     if len(extra_cols) > parameters['Allowed new columns']:
         error_msg = f"Too many new columns in file: {', '.join(extra_cols)}"
@@ -74,7 +80,6 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp)
         existing_entry = cursor.fetchone()
 
         if existing_entry:
-            # Get column names for the existing entry
             cursor.execute(f"PRAGMA table_info({table_name})")
             all_columns = [rr[1] for rr in cursor.fetchall()]
             
@@ -139,6 +144,7 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
     cursor = conn.cursor()
     update_order = ['remove_data','add_or_replace']
     update_order.extend([table_name for table_name in update_files if table_name not in update_order])
+    delete_files = []
     for table_name in update_order:
         insertions = 0
         modifications = 0
@@ -150,16 +156,14 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                     if file_name.endswith('.tsv'):
                         dbtable_name = file_name.rsplit('.', 1)[0]
                         file_path = os.path.join(folder_path, file_name)
-                        
                         with open(file_path, 'r') as f:
                             for line in f:
                                 line = line.strip()
-                                if not line:  # Skip empty lines
+                                if not line:  # Skip empty lines and comments
                                     continue
                                 if line.startswith('#'):
                                     continue
                                     
-                                # Split criteria by tabs
                                 criteria_list = line.split('\t')
                                 where_conditions = []
                                 values = []
@@ -170,11 +174,11 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                                     where_conditions.append(f"{column} = ?")
                                     values.append(value)
                                 
-                                # Construct and execute DELETE query
                                 where_clause = " AND ".join(where_conditions)
+                                
                                 cursor.execute(f"DELETE FROM {dbtable_name} WHERE {where_clause}", tuple(values))
                                 deletions += cursor.rowcount
-                            os.remove(file_path)
+                            delete_files.append(file_path)
             elif table_name == 'add_or_replace':
                 for file_name in os.listdir(folder_path):
                     if file_name.endswith('.tsv'):
@@ -203,15 +207,16 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                             cursor.execute(f"INSERT INTO {new_table_name} ({columns}) VALUES ({placeholders})", tuple(row))
                         insertions += len(df)
                         print(f"Created new table {new_table_name} with {insertions} rows")
-                        os.remove(file_path)
+                        delete_files.append(file_path)
                         if os.path.isfile(os.path.join(folder_path, file_name.replace('.tsv','txt'))):
-                            os.remove(os.path.join(folder_path, file_name.replace('.tsv','txt')))
+                            delete_files.append(os.path.join(folder_path, file_name.replace('.tsv','txt')))
             else:
                 for file_name in os.listdir(folder_path):
                     if file_name.endswith('.tsv'):
                         file_path = os.path.join(folder_path, file_name)
+
                         insertions, modifications = update_table_with_file(cursor, table_name, file_path, parameters, timestamp)
-                        os.remove(file_path)
+                        delete_files.append(file_path)
         else:
             os.makedirs(folder_path)
             print(f"Created directory {folder_path}")
@@ -223,6 +228,8 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
         inmod_vals.append(deletions)
     try:
         conn.commit()
+        for file_path in delete_files:
+            os.remove(file_path)
     except Exception as e:
         print(f"Failed to commit changes: {e}")
     finally:
@@ -245,7 +252,7 @@ def get_last_update(conn, uptype: str) -> str:
     cursor.close()
     return last_update[0]
 
-def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_columns: list[str]|None = None) -> tuple[list[str], list[str]]:
+def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_columns: list[str] | None = None) -> tuple[list[str], list[str]]:
     """Compare two pandas DataFrames and return differences.
     
     Returns:
@@ -254,37 +261,35 @@ def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_colum
             - new_columns: List of column names present in df2 but not df1 
             - missing_columns: List of column names present in df1 but not df2
     """
-    if not ignore_columns:
+    if ignore_columns is None:
         ignore_columns = []
-    df1 = df1.drop(columns=[i for i in ignore_columns if i in df1.columns])
-    df2 = df2.drop(columns=[i for i in ignore_columns if i in df2.columns])
-    assert list(df1.columns) == list(df2.columns), "DataFrames must have the same columns"
-    # Get common indices
-    common_indices = df1.index.intersection(df2.index)
-    
-    missing_rows = [idx for idx in df1.index if idx not in df2.index]
-    modified_or_new_rows = [idx for idx in df2.index if idx not in df1.index]
-    # Compare values
-    for idx in common_indices:
-        for col in df1.columns:
-            if ignore_columns and col in ignore_columns:
-                continue
-            val1 = df1.loc[idx, col]
-            val2 = df2.loc[idx, col]
 
-            # Especially in database NaN is often just empty string, so missing values should be handled in this way. Same with zeroes.
-            if pd.isna(val1):
-                val1 = ''
-            if pd.isna(val2):
-                val2 = ''
-            if val1 == 0:
-                val1 = ''
-            if val2 == 0:
-                val2 = ''
+    df1 = df1.drop(columns=[col for col in ignore_columns if col in df1.columns])
+    df2 = df2.drop(columns=[col for col in ignore_columns if col in df2.columns])
+    # Ensure same columns
+    assert list(df1.columns) == list(df2.columns), "DataFrames must have the same columns"
+
+    common_idx = df1.index.intersection(df2.index)
+    missing_rows = list(df1.index.difference(df2.index))
+    new_or_modified = set(df2.index.difference(df1.index))
+
+    for idx in common_idx:
+        row1 = df1.loc[idx]
+        row2 = df2.loc[idx]
+        for col in df1.columns:
+            val1 = row1[col]
+            val2 = row2[col]
+
+            # Normalize values
+            val1 = '' if pd.isna(val1) or val1 == 0 else val1
+            val2 = '' if pd.isna(val2) or val2 == 0 else val2
+
             if val1 != val2:
-                modified_or_new_rows.append(idx)
-    
-    return (modified_or_new_rows, missing_rows)
+                new_or_modified.add(idx)
+                break  # no need to compare rest of row
+
+    return list(new_or_modified), missing_rows
+
 def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
     from components.api_tools.annotation import uniprot
 # Move these into parameters or somesuch:
@@ -298,7 +303,7 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
         'Sequence': 'sequence',
     }
     #uniprot_df = uniprot.download_uniprot_for_database(organisms=organisms)
-    uniprot_df = pd.read_csv('uniprot_df.tsv', sep='\t', index_col=0)
+    uniprot_df = pd.read_csv('uniprot_df_full.tsv', sep='\t', index_col=0)
     uniprot_df.index.name = 'uniprot_id'
     uniprot_id_set = set(uniprot_df.index)
     uniprot_df.rename(columns=uniprot_renames, inplace=True)
@@ -321,6 +326,7 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
     existing.set_index('uniprot_id', inplace=True, drop=True)
     updates, missing_rows = get_dataframe_differences(existing, uniprot_df, ignore_columns = parameters['Ignore diffs']) #type: ignore
     if parameters['Delete old uniprots'] and len(missing_rows) > 0:
+        os.makedirs(os.path.join(*parameters['Update files']['remove_data']), exist_ok=True)
         del_filepath = os.path.join(*parameters['Update files']['remove_data'], 'proteins.tsv')
         # Read existing deletion criteria if file exists
         deletions = []
@@ -354,77 +360,182 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
         uniprot_df.to_csv(modfile, sep='\t')
     return uniprot_id_set
 
-def merge_multiple_string_dataframes(dfs) -> pd.DataFrame:
+def merge_multiple_string_dataframes(dfs: list[pd.DataFrame]) -> pd.DataFrame:
     if not dfs:
         return pd.DataFrame()
 
-    # Get union of all indices and columns
-    all_indices = dfs[0].index
-    all_columns = dfs[0].columns
+    from collections import defaultdict
 
-    for df in dfs[1:]:
-        all_indices = all_indices.union(df.index)
-        all_columns = all_columns.union(df.columns)
+    merged_data = defaultdict(lambda: defaultdict(set))
+    all_columns = set()
 
-    # Create empty dataframe with full shape
-    merged = pd.DataFrame(index=all_indices, columns=all_columns)
+    for df in dfs:
+        for idx, row in df.iterrows():
+            for col, val in row.items():
+                all_columns.add(col)
+                if pd.notna(val):
+                    merged_data[idx][col].update(str(val).split(';'))
 
-    for idx in all_indices:
+    # Now flatten to list of dicts
+    rows = []
+    for idx, coldata in merged_data.items():
+        row = {'interaction': idx}
         for col in all_columns:
-            cell_values = []
-            for df in dfs:
-                if idx in df.index and col in df.columns:
-                    val = df.at[idx, col]
-                    if pd.notna(val):
-                        cell_values.extend(str(val).split(';'))  # handles pre-merged cells
-            dedup = sorted(set(cell_values))
-            merged.at[idx, col] = ';'.join(dedup) if dedup else None
+            if col in coldata:
+                dedup = sorted(coldata[col])
+                row[col] = ';'.join(dedup) if dedup else None
+            else:
+                row[col] = None
+        rows.append(row)
+    if len(rows) > 0:
+        result = pd.DataFrame(rows)
+        result.set_index('interaction', inplace=True)
+    else:
+        result = pd.DataFrame(columns = [c for c in dfs[0].columns if c != 'interaction'])
+    return result
 
-    return merged
-    
-def update_knowns(conn, parameters, timestamp, uniprots, organisms) -> None:
-    from components.api_tools.annotation import intact
-    from components.api_tools.annotation import biogrid
 
-    biogrid.update(uniprots_to_get = uniprots, organisms=organisms)
-    intact.update(uniprots_to_get = uniprots, organisms=organisms)
-    dbtables = [intact.get_latest(), biogrid.get_latest()]
-    merg = merge_multiple_string_dataframes(dbtables)
+def stream_flattened_rows(df: pd.DataFrame) -> Iterator[dict]:
+    if 'interaction' in df.columns:
+        df.set_index('interaction', inplace=True)
 
-    existing: pd.DataFrame = db_functions.get_full_table_as_pd(conn, 'known_interactions')
-    existing.set_index('interaction', inplace=True, drop=True)
-    existing.drop(existing.index.difference(merg.index), inplace=True)
-    merg = merg[merg['uniprot_id_a'].isin(uniprots) & merg['uniprot_id_b'].isin(uniprots)]
-    merg['publication_count'] = [len(x.split(';')) for x in merg['publication_identifier'].values]
-    merg.to_csv('merg.tsv', sep='\t')
-    existing.to_csv('existing.tsv', sep='\t')   
+    for interaction, row in df.iterrows():
+        out_row: dict = {'interaction': interaction}
+        for col in df.columns:
+            if pd.isna(row[col]):
+                continue
+            values = [v.strip(';') for v in str(row[col]).split(';') if v]
+            key = col
+            if key in out_row:
+                out_row[key].update(values)
+            else:
+                out_row[key] = set(values)
+        yield out_row
 
-    col_order = [c for c in existing.columns if c in merg.columns]
-    col_order.extend([c for c in merg.columns if c not in col_order])
-    merg = merg[col_order]
-    
+def handle_new(new_interactions, odir, timestamp, L) -> None:
+    i = 1
+    modfile = os.path.join(odir, f'{timestamp}_known_interactions_{L}.tsv')
+    while os.path.exists(modfile):
+        modfile = os.path.join(odir, f'{timestamp}_known_interactions_{L}_{i}.tsv')
+        i += 1
+    df = pd.DataFrame(new_interactions).set_index('interaction')
+    df.to_csv(modfile, sep='\t')
+
+def handle_mods(check_for_mods, existing, timestamp, L, parameters, odir) -> None:
+
+    merg = pd.DataFrame(check_for_mods).set_index('interaction')
     updates, missing_rows = get_dataframe_differences(existing, merg, ignore_columns = parameters['Ignore diffs'])
     if parameters['Delete old interactions'] and len(missing_rows) > 0:
+        deletions = []
+        os.makedirs(os.path.join(*parameters['Update files']['remove_data']), exist_ok=True)
         del_filepath = os.path.join(*parameters['Update files']['remove_data'], 'known_interactions.tsv')
-        if os.path.exists(del_filepath):
-            with open(del_filepath, 'r') as f:
-                deletions = [l.strip() for l in f.readlines()]
         deletions.extend([f'interaction, {interaction}' for interaction in missing_rows])
-        with open(del_filepath, 'w') as f:
+        with open(del_filepath, 'a') as f:
             f.write('\n'.join(deletions))
-    merg = merg.loc[updates].fillna('')
-    merg['version_update_time'] = timestamp
-    pver = []
-    for index in updates:
-        if index in existing.index:
-            pver.append(existing.loc[index]['version_update_time'])
-        else:
-            pver.append(-1)
-    merg['prev_version'] = pver
-
-    modfile = os.path.join(*parameters['Update files']['known_interactions'], f'{timestamp}_known_interactions.tsv')
     if len(updates) > 0:
-        merg.to_csv(modfile, sep='\t')
+        merg = merg.loc[updates].fillna('')
+        merg['version_update_time'] = timestamp
+        pver = []
+        for index in updates:
+            if index in existing.index:
+                pver.append(existing.loc[index]['version_update_time'])
+            else:
+                pver.append(-1)
+        merg['prev_version'] = pver
+        i = 1
+        if not os.path.exists(odir):
+            os.makedirs(odir)
+        modfile = os.path.join(odir, f'{timestamp}_known_interactions_{L}.tsv')
+        while os.path.exists(modfile):
+            modfile = os.path.join(odir, f'{timestamp}_known_interactions_{L}_{i}.tsv')
+            i += 1
+        merg.to_csv(modfile, sep='\t',)
+
+def handle_merg_chunk(existing:pd.DataFrame, organisms: set|None, timestamp: str, L: str, last_update_date: datetime|None, odir: str, parameters: dict) -> None:
+    existing_interactions: set = set(existing.index)
+    def stream_cleaned_rows():
+        sources = [
+            intact.get_latest(organisms, subset_letter=L, since_date = last_update_date),   # type: ignore
+            biogrid.get_latest(organisms, subset_letter=L, since_date = last_update_date),  # type: ignore
+        ]
+        print(L, 'sources', sources[0].shape, sources[1].shape) # type: ignore
+        merged = {}
+        for df in sources:
+            for row in stream_flattened_rows(df):
+                interaction = row.pop('interaction')
+                merged.setdefault(interaction, {})
+                for k, v in row.items():
+                    merged[interaction].setdefault(k, set()).update(v)
+
+        for interaction, fields in merged.items():
+            row_data = {
+                'interaction': interaction,
+                **{k: ';'.join(sorted(v)).strip(';') for k, v in fields.items()}
+            }
+
+            for badval in ['nan', '', '-', 'None']:
+                for k, v in row_data.items():
+                    if v == badval:
+                        row_data[k] = None
+
+            pubid = row_data.get('publication_identifier') or ''
+            row_data['publication_count'] = len(pubid.strip(';').split(';')) if pubid else 0
+
+            row_data['version_update_time'] = timestamp
+            row_data['prev_version'] = -1
+
+            required = [
+                'uniprot_id_a', 'uniprot_id_b',
+                'uniprot_id_a_noiso', 'uniprot_id_b_noiso',
+                'isoform_a', 'isoform_b'
+            ]
+            if any(row_data.get(k) in [None, '', np.nan] for k in required):
+                continue
+
+            yield row_data
+
+    check_for_mods = []
+    new_interactions = []
+    if not os.path.exists(odir):
+        os.makedirs(odir)
+    for row in stream_cleaned_rows():
+        if row['interaction'] in existing_interactions:
+            check_for_mods.append(row)
+        else:
+            new_interactions.append(row)
+        if len(new_interactions) > 1000:
+            handle_new(new_interactions, odir, timestamp, L)
+            new_interactions = []
+        if len(check_for_mods) > 1000:
+            handle_mods(check_for_mods, existing, timestamp, L, parameters, odir)
+            check_for_mods = []
+        
+    if len(new_interactions) > 0:
+        handle_new(new_interactions, odir, timestamp, L)
+    if len(check_for_mods) > 0:
+        handle_mods(check_for_mods, existing, timestamp, L, parameters, odir)
+    
+def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date: datetime|None = None, ncpu: int = 1) -> None:
+    biogrid.update(uniprots_to_get = uniprots, organisms=organisms)
+    intact.update(uniprots_to_get = uniprots, organisms=organisms)
+    get_chunks = sorted(list(set(intact.get_available()) | set(biogrid.get_available())))
+    num_cpus = ncpu
+    odir = os.path.join(*parameters['Update files']['known_interactions'])
+    with ProcessPoolExecutor(max_workers=num_cpus) as executor:
+        futures = []
+        for L in get_chunks:    
+            existing: pd.DataFrame = db_functions.get_from_table(
+                conn,
+                'known_interactions',
+                criteria_col = 'interaction',
+                criteria = f"'{L}%'",
+                operator = 'LIKE',
+                pandas_index_col = 'interaction',
+                as_pandas = True
+            )  # type: ignore
+            futures.append(executor.submit(handle_merg_chunk, existing, organisms, timestamp, L, last_update_date, odir, parameters))
+        for future in as_completed(futures):
+            future.result()
 
 def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None:
     import json
@@ -453,6 +564,9 @@ def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None
         runlist = pd.DataFrame(columns=['Sample name','Who','Sample type','Bait name','Bait / other uniprot or ID','Bait mutation','Cell line / material','Project','Notes','tag'])
     
     ms_run_datadir = os.path.join(*parameters['MS run data dir for updater'])
+    if not os.path.exists(ms_run_datadir):
+        os.makedirs(ms_run_datadir)
+
     new_data = []
     for datafilename in os.listdir(ms_run_datadir):
         with open(os.path.join(ms_run_datadir, datafilename)) as fil:
@@ -563,7 +677,7 @@ def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None
         os.makedirs(output_dir, exist_ok=True)
         pd.DataFrame(data = new_data, columns = ms_cols).to_csv(os.path.join(output_dir, f'{timestamp}_ms_runs.tsv'), sep='\t', index=False)
 
-def update_external_data(conn, parameters, timestamp, organisms: set|None = None):
+def update_external_data(conn, parameters, timestamp, organisms: set|None = None, last_update_date: datetime|None = None, ncpu: int = 1):
     """
     Updates external data tables in the database.
 
@@ -572,9 +686,11 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
         parameters (dict): Configuration parameters including 'External data update interval days'
         timestamp (str): Current timestamp
         organisms (set): Set of organism IDs to update
+        last_update_date (datetime): Last update date, to not heck anything older than this
+        ncpu (int): Number of CPUs to use
     """ 
     uniprots = update_uniprot(conn, parameters, timestamp, organisms)
-    update_knowns(conn, parameters, timestamp, uniprots, organisms)
+    update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date, ncpu)
 
 def update_log_table(conn, inmod_names, inmod_vals, timestamp, uptype: str) -> None:
     """
@@ -589,7 +705,7 @@ def update_log_table(conn, inmod_names, inmod_vals, timestamp, uptype: str) -> N
     Each entry includes a timestamp and the counts of insertions and modifications for each table.
     """
     hasmods = sum(inmod_vals) > 0
-    table_columns = ['timestamp TEXT PRIMARY KEY', 'update_type TEXT', 'modification_type TEXT', 'tablename TEXT', 'count INTEGER']
+    table_columns = ['timestamp TEXT', 'update_type TEXT', 'modification_type TEXT', 'tablename TEXT', 'count INTEGER']
     new_rows = []
     if hasmods:
         modifications = {}

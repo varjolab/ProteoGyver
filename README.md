@@ -2,6 +2,10 @@
 
 Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).
 
+## Security
+
+The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet, and contain data only accessible to trusted users.
+
 ## QC and quick analysis toolset
 
 ### Core Analysis Workflows

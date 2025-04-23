@@ -20,23 +20,22 @@ def deduplicate_str_dataframe_by_index(df) -> pd.DataFrame:
             split_vals = group[col].dropna().astype(str).str.split(';')
             all_vals = list(chain.from_iterable(split_vals))
             deduped = sorted(set(all_vals))
-            merged_row[col] = ';'.join(deduped) if deduped else None
+            merged_row[col] = ';'.join(deduped).strip(';') if deduped else None
         return pd.Series(merged_row)
 
     return df.groupby(df.index).apply(merge_row_group)
-# super inefficient, but run rarely, so good enough.
-def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None = None) -> None:
-    """
-    Inefficiently generates a pandas dataframe from a given biogrid file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.
+def get_upid(upcol: pd.Series) -> pd.Series:
+    news = []
+    for v in upcol:
+        for nullchar in ['-1','nan','none','-','0']:
+            v = v.replace(nullchar,'')
+        news.append(v)
+    retser = pd.Series(news, index=upcol.index, name=upcol.name)
+    retser.replace('', np.nan, inplace=True)
+    return retser
 
-    :param file_path: path to the downloaded .tab3 file
-    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file. If None, all uniprots will be included.
-    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
-    """
-    newpath:str = file_path.replace('.txt','.tsv')
-    df = pd.read_csv(file_path,sep='\t', low_memory=False)
-    df = df.replace('-',np.nan).infer_objects(copy=False)
-    df = df[['Experimental System', 'Experimental System Type', 'Publication Source', 'Organism ID Interactor A', 
+def filter_chunk(df: pd.DataFrame, uniprots_to_get:set|None, organisms: set|None = None) -> tuple[pd.DataFrame, list[str], list[str]]:
+    df = df[df['Experimental System Type']=='physical'][['Experimental System', 'Experimental System Type', 'Publication Source', 'Organism ID Interactor A', 
             'Organism ID Interactor B', 'Throughput', 'Score', 'Modification', 'Qualifications', 
             'Tags', 'Source Database', 'SWISS-PROT Accessions Interactor A', 'SWISS-PROT Accessions Interactor B', 
             'Ontology Term IDs', 'Ontology Term Names', 'Ontology Term Categories', 'Ontology Term Qualifier IDs',
@@ -51,76 +50,11 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
     if organisms:
         organisms = {str(o) for o in organisms}
         df = df[(df['Organism ID Interactor A'].astype(str).isin(organisms)) | (df['Organism ID Interactor B'].astype(str).isin(organisms))]
-    for c in df.columns:
-        df[c] = [str(v).replace(';',',') for v in df[c].values]
     df = df[~df['Experimental System'].isin(not_used)]
-    df = df.dropna(how='all',axis=1)
-    #df['Experimental system details'] = [legend[x] for x in df['Experimental System'].values]
-    df['Score'] = df['Score'].astype(float)
-    df = df.drop(columns=[c for c in df.columns if 'Ontology Term' in c])
-    vals_needed = ['SWISS-PROT Accessions Interactor A', 'SWISS-PROT Accessions Interactor B']
-    cols = [c for c in df.columns if c not in vals_needed]
-    ndata = {}
-    for _, row in df.iterrows():
-        ids_a = [row['SWISS-PROT Accessions Interactor A']]
-        ids_b = [row['SWISS-PROT Accessions Interactor B']]
-        if uniprots_to_get:
-            ids_a = [i for i in ids_a if i in uniprots_to_get]
-            ids_b = [i for i in ids_b if i in uniprots_to_get]
-        if len(ids_a) == 0:continue
-        if len(ids_b) == 0:continue
-        for i in ids_a:
-            if i not in ndata:
-                ndata[i] = {}
-            for j in ids_b:
-                if j not in ndata[i]:
-                    ndata[i][j] = {c: set() for c in cols}
-                for c in cols:
-                    for v in str(row[c]).split('|'):
-                        ndata[i][j][c].add(v)
-        for i in ids_b:
-            if i not in ndata:
-                ndata[i] = {}
-            for j in ids_a:
-                if j not in ndata[i]:
-                    ndata[i][j] = {c: set() for c in cols}
-                for c in cols:
-                    flipped_c = c.replace(' A',' B')
-                    if c.endswith(' B'):
-                        flipped_c = c.replace(' B',' A')
-                    for v in str(row[c]).split('|'):
-                        ndata[i][j][flipped_c].add(v)
-    dodata = []
-    for id1, idi in ndata.items():
-        if '-' in id1:
-            iso1: str = id1
-            id1: str = id1.split('-')[0]
-        else:
-            iso1 = ''
-        for id2, cdic in idi.items():
-            if '-' in id2:
-                iso2: str = id2
-                id2: str = id2.split('-')[0]
-            else:
-                iso2 = ''
-            dodata.append([id1,id2,iso1,iso2])
-            for c in cols:
-                cval = []
-                for val in cdic[c]:
-                    try:
-                        cval.extend(val.split('|'))
-                    except AttributeError:
-                        cval.append(val)
-                try:
-                    dodata[-1].append(';'.join(cval))
-                except TypeError:
-                    vs = set(cval)
-                    dodata[-1].append(list(vs)[0])
-    docols = ['uniprot_id_a', 'uniprot_id_b', 'isoform_a','isoform_b'] + cols
-    findf = pd.DataFrame(data=dodata, columns=docols)
-    findf = findf.rename(columns = {
-        'UPID A': 'uniprot_id_a',
-        'UPID B': 'uniprot_id_b',
+    swcols = [c for c in df.columns if 'Interactor ' in c]
+    normcols = [c for c in df.columns if c not in swcols]
+    renames = {c: c.lower().replace(' ','_') for c in normcols+swcols}
+    renames.update({
         'Source Database': 'source_database',
         'Experimental System Type': 'interaction_type',
         'Experimental System': 'interaction_detection_method',
@@ -130,64 +64,187 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
         'Modification': 'modification',
         'Score': 'confidence_value'
     })
+    normcols = [renames[c] for c in normcols if c != 'Source Database']
+    swcols = [renames[c] for c in swcols if not 'SWISS-PROT' in c]
+    df = df.rename(columns=renames)
+    df['uniprot_id_a'] = get_upid(df['swiss-prot_accessions_interactor_a'])
+    df['uniprot_id_b'] = get_upid(df['swiss-prot_accessions_interactor_b'])
+    df = df[df['uniprot_id_a'].notna() & df['uniprot_id_b'].notna()]
+    if uniprots_to_get:
+        df = df[df['uniprot_id_a'].isin(uniprots_to_get) | df['uniprot_id_b'].isin(uniprots_to_get)]
+    df['uniprot_id_a_noiso'] = [c.split('-')[0] for c in df['uniprot_id_a']]
+    df['uniprot_id_b_noiso'] = [c.split('-')[0] for c in df['uniprot_id_b']]
+    df['isoform_a'] = df['uniprot_id_a']
+    df['isoform_b'] = df['uniprot_id_b']
+    df['biological_role_interactor_a'] = ''
+    df['annotation_interactor_a'] = ''
+    df['biological_role_interactor_b'] = ''
+    df['annotation_interactor_b'] = ''
+    df['organism_interactor_a'] = df['organism_interactor_a'].astype(str)
+    df['organism_interactor_b'] = df['organism_interactor_b'].astype(str)
+    if df.shape[0] == 0:
+        for c in df.columns:
+            df[f'{c}_processed'] = ''
+    # Pre-process normcols data using vectorized operations
+    else:
+        for c in df.columns:
+            try:
+                df[f'{c}_processed'] = (
+                    df[c].str.split('|')
+                    .apply(lambda x: [v for val in x for v in val.split('__')])  # flatten
+                    .apply(lambda vals: [
+                        v.strip().lower().replace('-', '').replace(';', '').replace('_', '')
+                        for v in vals
+                        if v.strip().lower() not in ('', '0', 'nan', 'none')
+                    ])
+                    .str.join(';')
+                )
+            except AttributeError:
+                df[f'{c}_processed'] = df[c]
     nc = []
-    id1c = []
-    id2c = []
-    for _,row in findf.iterrows():
-        nc.append(f'Experiment throughput from BioGRID: {";".join(list(set(row["Throughput"].split(";"))))}')
-        if pd.notna(row["Qualifications"]):
-            if len(row["Qualifications"].strip().strip(";"))>0:
-                nc[-1] += f'+Q:{row["Qualifications"].strip().strip(";")}'
+    for _,row in df.iterrows():
+        nc.append(f'Experiment throughput from BioGRID: {";".join(list(set(row["throughput"].split(";"))))}')
+        if pd.notna(row["qualifications"]):
+            if len(row["qualifications"].strip().strip(";"))>0:
+                nc[-1] += f'+Q:{row["qualifications"].strip().strip(";")}'
         if pd.notna(row['modification']):
             nc[-1] += f'+Mod:{row["modification"]}'
-        id1 = row['uniprot_id_a']
-        id2 = row['uniprot_id_b']
-        if '-' in id1:
-            id1: str = id1.split('-')[0]
-        if '-' in id2:
-            id2: str = id2.split('-')[0]
-        id1c.append(id1)
-        id2c.append(id2)
-    findf['notes'] = nc
-    findf['update_time'] = 'BioGRID:'+str(datetime.today()).split()[0]
-    findf['uniprot_id_a_noiso'] = id1c
-    findf['uniprot_id_b_noiso'] = id2c
-    findf['interaction'] = findf['uniprot_id_a'] + '_-_' + findf['uniprot_id_b']
-    findf['biological_role_interactor_a'] = np.nan
-    findf['annotation_interactor_a'] = np.nan
-    findf['biological_role_interactor_b'] = np.nan
-    findf['annotation_interactor_b'] = np.nan
+    df['notes'] = nc
+    df['update_time'] = 'BioGRID:'+str(datetime.today()).split()[0]
+    df.drop(columns=[
+        'throughput', 
+        'modification', 
+        'qualifications', 
+        'tags', 
+        'ontology_term_ids',
+        'ontology_term_names',
+        'ontology_term_categories',
+        'ontology_term_qualifier_ids',
+        'ontology_term_qualifier_names',
+        'ontology_term_types'
+    ],inplace=True)
+    df.drop_duplicates(inplace=True)
+    return df, normcols, swcols
 
-    findf = findf[[
-        'interaction','uniprot_id_a', 'uniprot_id_b', 'uniprot_id_a_noiso', 'uniprot_id_b_noiso',
-        'isoform_a', 'isoform_b', 'publication_identifier',
-        'interaction_detection_method', 'interaction_type', 'confidence_value',
-        'source_database', 'organism_interactor_a','organism_interactor_b',
-        'biological_role_interactor_a', 'biological_role_interactor_b','annotation_interactor_a',
-        'annotation_interactor_b', 'notes','update_time'
-    ]]
-    for c in findf.columns:
-        for repchar in ['|','__']:
-            tmp = [v for v in findf[c].values if repchar in str(v)]
-            if len(tmp)>0:
-                findf[c] = [str(v).replace(repchar,';') for v in findf[c].values]
-    for c in findf.columns:
-        findf[c] = [str(v).replace('nan','').replace('None','').replace('-|-','|') for v in findf[c].values]
-    for c in findf.columns:
-        nvals = findf[c].values
-        for nullval in  ['-',';','_','|','',' ','0']:
-            nvals = [str(v).strip(nullval).strip() for v in nvals]
-        if sum([len(v)==0 for v in nvals]) > 0:
-            findf[c] = nvals
-    findf.set_index('interaction', inplace=True, drop=True)
-    # Especially would be good to avoid this step:
-    findf = deduplicate_str_dataframe_by_index(findf)
-    findf = findf.replace('',np.nan).infer_objects(copy=False)
-    findf['publication_identifier'] = findf['publication_identifier'].str.lower()
-    findf.to_csv(newpath, sep='\t', index=True)
+def get_final_df(chunk_df: pd.DataFrame, previous: pd.DataFrame|None = None,time_format: str = '%Y/%m/%d') -> pd.DataFrame:
+    datarows = {}
+    for intname, row in chunk_df.iterrows():
+        datarows.setdefault(intname, {v: set() for v in chunk_df.columns})
+        for c in chunk_df.columns:
+            datarows[intname][c]|= set(str(row[c]).split(';'))
+    findf = pd.DataFrame.from_dict({ind: {key: ';'.join(sorted(list(val))).strip(';') for key, val in ind_dict.items()} for ind, ind_dict in datarows.items()},orient='index')
+    findf.index.name = 'interaction'
+    today_str = datetime.today().strftime(time_format)
+    cols = list(findf.columns)
+    findf["biogrid_creation_date"] = today_str
+    findf["biogrid_updated_date"] = today_str
+
+    # Since biogrid does not supply the dates, we have to do it by ourselves.
+    if (previous is not None) and all(column in previous.columns for column in ['biogrid_creation_date', 'biogrid_updated_date']):
+        common_idx = findf.index.intersection(previous.index)
+        # Compare only matching rows
+        matches = (
+            findf.loc[common_idx, cols].astype(str)
+            == previous.loc[common_idx, cols].astype(str)
+        ).all(axis=1)
+
+        # For matching rows, assign df1['date']
+        findf.loc[common_idx, 'biogrid_creation_date'] = previous.loc[common_idx, 'biogrid_creation_date']
+        findf.loc[common_idx[matches], 'biogrid_updated_date'] = previous.loc[common_idx[matches], 'biogrid_updated_date']
+
+    return findf
+
+def handle_and_split_save(df: pd.DataFrame, folder_path: str, normcols: list[str], swcols: list[str]) -> None:
+    swcols.extend(['biological_role_interactor_a',
+    'annotation_interactor_a',
+    'biological_role_interactor_b',
+    'annotation_interactor_b'])
+    swcols.sort(key = lambda x: x[-1])
+    dfcols = [
+        'uniprot_id_a',
+        'uniprot_id_b',
+        'uniprot_id_a_noiso',
+        'uniprot_id_b_noiso',
+        'isoform_a',
+        'isoform_b',
+    ]  + normcols + swcols + ['source_database', 'notes', 'update_time']
+
+    datarows = {}
+    for row in df.itertuples(index=False):
+        new_rows = [ 
+            [getattr(row, col) for col in [
+                f'uniprot_id_{n1}',
+                f'uniprot_id_{n2}',
+                f'uniprot_id_{n1}_noiso',
+                f'uniprot_id_{n2}_noiso',
+                f'isoform_{n1}',
+                f'isoform_{n2}',   
+                ]
+            ] + [
+                getattr(row,f'{c}_processed') for c in normcols
+            ] + [
+                getattr(row,f'{c[:-1]}{n1}_processed') for c in swcols[:3]
+            ] + [
+                getattr(row,f'{c[:-1]}{n2}_processed') for c in swcols[:3]
+            ] + [
+                getattr(row,n) for n in ['source_database','notes','update_time']
+            ]
+            for n1, n2 in [('a', 'b'), ('b', 'a')]
+        ]
+        for n in new_rows:
+            if n[1] == '-':
+                continue
+            index = f'{n[0]}_-_{n[1]}'
+            keys = dfcols
+            datarows.setdefault(index, {v: set() for v in keys})
+            for i, k in enumerate(keys):
+                if isinstance(n[i], (list, set)):
+                    datarows[index][k]|=set(n[i])
+                elif isinstance(n[i],str):
+                    datarows[index][k]|= set(n[i].split(';'))
+                else:
+                    datarows[index][k]|={n[i]}
     
+    # Create DataFrame in one go
+    findf = pd.DataFrame.from_dict({ind: {key: ';'.join(sorted([str(x) for x in val])).strip(';') for key, val in ind_dict.items()} for ind, ind_dict in datarows.items()},orient='index')
+    findf['publication_identifier'] = findf['publication_identifier'].str.lower()
+    findf.index.name = 'interaction'
+    split_and_save_by_prefix(findf.reset_index(), 'interaction', 3, folder_path)
 
-def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set|None, organisms: set|None = None) -> None:
+def split_and_save_by_prefix(df: pd.DataFrame, column: str, num_chars: int, output_dir: str, index: bool = False, sep: str = '\t') -> None:
+    os.makedirs(output_dir, exist_ok=True)
+    for (prefix, result) in df.groupby(df[column].str[:num_chars]):
+        filename = os.path.join(output_dir, f"{prefix}.tsv")
+        write_header = not os.path.exists(filename)
+        result.to_csv(filename, mode='a', header=write_header, index=index, sep=sep)
+
+# super inefficient, but run rarely, so good enough.
+def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None = None, current_version: str|None = None) -> None:
+    """
+    Inefficiently generates a pandas dataframe from a given biogrid file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.
+
+    :param file_path: path to the downloaded .tab3 file
+    :param current_version: current version of the biogrid file
+    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file. If None, all uniprots will be included.
+    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
+    """
+    folder_path: str = file_path.replace('.txt','')
+    if not current_version:
+        current_version = ''
+    for chunk in pd.read_csv(file_path,sep='\t', chunksize=10000):
+        chunk, normcols, swcols = filter_chunk(chunk, uniprots_to_get, organisms)
+        if chunk.shape[0] > 0:
+            #handle_and_split_save(chunk, temp_dir)
+            handle_and_split_save(chunk, folder_path, normcols, swcols)
+    
+    for fname in os.listdir(folder_path):
+        if fname.endswith('.tsv'):
+            if os.path.exists(os.path.join(current_version, fname)):
+                previous = pd.read_csv(os.path.join(current_version, fname),sep='\t', index_col='interaction')
+            findf: pd.DataFrame = get_final_df(pd.read_csv(os.path.join(folder_path, fname),sep='\t', index_col='interaction'), previous)
+            findf.to_csv(os.path.join(folder_path, fname), index=True, sep='\t')
+
+def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set|None, organisms: set|None = None, current_version: str|None = None) -> None:
     """
     Handles practicalities of updating the biogrid tsv file on disk
 
@@ -202,26 +259,52 @@ def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_
     if not os.path.exists(datafile_path):
         with ZipFile(os.path.join(save_dir, save_zipname), 'r') as zip_ref:
             zip_ref.extractall(save_dir)
-    generate_pandas(datafile_path, uniprots_to_get, organisms)
-    #os.remove(os.path.join(save_dir, save_zipname))
-    #os.remove(datafile_path)
+    generate_pandas(datafile_path, uniprots_to_get, organisms, current_version)
+    os.remove(os.path.join(save_dir, save_zipname))
+    os.remove(datafile_path)
 
-def get_latest() -> pd.DataFrame:
+def read_file_chunks(filepath: str, organisms: set|None = None, since_date:str|None = None) -> pd.DataFrame:
+    iter_csv = pd.read_csv(filepath, iterator=True, sep='\t', chunksize=1000)
+    df_parts = []
+    for chunk in iter_csv:
+        if organisms:
+            chunk = chunk.loc[chunk['organism_interactor_a'].isin(organisms) | chunk['organism_interactor_b'].isin(organisms)]
+        df_parts.append(chunk)
+    return pd.concat(df_parts)
+
+def read_folder_chunks(folderpath: str, organisms: set|None = None, subset_letter: str|None = None, since_date:str|None = None) -> pd.DataFrame:
+    df_parts = []
+    for file in os.listdir(folderpath):
+        if subset_letter and not file.startswith(subset_letter):
+            continue
+        df_parts.append(read_file_chunks(os.path.join(folderpath, file), organisms, since_date))
+    if len(df_parts) > 0:
+        return pd.concat(df_parts)
+    else:
+        heads = pd.read_csv(os.path.join(folderpath, file), nrows=1,sep='\t')
+        return pd.DataFrame(columns=heads.columns)
+
+# TODO: implement since_date
+def get_latest(organisms: set|None = None, subset_letter: str|None = None, name_only: bool = False, since_date:str|None = None) -> pd.DataFrame|str :
     """
     Fetches the latest data from disk
 
+    :param name_only: if True, returns the filepath of the latest file instead of the dataframe.
     :returns: Pandas dataframe of the latest BioGRID data.
     """
-    current_version: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'),namefilter='.tsv')
-    try:
-        return pd.read_csv(
-            os.path.join(apitools.get_save_location('BioGRID'), current_version),
-            index_col = 'interaction',
-            sep='\t',
-            low_memory=False
-        )
-    except FileNotFoundError:
+    current_version: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'))
+    filepath: str = os.path.join(apitools.get_save_location('BioGRID'), current_version)
+    if name_only:
+        return filepath
+    if not os.path.exists(filepath):
         return pd.DataFrame()
+    else:
+        return read_folder_chunks(filepath, organisms, subset_letter, since_date)
+
+def get_available() -> list[str]:
+    filepath: str = get_latest(name_only=True) # type: ignore
+    return [f.split('.')[0] for f in os.listdir(filepath) if f.endswith('.tsv')]
+
 
 #TODO: check uniprots in should_update bool check too, not just version. Also organisms should be checked too.
 def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
@@ -238,13 +321,13 @@ def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
     latest_zipname = f'{latest.replace(".org/",".org/Download/")}{latest.rsplit("/",maxsplit=2)[-2].replace("BIOGRID","BIOGRID-ALL")}.tab3.zip'
     uzip = latest_zipname.rsplit('/',maxsplit=1)[1]
     save_location:str = apitools.get_save_location('BioGRID')
-    current_file = apitools.get_newest_file(save_location, namefilter='.tsv')
+    current_file = apitools.get_newest_file(save_location)
     if os.path.exists(os.path.join(save_location, current_file)):
-        should_update = uzip.rsplit('.',maxsplit=1)[0] != current_file.rsplit('.',maxsplit=1)[0]
+        should_update = uzip.rsplit('.',maxsplit=1)[0] != current_file
     else:
         should_update = True
     if should_update:
-        do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms)
+        do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms, current_file)
         
 def get_version_info() -> str:
     """

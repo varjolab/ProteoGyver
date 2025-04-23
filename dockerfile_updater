@@ -1,5 +1,5 @@
 # Use a lightweight Python base image
-FROM python:3.9-slim
+FROM python:3.12
 
 # Set environment variables to reduce buffer issues and configure the application
 ENV PYTHONUNBUFFERED=1 \
@@ -8,8 +8,21 @@ ENV PYTHONUNBUFFERED=1 \
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file into the container
-COPY app/resources/updater_requirements.txt /app/requirements.txt
+# Requirement and config
+COPY app/resources/updater_requirements.txt requirements.txt
+COPY app/parameters.toml parameters.toml
+
+# Main scripts
+COPY app/database_updater.py database_updater.py
+COPY app/database_generator.py database_generator.py
+COPY app/database_admin.py database_admin.py
+
+# Needed extras
+COPY app/components/text_handling.py components/text_handling.py
+COPY app/components/db_functions.py components/db_functions.py
+COPY app/components/api_tools/api_tools.py components/api_tools/api_tools.py
+COPY app/components/api_tools/annotation components/api_tools/annotation
+
 
 # Install system dependencies (if needed) and Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \

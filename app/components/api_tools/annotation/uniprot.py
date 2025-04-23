@@ -402,8 +402,6 @@ def download_uniprot_for_database(organisms: set|None) -> pd.DataFrame:
         "Gene names",
         "Organism",
         "Length",
-        "Alternative products",
-        "Alternative sequence",
         "Sequence"
     ]
 
@@ -526,7 +524,7 @@ def download_uniprot_pagination_url(pag_url: str, headers: list, progress:bool) 
             time_taken = int((datetime.now() - prev_time).total_seconds())
             if time_taken > 0:
                 times_taken.append(time_taken)
-                est_time = int(((int(total)-len(alltext))/500)*(sum(times_taken)/len(times_taken)))
+                est_time = int(((int(total)-len(alltext))/500)*(sum(times_taken[-5:])/len(times_taken[-5:])))
                 estimate = __format_seconds_into_estimate(est_time, append = ' to finish')
             else:
                 estimate = ''

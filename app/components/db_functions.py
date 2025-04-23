@@ -3,11 +3,16 @@ import pandas as pd
 import os
 import csv
 
-def get_full_table_as_pd(db_conn, table_name, index_col: str = None) -> pd.DataFrame:
-    return pd.read_sql_query(f'SELECT * from {table_name}', db_conn, index_col=index_col)
+def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter_col: str|None = None, startswith: str|None = None) -> pd.DataFrame:
+    query = f"SELECT * FROM {table_name}"
+    
+    if filter_col and startswith is not None:
+        query += f" WHERE {filter_col} LIKE '{startswith}%'"
+
+    return pd.read_sql_query(query, db_conn, index_col=index_col)
 
 def dump_full_database_to_csv(database_file, output_directory) -> None:
-    conn: sqlite3.Connection = create_connection(database_file)
+    conn: sqlite3.Connection = create_connection(database_file) # type: ignore
     cursor: sqlite3.Cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables:list = cursor.fetchall()
@@ -220,26 +225,41 @@ def generate_database_table_templates_as_tsvs(db_conn, output_dir, primary_keys)
         print(f"Template generated for table '{table}' at '{tsv_file_path}'.")
     cursor.close()
 
-def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str = None, criteria:str = None, select_col:str = None, as_pandas:bool = False, pandas_index_col:str = None, operator:str = '='):
-    """"""
-    cursor: sqlite3.Cursor = conn.cursor()
-    if select_col is None:
-        select_col = '*'
+def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|None = None, criteria:str|None = None, select_col:str|None = None, as_pandas:bool = False, pandas_index_col:str|None = None, operator:str = '=') -> list[tuple] | pd.DataFrame:
+    """Get data from a table in an SQLite database.
+
+    Args:
+        conn (sqlite3.Connection): Connection to the SQLite3 database.
+        table_name (str): Name of the table to get data from.
+        criteria_col (str|None): Column name to use for the WHERE clause.
+        criteria (str|None): Value to match in the WHERE clause.
+        select_col (str|None): Column name to select. If None, all columns are selected.
+        as_pandas (bool): If True, return a pandas DataFrame. If False, return a list of tuples.
+        pandas_index_col (str|None): Column name to use as the index of the pandas DataFrame.
+        operator (str): Operator to use in the WHERE clause.
+    """
     assert (((criteria is not None) & (criteria_col is not None)) |\
              ((criteria is None) & (criteria_col is None))),\
              'Both criteria and criteria_col must be supplied, or both need to be none.'
+    
+    if select_col is None:
+        select_col = '*'
 
     if criteria_col is not None:
-        selection_string: str = f'SELECT {select_col} FROM {table_name} WHERE {criteria_col} {operator} {criteria}'
+        query = f"SELECT {select_col} FROM {table_name} WHERE {criteria_col} {operator} ?"
+        params = (criteria,)
     else:
-        selection_string = f'SELECT {select_col} FROM {table_name}'
+        query = f"SELECT {select_col} FROM {table_name}"
+        params = ()
+
     if as_pandas:
-        ret = pd.read_sql_query(selection_string, conn,index_col=pandas_index_col)
+        result = pd.read_sql_query(query, conn, params=params, index_col=pandas_index_col)  # type: ignore
     else:
-        cursor.execute(selection_string)
-        ret: list = cursor.fetchall()
-    cursor.close()
-    return ret
+        cursor: sqlite3.Cursor = conn.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchall()  # type: ignore
+        cursor.close()
+    return result
 
 def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, criteria_col:str, criteria:list,as_pandas:bool = True, select_col: str = None):
     """"""
@@ -281,3 +301,23 @@ def drop_table(conn:sqlite3.Connection, table_name: str) -> None:
     cursor.execute(sql_str)
     cursor.close()
 
+
+def get_table_column_names(db_conn, table_name: str) -> list[str]:
+    """Get the column names for a table in an SQLite database.
+
+    Args:
+        db_conn (sqlite3.Connection): Connection to the SQLite3 database.
+        table_name (str): Name of the table to get the column names for.
+    
+    Notes:
+    - The db_conn is not closed after the function is called.
+    """
+
+    # Connect to the SQLite database
+    cursor = db_conn.cursor()
+
+    # Get the list of tables in the database
+    cursor.execute(f"PRAGMA table_info({table_name});")
+    columns = [row[1] for row in cursor.fetchall()]
+    cursor.close()
+    return columns
