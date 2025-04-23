@@ -19,6 +19,11 @@ services:
       - 8050:8050
     environment:
       - TZ=Europe/Helsinki
+      - MONITOR_RESOURCES=true
+      - RESOURCE_LOG_DIR=/tmp/resource_logs
+      - RESOURCE_LOG_INTERVAL_SECONDS=5
+      - RESOURCE_LOG_KEEP_DAYS=30
+
     volumes:
       - /data/PG_containers/cache/PG_prod:/proteogyver/cache
       - /data/PG_containers/db/PG_prod:/proteogyver/data/db
