@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMAGE_NAME="pgyver_updater:1.0"
+IMAGE_NAME="pg_updater:1.0"
 TODAY=$(date +%Y/%m/%d)
 
 # Volume definitions: [ "host_path" "container_path" ]
