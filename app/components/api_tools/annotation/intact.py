@@ -303,15 +303,7 @@ def do_update(save_file, uniprots_to_get: set|None, organisms: set|None) -> None
     :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
     """
     if not os.path.exists(save_file):
-        ftpurl: str = 'ftp.ebi.ac.uk'
-        ftpdir: str = '/pub/databases/intact/current/psimitab'
-        ftpfilename: str = 'intact.zip'
-        ftp: ftplib.FTP = ftplib.FTP(ftpurl)
-        ftp.login()
-        ftp.cwd(ftpdir)
-        with open(save_file,'wb') as fil:
-            ftp.retrbinary(f'RETR {ftpfilename}',fil.write)
-        ftp.quit()
+        download_intact_ftp(save_file)
     generate_pandas(save_file, save_file.replace('.zip','.tsv'),uniprots_to_get, organisms)
 
 def update(uniprots_to_get: set|None = None, organisms: set|None = None) -> None:
@@ -327,6 +319,7 @@ def update(uniprots_to_get: set|None = None, organisms: set|None = None) -> None
     ftp.login()
     ftp.cwd(ftpdir)
     latest = datetime.strptime(ftp.pwd().rsplit('/',maxsplit=1)[1], '%Y-%m-%d').date()
+    ftp.quit()
     current_version: str = apitools.get_newest_file(apitools.get_save_location('IntAct'))   
     should_update: bool = False
     if os.path.exists(os.path.join(apitools.get_save_location('IntAct'), current_version)):
