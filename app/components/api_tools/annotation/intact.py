@@ -21,6 +21,9 @@ import zipfile
 from datetime import datetime
 import pandas as pd
 import ftplib
+import time
+from typing import Optional
+
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -262,6 +265,34 @@ def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set|None, or
     os.remove(file_path)
     os.remove(unzipped_path)
     os.remove(unzipped_path.replace('.txt','_negative.txt'))
+
+def download_intact_ftp(save_file: str, max_retries: int = 10, retry_delay: int = 30) -> Optional[str]:
+    ftpurl = 'ftp.ebi.ac.uk'
+    ftpdir = '/pub/databases/intact/current/psimitab'
+    ftpfilename = 'intact.zip'
+
+    for attempt in range(1, max_retries + 1):
+        try:
+
+            ftp = ftplib.FTP(ftpurl, timeout=30)
+            ftp.login()
+            ftp.cwd(ftpdir)
+
+            with open(save_file, 'wb') as fil:
+                ftp.retrbinary(f'RETR {ftpfilename}', fil.write)
+
+            ftp.quit()
+            print(f'IntAct FTP download completed successfully: {save_file}')
+            return save_file
+
+        except (ftplib.error_temp, ftplib.error_perm, ConnectionResetError, TimeoutError, OSError) as e:
+            if attempt < max_retries:
+                print(f'IntAct FTP download failed: {e}\n Retrying in {retry_delay} seconds...')
+                time.sleep(retry_delay)
+            else:
+                print(f'IntAct FTP download failed after all retries: {e}')
+                return None
+
 
 def do_update(save_file, uniprots_to_get: set|None, organisms: set|None) -> None:
     """
