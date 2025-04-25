@@ -125,7 +125,6 @@ def get_nbibfile(databasename:str) -> str:
     """
     nbibpath: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        'api_data',
         'nbibs',
         f'{databasename.lower()}.nbib')
     return nbibpath
