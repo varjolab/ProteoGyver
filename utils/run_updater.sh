@@ -10,6 +10,7 @@ VOLUMES=(
     "/mnt/varjosalo_MS_rundata" "/proteogyver/data/Server_input"
     "/mnt/varjosalo_Server_output" "/proteogyver/data/Server_output"
     "/data/PG_containers/cache/PG_updater" "/proteogyver/cache"
+    "/data/PG_containers/api_data/PG_prod" "/proteogyver/components/api_tools/api_data"
 )
 
 # Build the -v options
