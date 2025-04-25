@@ -239,9 +239,11 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
     
     for fname in os.listdir(folder_path):
         if fname.endswith('.tsv'):
+            previous = None
             if os.path.exists(os.path.join(current_version, fname)):
                 previous = pd.read_csv(os.path.join(current_version, fname),sep='\t', index_col='interaction')
-            findf: pd.DataFrame = get_final_df(pd.read_csv(os.path.join(folder_path, fname),sep='\t', index_col='interaction'), previous)
+            chunk_df = pd.read_csv(os.path.join(folder_path, fname),sep='\t', index_col='interaction')
+            findf: pd.DataFrame = get_final_df(chunk_df, previous = previous)
             findf.to_csv(os.path.join(folder_path, fname), index=True, sep='\t')
 
 def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set|None, organisms: set|None = None, current_version: str|None = None) -> None:

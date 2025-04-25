@@ -184,7 +184,13 @@ def only_latest_date(ser: pd.Series, time_format: str = '%Y/%m/%d') -> pd.Series
             vals.append(dates.max().strftime(time_format))
     return pd.Series(vals, index=ser.index)
 
-def get_final_df(chunk_df: pd.DataFrame) -> pd.DataFrame:
+def get_final_df(df_filename) -> pd.DataFrame:
+    non_str_cols = {}
+    with open(df_filename, 'r') as file:
+        header = file.readline().strip().split('\t')
+    dtype_dict = {col: str for col in header if col not in non_str_cols} | non_str_cols
+    
+    chunk_df = pd.read_csv(df_filename,sep='\t', index_col='interaction',dtype=dtype_dict)
     datarows = {}
     for intname, row in chunk_df.iterrows():
         datarows.setdefault(intname, {v: set() for v in chunk_df.columns})
@@ -259,7 +265,7 @@ def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set|None, or
     # Final deduplication
     for fname in os.listdir(folder_path):
         if fname.endswith('.tsv'):
-            findf: pd.DataFrame = get_final_df(pd.read_csv(os.path.join(folder_path, fname),sep='\t', index_col='interaction'))
+            findf: pd.DataFrame = get_final_df(os.path.join(folder_path, fname))
             findf.to_csv(os.path.join(folder_path, fname), index=True, sep='\t')
 
     os.remove(file_path)
