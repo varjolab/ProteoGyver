@@ -159,7 +159,7 @@ def normalize(data_table, normalization_method, errorfile: str, random_seed: int
     elif normalization_method == 'Quantile':
         return_table = quantile_normalize(data_table)
     elif normalization_method == 'Vsn':
-        data_table = data_table.applymap(reverse_log2)
+        data_table = data_table.map(reverse_log2)
         return_table = R_tools.vsn(data_table, random_seed, errorfile)
     return return_table
 

@@ -64,14 +64,16 @@ randomize = true
 #These directories should be ignored when loading run data into the database. 
 "Ignore runs from dirs" = ["BRE_20_xxxxx_Helsinki", "TrapTrouble_3"]
 #Directory containing parsed run jsons from parse_tims_data.py (or equivalent)
+# TODO: these two are the same. Merge, and remove the local path.
 "MS data import dir" = "/media/kmsaloka/Expansion/20241118_parse/ms_runs/"
+"MS run data dir for updater" = ["data", "Server_input", "MS run data"]
 #This regex should capture the run ID from the MS run folder name. In our case, it is in the form of either "1234_RUN_NAME_HERE" or "1234_Tomppa_RUN_NAME_HERE"
 "MS run ID regex" = "^(\\d+)(?:(_Tomppa))?"
 # This excel should contain columns defined by Additional info excel columns.
 # Column name changes requires changes to database_generator.py, and also anywhere where such columns are referenced.
 "Additional info excel" = ["data", "db", "db build files", "combined runlist for PG.xlsx"]
 "Additional info excel columns" = ["Sample name","Who","Sample type","Bait name","Bait / other uniprot or ID","Bait mutation","Cell line / material","Project","Notes","tag"]
-"MS run data dir for updater" = ["data", "Server_input", "MS run data"]
+
 
 ["Database creation"."Control and crapome sets"]
 "VL GFP MAC3 10min AP" = ["VL GFP MAC3-N AP-MS"]

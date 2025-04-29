@@ -172,6 +172,7 @@ def handle_and_split_save(df: pd.DataFrame, temp_dir: str, sep: str = '\t') -> N
     findf = pd.DataFrame.from_dict({ind: {key: ';'.join(sorted(list(val))).strip(';') for key, val in ind_dict.items()} for ind, ind_dict in datarows.items()},orient='index')
     findf['publication_identifier'] = findf['publication_identifier'].str.lower()
     findf.index.name = 'interaction'
+    # Split save by prefix (3 first letters of interaction ID) to make deduplication later possible, and to conserver RAM.
     split_and_save_by_prefix(findf.reset_index(), 'interaction', 3, temp_dir, index=False, sep=sep)
 
 def only_latest_date(ser: pd.Series, time_format: str = '%Y/%m/%d') -> pd.Series:
@@ -254,15 +255,15 @@ def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set|None, or
             zip_ref.extractall(file_path.replace('.zip',''))
     
     #temp_dir = os.path.join(folder_path,'parser_tmp')
+    # Handle in chunks to conserver RAM
     for chunk in pd.read_csv(unzipped_path,sep='\t', chunksize=10000):
         chunk.rename(columns=renames,inplace=True)
         chunk = filter_chunk(chunk, uniprots_to_get, organisms)
         chunk.drop(columns=dropcols, inplace=True)
         chunk.drop_duplicates(inplace=True)
         if chunk.shape[0] > 0:
-            #handle_and_split_save(chunk, temp_dir)
             handle_and_split_save(chunk, folder_path)
-    # Final deduplication
+    # Final deduplication of the 3-letter prefix split files
     for fname in os.listdir(folder_path):
         if fname.endswith('.tsv'):
             findf: pd.DataFrame = get_final_df(os.path.join(folder_path, fname))
