@@ -214,13 +214,16 @@ def get_merg_chunk(organisms: set | None, timestamp: str, L: str, inttable_cols:
 
 def write_int_insert_sql(inttable_cols: list, organisms: set|None, timestamp: str, tmpdir: str, ncpu: int) -> None:
     get_chunks = sorted(list(set(intact.get_available()) | set(biogrid.get_available())))
-    num_cpus = ncpu
-    with ProcessPoolExecutor(max_workers=num_cpus) as executor:
-        futures = []
-        for L in get_chunks:
-            futures.append(executor.submit(get_merg_chunk, organisms, timestamp, L, inttable_cols, tmpdir))
-        for future in as_completed(futures):
-            future.result()
+    for L in get_chunks:
+        get_merg_chunk(organisms, timestamp, L, inttable_cols, tmpdir)
+    if False:
+        num_cpus = ncpu
+        with ProcessPoolExecutor(max_workers=num_cpus) as executor:
+            futures = []
+            for L in get_chunks:
+                futures.append(executor.submit(get_merg_chunk, organisms, timestamp, L, inttable_cols, tmpdir))
+            for future in as_completed(futures):
+                future.result()
     
 def prot_knownint_and_contaminant_table(parameters: dict, timestamp: str, tmpdir:str, ncpu: int, organisms: set|None = None) -> tuple[list, list]:
     table_create_sql = []
