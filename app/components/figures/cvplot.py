@@ -1,62 +1,62 @@
 import plotly.graph_objects as go
 from dash.dcc import Graph
 import pandas as pd
-import numpy as np
 
 def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: dict, defaults: dict, id_name: str):
-    all_cvs = []
-    all_text = []
-    all_abundances = []
-    colors = []
+    # Dictionary to store CVs for each sample group
+    group_cvs = {}
+    group_means = {}
+    group_stds = {}
+    
+    # Calculate CVs separately for each sample group
     for sg, group_cols in sample_groups.items():
         means = raw_data[group_cols].mean(axis=1)
         stds = raw_data[group_cols].std(axis=1)
         cv_percent = (stds / means) * 100
-        all_cvs.extend(list(cv_percent))
-        all_abundances.extend(list(means))
-        all_text.extend([f'{i} in {sg}' for i in raw_data.index.values])
-        colors.extend(
-            [
-                replicate_colors['sample groups'][sg].replace(', 1)',', 0.5)')
-            ]*raw_data.shape[0]
-        )
-    x = all_abundances
-    y = all_cvs
-    styles = {
-        'xy1': {'zeroline': False, 'domain': [0,0.85], 'showgrid': False},
-        'xy2': {'zeroline': False, 'domain': [0.85,1], 'showgrid': False},
-        'histomarker': {'color': 'rgba(100,0,100, 1)'},
-        'scattermarker': {'size': 4, 'color': colors},
-    }
+        
+        group_cvs[sg] = cv_percent
+        group_means[sg] = means
+        group_stds[sg] = stds
 
+    # Create violin plot
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-            text=all_text, 
-            x = x,
-            y = y,
-            xaxis = 'x',
-            yaxis = 'y',
-            mode = 'markers',
-            marker = styles['scattermarker'],
+    
+    # Calculate max CV to set y-axis range
+    max_cv = max(max(cvs) for cvs in group_cvs.values())
+    y_max = ((int(max_cv) // 10) + 1) * 10  # Round up to nearest 10
+    
+    for sg in sample_groups.keys():
+        fig.add_trace(go.Violin(
+            y=list(group_cvs[sg]),
+            name=sg,
+            box_visible=True,
+            meanline_visible=True,
+            fillcolor=replicate_colors['sample groups'][sg].replace(', 1)', ', 0.4)'),  # More transparent fill (0.5 -> 0.3)
+            line_color=replicate_colors['sample groups'][sg],
+            line=dict(width=1),  # Add thinner line width
+            points=False  # Remove outliers
         ))
-    fig.add_trace(go.Histogram(
-            y = y,
-            xaxis = 'x2',
-            marker = styles['histomarker']
-        ))
-    fig.add_trace(go.Histogram(
-            x = x,
-            yaxis = 'y2',
-            marker = styles['histomarker']
-        ))
+
     fig.update_layout(
-        autosize = False,
-        xaxis = styles['xy1']|{'title': 'Mean Value'}, yaxis=styles['xy1']|{'title': '%CV'}, xaxis2=styles['xy2'],yaxis2=styles['xy2'],
-        height = defaults['height'],
-        width = defaults['width'],
-        bargap = 0,
-        hovermode = 'closest',
-        showlegend = False,
+        autosize=False,
+        height=defaults['height'],
+        width=defaults['width'],
+        yaxis=dict(
+            title='%CV',
+            tickmode='linear',
+            tick0=0,
+            dtick=10,  # Set tick interval to 10
+            range=[0, y_max]  # Set range from 0 to rounded max
+        ),
+        showlegend=True,
+        violingap=0.2,
+        violinmode='overlay'
     )
-    out_data = {'Means': means.to_dict(), 'CV': cv_percent.to_dict(), 'std': stds.to_dict()}
-    return (Graph(config=defaults['config'],figure=fig, id=id_name), out_data)
+    
+    out_data = {
+        'group_means': {sg: means.to_dict() for sg, means in group_means.items()},
+        'group_cvs': {sg: cvs.to_dict() for sg, cvs in group_cvs.items()},
+        'group_stds': {sg: stds.to_dict() for sg, stds in group_stds.items()}
+    }
+    
+    return (Graph(config=defaults['config'], figure=fig, id=id_name), out_data)

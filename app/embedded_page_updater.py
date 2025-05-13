@@ -42,7 +42,7 @@ def create_page_file(output_dir: str, site_name: str, url: str) -> None:
         url (str): URL of the website to embed
     """
     # Create sanitized filename from site name
-    filename = f"{site_name.lower().replace(' ', '_')}.py"
+    filename = f"{site_name.lower().replace(' ', '_').replace('.', '_')}.py"
     filepath = os.path.join(output_dir, filename)
     print('Creating page file:', filepath)
     # Page template
@@ -51,7 +51,7 @@ def create_page_file(output_dir: str, site_name: str, url: str) -> None:
 import dash
 from dash import html
 
-dash.register_page(__name__, path='/{site_name.lower().replace(" ", "-")}')
+dash.register_page(__name__, path='/{site_name.lower().replace(" ", "-").replace(".", "-")}')
 
 layout = html.Div([
     html.Embed(
