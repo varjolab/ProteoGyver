@@ -7,34 +7,50 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
     group_cvs = {}
     group_means = {}
     group_stds = {}
-    
     # Calculate CVs separately for each sample group
     for sg, group_cols in sample_groups.items():
         means = raw_data[group_cols].mean(axis=1)
         stds = raw_data[group_cols].std(axis=1)
         cv_percent = (stds / means) * 100
-        
+
         group_cvs[sg] = cv_percent
         group_means[sg] = means
         group_stds[sg] = stds
 
-    # Create violin plot
     fig = go.Figure()
-    
-    # Calculate max CV to set y-axis range
     max_cv = max(max(cvs) for cvs in group_cvs.values())
     y_max = ((int(max_cv) // 10) + 1) * 10  # Round up to nearest 10
-    
-    for sg in sample_groups.keys():
-        fig.add_trace(go.Violin(
-            y=list(group_cvs[sg]),
+    annotations = []
+
+    for i, sg in enumerate(sample_groups.keys()):
+        values = list(group_cvs[sg])
+        mean_val = pd.Series(values).mean()
+
+        fig.add_trace(go.Box(
+            y=values,
             name=sg,
-            box_visible=True,
-            meanline_visible=True,
-            fillcolor=replicate_colors['sample groups'][sg].replace(', 1)', ', 0.4)'),  # More transparent fill (0.5 -> 0.3)
-            line_color=replicate_colors['sample groups'][sg],
-            line=dict(width=1),  # Add thinner line width
-            points=False  # Remove outliers
+            boxpoints='outliers',  # No outliers
+            marker_color='black',
+            line=dict(color='black'),
+            fillcolor=replicate_colors['sample groups'][sg],#.replace(', 1)', ', 0.4)'),  # More transparent fill (0.5 -> 0.3)
+            line_color='black',#replicate_colors['sample groups'][sg],
+            #meanline=dict(visible=True, color='black', width=2),
+            #boxmean='sd',  # show mean + standard deviation
+            
+            jitter=0.5,
+            whiskerwidth=0.2,
+            marker_size=2,
+            line_width=1)
+        )
+
+        # Add mean annotation
+        annotations.append(dict(
+            x=sg,
+            y=mean_val*1.2,
+            text=f"Mean: {mean_val:.1f}%",
+            showarrow=False,
+            yshift=10,
+            font=dict(color='black')
         ))
 
     fig.update_layout(
@@ -45,12 +61,11 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
             title='%CV',
             tickmode='linear',
             tick0=0,
-            dtick=10,  # Set tick interval to 10
-            range=[0, y_max]  # Set range from 0 to rounded max
+            dtick=10,
+            range=[0, y_max]
         ),
-        showlegend=True,
-        violingap=0.2,
-        violinmode='overlay'
+        showlegend=False,
+        annotations=annotations
     )
     
     out_data = {
