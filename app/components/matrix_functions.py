@@ -115,7 +115,7 @@ def do_pca(data_df: DataFrame, rev_sample_groups: dict, n_components) -> tuple:
 
 def median_normalize(data_frame: DataFrame) -> DataFrame:
     """
-    Median-normalizes a dataframe by dividing each column by its median.
+    Median-normalizes a dataframe by dividing each column by its median and multiplying by the median of the medians.
 
     Args:
         df (pandas.DataFrame): The dataframe to median-normalize.
@@ -124,14 +124,12 @@ def median_normalize(data_frame: DataFrame) -> DataFrame:
     Returns:
         pandas.DataFrame: The median-normalized dataframe.
     """
-    # Calculating the medians prior to looping is about 2-3 times more efficient,
-    # than calculating the median of each column inside of the loop.
     medians: Series = data_frame.median(axis=0)
-    mean_of_medians: float = medians.mean()
-    newdf: DataFrame = DataFrame(index=data_frame.index)
+    mean_of_medians: float = medians.median()
+    norm_df: DataFrame = DataFrame(index=data_frame.index)
     for col in data_frame.columns:
-        newdf[col] = (data_frame[col] / medians[col]) * mean_of_medians
-    return newdf
+        norm_df[col] = (data_frame[col] / medians[col]) * mean_of_medians
+    return norm_df
 
 
 def quantile_normalize(dataframe: DataFrame) -> DataFrame:
