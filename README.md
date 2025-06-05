@@ -38,9 +38,13 @@ The app is insecure as it is. It is intended to be run on a network that is not 
   - "Sample group" column
   - "Bait uniprot" column (for interactomics)
 - Supported data formats:
-  - FragPipe (combined_prot.tsv)
-  - DIA-NN (pg_matrix.tsv, report.tsv (discouraged due to size))
-  - Generic matrix format
+  - Interactomics:
+    - FragPipe (combined_prot.tsv, reprint.spc)
+    - Generic matrix format
+  - Proteomics:
+    - FragPipe (combined_prot.tsv)
+    - DIA-NN (pg_matrix.tsv, report.tsv (discouraged due to size))
+    - Generic matrix format
 
 ## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs

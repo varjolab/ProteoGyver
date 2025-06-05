@@ -160,10 +160,6 @@ intact_path = "components/api_tools/api_data/IntAct/"
 biogrid_regex = "BIOGRID-ALL-(\\d+\\.\\d+\\.\\d+)"
 intact_regex = "^(\\d{4}-\\d{2}-\\d{2})_intact"
 
-[Enrichment]
-#Change this to your own username, if you plan to use DAVID.
-"DAVID username" = "kari.salokas@helsinki.fi"
-
 ["External tools"]
 "SAINT tempdir" = ["external", "SAINTexpress"]
 
