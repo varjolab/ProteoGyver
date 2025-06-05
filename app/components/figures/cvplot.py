@@ -8,9 +8,15 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
     group_means = {}
     group_stds = {}
     # Calculate CVs separately for each sample group
+    # This will drop proteins with only one non-NA value in the group.
     for sg, group_cols in sample_groups.items():
         means = raw_data[group_cols].mean(axis=1)
         stds = raw_data[group_cols].std(axis=1)
+
+        # Drop proteins with only one non-NA value in the group: std cannot be calculated.
+        means = means[stds.notna()]
+        stds = stds[stds.notna()]
+
         cv_percent = (stds / means) * 100
         
         group_cvs[sg] = cv_percent
@@ -21,16 +27,17 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
     fig = go.Figure()
 
     # Calculate max CV to set y-axis range
-    max_cv = max(max(cvs) for cvs in group_cvs.values())
+    max_cv = max([max(cvs) for cvs in group_cvs.values()])
     y_max = ((int(max_cv) // 10) + 1) * 10  # Round up to nearest 10
     annotations = []
 
 
     for sg in sample_groups.keys():
         values = list(group_cvs[sg])
+        
         mean_val = pd.Series(values).mean()
         fig.add_trace(go.Violin(
-            y=list(group_cvs[sg]),
+            y=values,
             name=sg,
             box_visible=True,
             meanline_visible=True,

@@ -22,6 +22,36 @@ def clean_database(versions_to_keep_dict) -> None:
             print('Removing', os.path.join(path, folder[1]))
             shutil.rmtree(os.path.join(path, folder[1]))
 
+def export_snapshot(source_path: str, snapshot_dir: str, snapshots_to_keep: int) -> None:
+    if not os.path.exists(source_path):
+        raise FileNotFoundError(f"Source DB file not found: {source_path}")
+    os.makedirs(snapshot_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    dbname = os.path.basename(source_path)
+    snapshot_filename = f"backup_{dbname}_{timestamp}.db"
+    snapshot_path = os.path.join(snapshot_dir, snapshot_filename)
+
+    with sqlite3.connect(source_path) as source_conn:
+        with sqlite3.connect(snapshot_path) as snapshot_conn:
+            source_conn.backup(snapshot_conn)
+    print(f"Snapshot created: {snapshot_path}")
+
+    # Cleanup
+    if snapshots_to_keep is not None:
+        backups = sorted(
+            (f for f in os.listdir(snapshot_dir) if f.startswith("backup_") and f.endswith(".db")),
+            key=lambda f: os.path.getmtime(os.path.join(snapshot_dir, f))
+        )
+        excess = len(backups) - snapshots_to_keep
+        for old_file in backups[:excess]:
+            old_path = os.path.join(snapshot_dir, old_file)
+            try:
+                os.remove(old_path)
+                print(f"Deleted old backup: {old_path}")
+            except Exception as e:
+                print(f"Failed to delete {old_path}: {e}")
+
 def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_format: str) -> datetime:
     try:
         last_update = datetime.strptime(database_updater.get_last_update(conn, uptype), time_format)
@@ -48,32 +78,44 @@ if __name__ == "__main__":
         database_generator.generate_database(parameters['Database creation'], db_path, time_format, timestamp, tmpdir, ncpu, organisms)
         print('Database generated')
     else:
+        # Export a snapshot, if required:
         cc_cols = parameters['Database creation']['Control and crapome db detailed columns']
         cc_types = parameters['Database creation']['Control and crapome db detailed types']
         ms_runs_parameters = parameters['Database creation']['MS runs information']
         
         parameters = parameters['Database updater']
         update_interval = int(parameters['Update interval seconds'])
+        snapshot_interval = int(parameters['Database updater']['Database snapshot settings']['Snapshot interval days'])*24*60*60
         api_update_interval = int(parameters['External data update interval days'])*24*60*60
         clean_interval = int(parameters['Database clean interval days'])*24*60*60
         output_dir = os.path.join(*parameters['Tsv templates directory'])
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         conn: sqlite3.Connection = db_functions.create_connection(db_path) # type: ignore
+
         last_external_update_date = last_update(conn, 'external', api_update_interval, time_format)
 
+        do_snapshot = last_update(db_path, 'snapshot', snapshot_interval, time_format) < (datetime.now() - relativedelta(seconds=snapshot_interval))
         do_external_update = last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval))
         do_main_db_update = last_update(conn, 'main_db_update', update_interval, time_format) < (datetime.now() - relativedelta(seconds=update_interval))
         do_clean_update = last_update(conn, 'clean', clean_interval, time_format) < (datetime.now() - relativedelta(seconds=clean_interval))
         updates_to_do = [update for update in [
             'External' if do_external_update else '',
             'Main db' if do_main_db_update else '',
-            'Clean' if do_clean_update else ''
+            'Clean' if do_clean_update else '',
+            'Snapshot' if do_snapshot else ''
         ] if update]
         if len(updates_to_do) > 0:
             print('Going to do updates:', ', '.join(updates_to_do))
         else:
             print('No updates to do')
+        if do_snapshot:
+            snapshot_dir = os.path.join(*parameters['Database updater']['Database snapshot settings']['Snapshot dir'])
+            snapshots_to_keep = parameters['Database updater']['Database snapshot settings']['Snapshots to keep']
+            print('Exporting snapshot')
+            export_snapshot(conn, snapshot_dir, snapshots_to_keep)
+            database_updater.update_log_table(conn, ['snapshot'], [1], timestamp, 'snapshot')
+
         if do_external_update:
             print('Updating external data')
             database_updater.update_external_data(conn, parameters, timestamp, organisms, last_external_update_date, ncpu)

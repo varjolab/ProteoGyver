@@ -428,11 +428,13 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
         #start: datetime = datetime.strptime(start+' 00:00:00',parameters['Config']['Time format'])
         #end: datetime = datetime.strptime(end+' 23:59:59',parameters['Config']['Time format'])
         db_conn = db_functions.create_connection(database_file)
+        print(start, end)
+        print(type(start), type(end))
         chosen_runs: pd.DataFrame = db_functions.get_from_table(
             db_conn, # type: ignore
             'ms_runs',
             'run_time',
-            f'"{start}" AND "{end}"',
+            (start, end),
             select_col=', '.join(required_columns),
             as_pandas=True,
             pandas_index_col='run_id',

@@ -755,6 +755,8 @@ def prepare_controls(input_data_dict: Dict[str, Any],
         When select_most_similar_only is enabled, only the top_n most similar 
         controls are kept.
     """
+    
+    logger.debug(f'additional controls: {additional_controls}')
     additional_controls = [c.rsplit('_(',maxsplit=1)[0] for c in additional_controls]
     logger.debug(f'preparing uploaded controls: {uploaded_controls}')
     logger.debug(f'preparing additional controls: {additional_controls}')
@@ -1057,9 +1059,9 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
         f'generate_saint_container: preparations started: {datetime.now()}')
     db_conn = db_functions.create_connection(db_file)
     additional_controls = [
-        f'control_{ctrl_name[0].lower().replace(" ","_")}' for ctrl_name in additional_controls]
+        f'control_{ctrl_name.lower().replace(" ","_")}' for ctrl_name in additional_controls]
     crapomes = [
-        f'crapome_{crap_name[0].lower().replace(" ","_")}' for crap_name in crapomes]
+        f'crapome_{crap_name.lower().replace(" ","_")}' for crap_name in crapomes]
     logger.warning(f'generate_saint_container: DB connected')
     spc_table: pd.DataFrame
     control_table: pd.DataFrame
@@ -1068,7 +1070,6 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
     logger.warning(f'generate_saint_container: Controls prepared')
     protein_list: list = list(
         set(spc_table.index.values) | set(control_table.index))
-
     protein_table: pd.DataFrame = db_functions.get_from_table(
         db_conn,
         'proteins',

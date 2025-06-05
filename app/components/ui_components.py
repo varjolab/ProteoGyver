@@ -892,47 +892,58 @@ def interactomics_input_card(
                         ),
                         dbc.Row([
                             dbc.Col(
-                                checklist(
-                                    'Rescue filtered out',
-                                    ['Rescue interactions that pass filter in any sample group'],
-                                    [],
-                                    id_only=True,
-                                    id_prefix='interactomics',
-                                    style_override={
-                                        'margin': '5px', 'verticalAlign': 'center'
-                                    }
-                                ), width=4
+                                children = checklist(
+                                        'Rescue filtered out',
+                                        ['Rescue interactions that pass filter in any sample group'],
+                                        [],
+                                        id_only=True,
+                                        id_prefix='interactomics',
+                                        style_override={
+                                            'margin': '5px', 'verticalAlign': 'center'
+                                        },
+                                        prefix_list=[
+                                            tooltips.rescue_tooltip()
+                                        ]
+                                    ),
+                                width=4
                             ),
                             dbc.Col([
-                                tooltips.rescue_tooltip(),
-                                dbc.Row([
-                                    dbc.Col(
-                                        checklist(
-                                            'Nearest control filtering',
-                                            ['Select'],
-                                            [],
-                                            id_only=True,
-                                            id_prefix='interactomics',
-                                            style_override={
-                                                'margin': '5px', 'verticalAlign': 'center'
-                                            },
-                                        ), width=3
-                                    ),
-                                    dbc.Col([
-                                        dbc.Input(
-                                            id='interactomics-num-controls', type='number', value=30,
-                                            min=0, max=200, step=1, style={'margin': '5px', 'verticalAlign': 'center'}
-                                        ),
-                                        tooltips.interactomics_select_top_controls_tooltip()
-                                    ], width=3),
-                                    dbc.Col(
-                                        html.P('most similar inbuilt control runs',
-                                               style={'margin': '5px', 'verticalAlign': 'center'}),
-                                        width=6
-                                    )
-                                ])
+                                html.Div(
+                                    children = [
+                                        dbc.Row([
+                                            dbc.Col(
+                                                checklist(
+                                                    'Nearest control filtering',
+                                                    ['Select'],
+                                                    [],
+                                                    id_only=True,
+                                                    id_prefix='interactomics',
+                                                    style_override={
+                                                        'margin': '5px', 'verticalAlign': 'center'
+                                                    },
+                                                    prefix_list=[
+                                                        tooltips.nearest_tooltip()
+                                                    ]
+                                                ), width=3
+                                            ),
+                                            dbc.Col([
+                                                dbc.Input(
+                                                    id='interactomics-num-controls', type='number', value=30,
+                                                    min=0, max=200, step=1, style={'margin': '5px', 'verticalAlign': 'center'}
+                                                ),
+                                                tooltips.interactomics_select_top_controls_tooltip()
+                                            ], width=3),
+                                            dbc.Col(
+                                                html.P('most similar inbuilt control runs',
+                                                    style={'margin': '5px', 'verticalAlign': 'center'}),
+                                                width=6
+                                            )
+                                        ])
+                                    ],
+                                    hidden=True,
+                                    id='interactomics-nearest-controls-div'
+                                )
                             ], width=6),
-                            tooltips.nearest_tooltip(),
                             dbc.Col(width=1)
                         ])
                     ], width=9),

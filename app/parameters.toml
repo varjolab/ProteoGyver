@@ -64,10 +64,10 @@ randomize = true
 #These directories should be ignored when loading run data into the database. 
 "Ignore runs from dirs" = ["BRE_20_xxxxx_Helsinki", "TrapTrouble_3"]
 #Directory containing parsed run jsons from parse_tims_data.py (or equivalent)
-# TODO: these two are the same. Merge, and remove the local path.
-"MS data import dir" = "/media/kmsaloka/Expansion/20241118_parse/ms_runs/"
-"MS run data dir for updater" = ["data", "Server_input", "MS run data"]
-#This regex should capture the run ID from the MS run folder name. In our case, it is in the form of either "1234_RUN_NAME_HERE" or "1234_Tomppa_RUN_NAME_HERE"
+"MS run data dir" = ["data", "Server_input", "MS run data"]
+"handled MS run data dir" = ["data", "Server_input", "MS run data handled"]
+# This regex should capture the run ID from the MS run folder name. As currently only timstof data is supported, each run corresponds to a folder with .d in the name. In our case, it is in the form of either "1234_RUN_NAME_HERE.d" or "1234_Tomppa_RUN_NAME_HERE.d"
+# However, we don't care about the run name or the .d part, only the ID, and "_Tomppa", if present. 
 "MS run ID regex" = "^(\\d+)(?:(_Tomppa))?"
 # This excel should contain columns defined by Additional info excel columns.
 # Column name changes requires changes to database_generator.py, and also anywhere where such columns are referenced.
@@ -115,9 +115,9 @@ randomize = true
 "Allowed new columns" = 2
 "Log table" = "update_log"
 "Update interval seconds" = 900
-"External data update interval days" = 14
+"External data update interval days" = 30
 "Tsv templates directory" = ["data", "Server_output", "db update tsv templates"]
-"Database clean interval days" = 30
+"Database clean interval days" = 60
 # These specify whether we should delete data from the database that is no longer in uniprot or known databases during database update.
 # Uniprot especially should probably be left to false, as custom added proteins do exist in the database, e.g. tags and old crapome entries.
 "Delete old uniprots" = false
@@ -146,6 +146,11 @@ msmicroscopy = ["data", "Server_input", "db_updates", "msmicroscopy"]
 proteins = ["data", "Server_input", "db_updates", "proteins"]
 add_or_replace = ["data", "Server_input", "db_updates", "add_or_replace"]
 remove_data = ["data", "Server_input", "db_updates", "remove_data"]
+
+["Database updater"."Database snapshot settings"]
+"Snapshot interval days" = 30
+"Snapshot dir" = ["data", "Server_output", "db snapshots"]
+"Snapshots to keep" = 3
 
 ["Database updater"."Versions to keep"]
 biogrid = 3

@@ -593,8 +593,7 @@ def sidebar():
                 id='zlevel-radio',
                 labelCheckedClassName="text-success",
                 inputCheckedClassName="border border-success bg-success",
-            ),
-            dbc.Button('Download images',id='download-images-button')
+            )
         ],
         width=3,
         style={'padding': '0px 0px 0px 15px'}

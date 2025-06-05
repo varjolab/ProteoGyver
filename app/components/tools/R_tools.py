@@ -47,7 +47,6 @@ def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_nam
             if replace_dir:
                 print('replacing dir')
                 r_script_contents = [line.replace(replace_dir,tmpdir) for line in r_script_contents]
-            print('\n'.join(r_script_contents))
             r_script_data.to_csv(datafile, sep='\t', index=input_df_has_index)
             with tempfile.NamedTemporaryFile() as scriptfile:
                 scriptfile.write('\n'.join(r_script_contents).encode('utf-8'))

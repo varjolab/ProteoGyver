@@ -1,6 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 import os
+import shutil
 from typing import Iterator
 import pandas as pd
 import numpy as np
@@ -563,7 +564,8 @@ def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None
     else:
         runlist = pd.DataFrame(columns=['Sample name','Who','Sample type','Bait name','Bait / other uniprot or ID','Bait mutation','Cell line / material','Project','Notes','tag'])
     
-    ms_run_datadir = os.path.join(*parameters['MS run data dir for updater'])
+    ms_run_datadir = os.path.join(*parameters['MS run data dir'])
+    done_dir = os.path.join(*parameters['handled MS run data dir'])
     if not os.path.exists(ms_run_datadir):
         os.makedirs(ms_run_datadir)
 
@@ -671,8 +673,10 @@ def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None
                 dat['polarity_1'][dataname]['trace'],
                 json.dumps(dat['polarity_1'][dataname]['intercept_dict']),
             ])   
-        
         new_data.append(ms_run_row)
+        os.makedirs(done_dir,exist_ok=True)
+        shutil.move(os.path.join(ms_run_datadir, datafilename), os.path.join(done_dir, datafilename))
+
     if len(new_data) > 0:
         os.makedirs(output_dir, exist_ok=True)
         pd.DataFrame(data = new_data, columns = ms_cols).to_csv(os.path.join(output_dir, f'{timestamp}_ms_runs.tsv'), sep='\t', index=False)

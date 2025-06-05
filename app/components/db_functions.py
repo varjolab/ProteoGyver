@@ -225,7 +225,7 @@ def generate_database_table_templates_as_tsvs(db_conn, output_dir, primary_keys)
         print(f"Template generated for table '{table}' at '{tsv_file_path}'.")
     cursor.close()
 
-def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|None = None, criteria:str|None = None, select_col:str|None = None, as_pandas:bool = False, pandas_index_col:str|None = None, operator:str = '=') -> list[tuple] | pd.DataFrame:
+def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|None = None, criteria:str|tuple|None = None, select_col:str|None = None, as_pandas:bool = False, pandas_index_col:str|None = None, operator:str = '=') -> list[tuple] | pd.DataFrame:
     """Get data from a table in an SQLite database.
 
     Args:
@@ -244,10 +244,16 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|No
     
     if select_col is None:
         select_col = '*'
-
+    elif isinstance(select_col, list):
+        select_col = f'{", ".join(select_col)}'
     if criteria_col is not None:
-        query = f"SELECT {select_col} FROM {table_name} WHERE {criteria_col} {operator} ?"
-        params = (criteria,)
+        placeholder = '?'
+        if isinstance(criteria, tuple):
+            params = criteria
+            placeholder = '? AND ?'
+        else:
+            params = (criteria,)
+        query = f"SELECT {select_col} FROM {table_name} WHERE {criteria_col} {operator} {placeholder}"
     else:
         query = f"SELECT {select_col} FROM {table_name}"
         params = ()
@@ -258,6 +264,7 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|No
         cursor: sqlite3.Cursor = conn.cursor()
         cursor.execute(query, params)
         result = cursor.fetchall()  # type: ignore
+        result = [r[0] for r in result]
         cursor.close()
     return result
 
@@ -285,9 +292,7 @@ def get_contaminants(db_file: str, protein_list:list = None, error_file: str = N
     :return: list of contaminants
     """
     conn: sqlite3.Connection = create_connection(db_file, error_file)
-    ret_list: list = [
-        r[0] for r in get_from_table(conn, 'contaminants', select_col='uniprot_id')
-    ]
+    ret_list: list = get_from_table(conn, 'contaminants', select_col='uniprot_id')
     conn.close()
     return ret_list
 

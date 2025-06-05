@@ -1,3 +1,4 @@
+
 import os
 import pandas as pd
 import requests
@@ -302,14 +303,14 @@ class handler():
                 reference_string += f'{key}: {value}\n'
             reference_string += '-----\nInput:'
             for key, value in req_json['results']['input_list'].items():
-                if key not in {'mapped_id', 'unmapped_id'}:
+                if key not in {'mapped_ids', 'unmapped_ids'}:
                     reference_string += f'{key}: {value}\n'
             reference_string += '-----\n'
-            if 'unmapped_id' in req_json['results']['input_list']:
-                if isinstance(req_json["results"]["input_list"]["unmapped_id"],str):
-                    unmapped_ids = [req_json["results"]["input_list"]["unmapped_id"]]
+            if 'unmapped_ids' in req_json['results']['input_list']:
+                if isinstance(req_json["results"]["input_list"]["unmapped_ids"],str):
+                    unmapped_ids = [req_json["results"]["input_list"]["unmapped_ids"]]
                 else:
-                    unmapped_ids = req_json["results"]["input_list"]["unmapped_id"]
+                    unmapped_ids = req_json["results"]["input_list"]["unmapped_ids"]
                 reference_string += (
                     f'Unmapped IDs: '
                     f'{", ".join(unmapped_ids)}\n'
@@ -317,7 +318,7 @@ class handler():
             reference_string += '-----\n'
             reference_string += (
                 f'Mapped IDs: '
-                f'{", ".join(req_json["results"]["input_list"]["mapped_id"])}\n'
+                f'{", ".join(req_json["results"]["input_list"]["mapped_ids"])}\n'
             )
             reference_string += '-----\n'
             results: pd.DataFrame = pd.DataFrame(

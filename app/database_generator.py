@@ -501,7 +501,8 @@ def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[l
         runlist = pd.read_excel(os.path.join(*parameters['Additional info excel']))
     else:
         runlist = pd.DataFrame(columns=['Sample name','Who','Sample type','Bait name','Bait / other uniprot or ID','Bait mutation','Cell line / material','Project','Notes','tag'])
-    ms_run_datadir = parameters['MS data import dir']
+    ms_run_datadir = os.path.join(*parameters['MS run data dir'])
+    done_dir = os.path.join(*parameters['handled MS run data dir'])
     if not os.path.exists(ms_run_datadir):
         print('MS data import directory does not exist')
         return table_create_sql, insert_sql
@@ -616,6 +617,8 @@ def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[l
             ])   
         
         data_to_enter.append(ms_run_row)
+        os.makedirs(done_dir,exist_ok=True)
+        shutil.move(os.path.join(ms_run_datadir, datafilename), os.path.join(done_dir, datafilename))
     for data in data_to_enter:
         add_str = f'INSERT INTO ms_runs ({", ".join([c.split()[0] for c in ms_cols])}) VALUES ({", ".join(["?" for _ in ms_cols])})'
         insert_sql.append([add_str, data])
