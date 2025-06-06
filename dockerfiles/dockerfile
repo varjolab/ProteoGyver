@@ -55,7 +55,7 @@ RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__li
 
 WORKDIR /
 RUN mkdir -p /proteogyver/resources
-COPY app/R_requirements.R /proteogyver/resources/R_requirements.R
+COPY app/resources/R_requirements.R /proteogyver/resources/R_requirements.R
 RUN Rscript /proteogyver/resources/R_requirements.R
 COPY app /proteogyver
 COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
