@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
     cron \
     apt-utils \
     software-properties-common 
-    
+
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 
@@ -51,7 +51,6 @@ RUN apt-get update && apt-get install -y \
     r-recommended \
     redis psmisc \
     libcurl4-openssl-dev \
-    libcurl4-gnutls-dev \
     libxml2-dev \
     libfontconfig1-dev \
     libharfbuzz-dev \
