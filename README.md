@@ -137,7 +137,7 @@ cd proteogyver
 These commands may need sudo depending on the system.
 PG updater is used to generate a database. Due to possible licensing issues in the future, a production ready database is not provided. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface.
 
-Build the main docker image. This will take approximately 20 minutes, mostly due to R requirements being built.
+Build the main docker image. This can take up to an hour, mostly due to R requirements being built. Removing the need to compile so much is on the TODO list.
 ```
 docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
 ```
