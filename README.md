@@ -64,7 +64,7 @@ The Microscopy Colocalizer is a tool for analyzing spatial relationships between
 2. Select channels for analysis
 3. Select the Z-stack for analysis
 4. Generate colocalization maps
-5. Export results as merged channel visualizations
+5. Export results as merged channel visualizations from the upper right corner of the displayed images.
 
 ### MS Inspector
 
@@ -123,16 +123,24 @@ cd proteogyver
 #### Build the Docker images and run the PG updater
 These commands may need sudo depending on the system.
 PG updater is used to generate a database. Due to possible licensing issues in the future, a production ready database is not provided. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface.
-```
-# This will take approximately 20 minutes, mostly due to R requirements being built. This could be alleviated via optimization of the dockerfile. 
-docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
-# Next make sure that the paths specified in docker-compose.yaml exist. Modify docker-compose NOW to suit your local system if needed.
-bash utils/check_volume_paths -v
-# IF the script says that some paths are missing and you want to modify those, change them in the docker-compose.yaml.
-# If the missing paths are OK, they can be created with --create switch:
-bash utils/check_volume_paths -v --create
 
-# For production use, the updater is highly encouraged. It is encouraged to run the updater script as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below)
+Build the main docker image. This will take approximately 20 minutes, mostly due to R requirements being built. This could be alleviated via optimization of the 
+```
+docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
+```
+
+Next make sure that the paths specified in docker-compose.yaml exist. Modify docker-compose NOW to suit your local system if needed.
+```
+bash utils/check_volume_paths -v
+```
+IF the script says that some paths are missing and you want to modify those, change them in the docker-compose.yaml.
+If the missing paths are OK, they can be created with --create switch:
+```
+bash utils/check_volume_paths -v --create
+```
+
+For production use, the updater is highly encouraged. It is encouraged to run the updater script as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below)
+```
 docker build -t pg_updater:1.0 -f dockerfiles/dockerfile_pg_updater .
 bash utils/run_updater.sh
 ```
