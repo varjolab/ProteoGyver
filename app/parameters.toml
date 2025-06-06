@@ -1,7 +1,7 @@
 "Navbar page order" = ["qc and data analysis", "ms inspector", "windowmaker", "colocalizer"]
 
 [Config]
-"Local debug" = false
+"Local debug" = true
 LogDir = "logs"
 LogLevel = 20
 "R error file" = "R_errors.log"
@@ -16,7 +16,7 @@ padding = 10
 randomize = true
 
 ["Data paths"]
-"Cache dir" = ["/proteogyver", "cache"]
+"Cache dir" = ["/home", "kmsaloka", "Documents", "PG_cache"]
 "Database file" = ["data", "db", "proteogyver.db"]
 "Example data file" = ["data", "example files", "datafile.tsv"]
 "Example proteomics comparison file" = ["data", "example files", "proteomics comparisons.tsv"]
