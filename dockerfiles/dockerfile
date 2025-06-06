@@ -54,6 +54,9 @@ RUN echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__li
 
 
 WORKDIR /
+RUN mkdir -p /proteogyver/resources
+COPY app/R_requirements.R /proteogyver/resources/R_requirements.R
+RUN Rscript /proteogyver/resources/R_requirements.R
 COPY app /proteogyver
 COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
 RUN chmod +x /docker_entrypoint.sh
@@ -83,7 +86,6 @@ WORKDIR /proteogyver
 RUN conda env create -f resources/environment.yml
 RUN conda clean -afy
 WORKDIR /proteogyver/resources
-RUN Rscript R_requirements.R
 
 EXPOSE 8090 8050
 
