@@ -22,39 +22,9 @@ def clean_database(versions_to_keep_dict) -> None:
             print('Removing', os.path.join(path, folder[1]))
             shutil.rmtree(os.path.join(path, folder[1]))
 
-def export_snapshot(source_path: str, snapshot_dir: str, snapshots_to_keep: int) -> None:
-    if not os.path.exists(source_path):
-        raise FileNotFoundError(f"Source DB file not found: {source_path}")
-    os.makedirs(snapshot_dir, exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dbname = os.path.basename(source_path)
-    snapshot_filename = f"backup_{dbname}_{timestamp}.db"
-    snapshot_path = os.path.join(snapshot_dir, snapshot_filename)
-
-    with sqlite3.connect(source_path) as source_conn:
-        with sqlite3.connect(snapshot_path) as snapshot_conn:
-            source_conn.backup(snapshot_conn)
-    print(f"Snapshot created: {snapshot_path}")
-
-    # Cleanup
-    if snapshots_to_keep is not None:
-        backups = sorted(
-            (f for f in os.listdir(snapshot_dir) if f.startswith("backup_") and f.endswith(".db")),
-            key=lambda f: os.path.getmtime(os.path.join(snapshot_dir, f))
-        )
-        excess = len(backups) - snapshots_to_keep
-        for old_file in backups[:excess]:
-            old_path = os.path.join(snapshot_dir, old_file)
-            try:
-                os.remove(old_path)
-                print(f"Deleted old backup: {old_path}")
-            except Exception as e:
-                print(f"Failed to delete {old_path}: {e}")
-
 def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_format: str) -> datetime:
     try:
-        last_update = datetime.strptime(database_updater.get_last_update(conn, uptype), time_format)
+        last_update = datetime.strptime(db_functions.get_last_update(conn, uptype), time_format)
     except Exception as e:
         last_update = datetime.now() - relativedelta(seconds=interval+1)
     return last_update
@@ -113,7 +83,7 @@ if __name__ == "__main__":
             snapshot_dir = os.path.join(*parameters['Database updater']['Database snapshot settings']['Snapshot dir'])
             snapshots_to_keep = parameters['Database updater']['Database snapshot settings']['Snapshots to keep']
             print('Exporting snapshot')
-            export_snapshot(conn, snapshot_dir, snapshots_to_keep)
+            db_functions.export_snapshot(db_path, snapshot_dir, snapshots_to_keep)
             database_updater.update_log_table(conn, ['snapshot'], [1], timestamp, 'snapshot')
 
         if do_external_update:

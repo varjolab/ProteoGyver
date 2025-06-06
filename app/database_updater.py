@@ -237,22 +237,6 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
         cursor.close()
     return inmod_names, inmod_vals
 
-def get_last_update(conn, uptype: str) -> str:
-    """
-    Get the last update timestamp from the update_log table.
-
-    Args:
-        conn: SQLite database connection object
-        uptype: update type to get the last update for
-    Returns:
-        str: Last update timestamp
-    """
-    cursor = conn.cursor()
-    cursor.execute("SELECT timestamp FROM update_log WHERE update_type = ? ORDER BY timestamp DESC LIMIT 1", (uptype,))
-    last_update = cursor.fetchone()
-    cursor.close()
-    return last_update[0]
-
 def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_columns: list[str] | None = None) -> tuple[list[str], list[str]]:
     """Compare two pandas DataFrames and return differences.
     

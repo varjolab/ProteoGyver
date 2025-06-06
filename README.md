@@ -108,17 +108,39 @@ The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) 
 
 ## Installation
 
-### Docker Installation (recommended use case)
+### MS run data pre-analysis
+This is optional, but highly recommended. In order for the MS-inspector to have data to work with, or for QC to display chromatograms, information about MS runs needs to be included in the database.
 
-Build the Docker images, run the preparation script, and run the PG updater to generate a database
-**!!NOTE!!: the preparation script will assume that PG_DATA_DIR environment variable is set to the base directory for PG data. By default, it will use /data. As this can vary between systems, it is recommended to set the PG_DATA_DIR environment variable to a more suitable location, or modify the script if needed.**
+In order for the MS inspector
+# TODO: add documentation.
+### Docker Installation (recommended use case)
+# TODO: dockerhub install
 ```
+git clone [TODO: add path]
+cd proteogyver
+```
+
+#### Build the Docker images and run the PG updater
+These commands may need sudo depending on the system.
+PG updater is used to generate a database. Due to possible licensing issues in the future, a production ready database is not provided. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface.
+```
+# This will take approximately 20 minutes, mostly due to R requirements being built. This could be alleviated via optimization of the dockerfile. 
 docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
+# Next make sure that the paths specified in docker-compose.yaml exist. Modify docker-compose NOW to suit your local system if needed.
+bash utils/check_volume_paths -v
+# IF the script says that some paths are missing and you want to modify those, change them in the docker-compose.yaml.
+# If the missing paths are OK, they can be created with --create switch:
+bash utils/check_volume_paths -v --create
+
+# For production use, the updater is highly encouraged. It is encouraged to run the updater script as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below)
 docker build -t pg_updater:1.0 -f dockerfiles/dockerfile_pg_updater .
-bash utils/preparations.sh
 bash utils/run_updater.sh
 ```
-Run the docker stack
+
+#### Changing parameters
+In order to keep the parameters.toml in sync with PG and the updater container, it is copied into path specified in the docker-compose.yaml. The file needs to be edited in that location ONLY, in order for the updated parameters to be applied to existing docker container, and the updater (e.g. different database name, or modified update intervals).
+
+#### Run the docker stack
 ```
 docker compose -f dockerfiles/docker-compose.yaml up
 ```
@@ -213,8 +235,6 @@ Adding custom tools to Proteogyver is supported as pages in the app/pages folder
 ### Accessing the database from other tools
 Other tools can access the database, preferably using methods contained within the db_functions.py file. Writes to the database should not require any specific precautions. However, please check that the database is not locked, and another transaction is not in progress. Other scenarios when one should not write to the database include if it is in the process of being backed up (currently not implemented, but planned), or while the updater is actively running.
 
-## MS run data pre-analysis
-# TODO: add documentation.
 
 ## License
 

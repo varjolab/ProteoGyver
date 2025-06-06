@@ -16,4 +16,6 @@ services:
       - /data/PG_containers/db/PG_prod:/proteogyver/data/db
       - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
+      # This is required for the updater to share one parameter file with the server.
+      - /data/PG_containers/conf/PG_prod/parameters.toml:/proteogyver/parameters.toml
     restart: unless-stopped

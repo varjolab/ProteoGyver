@@ -3,26 +3,48 @@
 IMAGE_NAME="pg_updater:1.0"
 TODAY=$(date +%Y/%m/%d)
 
-# Volume definitions: [ "host_path" "container_path" ]
-VOLUMES=(
-    "/data/PG_containers/db/PG_prod" "/proteogyver/data/db"
-    "/data/PG_containers/conf/PG_prod/parameters.toml" "/proteogyver/parameters.toml"
-    "/mnt/varjosalo_MS_rundata" "/proteogyver/data/Server_input"
-    "/mnt/varjosalo_Server_output" "/proteogyver/data/Server_output"
-    "/data/PG_containers/cache/PG_updater" "/proteogyver/cache"
-    "/data/PG_containers/api_data/PG_prod" "/proteogyver/components/api_tools/api_data"
-)
-
-# Build the -v options
-VOLUME_ARGS=()
-for ((i=0; i<${#VOLUMES[@]}; i+=2)); do
-    SRC="${VOLUMES[i]}"
-    DEST="${VOLUMES[i+1]}"
-    VOLUME_ARGS+=("-v" "${SRC}:${DEST}")
+# Parse command line arguments
+TEST_MODE=false
+for arg in "$@"; do
+    case $arg in
+        --test)
+            TEST_MODE=true
+            shift
+            ;;
+    esac
 done
 
-echo "[$TODAY] Running database updater container..."
+# Parse volumes from docker-compose.yaml
+echo "Parsing volume mappings from docker-compose.yaml..."
+VOLUME_ARGS=()
 
-docker run --rm \
-    "${VOLUME_ARGS[@]}" \
-    "${IMAGE_NAME}"
+# Extract the volume section and parse it
+volumes=$(sed -n '/^[[:space:]]*volumes:/,/^[[:space:]]*[a-z]:/p' dockerfiles/docker-compose.yaml | grep "^[[:space:]]*-")
+
+while IFS= read -r line; do
+    # Extract source:destination from the volume line
+    if [[ $line =~ [[:space:]]-[[:space:]]([^:]+):(.+) ]]; then
+        SRC="${BASH_REMATCH[1]}"
+        DEST="${BASH_REMATCH[2]}"
+        VOLUME_ARGS+=("-v" "${SRC}:${DEST}")
+    fi
+done <<< "$volumes"
+
+if [ ${#VOLUME_ARGS[@]} -eq 0 ]; then
+    echo "Error: No volume mappings found in docker-compose.yaml"
+    exit 1
+fi
+
+if [ "$TEST_MODE" = true ]; then
+    echo "[$TODAY] Would run the following command:"
+    echo "docker run --rm \\"
+    for arg in "${VOLUME_ARGS[@]}"; do
+        echo "    $arg \\"
+    done
+    echo "    ${IMAGE_NAME}"
+else
+    echo "[$TODAY] Running database updater container..."
+    docker run --rm \
+        "${VOLUME_ARGS[@]}" \
+        "${IMAGE_NAME}"
+fi

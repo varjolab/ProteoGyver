@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 import os
 import csv
+from datetime import datetime
 
 def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter_col: str|None = None, startswith: str|None = None) -> pd.DataFrame:
     query = f"SELECT * FROM {table_name}"
@@ -10,6 +11,62 @@ def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter
         query += f" WHERE {filter_col} LIKE '{startswith}%'"
 
     return pd.read_sql_query(query, db_conn, index_col=index_col)
+
+def get_last_update(conn, uptype: str) -> str:
+    """
+    Get the last update timestamp from the update_log table.
+
+    Args:
+        conn: SQLite database connection object
+        uptype: update type to get the last update for
+    Returns:
+        str: Last update timestamp
+    """
+    cursor = conn.cursor()
+    cursor.execute("SELECT timestamp FROM update_log WHERE update_type = ? ORDER BY timestamp DESC LIMIT 1", (uptype,))
+    last_update = cursor.fetchone()
+    cursor.close()
+    return last_update[0]
+
+def is_test_db(db_path: str) -> bool:
+    conn = create_connection(db_path)
+    cursor = conn.cursor()
+    try:
+        cur = conn.execute("SELECT value FROM metadata WHERE key='is_test'")
+        result = cur.fetchone()
+        return result and result[0].lower() == 'true'
+    except sqlite3.Error:
+        return False
+
+def export_snapshot(source_path: str, snapshot_dir: str, snapshots_to_keep: int) -> None:
+    if not os.path.exists(source_path):
+        raise FileNotFoundError(f"Source DB file not found: {source_path}")
+    os.makedirs(snapshot_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    dbname = os.path.basename(source_path)
+    snapshot_filename = f"backup_{dbname}_{timestamp}.db"
+    snapshot_path = os.path.join(snapshot_dir, snapshot_filename)
+
+    with sqlite3.connect(source_path) as source_conn:
+        with sqlite3.connect(snapshot_path) as snapshot_conn:
+            source_conn.backup(snapshot_conn)
+    print(f"Snapshot created: {snapshot_path}")
+
+    # Cleanup
+    if snapshots_to_keep is not None:
+        backups = sorted(
+            (f for f in os.listdir(snapshot_dir) if f.startswith("backup_") and f.endswith(".db")),
+            key=lambda f: os.path.getmtime(os.path.join(snapshot_dir, f))
+        )
+        excess = len(backups) - snapshots_to_keep
+        for old_file in backups[:excess]:
+            old_path = os.path.join(snapshot_dir, old_file)
+            try:
+                os.remove(old_path)
+                print(f"Deleted old backup: {old_path}")
+            except Exception as e:
+                print(f"Failed to delete {old_path}: {e}")
 
 def dump_full_database_to_csv(database_file, output_directory) -> None:
     conn: sqlite3.Connection = create_connection(database_file) # type: ignore
@@ -160,7 +217,7 @@ def add_multiple_records(db_conn, tablename, column_names, list_of_values) -> No
     finally:
         cursor.close()
         
-def create_connection(db_file, error_file: str = None):
+def create_connection(db_file, error_file: str|None = None):
     """ create a database connection to the SQLite database
         specified by the db_file
     :param db_file: database file

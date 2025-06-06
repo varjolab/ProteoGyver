@@ -82,10 +82,7 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 WORKDIR /proteogyver
 RUN conda env create -f resources/environment.yml
 RUN conda clean -afy
-
 WORKDIR /proteogyver/resources
-
-# R setup
 RUN Rscript R_requirements.R
 
 EXPOSE 8090 8050
