@@ -4,7 +4,7 @@ if(nchar(LANG))
    Sys.setlocale("LC_ALL", LANG)
 install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
 pak::pkg_install(c("BiocManager", "devtools"))
-pak::pkg_install(c("Bioc::DEP", "Bioc::SummarizedExperiment", "Bioc::MSnbase", "Bioc::pcaMethods", "Bioc::vsn", "Bioc::impute"))
+BiocManager::install(c("DEP", "SummarizedExperiment", "MSnbase", "pcaMethods", "vsn", "impute"))
 pak::pkg_install(c("IRkernel", "tidyverse", "flashClust", "proteomicsCV", "samr", "WGCNA", "imputeLCMD"))
 
 library(devtools)
