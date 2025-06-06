@@ -12,14 +12,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None) -> tuple:
+def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None, filter_type: str = 'at least one sample group') -> tuple:
 
     logger.warning(f'nafilter - start: {datetime.now()}')
     data_table: pd.DataFrame = pd.read_json(
         StringIO(input_data_dict['data tables']['intensity']),
         orient='split'
     )
-    original_counts: pd.DataFrame = matrix_functions.count_per_sample(
+    original_counts: pd.Series = matrix_functions.count_per_sample(
         data_table, input_data_dict['sample groups']['rev'])
     logger.warning(
         f'nafilter - counts per sample: {datetime.now()}')
@@ -27,12 +27,13 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
     filtered_data: pd.DataFrame = matrix_functions.filter_missing(
         data_table,
         input_data_dict['sample groups']['norm'],
-        filtering_percentage,
+        filter_type,
+        filtering_percentage
     )
     logger.warning(
         f'nafilter - filtering done: {datetime.now()}')
 
-    filtered_counts: pd.DataFrame = matrix_functions.count_per_sample(
+    filtered_counts: pd.Series = matrix_functions.count_per_sample(
         filtered_data, input_data_dict['sample groups']['rev'])
     figure_legend: html.P = legends['na_filter']
     figure_legend.children = figure_legend.children.replace(

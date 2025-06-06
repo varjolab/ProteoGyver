@@ -39,28 +39,11 @@ def calculate_auc(ser):
         auc += time*intval + ((time-prev)*intval/2)
         prev = time
     return auc
-    
-    
-def round_it(x, base=5):
-    return base * round(x/base)
 
-def avg(li):
-    return sum(li)/len(li)
-
-def per_time_window(pdSer, windowsize=5):
-    new_vals = {}
-    for index, row_val in pdSer.items():
-        ival = round_it(index, base=5)
-        if ival not in new_vals:
-            new_vals[ival] = []
-        new_vals[ival].append(row_val)
-    avg_per_timewindow = avg([len(val) for _, val in new_vals.items()])
-    return_ser = pd.DataFrame(index = sorted(list(new_vals.keys())), columns='avg_intensity sum_intensity'.split(), data = [[avg(new_vals[i]), sum(new_vals[i])] for i in sorted(list(new_vals.keys()))])
-    return_ser.index.name='time'
-    return avg_per_timewindow, return_ser
-
+# Unused
 def smooth_tic(tic_ser: pd.Series, sigma: int = 6):
     return pd.Series(gaussian_filter1d(tic_ser, sigma))
+
 def handle_timsfile(root, run_name, run_id_regex):
     timsfile = os.path.join(root, run_name)
     alphatims_file = alphatims.bruker.TimsTOF(timsfile,drop_polarity=False,convert_polarity_to_int=True)
@@ -158,31 +141,14 @@ def handle_timsfile(root, run_name, run_id_regex):
         for serkey, serdf in sers.items():
             ser = pd.Series(serdf)
             new_set[serkey] = {}
-            smooth_ser3 = smooth_tic(ser,sigma=3)
-            smooth_ser6 = smooth_tic(ser,sigma=6)
-            smooth_ser12 = smooth_tic(ser,sigma=12)
-            smooth_ser20 = smooth_tic(ser,sigma=20)
-            smooth_ser30 = smooth_tic(ser,sigma=30)
-            avg_per_timewindow, timewindow = per_time_window(ser, 5)
             maxtimeval = max(maxtimeval, ser.index.max())
             intercepts, intercept_dict = count_intercepts(ser)
+            smoothed = smooth_tic(ser)
             new_set[serkey]['Series'] = ser.to_dict()
+            new_set[serkey]['Series_smooth'] = smoothed.to_dict()
             new_set[serkey]['trace'] = pio.to_json(go.Scatter(x=ser.index, y=ser.values,name=sample_id_number))
-            new_set[serkey]['Series_smooth'] = smooth_ser6.to_dict()
-            new_set[serkey]['trace_smooth'] = pio.to_json(go.Scatter(x=smooth_ser6.index, y=smooth_ser6.values,name=sample_id_number))
-            new_set[serkey]['Series_smooth3'] = smooth_ser3.to_dict()
-            new_set[serkey]['trace_smooth3'] = pio.to_json(go.Scatter(x=smooth_ser3.index, y=smooth_ser3.values,name=sample_id_number))
-            new_set[serkey]['Series_smooth6'] = smooth_ser6.to_dict()
-            new_set[serkey]['trace_smooth6'] = pio.to_json(go.Scatter(x=smooth_ser6.index, y=smooth_ser6.values,name=sample_id_number))
-            new_set[serkey]['Series_smooth12'] = smooth_ser12.to_dict()
-            new_set[serkey]['trace_smooth12'] = pio.to_json(go.Scatter(x=smooth_ser12.index, y=smooth_ser12.values,name=sample_id_number))
-            new_set[serkey]['Series_smooth20'] = smooth_ser20.to_dict()
-            new_set[serkey]['trace_smooth20'] = pio.to_json(go.Scatter(x=smooth_ser20.index, y=smooth_ser20.values,name=sample_id_number))
-            new_set[serkey]['Series_smooth30'] = smooth_ser30.to_dict()
-            new_set[serkey]['trace_smooth30'] = pio.to_json(go.Scatter(x=smooth_ser30.index, y=smooth_ser30.values,name=sample_id_number))
+            new_set[serkey]['trace_smooth'] = pio.to_json(go.Scatter(x=smoothed.index, y=smoothed.values,name=sample_id_number))
             new_set[serkey]['auc'] = calculate_auc(ser)
-            new_set[serkey]['peaks_per_timepoint'] = avg_per_timewindow
-            new_set[serkey]['timewindow_df'] = timewindow.to_dict()
             new_set[serkey]['mean_intensity'] = float(ser.mean())
             new_set[serkey]['max_intensity'] = int(ser.max())
             new_set[serkey]['intercepts'] = intercepts

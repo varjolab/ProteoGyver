@@ -780,9 +780,10 @@ def qc_done(_: Any) -> str:
     Input('proteomics-run-button', 'n_clicks'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     State('proteomics-filter-minimum-percentage', 'value'),
+    State('proteomics-filter-type', 'value'),
     prevent_initial_call=True
 )
-def proteomics_filtering_plot(nclicks: Optional[int], uploaded_data: Dict[str, Any], filtering_percentage: int) -> Union[Tuple[html.Div, Dict[str, Any]], Tuple[Any, Any]]:
+def proteomics_filtering_plot(nclicks: Optional[int], uploaded_data: Dict[str, Any], filtering_percentage: int, filter_type: str) -> Union[Tuple[html.Div, Dict[str, Any]], Tuple[Any, Any]]:
     """Creates plot showing results of NA filtering in proteomics workflow.
     
     Args:
@@ -799,7 +800,7 @@ def proteomics_filtering_plot(nclicks: Optional[int], uploaded_data: Dict[str, A
         return (no_update, no_update)
     if nclicks < 1:
         return (no_update, no_update)
-    return proteomics.na_filter(uploaded_data, filtering_percentage, parameters['Figure defaults']['full-height'])
+    return proteomics.na_filter(uploaded_data, filtering_percentage, parameters['Figure defaults']['full-height'], filter_type=filter_type)
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-normalization-plot-div'}, 'children'),

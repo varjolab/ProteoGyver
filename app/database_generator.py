@@ -475,15 +475,16 @@ def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[l
     keytypes = {
         'auc': 'REAL NOT NULL',
         'intercepts': 'INTEGER NOT NULL',
-        'avg_peaks_per_timepoint': 'REAL NOT NULL',
         'mean_intensity': 'INTEGER NOT NULL',
         'max_intensity': 'INTEGER NOT NULL',
         'json': 'TEXT NOT NULL',
         'trace': 'TEXT NOT NULL', 
-        'intercept_json': 'TEXT NOT NULL'
+        'intercept_json': 'TEXT NOT NULL',
+        'json_smooth': 'TEXT NOT NULL',
+        'trace_smooth': 'TEXT NOT NULL', 
     }
     for typ in ['MSn_filtered','TIC','MSn_unfiltered']:
-        for key in ['auc','intercepts','avg_peaks_per_timepoint','mean_intensity','max_intensity', 'json','trace', 'intercept_json']:
+        for key in ['auc','intercepts','mean_intensity','max_intensity', 'json','trace', 'intercept_json', 'json_smooth', 'trace_smooth']:
             ms_cols.append(f'{typ.lower()}_{key.lower()} {keytypes[key]}')
             
     for col in ms_cols:
@@ -608,12 +609,13 @@ def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[l
             ms_run_row.extend([
                 dat['polarity_1'][dataname]['auc'],
                 dat['polarity_1'][dataname]['intercepts'],
-                dat['polarity_1'][dataname]['peaks_per_timepoint'],
                 dat['polarity_1'][dataname]['mean_intensity'],
                 dat['polarity_1'][dataname]['max_intensity'],
                 json.dumps(dat['polarity_1'][dataname]['Series']),
                 dat['polarity_1'][dataname]['trace'],
                 json.dumps(dat['polarity_1'][dataname]['intercept_dict']),
+                json.dumps(dat['polarity_1'][dataname]['Series_smooth']),
+                dat['polarity_1'][dataname]['trace_smooth'],
             ])   
         
         data_to_enter.append(ms_run_row)

@@ -650,12 +650,13 @@ def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None
             ms_run_row.extend([
                 dat['polarity_1'][dataname]['auc'],
                 dat['polarity_1'][dataname]['intercepts'],
-                dat['polarity_1'][dataname]['peaks_per_timepoint'],
                 dat['polarity_1'][dataname]['mean_intensity'],
                 dat['polarity_1'][dataname]['max_intensity'],
                 json.dumps(dat['polarity_1'][dataname]['Series']),
                 dat['polarity_1'][dataname]['trace'],
                 json.dumps(dat['polarity_1'][dataname]['intercept_dict']),
+                json.dumps(dat['polarity_1'][dataname]['Series_smooth']),
+                dat['polarity_1'][dataname]['trace_smooth'],
             ])   
         new_data.append(ms_run_row)
         os.makedirs(done_dir,exist_ok=True)

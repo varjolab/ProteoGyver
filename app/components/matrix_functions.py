@@ -36,17 +36,20 @@ def hierarchical_clustering(df, cluster='both', method='ward', fillval: float = 
     return df
 
 
-def filter_missing(data_table: DataFrame, sample_groups: dict, threshold: int = 60) -> DataFrame:
+def filter_missing(data_table: DataFrame, sample_groups: dict, filter_type: str, threshold_percentage: int = 60) -> DataFrame:
     """Discards rows with more than threshold percent of missing values in all sample groups"""
-    threshold: float = float(threshold)/100
+    threshold: float = float(threshold_percentage)/100
     keeps: list = []
     for _, row in data_table.iterrows():
         keep: bool = False
-        for _, sample_columns in sample_groups.items():
-            keep = keep | (row[sample_columns].notna().sum()
-                           >= ceil(threshold*len(sample_columns)))
-            if keep:
-                break
+        if filter_type == 'sample-group':
+            for _, sample_columns in sample_groups.items():
+                keep = keep | (row[sample_columns].notna().sum()
+                               >= ceil(threshold*len(sample_columns)))
+                if keep:
+                    break
+        elif filter_type == 'sample-set':
+            keep = row.notna().sum() >= ceil(threshold*len(data_table.columns))
         keeps.append(keep)
     return data_table[keeps].copy()
 

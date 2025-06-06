@@ -11,7 +11,7 @@ def generic_tooltip(target: str, text: str) -> Tooltip:
 
 
 def na_tooltip(target='filtering-label') -> Tooltip:
-    return generic_tooltip(target, 'Discard proteins that are not present in at least N percent of at least one replicate group. E.g. drop proteins that were only seen in one replicate of one sample.')
+    return generic_tooltip(target, 'Discard proteins that are not present in at least N percent of at least one replicate group or in at least N percent of the samples. E.g. drop proteins that were only seen in one replicate of one sample.')
 
 def interactomics_select_top_controls_tooltip(target='interactomics-num-controls') -> Tooltip:
     return generic_tooltip(target, 'Limit the number of inbuilt control runs to a specified number of most-similar runs (by euclidean distance). Increasing the number of control runs increases the SAINT running time, sometimes massively, sometimes barely, but does result in lower number of HCIs.')

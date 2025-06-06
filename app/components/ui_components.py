@@ -450,14 +450,30 @@ def proteomics_input_card(
     return dbc.Card(
         dbc.CardBody([
             dbc.Row([
-                dbc.Col([
-                    html.Div([
-                        dbc.Label('NA Filtering:', id='filtering-label'),
-                        tooltips.na_tooltip()
-                    ]),
-                    dcc.Slider(0, 100, 10, value=parameters['na_filter_default_value'],
-                               id='proteomics-filter-minimum-percentage'),
-                ], width=5),
+                dbc.Col(
+                    dbc.Card([
+                        html.Div([
+                            dbc.Label('Filter out proteins not present in at least:', id='filtering-label'),
+                            tooltips.na_tooltip()
+                        ]),
+                        dcc.Slider(0, 100, 
+                                step = 10, 
+                                marks={
+                                    i: f'{i}%' for i in range(0, 101, 10)
+                                    },
+                                value=parameters['na_filter_default_value'],
+                                id='proteomics-filter-minimum-percentage'),
+                        dbc.Label('of:', id='filtering-label'),
+                        dbc.RadioItems(
+                            options=[
+                                {"label": "One sample group", "value": 'sample-group'},
+                                {"label": "Whole sample set", "value": 'sample-set'}
+                            ],
+                            value='sample-group',
+                            id="proteomics-filter-type",
+                        ),
+                    ], style={'padding': '5px 5px 5px 5px'}), 
+                width=5),
                 dbc.Col([
                     dbc.Label('Imputation:'),
                     dbc.RadioItems(

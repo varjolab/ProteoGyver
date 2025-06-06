@@ -381,7 +381,7 @@ def delim_runs(runs):
     """
     retruns = []
     for run in sorted([
-                s for s in re.split('|'.join([' ','\t',',',';',':']), runs) if len(s.strip())>0
+                s for s in re.split('|'.join(['\n',' ','\t',',',';',':']), runs) if len(s.strip())>0
             ]):
         try:
             retruns.append(run)
@@ -591,7 +591,6 @@ def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
     os.makedirs(temp_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y-%m-%d %H-%M")
     zip_filename = f"{timestamp} MS Inspector.zip"
-    print(temp_dir)
     
     try:
         # Save figures as HTML, PNG and PDF

@@ -142,7 +142,7 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
         max_y: float = 1.0
         for _,row in ms_runs.iterrows():
             sample_row = expdesign[expdesign['Sampleid']==row['run_id']].iloc[0]
-            trace = json.loads(row[f'{trace_type}_trace_smooth6'])
+            trace = json.loads(row[f'{trace_type}_trace'])
             max_x = max(max_x, max(trace['x']))
             max_y = max(max_y, max(trace['y']))
             trace['line'] = {'color': sample_row['color'], 'width': 1}
