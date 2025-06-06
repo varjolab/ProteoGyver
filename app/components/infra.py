@@ -139,6 +139,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
     timestamps: dict = {}
     prev_time: datetime = datetime.now()
     logger.warning(f'save data stores - started: {prev_time}')
+    fails = {}
     for d in data_stores:
         if not 'data' in d['props']:
             continue
@@ -274,13 +275,15 @@ def save_data_stores(data_stores, export_dir) -> dict:
                     with open('DEBUG_INFRA_SAVE_DATA_STORES','w', encoding = 'utf-8') as fil:
                         fil.write(f'{d}')
         except: # pylint: disable=bare-except
-            with open(f'FAILED_{d["props"]["id"]}','w', encoding = 'utf-8') as fil:
-                fil.write(f'{d["props"]["data"]}')
+            fails[d['props']['id']['name']] = d
         
         logger.warning(
             f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
-
+    if len(fails) > 0:
+        logger.warning(f'Failed to save data stores: {", ".join(fails.keys())}')
+        with open('FAILED_DATA_STORES.json', 'w', encoding = 'utf-8') as fil:
+            json.dump(fails, fil, indent = 4)
     logger.warning(
         f'save data stores - Done with export: {datetime.now() - prev_time}')
     return timestamps
