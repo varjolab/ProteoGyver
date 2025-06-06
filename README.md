@@ -206,7 +206,7 @@ Keep in mind that the updater will delete the files from the db_updates director
 If the tools that provide the external data provide ANY new columns that do not already exist in the database, the new columns will need to be manually added to the database FIRST. Otherwise the updater will throw an error.
 
 ### Adding MS run data
-See [MS run data pre-analysis](#ms-run-data-pre-analysis section of the install instructions)
+See [MS run data pre-analysis](#ms-run-data-pre-analysis) section of the install instructions.
 
 ### Adding new crapome or control sets:
 Two files per set are needed:
