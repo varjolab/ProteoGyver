@@ -4,7 +4,7 @@ set -e
 # --- Optional Resource monitoring ---
 if [ "$MONITOR_RESOURCES" = "true" ]; then
     echo "[INIT] Starting Resource monitor in background..."
-    /resource_monitoring.sh &
+    /utils/resource_monitoring.sh &
 fi
 
 # --- Activate environment and move to project folder ---

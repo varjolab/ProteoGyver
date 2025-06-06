@@ -1,17 +1,4 @@
 services:
-  pgyver_testing:
-    image: pgyver:1.46
-    container_name: pgtest146
-    ports:
-      - 8060:8050
-    environment:
-      - TZ=Europe/Helsinki
-    volumes:
-      - /data/PG_containers/cache/PG_test:/proteogyver/cache
-      - /data/PG_containers/db/PG_test:/proteogyver/data/db
-      - /mnt/varjosalo_MS_rundata:/proteogyver/data/Server_input
-      - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
-    restart: unless-stopped
   pgyver_production:
     image: pgyver:1.5
     container_name: pgprod15
@@ -27,8 +14,6 @@ services:
     volumes:
       - /data/PG_containers/cache/PG_prod:/proteogyver/cache
       - /data/PG_containers/db/PG_prod:/proteogyver/data/db
-      - /data/PG_containers/conf/PG_prod/parameters.toml:/proteogyver/parameters.toml
-      - /data/PG_containers/api_data/PG_prod:/proteogyver/components/api_tools/api_data
       - /mnt/varjosalo_MS_rundata:/proteogyver/data/MS_rundata
       - /mnt/varjosalo_Server_output:/proteogyver/data/Server_output
     restart: unless-stopped

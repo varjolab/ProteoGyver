@@ -26,10 +26,10 @@ The app is insecure as it is. It is intended to be run on a network that is not 
 
 ### Usage
 
-1. Access the web interface at `http://localhost:8050`
+1. Access the web interface (host:port, e.g. localhost:8050, if running locally)
 2. Upload your data and sample tables
 3. Choose your workflow (Proteomics or Interactomics)
-4. Configure analysis parameters
+4. Choose analysis parameters
 5. Export results in various formats (HTML, PNG, PDF, TSV)
 
 ### Input Data Format
@@ -125,7 +125,7 @@ docker compose -f dockerfiles/docker-compose.yaml up
 
 ### Run PG locally (unsupported, but possible)
 
-Runnin gPG locally is possible, especially for testing and development use. However, it is not a supported use case.
+Running PG locally is possible, especially for testing and development use. However, it is not a supported use case.
 On a windows computer, it is recommended to use WSL. These instructions apply only to linux systems.
 
 #### Requirements and setup:
@@ -134,6 +134,11 @@ On a windows computer, it is recommended to use WSL. These instructions apply on
 - redis-cli
 - celery
 
+First step is to adjust the parameters.toml file:
+- Change "Data paths"."Cache dir" to suit your local machine (e.g. /tmp/pg_cache)
+- Change "Data paths."Data import and export": both paths need to be adjusted
+- Optional: Change "Config"."Local debug" to true, if you encounter problems or are doing development and want to see error messages.
+
 ```
 # Create the PG conda environment and install dependencies
 conda env create -f resources/environment.yml
@@ -141,6 +146,7 @@ conda env create -f resources/environment.yml
 conda activate PG
 python database_admin.py
 ```
+
 
 #### Run PG:
 ```

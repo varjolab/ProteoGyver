@@ -73,6 +73,7 @@ RUN cp /proteogyver/resources/celery.conf /etc/supervisor/conf.d/celery.conf
 
 # This will fix a bug in the 0.6 version of dash_uploader. It's a very crude method, but it works for this application.
 #RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
+# dash_uploader no longer used, keeping this in case it's needed in the future.
 
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
     mkdir -p /root/.conda && \
@@ -81,9 +82,10 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 WORKDIR /proteogyver
 RUN conda env create -f resources/environment.yml
 RUN conda clean -afy
+
 WORKDIR /proteogyver/resources
-#Needed for R
-#/usr/local/lib/R/etc/Rprofile.site
+
+# R setup
 RUN Rscript R_requirements.R
 
 EXPOSE 8090 8050

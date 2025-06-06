@@ -1,11 +1,10 @@
 "Navbar page order" = ["qc and data analysis", "ms inspector", "windowmaker", "colocalizer"]
 
 [Config]
-"Local debug" = true
+"Local debug" = false
 LogDir = "logs"
 LogLevel = 20
 "R error file" = "R_errors.log"
-"TIC information refresh interval in seconds" = 900
 "Time format" = "%Y-%m-%d %H:%M:%S"
 # Either integer or "ncpus"
 "CPU count limit" = "ncpus"
@@ -17,8 +16,8 @@ padding = 10
 randomize = true
 
 ["Data paths"]
-"Cache dir" = ["/home", "kmsaloka", "Documents", "PG_cache"]
-"Database file" = ["data", "db", "proteogyver3.db"]
+"Cache dir" = ["/proteogyver", "cache"]
+"Database file" = ["data", "db", "proteogyver.db"]
 "Example data file" = ["data", "example files", "datafile.tsv"]
 "Example proteomics comparison file" = ["data", "example files", "proteomics comparisons.tsv"]
 "Example sample table file" = ["data", "example files", "sampletable.tsv"]
@@ -176,7 +175,7 @@ height = 350
 format = "png"
 
 ["file loading"]
-"Bait ID column names" = ["bait uniprot", "bait id", "bait identifier"]
+"Bait ID column names" = ["bait uniprot", "bait id", "bait identifier", "baitid", "bait up"]
 "Do not show in enrichment default" = []
 "Maximum psm ever theoretically encountered" = 5000
 
