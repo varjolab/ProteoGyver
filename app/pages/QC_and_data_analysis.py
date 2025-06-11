@@ -423,7 +423,7 @@ def parse_chromatogram_data(_: Any, data_dictionary: Dict[str, Any], replicate_c
     Output('qc-tic-plot','figure'),
     State({'type': 'data-store', 'name': 'tic-data-store'}, 'data'),
     Input('qc-tic-dropdown','value')
-)
+) 
 def plot_tic(chromatogram_data: Dict[str, Any], graph_type: str) -> go.Figure:
     """Creates chromatogram plot figure.
     
