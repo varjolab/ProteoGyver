@@ -582,8 +582,10 @@ def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[l
             precur = 'No precursor data'
         ms_run_row = [
             dat['SampleID'],
+            #TODO: change sampleinfo based key mapping to direct json here and in the parsing scripts. We don't need to store the full sampleinfo in the json. Need it for reference though.
             dat['SampleInfo']['SampleTable']['AnalysisHeader']['@SampleID'],
             samplename,
+            #TODO: Discard file path, only keep file name.
             dat['SampleInfo']['SampleTable']['AnalysisHeader']['@FileName'],
             runtime,
             runtime.split()[0],

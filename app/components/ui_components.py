@@ -228,7 +228,7 @@ def main_sidebar(figure_templates: List[str], implemented_workflows: List[str]) 
 
     Returns:
         html.Div: Sidebar component containing:
-            - Example data download buttons
+            - Example files download button
             - File upload areas
             - Analysis options checklist
             - Workflow selection dropdown
@@ -241,15 +241,9 @@ def main_sidebar(figure_templates: List[str], implemented_workflows: List[str]) 
             html.H2(children='▼ Input', id='input-header', style={'textAlign': 'left'}),
             dbc.Collapse([
                 dbc.Button(
-                    'Download example sample table',
+                    'Download example files',
                     style=UPLOAD_BUTTON_STYLE,
-                    id='button-download-sample_table-template',
-                    className='btn-info',
-                ),
-                dbc.Button(
-                    'Download example data file',
-                    style=UPLOAD_BUTTON_STYLE,
-                    id='button-download-datafile-example',
+                    id='button-download-example-files',
                     className='btn-info',
                 ),
                 html.Label('Upload files:'),
@@ -312,8 +306,7 @@ def main_sidebar(figure_templates: List[str], implemented_workflows: List[str]) 
             ),
             # top right bottom left
             html.Div(id='toc-div', style={'padding': '0px 10px 10px 30px', 'overflow': 'scroll'}),
-            dcc.Download(id='download-sample_table-template'),
-            dcc.Download(id='download-datafile-example'),
+            dcc.Download(id='download-example-files'),
             dcc.Download(id='download-proteomics-comparison-example'),
             dcc.Download(id='download-all-data')
         ],

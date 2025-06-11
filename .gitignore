@@ -47,7 +47,7 @@ dist/
 # Database files
 *.db
 *.sqlite
-*.sqlite3
+
 
 # R specific files
 .Rhistory

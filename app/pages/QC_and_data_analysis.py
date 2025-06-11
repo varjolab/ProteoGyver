@@ -1843,21 +1843,6 @@ def workflow_area(
     """
     return ui.workflow_area(workflow, parameters['workflow parameters'], data_dictionary)
 
-@callback(
-    Output('download-sample_table-template', 'data'),
-    Input('button-download-sample_table-template', 'n_clicks'),
-    prevent_initial_call=True,
-)
-def sample_table_example_download(_: Optional[int]) -> Dict[str, Any]:
-    """Handles download of sample table template file.
-    
-    Args:
-        _ (int): Number of clicks on download button (unused)
-        
-    Returns:
-        dict: File download configuration for sample table template
-    """
-    return dcc.send_file(os.path.join(*parameters['Data paths']['Example sample table file']))
 
 @callback(
     Output('download-proteomics-comparison-example', 'data'),
@@ -1880,26 +1865,20 @@ def download_example_comparison_file(n_clicks: Optional[int]) -> Optional[Dict[s
     return dcc.send_file(os.path.join(*parameters['Data paths']['Example proteomics comparison file']))
 
 @callback(
-    Output('download-datafile-example', 'data'),
-    Input('button-download-datafile-example', 'n_clicks'),
+    Output('download-example-files', 'data'),
+    Input('button-download-example-files', 'n_clicks'),
     prevent_initial_call=True,
-    background=True
 )
-def download_data_table_example(_: Optional[int]) -> Dict[str, Any]:
-    """Handles download of example data table file in the background.
+def example_files_download(_: Optional[int]) -> Dict[str, Any]:
+    """Handles download of example files.
     
     Args:
         _ (int): Number of clicks on download button (unused)
         
     Returns:
-        dict: File download configuration for example data table
-        
-    Notes:
-        - Runs as a background callback to handle potentially large files
-        - Logs warning message when download request is received
+        dict: File download configuration for example files
     """
-    logger.warning(f'received DT download request at {datetime.now()}')
-    return dcc.send_file(os.path.join(*parameters['Data paths']['Example data file']))
+    return dcc.send_file(os.path.join(*parameters['Data paths']['Example files zip']))
 
 def get_adiv_by_id(
     divs: List[Any], 

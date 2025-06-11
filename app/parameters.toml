@@ -18,9 +18,8 @@ randomize = true
 ["Data paths"]
 "Cache dir" = ["/home", "kmsaloka", "Documents", "PG_cache"]
 "Database file" = ["data", "db", "proteogyver.db"]
-"Example data file" = ["data", "example files", "datafile.tsv"]
-"Example proteomics comparison file" = ["data", "example files", "proteomics comparisons.tsv"]
-"Example sample table file" = ["data", "example files", "sampletable.tsv"]
+"Example files zip" = ["data", "example files.zip"]
+"Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
 "Run list" = ["data_assets", "combined runlist.xlsx"]
 
 ["Data paths"."Data import and export"]
