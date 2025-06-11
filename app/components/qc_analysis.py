@@ -26,12 +26,8 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
 
     logger.warning(f'count_plot - summary stats calculated: {datetime.now()}')
 
-    print(count_data)
-    print(replicate_colors)
-
     color_col: list = []
     for index, row in count_data.iterrows():
-        print(index)
         if row['Is contaminant']:
             color_col.append(replicate_colors['contaminant']['samples'][index])
         else:
@@ -132,7 +128,12 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
     sam_ids = []
     for _, row in expdesign.iterrows():
         if not '_Tomppa' in row['Sample name']:
-            sam_ids.append(row['Sample name'].split('_')[0])
+            try:
+                sid = row['Sample name'].split('_')[0]
+                int(sid)
+                sam_ids.append(sid)
+            except:
+                sam_ids.append(row['Sample name'].split('_')[-1].split('.')[0])
         else:
             sam_ids.append(row['Sample name'].split('_Tomppa')[0]+'_Tomppa')
     expdesign['Sampleid'] = sam_ids
