@@ -144,6 +144,9 @@ def parse_parameters(parameters_file: str) -> Dict[str, Any]:
         - Updates SAINT temporary directory path
     """
     parameters = utils.read_toml(parameters_file)
+    db_file = os.path.join(*parameters['Data paths']['Database file'])
+    if not os.path.exists(db_file):
+        parameters['Data paths']['Database file'] = parameters['Data paths']['Minimal database file']
     db_conn = db_functions.create_connection(
         os.path.join(*parameters['Data paths']['Database file']))
     control_sets: list = db_functions.get_from_table(

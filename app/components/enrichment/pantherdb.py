@@ -179,7 +179,7 @@ class handler():
     def get_default_panel(self) -> list:
         return self._defaults
 
-    def enrich(self, parameters,data_lists: list, options: str, filter_out_negative: bool = True) -> list:
+    def enrich(self,data_lists: list, options: str, filter_out_negative: bool = True) -> list:
         """
         """
         if options == 'defaults':

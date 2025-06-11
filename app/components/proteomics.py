@@ -407,12 +407,12 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
     )
 
 
-def differential_abundance(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict, test_type:str = 'independent') -> tuple:
+def differential_abundance(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict, test_type:str = 'independent', db_file_path: str = None) -> tuple:
 
     logger.warning(f'volcano - start: {datetime.now()}')
     data: pd.DataFrame = pd.read_json(StringIO(imputed_data_json),orient='split')
     significant_data: pd.DataFrame = quick_stats.differential(
-        data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr, test_type = test_type)
+        data, sample_groups, comparisons, fc_thr=fc_thr, adj_p_thr=p_thr, test_type = test_type, db_file_path = db_file_path)
     logger.warning(
         f'volcano - significants calculated: {datetime.now() }')
 

@@ -25,8 +25,13 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
     )
 
     logger.warning(f'count_plot - summary stats calculated: {datetime.now()}')
+
+    print(count_data)
+    print(replicate_colors)
+
     color_col: list = []
     for index, row in count_data.iterrows():
+        print(index)
         if row['Is contaminant']:
             color_col.append(replicate_colors['contaminant']['samples'][index])
         else:

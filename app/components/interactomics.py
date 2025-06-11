@@ -349,8 +349,7 @@ def pca(saint_output_data: str,
         pca_data
     )
 
-def enrich(parameters: Dict[str, Any], 
-          saint_output_json: str, 
+def enrich(saint_output_json: str, 
           chosen_enrichments: List[str], 
           figure_defaults: Dict[str, Any], 
           keep_all: bool = False, 
@@ -361,7 +360,6 @@ def enrich(parameters: Dict[str, Any],
     and creates visualizations of the results.
 
     Args:
-        parameters: Dictionary containing enrichment parameters
         saint_output_json: JSON string containing SAINT output data
         chosen_enrichments: List of selected enrichment method names
         figure_defaults: Dictionary containing default figure parameters
@@ -394,7 +392,6 @@ def enrich(parameters: Dict[str, Any],
     enrichment_names: list
     enrichment_results: list
     enrichment_names, enrichment_results, enrichment_information = e_admin.enrich_all(
-        parameters,
         saint_output,
         chosen_enrichments,
         id_column='Prey',

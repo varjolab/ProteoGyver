@@ -638,7 +638,7 @@ def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None
             bait,
             bait_uniprot,
             bait_mut,
-            len(pd.Series(dat['polarity_1']['tic df']['Series'])),
+            max([int(i) for i in pd.Series(dat['polarity_1']['tic df']['Series']).index.values]),
             cell_line,
             project,
             author_notes,

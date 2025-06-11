@@ -58,7 +58,7 @@ class EnrichmentAdmin:
                 ret_dict[module_name] = api_module.handler()
         self._imported_handlers: dict = ret_dict
 
-    def enrich_all(self, parameters, data_table: pd.DataFrame,enrichment_strings: list, id_column: str = None, id_list: list = None, split_by_column: str = None, split_name: str = None) -> list:
+    def enrich_all(self, data_table: pd.DataFrame,enrichment_strings: list, id_column: str = None, id_list: list = None, split_by_column: str = None, split_name: str = None) -> list:
         assert ((id_column is not None) or (id_list is not None)), 'Supply either id_column or id_list'
         if split_by_column is not None:
             if split_name is None:
@@ -92,7 +92,7 @@ class EnrichmentAdmin:
                 return_dataframes: list
                 done_information: list
                 handler = self._imported_handlers[api]
-                result_names, return_dataframes, done_information = handler.enrich(parameters, enrichment_input, enrichment_options)
+                result_names, return_dataframes, done_information = handler.enrich(enrichment_input, enrichment_options)
             except Exception as e:
                 #TODO move to logging module
                 print(f'Error in enrichment {api}: {e}')

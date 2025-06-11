@@ -18,7 +18,8 @@ randomize = true
 ["Data paths"]
 "Cache dir" = ["/home", "kmsaloka", "Documents", "PG_cache"]
 "Database file" = ["data", "db", "proteogyver.db"]
-"Example files zip" = ["data", "example files.zip"]
+"Minimal database file" = ["data", "db", "proteogyver.db"]
+"Example files zip" = ["data", "PG example files.zip"]
 "Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
 "Run list" = ["data_assets", "combined runlist.xlsx"]
 
@@ -62,8 +63,8 @@ randomize = true
 #These directories should be ignored when loading run data into the database. 
 "Ignore runs from dirs" = ["BRE_20_xxxxx_Helsinki", "TrapTrouble_3"]
 #Directory containing parsed run jsons from parse_tims_data.py (or equivalent)
-"MS run data dir" = ["data", "Server_input", "MS run data"]
-"handled MS run data dir" = ["data", "Server_input", "MS run data handled"]
+"MS run data dir" = ["/media","kmsaloka","Expansion","20241118_parse","MS run data"]
+"handled MS run data dir" = ["/media","kmsaloka","Expansion","20241118_parse","ms_runs_handled"]
 # This regex should capture the run ID from the MS run folder name. As currently only timstof data is supported, each run corresponds to a folder with .d in the name. In our case, it is in the form of either "1234_RUN_NAME_HERE.d" or "1234_Tomppa_RUN_NAME_HERE.d"
 # However, we don't care about the run name or the .d part, only the ID, and "_Tomppa", if present. 
 "MS run ID regex" = "^(\\d+)(?:(_Tomppa))?"

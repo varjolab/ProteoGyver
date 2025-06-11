@@ -599,7 +599,7 @@ def ms_runs_table(parameters: dict, timestamp: str, time_format: str) -> tuple[l
             bait,
             bait_uniprot,
             bait_mut,
-            len(pd.Series(dat['polarity_1']['tic df']['Series'])),
+            max([int(i) for i in pd.Series(dat['polarity_1']['tic df']['Series']).index.values]),
             cell_line,
             project,
             author_notes,
@@ -788,16 +788,15 @@ def run_table_generation(func, parameters, timestamp, time_format=None):
 def generate_database(parameters: dict, database_filename: str, time_format, timestamp: str,tmpdir:str, num_cpus: int,  organisms: set|None = None) -> None:
     full_table_create_sql = []
     num_cpus = num_cpus
-    ms_create_sql, ms_insert_sql = ms_runs_table(parameters, timestamp, time_format)
     pkic_create_sql, pkic_insert_sql = prot_knownint_and_contaminant_table(parameters, timestamp, tmpdir, num_cpus, organisms)
     with ProcessPoolExecutor(max_workers=num_cpus) as executor:
         cc_future = executor.submit(run_table_generation, crapome_and_controls, parameters, timestamp)
-        #ms_future = executor.submit(run_table_generation, ms_runs_table, parameters, timestamp, time_format)
+        ms_future = executor.submit(run_table_generation, ms_runs_table, parameters, timestamp, time_format)
         msmic_future = executor.submit(run_table_generation, msmicroscopy_table, parameters, timestamp)
         com_future = executor.submit(run_table_generation, common_proteins_table, parameters, timestamp)
 
         cc_create_sql, cc_insert_sql = cc_future.result()
-        #ms_create_sql, ms_insert_sql = ms_future.result()
+        ms_create_sql, ms_insert_sql = ms_future.result()
         msmic_create_sql, msmic_insert_sql = msmic_future.result()
         com_create_sql, com_insert_sql = com_future.result()
 

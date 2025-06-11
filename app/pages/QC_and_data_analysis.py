@@ -1121,7 +1121,7 @@ def proteomics_volcano_plots(
     sgroups: Dict[str, Any] = data_dictionary['sample groups']['norm']
     comparisons: List[Tuple[Any, ...]] = parsing.parse_comparisons(
         control_group, comparison_data, sgroups)
-    return proteomics.differential_abundance(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type) + ('',)
+    return proteomics.differential_abundance(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type, parameters['Data paths']['Database file']) + ('',)
 
 # Need to implement:
 # GOBP mapping
@@ -1721,7 +1721,6 @@ def interactomics_enrichment(
         Runs as a background callback to handle potentially long computation times.
     """
     return ('',) + interactomics.enrich(
-        parameters['Enrichment'], 
         saint_output, 
         chosen_enrichments, 
         parameters['Figure defaults']['full-height']

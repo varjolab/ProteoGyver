@@ -4,6 +4,47 @@ import os
 import csv
 from datetime import datetime
 
+
+def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: list | str = None, db_file_path: str|None = None):
+    """Map information from the protein table.
+    :param uniprot_ids: IDs to map. If ID is not found, placeholder value will be used
+    :param info: if str, returned list will have only the mapped values from this column. If type is list, will return a list of lists. By default, will return gene_name column data.
+    :param placeholder: Value to use if ID is not found. By default, value from the uniprot_ids list will be used. If type list, the placeholders should be in the same order as info list. 
+    """
+    ret_info = []
+    if info is None:
+        info = 'gene_name'
+    if isinstance(info, str):
+        info = [info]
+    if placeholder is None:
+        placeholder = 'PLACEHOLDER_IS_INPUT_UPID'
+    if isinstance(placeholder, str):
+        placeholder = [placeholder for _ in info]
+    return_mapping = {}
+    if db_file_path is None:
+        for u in uniprot_ids:
+            return_mapping[u] = ['Not in database' for _ in info]
+    else:
+        for _, row in get_from_table_by_list_criteria(
+                create_connection(db_file_path),
+                'proteins',
+                'uniprot_id',
+                uniprot_ids,
+            ).iterrows():
+            return_mapping[row['uniprot_id']] = [row[ic] for ic in info]
+    for uniprot_id in (set(uniprot_ids)-set(return_mapping.keys())):
+        return_mapping[uniprot_id] = [
+            uniprot_id if placeholder[i]=='PLACEHOLDER_IS_INPUT_UPID' else placeholder[i] 
+            for i in range(len(info))
+        ]
+    retlist = [
+        return_mapping[upid] 
+        for upid in uniprot_ids
+    ]
+    if len(retlist[0]) == 1:
+        retlist = [r[0] for r in retlist]
+    return retlist
+
 def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter_col: str|None = None, startswith: str|None = None) -> pd.DataFrame:
     query = f"SELECT * FROM {table_name}"
     

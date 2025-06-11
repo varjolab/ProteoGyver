@@ -55,7 +55,7 @@ if __name__ == "__main__":
         
         parameters = parameters['Database updater']
         update_interval = int(parameters['Update interval seconds'])
-        snapshot_interval = int(parameters['Database updater']['Database snapshot settings']['Snapshot interval days'])*24*60*60
+        snapshot_interval = int(parameters['Database snapshot settings']['Snapshot interval days'])*24*60*60
         api_update_interval = int(parameters['External data update interval days'])*24*60*60
         clean_interval = int(parameters['Database clean interval days'])*24*60*60
         output_dir = os.path.join(*parameters['Tsv templates directory'])
@@ -80,8 +80,8 @@ if __name__ == "__main__":
         else:
             print('No updates to do')
         if do_snapshot:
-            snapshot_dir = os.path.join(*parameters['Database updater']['Database snapshot settings']['Snapshot dir'])
-            snapshots_to_keep = parameters['Database updater']['Database snapshot settings']['Snapshots to keep']
+            snapshot_dir = os.path.join(*parameters['Database snapshot settings']['Snapshot dir'])
+            snapshots_to_keep = parameters['Database snapshot settings']['Snapshots to keep']
             print('Exporting snapshot')
             db_functions.export_snapshot(db_path, snapshot_dir, snapshots_to_keep)
             database_updater.update_log_table(conn, ['snapshot'], [1], timestamp, 'snapshot')
