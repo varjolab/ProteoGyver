@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 dash.register_page(__name__, path=f'/MS_inspector')
 logger.warning(f'{__name__} loading')
 parameters = parsing.parse_parameters('parameters.toml')
-database_file = os.path.join(*parameters['Data paths']['Database file'])
+database_file = os.path.join(*parameters['Data paths']['Database file'])    
 
 num_of_traces_visible = 7
 trace_color = 'rgb(56, 8, 35)'
@@ -281,7 +281,6 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     max_intensity_graph_max_y += int(max_intensity_graph_max_y/20)
     mean_intensity_graph_max_y += int(mean_intensity_graph_max_y/20)
     data_to_use = data_to_use.head(tic_index+1).copy()
-
     data_to_use['Run index'] = list(range(data_to_use.shape[0]))
     auc_figure: go.Figure = go.Figure(
         go.Scatter(
@@ -312,7 +311,6 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
             showlegend=False
         )
     )
-
     tic_figure.update_layout(
         #title=setname,
         height=400,
@@ -418,7 +416,6 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
     Returns:
         list: Contains [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks]
     """
-    print(run_id_list)
     if (run_id_list is None ) or (run_id_list.strip() == ''):
         start:str
         end: str
@@ -428,8 +425,6 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
         #start: datetime = datetime.strptime(start+' 00:00:00',parameters['Config']['Time format'])
         #end: datetime = datetime.strptime(end+' 23:59:59',parameters['Config']['Time format'])
         db_conn = db_functions.create_connection(database_file)
-        print(start, end)
-        print(type(start), type(end))
         chosen_runs: pd.DataFrame = db_functions.get_from_table(
             db_conn, # type: ignore
             'ms_runs',
