@@ -1,0 +1,721 @@
+Entry	Reviewed	Entry name	Protein names	Gene names	Organism	Length	Gene names (primary)
+Q9UJT1	reviewed	TBD_HUMAN	Tubulin delta chain (Delta-tubulin)	TUBD1 TUBD	Homo sapiens (Human)	453	TUBD1
+P68366	reviewed	TBA4A_HUMAN	Tubulin alpha-4A chain (EC 3.6.5.-) (Alpha-tubulin 1) (Testis-specific alpha-tubulin) (Tubulin H2-alpha) (Tubulin alpha-1 chain)	TUBA4A TUBA1	Homo sapiens (Human)	448	TUBA4A
+P0DPH7	reviewed	TBA3C_HUMAN	Tubulin alpha-3C chain (EC 3.6.5.-) (Alpha-tubulin 2) (Alpha-tubulin 3C) (Tubulin alpha-2 chain) [Cleaved into: Detyrosinated tubulin alpha-3C chain]	TUBA3C TUBA2	Homo sapiens (Human)	450	TUBA3C
+P68363	reviewed	TBA1B_HUMAN	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin ubiquitous) (Tubulin K-alpha-1) (Tubulin alpha-ubiquitous chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	TUBA1B	Homo sapiens (Human)	451	TUBA1B
+Q13509	reviewed	TBB3_HUMAN	Tubulin beta-3 chain (Tubulin beta-4 chain) (Tubulin beta-III)	TUBB3 TUBB4	Homo sapiens (Human)	450	TUBB3
+Q71U36	reviewed	TBA1A_HUMAN	Tubulin alpha-1A chain (EC 3.6.5.-) (Alpha-tubulin 3) (Tubulin B-alpha-1) (Tubulin alpha-3 chain) [Cleaved into: Detyrosinated tubulin alpha-1A chain]	TUBA1A TUBA3	Homo sapiens (Human)	451	TUBA1A
+P04350	reviewed	TBB4A_HUMAN	Tubulin beta-4A chain (Tubulin 5 beta) (Tubulin beta-4 chain)	TUBB4A TUBB4 TUBB5	Homo sapiens (Human)	444	TUBB4A
+Q9BQE3	reviewed	TBA1C_HUMAN	Tubulin alpha-1C chain (EC 3.6.5.-) (Alpha-tubulin 6) (Tubulin alpha-6 chain) [Cleaved into: Detyrosinated tubulin alpha-1C chain]	TUBA1C TUBA6	Homo sapiens (Human)	449	TUBA1C
+Q9NY65	reviewed	TBA8_HUMAN	Tubulin alpha-8 chain (EC 3.6.5.-) (Alpha-tubulin 8) (Tubulin alpha chain-like 2) [Cleaved into: Dephenylalaninated tubulin alpha-8 chain]	TUBA8 TUBAL2	Homo sapiens (Human)	449	TUBA8
+P0DPH8	reviewed	TBA3D_HUMAN	Tubulin alpha-3D chain (EC 3.6.5.-) (Alpha-tubulin 3D) [Cleaved into: Detyrosinated tubulin alpha-3D chain]	TUBA3D	Homo sapiens (Human)	450	TUBA3D
+P07437	reviewed	TBB5_HUMAN	Tubulin beta chain (Tubulin beta-5 chain)	TUBB TUBB5 OK/SW-cl.56	Homo sapiens (Human)	444	TUBB
+P68371	reviewed	TBB4B_HUMAN	Tubulin beta-4B chain (Tubulin beta-2 chain) (Tubulin beta-2C chain)	TUBB4B TUBB2C	Homo sapiens (Human)	445	TUBB4B
+Q6PEY2	reviewed	TBA3E_HUMAN	Tubulin alpha-3E chain (EC 3.6.5.-) (Alpha-tubulin 3E) [Cleaved into: Detyrosinated tubulin alpha-3E chain]	TUBA3E	Homo sapiens (Human)	450	TUBA3E
+Q9NRH3	reviewed	TBG2_HUMAN	Tubulin gamma-2 chain (Gamma-2-tubulin)	TUBG2	Homo sapiens (Human)	451	TUBG2
+Q15813	reviewed	TBCE_HUMAN	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	TBCE	Homo sapiens (Human)	527	TBCE
+Q9BUF5	reviewed	TBB6_HUMAN	Tubulin beta-6 chain (Tubulin beta class V)	TUBB6	Homo sapiens (Human)	446	TUBB6
+Q13885	reviewed	TBB2A_HUMAN	Tubulin beta-2A chain (Tubulin beta class IIa)	TUBB2A TUBB2	Homo sapiens (Human)	445	TUBB2A
+P23258	reviewed	TBG1_HUMAN	Tubulin gamma-1 chain (Gamma-1-tubulin) (Gamma-tubulin complex component 1) (GCP-1)	TUBG1 TUBG	Homo sapiens (Human)	451	TUBG1
+Q3ZCM7	reviewed	TBB8_HUMAN	Tubulin beta-8 chain (Tubulin beta 8 class VIII)	TUBB8	Homo sapiens (Human)	444	TUBB8
+Q9BTW9	reviewed	TBCD_HUMAN	Tubulin-specific chaperone D (Beta-tubulin cofactor D) (tfcD) (SSD-1) (Tubulin-folding cofactor D)	TBCD KIAA0988 SSD1 TFCD PP1096	Homo sapiens (Human)	1192	TBCD
+Q15814	reviewed	TBCC_HUMAN	Tubulin-specific chaperone C (Tubulin-folding cofactor C) (CFC)	TBCC	Homo sapiens (Human)	346	TBCC
+Q8NHH1	reviewed	TTL11_HUMAN	Tubulin polyglutamylase TTLL11 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 11)	TTLL11 C9orf20	Homo sapiens (Human)	710	TTLL11
+A6NNZ2	reviewed	TBB8B_HUMAN	Tubulin beta 8B	TUBB8B	Homo sapiens (Human)	444	TUBB8B
+A6NNM8	reviewed	TTL13_HUMAN	Tubulin polyglutamylase TTLL13 (EC 6.3.2.-) (Tubulin tyrosine ligase like 13) (Tubulin tyrosine ligase-like family member 13 pseudogene) (Tubulin--tyrosine ligase-like protein 13)	TTLL13 TTLL13P	Homo sapiens (Human)	815	TTLL13
+Q3SXZ7	reviewed	TTLL9_HUMAN	Probable tubulin polyglutamylase TTLL9 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 9)	TTLL9 C20orf125	Homo sapiens (Human)	439	TTLL9
+Q9Y4R7	reviewed	TTLL3_HUMAN	Tubulin monoglycylase TTLL3 (EC 6.3.2.-) (HOTTL) (Tubulin--tyrosine ligase-like protein 3)	TTLL3 PRO0207	Homo sapiens (Human)	772	TTLL3
+Q9H4B7	reviewed	TBB1_HUMAN	Tubulin beta-1 chain	TUBB1	Homo sapiens (Human)	451	TUBB1
+Q6IQ55	reviewed	TTBK2_HUMAN	Tau-tubulin kinase 2 (EC 2.7.11.1)	TTBK2 KIAA0847	Homo sapiens (Human)	1244	TTBK2
+Q9BVA1	reviewed	TBB2B_HUMAN	Tubulin beta-2B chain	TUBB2B	Homo sapiens (Human)	445	TUBB2B
+O95922	reviewed	TTLL1_HUMAN	Polyglutamylase complex subunit TTLL1 (EC 6.3.2.-) (Tubulin polyglutamylase TTLL1) (Tubulin polyglutamylase complex subunit 3) (PGs3) (Tubulin--tyrosine ligase-like protein 1)	TTLL1 C22orf7	Homo sapiens (Human)	423	TTLL1
+Q8N841	reviewed	TTLL6_HUMAN	Tubulin polyglutamylase TTLL6 (EC 6.3.2.-) (Protein polyglutamylase TTLL6) (Tubulin--tyrosine ligase-like protein 6)	TTLL6 TTL.6	Homo sapiens (Human)	891	TTLL6
+Q14679	reviewed	TTLL4_HUMAN	Tubulin monoglutamylase TTLL4 (EC 6.3.2.-) (Protein monoglutamylase TTLL4) (Tubulin--tyrosine ligase-like protein 4)	TTLL4 KIAA0173	Homo sapiens (Human)	1199	TTLL4
+Q96K30	reviewed	RITA1_HUMAN	RBPJ-interacting and tubulin-associated protein 1 (RBPJ-interacting and tubulin-associated protein)	RITA1 C12orf52 RITA PSEC0043	Homo sapiens (Human)	269	RITA1
+O75347	reviewed	TBCA_HUMAN	Tubulin-specific chaperone A (TCP1-chaperonin cofactor A) (Tubulin-folding cofactor A) (CFA)	TBCA	Homo sapiens (Human)	108	TBCA
+Q14166	reviewed	TTL12_HUMAN	Tubulin--tyrosine ligase-like protein 12 (Inactive tubulin--tyrosine ligase-like protein 12)	TTLL12 KIAA0153	Homo sapiens (Human)	644	TTLL12
+A6NHL2	reviewed	TBAL3_HUMAN	Tubulin alpha chain-like 3 (EC 3.6.5.-)	TUBAL3	Homo sapiens (Human)	446	TUBAL3
+Q6ZT98	reviewed	TTLL7_HUMAN	Tubulin polyglutamylase TTLL7 (EC 6.3.2.-) (Testis development protein NYD-SP30) (Tubulin--tyrosine ligase-like protein 7)	TTLL7	Homo sapiens (Human)	887	TTLL7
+Q9BWV7	reviewed	TTLL2_HUMAN	Probable tubulin polyglutamylase TTLL2 (EC 6.-.-.-) (Testis-specific protein NYD-TSPG) (Tubulin--tyrosine ligase-like protein 2)	TTLL2 C6orf104	Homo sapiens (Human)	592	TTLL2
+Q6ZTW0	reviewed	TPGS1_HUMAN	Tubulin polyglutamylase complex subunit 1 (PGs1)	TPGS1 C19orf20	Homo sapiens (Human)	290	TPGS1
+Q99426	reviewed	TBCB_HUMAN	Tubulin-folding cofactor B (Cytoskeleton-associated protein 1) (Cytoskeleton-associated protein CKAPI) (Tubulin-specific chaperone B)	TBCB CG22 CKAP1	Homo sapiens (Human)	244	TBCB
+Q6EMB2	reviewed	TTLL5_HUMAN	Tubulin polyglutamylase TTLL5 (EC 6.3.2.-) (SRC1 and TIF2-associated modulatory protein) (STAMP protein) (Tubulin--tyrosine ligase-like protein 5)	TTLL5 KIAA0998 STAMP	Homo sapiens (Human)	1281	TTLL5
+Q96RT8	reviewed	GCP5_HUMAN	Gamma-tubulin complex component 5 (GCP-5)	TUBGCP5 GCP5 KIAA1899	Homo sapiens (Human)	1024	TUBGCP5
+Q96RT7	reviewed	GCP6_HUMAN	Gamma-tubulin complex component 6 (GCP-6)	TUBGCP6 GCP6 KIAA1669	Homo sapiens (Human)	1819	TUBGCP6
+Q5TCY1	reviewed	TTBK1_HUMAN	Tau-tubulin kinase 1 (EC 2.7.11.1) (Brain-derived tau kinase)	TTBK1 BDTK KIAA1855	Homo sapiens (Human)	1321	TTBK1
+Q9UBN7	reviewed	HDAC6_HUMAN	Histone deacetylase 6 (HD6) (EC 3.5.1.98) (Tubulin-lysine deacetylase HDAC6) (EC 3.5.1.-)	HDAC6 KIAA0901 JM21	Homo sapiens (Human)	1215	HDAC6
+Q9H6J7	reviewed	CSTP1_HUMAN	Centriolar satellite-associated tubulin polyglutamylase complex regulator 1	CSTPP1 C11orf49	Homo sapiens (Human)	331	CSTPP1
+Q6ZVT0	reviewed	TTL10_HUMAN	Inactive polyglycylase TTLL10 (Tubulin--tyrosine ligase-like protein 10)	TTLL10	Homo sapiens (Human)	673	TTLL10
+A6PVC2	reviewed	TTLL8_HUMAN	Protein monoglycylase TTLL8 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 8)	TTLL8	Homo sapiens (Human)	850	TTLL8
+P32255	reviewed	TBA_DICDI	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin)	tubA DDB_G0287689	Dictyostelium discoideum (Social amoeba)	457	tubA
+P32256	reviewed	TBB_DICDI	Tubulin beta chain (Beta-tubulin)	tubB DDB_G0269196	Dictyostelium discoideum (Social amoeba)	455	tubB
+P34475	reviewed	TBG_CAEEL	Tubulin gamma chain (Gamma-tubulin)	tbg-1 F58A4.8	Caenorhabditis elegans	444	tbg-1
+Q9R1K7	reviewed	TBD_MOUSE	Tubulin delta chain (Delta-tubulin)	Tubd1	Mus musculus (Mouse)	455	Tubd1
+P02557	reviewed	TBB_YEAST	Tubulin beta chain (Beta-tubulin)	TUB2 YFL037W	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	457	TUB2
+P53378	reviewed	TBG_YEAST	Tubulin gamma chain (Gamma-tubulin)	TUB4 YLR212C L8167.21	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	473	TUB4
+P81947	reviewed	TBA1B_BOVIN	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin ubiquitous) (Tubulin K-alpha-1) (Tubulin alpha-ubiquitous chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]		Bos taurus (Bovine)	451	
+Q5XIF6	reviewed	TBA4A_RAT	Tubulin alpha-4A chain (EC 3.6.5.-) (Alpha-tubulin 4) (Tubulin alpha-4 chain)	Tuba4a Tuba4	Rattus norvegicus (Rat)	448	Tuba4a
+P81948	reviewed	TBA4A_BOVIN	Tubulin alpha-4A chain (EC 3.6.5.-) (Alpha-tubulin 1) (Tubulin alpha-1 chain)	TUBA4A TUBA1	Bos taurus (Bovine)	448	TUBA4A
+P68370	reviewed	TBA1A_RAT	Tubulin alpha-1A chain (EC 3.6.5.-) (Alpha-tubulin 1) (Tubulin alpha-1 chain) [Cleaved into: Detyrosinated tubulin alpha-1A chain]	Tuba1a Tuba1	Rattus norvegicus (Rat)	451	Tuba1a
+Q6AYZ1	reviewed	TBA1C_RAT	Tubulin alpha-1C chain (EC 3.6.5.-) (Alpha-tubulin 6) (Tubulin alpha-6 chain) [Cleaved into: Detyrosinated tubulin alpha-1C chain]	Tuba1c Tuba6	Rattus norvegicus (Rat)	449	Tuba1c
+Q6P9V9	reviewed	TBA1B_RAT	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin 2) (Tubulin alpha-2 chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	Tuba1b Tuba2	Rattus norvegicus (Rat)	451	Tuba1b
+Q5SQI0	reviewed	ATAT_HUMAN	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	ATAT1 C6orf134 MEC17 Nbla00487	Homo sapiens (Human)	421	ATAT1
+Q7L8A9	reviewed	VASH1_HUMAN	Tubulinyl-Tyr carboxypeptidase 1 (EC 3.4.17.17) (Tubulin carboxypeptidase 1) (Tyrosine carboxypeptidase 1) (TTCP 1) (Vasohibin-1)	VASH1 KIAA1036 VASH	Homo sapiens (Human)	365	VASH1
+P05213	reviewed	TBA1B_MOUSE	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin 2) (Alpha-tubulin isotype M-alpha-2) (Tubulin alpha-2 chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	Tuba1b Tuba2	Mus musculus (Mouse)	451	Tuba1b
+Q28205	reviewed	TBCD_BOVIN	Tubulin-specific chaperone D (Beta-tubulin cofactor D) (Tubulin-folding cofactor D)	TBCD	Bos taurus (Bovine)	1199	TBCD
+P12411	reviewed	TBB1_ARATH	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1 TUB1 At1g75780 F10A5.3 T4O12.1	Arabidopsis thaliana (Mouse-ear cress)	447	TUBB1
+P68369	reviewed	TBA1A_MOUSE	Tubulin alpha-1A chain (EC 3.6.5.-) (Alpha-tubulin 1) (Alpha-tubulin isotype M-alpha-1) (Tubulin alpha-1 chain) [Cleaved into: Detyrosinated tubulin alpha-1A chain]	Tuba1a Tuba1	Mus musculus (Mouse)	451	Tuba1a
+P68368	reviewed	TBA4A_MOUSE	Tubulin alpha-4A chain (EC 3.6.5.-) (Alpha-tubulin 4) (Alpha-tubulin isotype M-alpha-4) (Tubulin alpha-4 chain)	Tuba4a Tuba4	Mus musculus (Mouse)	448	Tuba4a
+P42271	reviewed	TBG2_DROME	Tubulin gamma-2 chain (Gamma-2-tubulin)	gammaTub37C Tub37CD TubG2 TubG37C CG17566	Drosophila melanogaster (Fruit fly)	457	gammaTub37C
+P52275	reviewed	TBB2_CAEEL	Tubulin beta-2 chain (Beta-2-tubulin)	tbb-2 C36E8.5	Caenorhabditis elegans	450	tbb-2
+Q68FR8	reviewed	TBA3_RAT	Tubulin alpha-3 chain (EC 3.6.5.-) (Alpha-tubulin 3) [Cleaved into: Detyrosinated tubulin alpha-3 chain]	Tuba3a Tuba3; Tuba3b Tuba3	Rattus norvegicus (Rat)	450	Tuba3a; Tuba3b
+P08841	reviewed	TBB3_DROME	Tubulin beta-3 chain (Beta-3-tubulin)	betaTub60D TubB60C CG3401	Drosophila melanogaster (Fruit fly)	454	betaTub60D
+P23257	reviewed	TBG1_DROME	Tubulin gamma-1 chain (Gamma-1-tubulin)	gammaTub23C Tub23C TubG TubG1 TubG23C CG3157	Drosophila melanogaster (Fruit fly)	475	gammaTub23C
+Q0VCD2	reviewed	TBG1_BOVIN	Tubulin gamma-1 chain (Gamma-1-tubulin)	TUBG1	Bos taurus (Bovine)	451	TUBG1
+Q8VCK3	reviewed	TBG2_MOUSE	Tubulin gamma-2 chain (Gamma-2-tubulin)	Tubg2	Mus musculus (Mouse)	451	Tubg2
+Q32KN8	reviewed	TBA3_BOVIN	Tubulin alpha-3 chain (EC 3.6.5.-) (Alpha-tubulin 3) [Cleaved into: Detyrosinated tubulin alpha-3 chain]	TUBA3	Bos taurus (Bovine)	450	TUBA3
+Q9JJZ2	reviewed	TBA8_MOUSE	Tubulin alpha-8 chain (EC 3.6.5.-) (Alpha-tubulin 8) [Cleaved into: Dephenylalaninated tubulin alpha-8 chain]	Tuba8	Mus musculus (Mouse)	449	Tuba8
+P68373	reviewed	TBA1C_MOUSE	Tubulin alpha-1C chain (EC 3.6.5.-) (Alpha-tubulin 6) (Alpha-tubulin isotype M-alpha-6) (Tubulin alpha-6 chain) [Cleaved into: Detyrosinated tubulin alpha-1C chain]	Tuba1c Tuba6	Mus musculus (Mouse)	449	Tuba1c
+Q6AY56	reviewed	TBA8_RAT	Tubulin alpha-8 chain (EC 3.6.5.-) (Alpha-tubulin 8) [Cleaved into: Dephenylalaninated tubulin alpha-8 chain]	Tuba8	Rattus norvegicus (Rat)	449	Tuba8
+P24636	reviewed	TBB4_ARATH	Tubulin beta-4 chain (Beta-4-tubulin)	TUBB4 TUB4 At5g44340 K9L2.12	Arabidopsis thaliana (Mouse-ear cress)	444	TUBB4
+P29515	reviewed	TBB7_ARATH	Tubulin beta-7 chain (Beta-7-tubulin)	TUBB7 TUB7 At2g29550 F16P2.7	Arabidopsis thaliana (Mouse-ear cress)	449	TUBB7
+P29517	reviewed	TBB9_ARATH	Tubulin beta-9 chain (Beta-9-tubulin)	TUBB9 TUB9 At4g20890 T13K14.50	Arabidopsis thaliana (Mouse-ear cress)	444	TUBB9
+P38557	reviewed	TBG1_ARATH	Tubulin gamma-1 chain (Gamma-1-tubulin)	TUBG1 At3g61650 F15G16.40	Arabidopsis thaliana (Mouse-ear cress)	474	TUBG1
+Q40665	reviewed	TBB3_ORYSJ	Tubulin beta-3 chain (Beta-3-tubulin)	TUBB3 RTUB-2 TUB3 Os06g0671900 LOC_Os06g46000 OsJ_22330 OSJNBa0032M14.15 P0485A07.25	Oryza sativa subsp. japonica (Rice)	446	TUBB3
+P12456	reviewed	TBB1_CAEEL	Tubulin beta-1 chain (Beta-1-tubulin)	mec-7 ZK154.3	Caenorhabditis elegans	441	mec-7
+P29513	reviewed	TBB5_ARATH	Tubulin beta-5 chain (Beta-5-tubulin)	TUBB5 TUB5 At1g20010 T20H2.21	Arabidopsis thaliana (Mouse-ear cress)	449	TUBB5
+P38558	reviewed	TBG2_ARATH	Tubulin gamma-2 chain (Gamma-2-tubulin)	TUBG2 At5g05620 MJJ3.1	Arabidopsis thaliana (Mouse-ear cress)	474	TUBG2
+O94811	reviewed	TPPP_HUMAN	Tubulin polymerization-promoting protein (TPPP) (EC 3.6.5.-) (25 kDa brain-specific protein) (TPPP/p25) (p24) (p25-alpha)	TPPP TPPP1	Homo sapiens (Human)	219	TPPP
+P53904	reviewed	TBCB_YEAST	Tubulin-specific chaperone B (Alpha-tubulin formation protein 1) (Tubulin-folding cofactor B)	ALF1 YNL148C N1201 N1777	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	254	ALF1
+Q3MHM5	reviewed	TBB4B_BOVIN	Tubulin beta-4B chain (Tubulin beta-2C chain)	TUBB4B TUBB2C	Bos taurus (Bovine)	445	TUBB4B
+Q9UGJ1	reviewed	GCP4_HUMAN	Gamma-tubulin complex component 4 (GCP-4) (hGCP4) (Gamma-ring complex protein 76 kDa) (h76p) (hGrip76)	TUBGCP4 76P GCP4	Homo sapiens (Human)	667	TUBGCP4
+Q9D6F9	reviewed	TBB4A_MOUSE	Tubulin beta-4A chain (Tubulin beta-4 chain)	Tubb4a Tubb4	Mus musculus (Mouse)	444	Tubb4a
+Q8CIV8	reviewed	TBCE_MOUSE	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	Tbce	Mus musculus (Mouse)	524	Tbce
+P68372	reviewed	TBB4B_MOUSE	Tubulin beta-4B chain (Tubulin beta-2C chain)	Tubb4b Tubb2c	Mus musculus (Mouse)	445	Tubb4b
+Q3ZBU7	reviewed	TBB4A_BOVIN	Tubulin beta-4A chain (Tubulin beta-4 chain)	TUBB4A TUBB4	Bos taurus (Bovine)	444	TUBB4A
+P83887	reviewed	TBG1_MOUSE	Tubulin gamma-1 chain (Gamma-1-tubulin) (Gamma-tubulin complex component 1) (GCP-1)	Tubg1 Tubg	Mus musculus (Mouse)	451	Tubg1
+P83888	reviewed	TBG1_RAT	Tubulin gamma-1 chain (Gamma-1-tubulin) (Gamma-tubulin complex component 1) (GCP-1)	Tubg1 Tubg	Rattus norvegicus (Rat)	451	Tubg1
+P05214	reviewed	TBA3_MOUSE	Tubulin alpha-3 chain (EC 3.6.5.-) (Alpha-tubulin 3/7) (Alpha-tubulin isotype M-alpha-3/7) (Tubulin alpha-3/alpha-7 chain) [Cleaved into: Detyrosinated tubulin alpha-3 chain]	Tuba3a Tuba3; Tuba3b Tuba7	Mus musculus (Mouse)	450	Tuba3a; Tuba3b
+Q08AG7	reviewed	MZT1_HUMAN	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	MZT1 C13orf37 MOZART1	Homo sapiens (Human)	82	MZT1
+A4Q9E5	reviewed	TTLL3_MOUSE	Tubulin monoglycylase TTLL3 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 3)	Ttll3	Mus musculus (Mouse)	927	Ttll3
+A4Q9F4	reviewed	TTL11_MOUSE	Tubulin polyglutamylase TTLL11 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 11)	Ttll11	Mus musculus (Mouse)	727	Ttll11
+Q1ECV4	reviewed	TTLL3_DANRE	Tubulin monoglycylase TTLL3 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 3)	ttll3 zgc:136840	Danio rerio (Zebrafish) (Brachydanio rerio)	771	ttll3
+Q8CHB8	reviewed	TTLL5_MOUSE	Tubulin polyglutamylase TTLL5 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 5)	Ttll5 Kiaa0998	Mus musculus (Mouse)	1328	Ttll5
+Q3ZCJ7	reviewed	TBA1C_BOVIN	Tubulin alpha-1C chain (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha-1C chain]	TUBA1C	Bos taurus (Bovine)	449	TUBA1C
+Q2HJ86	reviewed	TBA1D_BOVIN	Tubulin alpha-1D chain (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha-1D chain]	TUBA1D	Bos taurus (Bovine)	452	TUBA1D
+A2APC3	reviewed	TTLL9_MOUSE	Probable tubulin polyglutamylase TTLL9 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 9)	Ttll9	Mus musculus (Mouse)	461	Ttll9
+A4Q9F0	reviewed	TTLL7_MOUSE	Tubulin polyglutamylase TTLL7 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 7) (mTTLL7)	Ttll7	Mus musculus (Mouse)	912	Ttll7
+Q09647	reviewed	TTLL4_CAEEL	Tubulin polyglutamylase ttll-4 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 4)	ttll-4 ZK1128.6	Caenorhabditis elegans	601	ttll-4
+Q4QRB4	reviewed	TBB3_RAT	Tubulin beta-3 chain (Neuron-specific class III beta-tubulin)	Tubb3	Rattus norvegicus (Rat)	450	Tubb3
+H2KZM9	reviewed	TTL11_CAEEL	Tubulin polyglutamylase ttll-11 (EC 6.-.-.-) (Tubulin--tyrosine ligase-like protein 11)	ttll-11 H23L24.3	Caenorhabditis elegans	707	ttll-11
+A2AQ07	reviewed	TBB1_MOUSE	Tubulin beta-1 chain	Tubb1	Mus musculus (Mouse)	451	Tubb1
+P06604	reviewed	TBA2_DROME	Tubulin alpha-2 chain (EC 3.6.5.-)	alphaTub85E TUBA85E CG9476	Drosophila melanogaster (Fruit fly)	449	alphaTub85E
+P06606	reviewed	TBA4_DROME	Tubulin alpha-4 chain (EC 3.6.5.-)	alphaTub67C TubA67C CG8308	Drosophila melanogaster (Fruit fly)	462	alphaTub67C
+P11139	reviewed	TBA1_ARATH	Tubulin alpha-1 chain (EC 3.6.5.-)	TUBA1 TUA1 At1g64740 F13O11.5	Arabidopsis thaliana (Mouse-ear cress)	450	TUBA1
+Q2KJD0	reviewed	TBB5_BOVIN	Tubulin beta-5 chain	TUBB5	Bos taurus (Bovine)	444	TUBB5
+Q6B856	reviewed	TBB2B_BOVIN	Tubulin beta-2B chain	TUBB2B	Bos taurus (Bovine)	445	TUBB2B
+Q7TMM9	reviewed	TBB2A_MOUSE	Tubulin beta-2A chain	Tubb2a Tubb2	Mus musculus (Mouse)	445	Tubb2a
+P09733	reviewed	TBA1_YEAST	Tubulin alpha-1 chain (EC 3.6.5.-)	TUB1 YML085C	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	447	TUB1
+P29511	reviewed	TBA6_ARATH	Tubulin alpha-6 chain (EC 3.6.5.-)	TUBA6 TUA6 At4g14960 dl3520c	Arabidopsis thaliana (Mouse-ear cress)	450	TUBA6
+B9DHQ0	reviewed	TBA5_ARATH	Tubulin alpha-5 chain (EC 3.6.5.-)	TUBA5 TUA5 At5g19780 T29J13.200	Arabidopsis thaliana (Mouse-ear cress)	450	TUBA5
+P06603	reviewed	TBA1_DROME	Tubulin alpha-1 chain (EC 3.6.5.-)	alphaTub84B tubA84B CG1913	Drosophila melanogaster (Fruit fly)	450	alphaTub84B
+Q0WV25	reviewed	TBA4_ARATH	Tubulin alpha-4 chain (EC 3.6.5.-)	TUBA4 TUA4 At1g04820 F13M7.19	Arabidopsis thaliana (Mouse-ear cress)	450	TUBA4
+Q6PCN3	reviewed	TTBK1_MOUSE	Tau-tubulin kinase 1 (EC 2.7.11.1)	Ttbk1	Mus musculus (Mouse)	1308	Ttbk1
+Q9VM92	reviewed	TTL3B_DROME	Tubulin glycylase 3B (dmTTLL3B) (EC 6.3.2.-)	TTLL3B CG11201	Drosophila melanogaster (Fruit fly)	756	TTLL3B
+P06605	reviewed	TBA3_DROME	Tubulin alpha-3 chain (EC 3.6.5.-)	alphaTub84D TubA84D CG2512	Drosophila melanogaster (Fruit fly)	450	alphaTub84D
+P09734	reviewed	TBA3_YEAST	Tubulin alpha-3 chain (EC 3.6.5.-)	TUB3 YML124C YM7056.02C	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	445	TUB3
+P34690	reviewed	TBA2_CAEEL	Tubulin alpha-2 chain (EC 3.6.5.-)	tba-2 C47B2.3	Caenorhabditis elegans	448	tba-2
+P69897	reviewed	TBB5_RAT	Tubulin beta-5 chain	Tubb5	Rattus norvegicus (Rat)	444	Tubb5
+P99024	reviewed	TBB5_MOUSE	Tubulin beta-5 chain	Tubb5	Mus musculus (Mouse)	444	Tubb5
+Q56WH1	reviewed	TBA3_ARATH	Tubulin alpha-3 chain (EC 3.6.5.-)	TUBA3 TUA3 At5g19770 T29J13.190	Arabidopsis thaliana (Mouse-ear cress)	450	TUBA3
+Q9CWF2	reviewed	TBB2B_MOUSE	Tubulin beta-2B chain	Tubb2b	Mus musculus (Mouse)	445	Tubb2b
+B9DGT7	reviewed	TBA2_ARATH	Tubulin alpha-2 chain (EC 3.6.5.-)	TUBA2 TUA2 At1g50010 F2J10.11	Arabidopsis thaliana (Mouse-ear cress)	450	TUBA2
+Q2T9S0	reviewed	TBB3_BOVIN	Tubulin beta-3 chain	TUBB3	Bos taurus (Bovine)	450	TUBB3
+Q9ERD7	reviewed	TBB3_MOUSE	Tubulin beta-3 chain	Tubb3	Mus musculus (Mouse)	450	Tubb3
+Q9BSJ2	reviewed	GCP2_HUMAN	Gamma-tubulin complex component 2 (GCP-2) (hGCP2) (Gamma-ring complex protein 103 kDa) (h103p) (hGrip103) (Spindle pole body protein Spc97 homolog) (hSpc97)	TUBGCP2 GCP2	Homo sapiens (Human)	902	TUBGCP2
+Q5PPI9	reviewed	TTLL1_RAT	Polyglutamylase complex subunit TTLL1 (EC 6.3.2.-) (Tubulin polyglutamylase TTLL1) (Tubulin polyglutamylase complex subunit 3) (PGs3) (Tubulin--tyrosine ligase-like protein 1)	Ttll1	Rattus norvegicus (Rat)	423	Ttll1
+Q96CW5	reviewed	GCP3_HUMAN	Gamma-tubulin complex component 3 (GCP-3) (hGCP3) (Gamma-ring complex protein 104 kDa) (h104p) (hGrip104) (Spindle pole body protein Spc98 homolog) (hSpc98)	TUBGCP3 GCP3	Homo sapiens (Human)	907	TUBGCP3
+A4Q9E8	reviewed	TTLL6_MOUSE	Tubulin polyglutamylase TTLL6 (EC 6.3.2.-) (Protein polyglutamylase TTLL6) (Tubulin--tyrosine ligase-like protein 6)	Ttll6	Mus musculus (Mouse)	822	Ttll6
+Q80UG8	reviewed	TTLL4_MOUSE	Tubulin monoglutamylase TTLL4 (EC 6.3.2.-) (Protein monoglutamylase TTLL4) (Tubulin--tyrosine ligase-like protein 4)	Ttll4 Kiaa0173	Mus musculus (Mouse)	1193	Ttll4
+Q91V51	reviewed	TTLL1_MOUSE	Polyglutamylase complex subunit TTLL1 (EC 6.3.2.-) (Tubulin polyglutamylase TTLL1) (Tubulin polyglutamylase complex subunit 3) (PGs3) (Tubulin--tyrosine ligase-like protein 1) (p49)	Ttll1	Mus musculus (Mouse)	423	Ttll1
+P39723	reviewed	MBO1_YEAST	Gamma tubulin complex adapter SPC72	SPC72 LDB4 SPI6 YAL047C FUN42	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	622	SPC72
+A8CVX7	reviewed	TTLL6_DANRE	Tubulin polyglutamylase ttll6 (EC 6.3.2.-) (Protein polyglutamylase TTLL6) (Tubulin tyrosine ligase-like family member 6)	ttll6	Danio rerio (Zebrafish) (Brachydanio rerio)	778	ttll6
+Q8IMC6	reviewed	ASATR_DROME	Tau-tubulin kinase homolog Asator (EC 2.7.11.1)	Asator CG11533	Drosophila melanogaster (Fruit fly)	1262	Asator
+P46675	reviewed	STU2_YEAST	Protein STU2 (Suppressor of tubulin 2)	STU2 YLR045C L2108	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	888	STU2
+Q3UVR3	reviewed	TTBK2_MOUSE	Tau-tubulin kinase 2 (EC 2.7.11.1) (Protein bartleby)	Ttbk2 Bby Kiaa0847 Ttbk1	Mus musculus (Mouse)	1243	Ttbk2
+P91910	reviewed	TBA3_CAEEL	Tubulin alpha-3 chain (EC 3.6.5.-) (Mechanosensory abnormality protein 12) (MEC-12) [Cleaved into: Detyrosinated tubulin alpha-3 chain]	mec-12 tba-3 C44B11.3	Caenorhabditis elegans	450	mec-12
+P38198	reviewed	STU1_YEAST	Protein STU1 (Suppressor of tubulin 1)	STU1 YBL034C YBL0416	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	1513	STU1
+Q9D1E6	reviewed	TBCB_MOUSE	Tubulin-folding cofactor B (Cytoskeleton-associated protein 1) (Cytoskeleton-associated protein CKAPI) (Tubulin-specific chaperone B)	Tbcb Ckap1	Mus musculus (Mouse)	244	Tbcb
+O04350	reviewed	TBCA_ARATH	Tubulin-folding cofactor A (AtTFCA) (CFA) (Protein KIESEL) (TCP1-chaperonin cofactor A) (Tubulin-specific chaperone A)	TFCA KIS At2g30410 T06B20.22 T09D09.22	Arabidopsis thaliana (Mouse-ear cress)	113	TFCA
+A0A644F0Y1	reviewed	TBG_GIAIC	Tubulin gamma chain (Gamma-tubulin) (Glgamma-tubulin)	GL50803_00114218 GL50803_114218	Giardia intestinalis (strain ATCC 50803 / WB clone C6) (Giardia lamblia)	472	
+Q3KRE8	reviewed	TBB2B_RAT	Tubulin beta-2B chain (T beta-15)	Tubb2b Tubb2a	Rattus norvegicus (Rat)	445	Tubb2b
+Q99MS8	reviewed	TPGS1_MOUSE	Tubulin polyglutamylase complex subunit 1 (PGs1) (p32)	Tpgs1 Gm16517 Gtrgeo22	Mus musculus (Mouse)	303	Tpgs1
+Q9VV43	reviewed	TPPP_DROME	Tubulin polymerization-promoting protein homolog (TPPP) (Protein ringmaker)	ringer CG45057	Drosophila melanogaster (Fruit fly)	192	ringer
+Q9VAP2	reviewed	DGT6_DROME	Augmin complex subunit dgt6 (Dim gamma-tubulin 6)	dgt6 CG11881	Drosophila melanogaster (Fruit fly)	654	dgt6
+P41351	reviewed	TBA_TETTH	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin) [Cleaved into: Detyrosinated tubulin alpha chain]		Tetrahymena thermophila	449	
+P02554	reviewed	TBB_PIG	Tubulin beta chain (Beta-tubulin)		Sus scrofa (Pig)	445	
+P18695	reviewed	TBG_EMENI	Tubulin gamma chain (Gamma-tubulin)	mipA AN0676	Emericella nidulans (strain FGSC A4 / ATCC 38163 / CBS 112.46 / NRRL 194 / M139) (Aspergillus nidulans)	454	mipA
+P05219	reviewed	TBB_SCHPO	Tubulin beta chain (Beta-tubulin)	nda3 alp12 SPBC26H8.07c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	448	nda3
+P25295	reviewed	TBG_SCHPO	Tubulin gamma chain (Gamma-tubulin)	gtb1 tug1 SPBC32F12.04	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	446	gtb1
+P53377	reviewed	TBG_NEUCR	Tubulin gamma chain (Gamma-tubulin)	tbg tub4 G17A4.160 NCU03954	Neurospora crassa (strain ATCC 24698 / 74-OR23-1A / CBS 708.71 / DSM 1257 / FGSC 987)	461	tbg
+A4Q9F3	reviewed	TTL10_MOUSE	Protein polyglycylase TTLL10 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 10)	Ttll10	Mus musculus (Mouse)	704	Ttll10
+Q67Z52	reviewed	TBCB_ARATH	Tubulin-folding cofactor B (AtTFCB) (Protein EMBRYO DEFECTIVE 2804)	TFCB EMB2804 TBCB At3g10220 F14P13.18	Arabidopsis thaliana (Mouse-ear cress)	243	TFCB
+A4Q9F1	reviewed	TTLL8_MOUSE	Protein monoglycylase TTLL8 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 8)	Ttll8	Mus musculus (Mouse)	832	Ttll8
+Q9V9V9	reviewed	NAT9_DROME	Alpha/beta-tubulin-N-acetyltransferase 9 (EC 2.3.1.308) (Microtubule-associated Nat9)	Mnat9 CG11539	Drosophila melanogaster (Fruit fly)	200	Mnat9
+P68361	reviewed	TBA1B_CRIGR	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin 1) (Alpha-tubulin I) (Tubulin alpha-1 chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	TUBA1B TUBA1	Cricetulus griseus (Chinese hamster) (Cricetulus barabensis griseus)	451	TUBA1B
+P68362	reviewed	TBA1A_CRIGR	Tubulin alpha-1A chain (EC 3.6.5.-) (Alpha-tubulin 2) (Alpha-tubulin II) (Tubulin alpha-2 chain) [Cleaved into: Detyrosinated tubulin alpha-1A chain]	TUBA1A TUBA2	Cricetulus griseus (Chinese hamster) (Cricetulus barabensis griseus)	451	TUBA1A
+P68360	reviewed	TBA1B_MERUN	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin 1) (Alpha-tubulin I) (Tubulin alpha-1 chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	TUBA1B TUBA1	Meriones unguiculatus (Mongolian jird) (Gerbillus unguiculatus)	451	TUBA1B
+P68365	reviewed	TBA1C_CRIGR	Tubulin alpha-1C chain (EC 3.6.5.-) (Alpha-tubulin 3) (Alpha-tubulin III) (Tubulin alpha-3 chain) [Cleaved into: Detyrosinated tubulin alpha-1C chain]	TUBA1C TUBA3	Cricetulus griseus (Chinese hamster) (Cricetulus barabensis griseus)	449	TUBA1C
+A5A6J1	reviewed	TBA1A_PANTR	Tubulin alpha-1A chain (EC 3.6.5.-) (Alpha-tubulin 3) (Tubulin B-alpha-1) (Tubulin alpha-3 chain) [Cleaved into: Detyrosinated tubulin alpha-1A chain]	TUBA1A TUBA3	Pan troglodytes (Chimpanzee)	451	TUBA1A
+Q4R538	reviewed	TBA1B_MACFA	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin ubiquitous) (Tubulin K-alpha-1) (Tubulin alpha-ubiquitous chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	TUBA1B QccE-20727	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	451	TUBA1B
+Q5R1W4	reviewed	TBA1B_PANTR	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin ubiquitous) (Tubulin K-alpha-1) (Tubulin alpha-ubiquitous chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	TUBA1B	Pan troglodytes (Chimpanzee)	451	TUBA1B
+Q2XVP4	reviewed	TBA1B_PIG	Tubulin alpha-1B chain (EC 3.6.5.-) (Alpha-tubulin ubiquitous) (Tubulin K-alpha-1) (Tubulin alpha-ubiquitous chain) [Cleaved into: Detyrosinated tubulin alpha-1B chain]	TUBA1B	Sus scrofa (Pig)	451	TUBA1B
+P02550	reviewed	TBA1A_PIG	Tubulin alpha-1A chain (EC 3.6.5.-) (Alpha-tubulin 1) (Tubulin alpha-1 chain) [Cleaved into: Detyrosinated tubulin alpha-1A chain]	TUBA1A	Sus scrofa (Pig)	451	TUBA1A
+P10653	reviewed	TBB1_EMENI	Tubulin beta-1 chain (Beta-1-tubulin)	benA rhiA AN1182	Emericella nidulans (strain FGSC A4 / ATCC 38163 / CBS 112.46 / NRRL 194 / M139) (Aspergillus nidulans)	447	benA
+Q91060	reviewed	TBA_NOTVI	Tubulin alpha chain (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha chain]		Notophthalmus viridescens (Eastern newt) (Triturus viridescens)	450	
+O22347	reviewed	TBA1_ELEIN	Tubulin alpha-1 chain (EC 3.6.5.-) (Alpha-1-tubulin)	TUBA1 TUA1	Eleusine indica (Goosegrass) (Cynosurus indicus)	451	TUBA1
+P30436	reviewed	TBA_ONCKE	Tubulin alpha chain (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha chain]		Oncorhynchus keta (Chum salmon) (Salmo keta)	450	
+Q94570	reviewed	TBA2_HOMAM	Tubulin alpha-2 chain (EC 3.6.5.-) (Alpha-II tubulin)		Homarus americanus (American lobster)	451	
+P14640	reviewed	TBA1_MAIZE	Tubulin alpha-1 chain (EC 3.6.5.-) (Alpha-1-tubulin)	TUBA1 TUA1	Zea mays (Maize)	451	TUBA1
+P22275	reviewed	TBA3_MAIZE	Tubulin alpha-3 chain (EC 3.6.5.-) (Alpha-3-tubulin)	TUBA3 TUA3	Zea mays (Maize)	450	TUBA3
+Q5R943	reviewed	TBB5_PONAB	Tubulin beta chain (Tubulin beta-5 chain)	TUBB TUBB5	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	444	TUBB
+B3FK34	reviewed	PHUZ_BP201	Phage tubulin-like protein (PhuZ) (EC 3.6.5.-) (Phage tubulin/FtsZ) (Tubulin-like protein TubZ)	201phi2-1p059	Pseudomonas phage 201phi2-1 (Pseudomonas chlororaphis phage 201phi2-1)	315	
+P69893	reviewed	TBB5_CRIGR	Tubulin beta-5 chain (Beta-tubulin isotype I) (Class I beta-tubulin)	TUBB5 TUBB	Cricetulus griseus (Chinese hamster) (Cricetulus barabensis griseus)	444	TUBB5
+P08537	reviewed	TBA_XENLA	Tubulin alpha chain (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha chain]	tuba tuba1	Xenopus laevis (African clawed frog)	449	tuba
+Q28IX8	reviewed	TBA_XENTR	Tubulin alpha chain (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha chain]	tuba tuba1 TNeu063j16.1	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	449	tuba
+Q767L7	reviewed	TBB5_PIG	Tubulin beta chain (Tubulin beta-5 chain)	TUBB TUBB5	Sus scrofa (Pig)	444	TUBB
+P14641	reviewed	TBA2_MAIZE	Tubulin alpha-2 chain (EC 3.6.5.-) (Alpha-2-tubulin)	TUBA2 TUA2	Zea mays (Maize)	451	TUBA2
+Q9Z2V5	reviewed	HDAC6_MOUSE	Histone deacetylase 6 (HD6) (EC 3.5.1.98) (Histone deacetylase mHDA2) (Tubulin-lysine deacetylase HDAC6) (EC 3.5.1.-)	Hdac6	Mus musculus (Mouse)	1149	Hdac6
+P32882	reviewed	TBB2_CHICK	Tubulin beta-2 chain (Beta-tubulin class-II)		Gallus gallus (Chicken)	445	
+Q27957	reviewed	TPPP_BOVIN	Tubulin polymerization-promoting protein (TPPP) (EC 3.6.5.-) (25 kDa brain-specific protein) (p25-alpha)	TPPP	Bos taurus (Bovine)	218	TPPP
+Q60HC2	reviewed	TBB3_MACFA	Tubulin beta-3 chain (Tubulin beta-4 chain)	TUBB3 TUBB4 QccE-11995 QccE-15186	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	450	TUBB3
+P04105	reviewed	TBAN_PHYPO	Tubulin alpha-1B chain (EC 3.6.5.-) (Tubulin alpha-N chain)	ALTBN ALTB1	Physarum polycephalum (Slime mold)	449	ALTBN
+Q6AYK9	reviewed	CDYL_RAT	Chromodomain Y-like protein (CDY-like) (Crotonyl-CoA hydratase) (EC 4.2.1.-) (Putative tubulin acetyltransferase Cdyl) (EC 2.3.1.-)	Cdyl	Rattus norvegicus (Rat)	589	Cdyl
+P36220	reviewed	TBA_TORMA	Tubulin alpha chain (EC 3.6.5.-) (Alpha T6) [Cleaved into: Detyrosinated tubulin alpha chain]		Torpedo marmorata (Marbled electric ray)	451	
+P0CAZ0	reviewed	TTL3B_TETTS	Tubulin glycylase 3B (EC 6.3.2.-)	TTLL3B TTHERM_00125600	Tetrahymena thermophila (strain SB210)	1179	TTLL3B
+Q9FT36	reviewed	TBA_DAUCA	Tubulin alpha chain (EC 3.6.5.-)	TBA	Daucus carota (Wild carrot)	451	TBA
+F7E540	reviewed	TTLL7_XENTR	Tubulin polyglutamylase TTLL7 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 7)	ttll7	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	909	ttll7
+P02552	reviewed	TBA1_CHICK	Tubulin alpha-1 chain (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha-1 chain]		Gallus gallus (Chicken)	412	
+B2GUB3	reviewed	TTLL3_XENTR	Tubulin tyrosine ligase 3 (EC 6.3.2.-) (Tubulin--tyrosine ligase protein 3)	ttll3	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	830	ttll3
+Q23TC2	reviewed	TTL3A_TETTS	Tubulin glycylase 3A (EC 6.3.2.-)	TTLL3A TTHERM_00666600	Tetrahymena thermophila (strain SB210)	875	TTLL3A
+P87066	reviewed	TBA_CANAX	Tubulin alpha chain (EC 3.6.5.-)	TUB1	Candida albicans (Yeast)	448	TUB1
+Q58CX6	reviewed	ATAT_BOVIN	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	ATAT1 MEC17	Bos taurus (Bovine)	225	ATAT1
+Q6MG11	reviewed	ATAT_RAT	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	Atat1 Mec17	Rattus norvegicus (Rat)	421	Atat1
+Q7TQD2	reviewed	TPPP_MOUSE	Tubulin polymerization-promoting protein (TPPP) (EC 3.6.5.-) (25 kDa brain-specific protein) (TPPP/p25) (p25-alpha)	Tppp	Mus musculus (Mouse)	218	Tppp
+Q8K341	reviewed	ATAT_MOUSE	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	Atat1 Mec17	Mus musculus (Mouse)	421	Atat1
+O45100	reviewed	ATAT1_CAEEL	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT 1) (TAT 1) (EC 2.3.1.108) (Mechanosensory abnormality protein 17)	mec-17 F57H12.7	Caenorhabditis elegans	262	mec-17
+Q6PH17	reviewed	ATAT_DANRE	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	atat1 mec17 si:ch211-152p11.5 zgc:65893	Danio rerio (Zebrafish) (Brachydanio rerio)	297	atat1
+Q9FG37	reviewed	GACP3_ARATH	Gamma-tubulin complex component 3 (AtGCP3) (GCP-3) (Spindle pole body component 98) (AtSPC98)	GCP3 SPC98 At5g06680 MPH15.2	Arabidopsis thaliana (Mouse-ear cress)	838	GCP3
+D3ZQL7	reviewed	TPPP_RAT	Tubulin polymerization-promoting protein (TPPP) (EC 3.6.5.-) (25 kDa brain-specific protein) (TPPP/p25) (p25-alpha)	Tppp	Rattus norvegicus (Rat)	218	Tppp
+Q9XYP7	reviewed	GCP2_DROME	Gamma-tubulin complex component 2 homolog (Gamma-ring complex protein 84 kDa) (d84p) (dGrip84)	Grip84 CG3917	Drosophila melanogaster (Fruit fly)	852	Grip84
+P04689	reviewed	TBA2_SCHPO	Tubulin alpha-2 chain (EC 3.6.5.-)	tub1 alp2 atb2 SPBC800.05c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	449	tub1
+P04688	reviewed	TBA1_SCHPO	Tubulin alpha-1 chain (EC 3.6.5.-)	nda2 SPBC16A3.15c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	455	nda2
+P09204	reviewed	TBA1_CHLRE	Tubulin alpha-1 chain (EC 3.6.5.-)	TUBA1	Chlamydomonas reinhardtii (Chlamydomonas smithii)	451	TUBA1
+P46259	reviewed	TBA1_PEA	Tubulin alpha-1 chain (EC 3.6.5.-)	TUBA1	Pisum sativum (Garden pea) (Lathyrus oleraceus)	452	TUBA1
+P50258	reviewed	TBAD_PHYPO	Tubulin alpha-1A chain (EC 3.6.5.-)	ALTA	Physarum polycephalum (Slime mold)	450	ALTA
+Q40832	reviewed	TBA2_PELFA	Tubulin alpha-2 chain (EC 3.6.5.-)	TUBA2	Pelvetia fastigiata (Brown alga) (Fucodium fastigiatum)	453	TUBA2
+P24633	reviewed	TBA1_EMENI	Tubulin alpha-1 chain (EC 3.6.5.-)	tubA AN0316	Emericella nidulans (strain FGSC A4 / ATCC 38163 / CBS 112.46 / NRRL 194 / M139) (Aspergillus nidulans)	449	tubA
+P18288	reviewed	TBAT_ONCMY	Tubulin alpha chain, testis-specific (EC 3.6.5.-) [Cleaved into: Detyrosinated tubulin alpha chain, testis-specific]		Oncorhynchus mykiss (Rainbow trout) (Salmo gairdneri)	450	
+P18258	reviewed	TBA1_PARLI	Tubulin alpha-1 chain (EC 3.6.5.-)		Paracentrotus lividus (Common sea urchin)	452	
+P09205	reviewed	TBA2_CHLRE	Tubulin alpha-2 chain (EC 3.6.5.-)	TUBA2	Chlamydomonas reinhardtii (Chlamydomonas smithii)	451	TUBA2
+Q9C5H9	reviewed	GACP2_ARATH	Gamma-tubulin complex component 2 (AtGCP2) (GCP-2) (Protein SPIRAL 3) (Spindle pole body protein Spc97 homolog) (AtSpc97)	GCP2 SPC97 SPR3 At5g17410 T10B6.70	Arabidopsis thaliana (Mouse-ear cress)	678	GCP2
+P0CJ62	reviewed	RITA1_XENLA	RBPJ-interacting and tubulin-associated protein 1 (RBPJ-interacting and tubulin-associated protein)	rita1 rita	Xenopus laevis (African clawed frog)	239	rita1
+Q03555	reviewed	GEPH_RAT	Gephyrin (Putative glycine receptor-tubulin linker protein) [Includes: Molybdopterin adenylyltransferase (MPT adenylyltransferase) (EC 2.7.7.75) (Domain G); Molybdopterin molybdenumtransferase (MPT Mo-transferase) (EC 2.10.1.1) (Domain E)]	Gphn Gph	Rattus norvegicus (Rat)	768	Gphn
+P41383	reviewed	TBA2_PATVU	Tubulin alpha-2/alpha-4 chain (EC 3.6.5.-)	TUB2; TUB4	Patella vulgata (Common limpet)	452	TUB2; TUB4
+Q9C9T3	reviewed	MZT1A_ARATH	Mitotic-spindle organizing protein 1A (GCP3-interacting protein 2) (AtGIP2) (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1A) (AtGIP1A)	GIP2 GIP1A At1g73790 F25P22.21	Arabidopsis thaliana (Mouse-ear cress)	67	GIP2
+Q9M0N8	reviewed	MZT1B_ARATH	Mitotic-spindle organizing protein 1B (GCP3-interacting protein 1) (AtGIP1) (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1B) (AtGIP1B)	GIP1 GIP1B At4g09550 T15G18.30	Arabidopsis thaliana (Mouse-ear cress)	71	GIP1
+Q74P24	reviewed	TUBZ_BACC1	Tubulin-like protein TubZ (EC 3.6.5.-) (FtsZ-like protein TubZ-Bc) (FtsZ/tubulin-like protein TubZ) (Plasmid replication protein RepX)	tubZ repX BCE_A0070	Bacillus cereus (strain ATCC 10987 / NRS 248)	435	tubZ
+Q9X315	reviewed	TUBZ_BACAN	Tubulin-like protein TubZ (EC 3.6.5.-) (FtsZ-like protein TubZ-Ba) (FtsZ/tubulin-like protein TubZ) (Plasmid replication protein RepX)	tubZ repX pXO1-45 BXA0067 GBAA_pXO1_0067	Bacillus anthracis	435	tubZ
+Q10197	reviewed	ALP1_SCHPO	Tubulin-folding cofactor D (Altered polarity protein 1)	alp1 SPBC11C11.04c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	1105	alp1
+Q8NG68	reviewed	TTL_HUMAN	Tubulin--tyrosine ligase (TTL) (EC 6.3.2.25)	TTL	Homo sapiens (Human)	377	TTL
+Q8KNP3	reviewed	TUBZ_BACTI	Tubulin-like protein TubZ (EC 3.6.5.-) (FtsZ-like protein TubZ-Bt)	tubZ ATN07_33550 pBt156	Bacillus thuringiensis subsp. israelensis	484	tubZ
+Q9USP7	reviewed	MBO2_SCHPO	Gamma tubulin complex adapter mto2 (Microtubule organizer protein 2)	mto2 SPBC902.06	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	397	mto2
+Q68CL5	reviewed	TPGS2_HUMAN	Tubulin polyglutamylase complex subunit 2 (PGs2)	TPGS2 C18orf10 HMFN0601 L17	Homo sapiens (Human)	300	TPGS2
+O94488	reviewed	MBO1_SCHPO	Gamma tubulin complex adapter mto1 (Microtubule organizer protein 1) (Morphology defective protein 20)	mto1 mbo1 mod20 SPCC417.07c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	1115	mto1
+Q7L2K0	reviewed	TEDC2_HUMAN	Tubulin epsilon and delta complex protein 2	TEDC2 C16orf59	Homo sapiens (Human)	433	TEDC2
+Q86SX3	reviewed	TEDC1_HUMAN	Tubulin epsilon and delta complex protein 1	TEDC1 C14orf80	Homo sapiens (Human)	495	TEDC1
+Q8IUZ0	reviewed	LRC49_HUMAN	Leucine-rich repeat-containing protein 49 (Centriolar satellite-associated tubulin polyglutamylase complex regulator 2) (Tubulin polyglutamylase complex subunit 4) (PGs4)	LRRC49 CSTPP2	Homo sapiens (Human)	686	LRRC49
+Q9BSH3	reviewed	NICN1_HUMAN	Nicolin-1 (NPCEDRG) (Tubulin polyglutamylase complex subunit 5) (PGs5)	NICN1	Homo sapiens (Human)	213	NICN1
+Q9BW30	reviewed	TPPP3_HUMAN	Tubulin polymerization-promoting protein family member 3 (TPPP/p20)	TPPP3 CGI-38	Homo sapiens (Human)	176	TPPP3
+Q55AR3	reviewed	TBG_DICDI	Tubulin gamma chain (Gamma-tubulin)	tubC DDB_G0271738	Dictyostelium discoideum (Social amoeba)	462	tubC
+P59282	reviewed	TPPP2_HUMAN	Tubulin polymerization-promoting protein family member 2 (Protein p25-beta) (TPPP/p18)	TPPP2 C14orf8	Homo sapiens (Human)	170	TPPP2
+Q5QJ74	reviewed	TBCEL_HUMAN	Tubulin-specific chaperone cofactor E-like protein (EL) (Leucine-rich repeat-containing protein 35)	TBCEL LRRC35	Homo sapiens (Human)	424	TBCEL
+Q8H7U1	reviewed	TBB2_ORYSJ	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2 TUB2 Os03g0105600 LOC_Os03g01530 OSJNBa0009C08.10	Oryza sativa subsp. japonica (Rice)	447	TUBB2
+P29514	reviewed	TBB6_ARATH	Tubulin beta-6 chain (Beta-6-tubulin)	TUBB6 TUB6 At5g12250 MXC9.21	Arabidopsis thaliana (Mouse-ear cress)	449	TUBB6
+P46265	reviewed	TBB5_ORYSJ	Tubulin beta-5 chain (Beta-5-tubulin)	TUBB5 OSTB-50 R2242 TUB5 Os02g0167300 LOC_Os02g07060 OsJ_05524 OSJNBa0085K21.33	Oryza sativa subsp. japonica (Rice)	447	TUBB5
+Q43594	reviewed	TBB1_ORYSJ	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1 OSTB-34 TUB1 Os01g0282800 LOC_Os01g18050 OSJNBa0004B13.5 P0581F09.13	Oryza sativa subsp. japonica (Rice)	447	TUBB1
+P29516	reviewed	TBB8_ARATH	Tubulin beta-8 chain (Beta-8-tubulin)	TUBB8 TUB8 At5g23860 MRO11.10	Arabidopsis thaliana (Mouse-ear cress)	449	TUBB8
+P41937	reviewed	TBB4_CAEEL	Tubulin beta-4 chain (Beta-4-tubulin)	tbb-4 B0272.1	Caenorhabditis elegans	444	tbb-4
+P61857	reviewed	TBB2_DROME	Tubulin beta-2 chain (Beta-2-tubulin)	betaTub85D TubB85D CG9359	Drosophila melanogaster (Fruit fly)	446	betaTub85D
+Q24560	reviewed	TBB1_DROME	Tubulin beta-1 chain (Beta-1-tubulin)	betaTub56D CG9277	Drosophila melanogaster (Fruit fly)	447	betaTub56D
+Q2HJB8	reviewed	TBA8_BOVIN	Tubulin alpha-8 chain (EC 3.6.5.-) (Alpha-tubulin 8) [Cleaved into: Dephenylalaninated tubulin alpha-8 chain]	TUBA8	Bos taurus (Bovine)	449	TUBA8
+Q8BYA0	reviewed	TBCD_MOUSE	Tubulin-specific chaperone D (Beta-tubulin cofactor D) (Tubulin-folding cofactor D)	Tbcd	Mus musculus (Mouse)	1196	Tbcd
+P45960	reviewed	TBB4_ORYSJ	Tubulin beta-4 chain (Beta-4-tubulin)	TUBB4 OSTB-16 R1623 RTUB-1 TUB4 Os01g0805900 LOC_Os01g59150 P0034E02.62	Oryza sativa subsp. japonica (Rice)	447	TUBB4
+Q32KM1	reviewed	TBG2_BOVIN	Tubulin gamma-2 chain (Gamma-2-tubulin)	TUBG2	Bos taurus (Bovine)	451	TUBG2
+Q76FS2	reviewed	TBB8_ORYSJ	Tubulin beta-8 chain (Beta-8-tubulin)	TUBB8 TUB8 Os03g0661300 LOC_Os03g45920 OSJNBa0034D21.30 OSJNBb0065L20.6	Oryza sativa subsp. japonica (Rice)	446	TUBB8
+P0CF96	reviewed	MZT1_SCHPO	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1) (Transcripts altered in meiosis protein 4)	mzt1 tam4 SPAC9G1.15c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	64	mzt1
+Q6P9T8	reviewed	TBB4B_RAT	Tubulin beta-4B chain (Tubulin beta-2C chain)	Tubb4b Tubb2c	Rattus norvegicus (Rat)	445	Tubb4b
+A1Z6J5	reviewed	TBCE_DROME	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	Tbce CG7861	Drosophila melanogaster (Fruit fly)	523	Tbce
+P37832	reviewed	TBB7_ORYSJ	Tubulin beta-7 chain (Beta-7-tubulin) (pTUB22)	TUBB7 TUB7 Os03g0780600 LOC_Os03g56810 OSJNBa0091J19.2	Oryza sativa subsp. japonica (Rice)	444	TUBB7
+Q5FVQ9	reviewed	TBCE_RAT	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	Tbce	Rattus norvegicus (Rat)	524	Tbce
+Q6P582	reviewed	MZT2A_HUMAN	Mitotic-spindle organizing protein 2A (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 2A)	MZT2A FAM128A MOZART2A	Homo sapiens (Human)	158	MZT2A
+Q6NZ67	reviewed	MZT2B_HUMAN	Mitotic-spindle organizing protein 2B (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 2B)	MZT2B FAM128B MOZART2B	Homo sapiens (Human)	158	MZT2B
+A4Q9F6	reviewed	TTL13_MOUSE	Tubulin polyglutamylase TTLL13 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 13)	Ttll13	Mus musculus (Mouse)	804	Ttll13
+P48606	reviewed	TBCA_YEAST	Tubulin-specific chaperone A (Tubulin-folding cofactor A) (CFA)	RBL2 YOR265W	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	106	RBL2
+E9P886	reviewed	TTLL5_CAEEL	Tubulin polyglutamylase ttll-5 (EC 6.-.-.-) (Tubulin--tyrosine ligase-like protein 5)	ttll-5 C55A6.2	Caenorhabditis elegans	730	ttll-5
+Q3SZH6	reviewed	TTLL9_BOVIN	Probable tubulin polyglutamylase TTLL9 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 9)	TTLL9	Bos taurus (Bovine)	461	TTLL9
+Q641W7	reviewed	TTLL9_RAT	Probable tubulin polyglutamylase TTLL9 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 9)	Ttll9	Rattus norvegicus (Rat)	461	Ttll9
+Q9VM91	reviewed	TTL3A_DROME	Tubulin glycylase 3A (dmTTLL3A) (EC 6.3.2.-)	TTLL3A CG11323	Drosophila melanogaster (Fruit fly)	992	TTLL3A
+P28752	reviewed	TBA1_ORYSJ	Tubulin alpha-1 chain (EC 3.6.5.-)	TUBA1 Os07g0574800 LOC_Os07g38730 OJ1562_B11.119 OJ1699_E05.40	Oryza sativa subsp. japonica (Rice)	450	TUBA1
+Q2HJ81	reviewed	TBB6_BOVIN	Tubulin beta-6 chain	TUBB6	Bos taurus (Bovine)	446	TUBB6
+Q53M52	reviewed	TBA2_ORYSJ	Tubulin alpha-2 chain (EC 3.6.5.-)	TUBA Os11g0247300 LOC_Os11g14220	Oryza sativa subsp. japonica (Rice)	451	TUBA
+Q56YW9	reviewed	TBB2_ARATH	Tubulin beta-2 chain	TUBB2 TUB2 At5g62690 MRG21.11	Arabidopsis thaliana (Mouse-ear cress)	450	TUBB2
+Q922F4	reviewed	TBB6_MOUSE	Tubulin beta-6 chain	Tubb6	Mus musculus (Mouse)	447	Tubb6
+Q9ASR0	reviewed	TBB3_ARATH	Tubulin beta-3 chain	TUBB3 TUB3 At5g62700 MRG21.12	Arabidopsis thaliana (Mouse-ear cress)	450	TUBB3
+P38585	reviewed	TTL_MOUSE	Tubulin--tyrosine ligase (TTL) (EC 6.3.2.25)	Ttl	Mus musculus (Mouse)	377	Ttl
+P85108	reviewed	TBB2A_RAT	Tubulin beta-2A chain	Tubb2a	Rattus norvegicus (Rat)	445	Tubb2a
+P52274	reviewed	TBA8_CAEEL	Tubulin alpha-8 chain (EC 3.6.5.-)	tba-8 ZK899.4	Caenorhabditis elegans	452	tba-8
+Q9VRX3	reviewed	TBBP_DROME	beta-Tubulin at 65B	betaTub65B CG32396	Drosophila melanogaster (Fruit fly)	462	betaTub65B
+Q0VC71	reviewed	TTLL1_BOVIN	Polyglutamylase complex subunit TTLL1 (EC 6.3.2.-) (Tubulin polyglutamylase TTLL1) (Tubulin polyglutamylase complex subunit 3) (PGs3) (Tubulin--tyrosine ligase-like protein 1)	TTLL1	Bos taurus (Bovine)	423	TTLL1
+P46670	reviewed	TBCC_YEAST	Tubulin-specific chaperone C (Chromosome instability protein 2) (Tubulin-folding cofactor C)	CIN2 YPL241C P1043	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	268	CIN2
+P48428	reviewed	TBCA_MOUSE	Tubulin-specific chaperone A (TCP1-chaperonin cofactor A) (Tubulin-folding cofactor A) (CFA)	Tbca	Mus musculus (Mouse)	108	Tbca
+Q3UX10	reviewed	TBAL3_MOUSE	Tubulin alpha chain-like 3 (EC 3.6.5.-)	Tubal3	Mus musculus (Mouse)	446	Tubal3
+P48427	reviewed	TBCA_BOVIN	Tubulin-specific chaperone A (TCP1-chaperonin cofactor A) (Tubulin-folding cofactor A) (CFA)	TBCA	Bos taurus (Bovine)	108	TBCA
+Q09512	reviewed	TTL12_CAEEL	Tubulin--tyrosine ligase-like protein 12 (Inactive tubulin--tyrosine ligase-like protein 12)	ttll-12 D2013.9	Caenorhabditis elegans	662	ttll-12
+Q3UDE2	reviewed	TTL12_MOUSE	Tubulin--tyrosine ligase-like protein 12 (Inactive tubulin--tyrosine ligase-like protein 12)	Ttll12	Mus musculus (Mouse)	639	Ttll12
+Q5E951	reviewed	TBCB_BOVIN	Tubulin-folding cofactor B (Cytoskeleton-associated protein 1) (Cytoskeleton-associated protein CKAPI) (Tubulin-specific chaperone B)	TBCB CKAP1	Bos taurus (Bovine)	244	TBCB
+Q6GQV0	reviewed	TEDC2_MOUSE	Tubulin epsilon and delta complex protein 2	Tedc2	Mus musculus (Mouse)	436	Tedc2
+Q8BKN5	reviewed	GCP5_MOUSE	Gamma-tubulin complex component 5 (GCP-5)	Tubgcp5 Kiaa1899	Mus musculus (Mouse)	1024	Tubgcp5
+G5E8P0	reviewed	GCP6_MOUSE	Gamma-tubulin complex component 6 (GCP-6)	Tubgcp6 Kiaa1669	Mus musculus (Mouse)	1769	Tubgcp6
+P58854	reviewed	GCP3_MOUSE	Gamma-tubulin complex component 3 (GCP-3)	Tubgcp3 Gcp3	Mus musculus (Mouse)	905	Tubgcp3
+Q9CRB6	reviewed	TPPP3_MOUSE	Tubulin polymerization-promoting protein family member 3	Tppp3	Mus musculus (Mouse)	176	Tppp3
+Q8GRL7	reviewed	TBCE_ARATH	Tubulin-folding cofactor E (AtTFCE) (Protein PFIFFERLING)	TFCE PFI TBCE At1g71440 F26A9.18	Arabidopsis thaliana (Mouse-ear cress)	531	TFCE
+Q0P5Y3	reviewed	TPPP2_MOUSE	Tubulin polymerization-promoting protein family member 2	Tppp2 Gm77	Mus musculus (Mouse)	170	Tppp2
+Q921G8	reviewed	GCP2_MOUSE	Gamma-tubulin complex component 2 (GCP-2)	Tubgcp2 Gcp2	Mus musculus (Mouse)	905	Tubgcp2
+Q9M350	reviewed	GACP4_ARATH	Gamma-tubulin complex component 4 (AtGCP4) (GCP-4)	GCP4 At3g53760 F5K20_60	Arabidopsis thaliana (Mouse-ear cress)	745	GCP4
+Q9VKD6	reviewed	DGT2_DROME	Augmin complex subunit dgt2 (Dim gamma-tubulin 2)	dgt2 CG16969	Drosophila melanogaster (Fruit fly)	231	dgt2
+Q7K4B4	reviewed	DGT5_DROME	Augmin complex subunit dgt5 (Dim gamma-tubulin 5)	dgt5 CG8828	Drosophila melanogaster (Fruit fly)	685	dgt5
+Q9W4M8	reviewed	DGT4_DROME	Augmin complex subunit dgt4 (Dim gamma-tubulin 4)	dgt4 CG4865	Drosophila melanogaster (Fruit fly)	188	dgt4
+P10873	reviewed	TBA_TOXGO	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin)		Toxoplasma gondii	453	
+P53373	reviewed	TBB_BOTFU	Tubulin beta chain (Beta-tubulin)	tubA benA btuB	Botryotinia fuckeliana (Noble rot fungus) (Botrytis cinerea)	447	tubA
+P05220	reviewed	TBB_NEUCR	Tubulin beta chain (Beta-tubulin)	tub-2 B2C22.060 NCU04054	Neurospora crassa (strain ATCC 24698 / 74-OR23-1A / CBS 708.71 / DSM 1257 / FGSC 987)	447	tub-2
+P10876	reviewed	TBB_TETPY	Tubulin beta chain (Beta-tubulin)	BETA-TT1; BETA-TT2	Tetrahymena pyriformis	443	BETA-TT1; BETA-TT2
+P11482	reviewed	TBB1_VOLCA	Tubulin beta chain (Beta-tubulin)	TUBB1; TUBB2	Volvox carteri (Green alga)	443	TUBB1; TUBB2
+P11857	reviewed	TBB_STYLE	Tubulin beta chain (Beta-tubulin)	TUBB1; TUBB2	Stylonychia lemnae (Ciliate)	442	TUBB1; TUBB2
+P22852	reviewed	TBB_POLAG	Tubulin beta chain (Beta-tubulin)	TUBB1; TUBB2; TUBB3	Polytomella agilis (Quadriflagellate alga)	443	TUBB1; TUBB2; TUBB3
+P41352	reviewed	TBB_TETTH	Tubulin beta chain (Beta-tubulin)	BTU1; BTU2	Tetrahymena thermophila	443	BTU1; BTU2
+P53374	reviewed	TBB_GIBFU	Tubulin beta chain (Beta-tubulin)	TUB2	Gibberella fujikuroi (Bakanae and foot rot disease fungus) (Fusarium fujikuroi)	446	TUB2
+Q5I2J3	reviewed	TBA_GIBZE	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin)	TUB1 FGRRES_00639 FGSG_00639	Gibberella zeae (strain ATCC MYA-4620 / CBS 123657 / FGSC 9075 / NRRL 31084 / PH-1) (Wheat head blight fungus) (Fusarium graminearum)	449	TUB1
+Q71G51	reviewed	TBA_NEOCA	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin)	TUBA	Neospora caninum (Coccidian parasite)	453	TUBA
+Q91240	reviewed	TBB_PSEAM	Tubulin beta chain (Beta-tubulin)		Pseudopleuronectes americanus (Winter flounder) (Pleuronectes americanus)	445	
+Q9C413	reviewed	TBA_COLOR	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin)	TUB1 Cob_05533 Cob_v004984	Colletotrichum orbiculare (strain 104-T / ATCC 96160 / CBS 514.97 / LARS 414 / MAFF 240422) (Cucumber anthracnose fungus) (Colletotrichum lagenarium)	454	TUB1
+P10875	reviewed	TBB_CANAX	Tubulin beta chain (Beta-tubulin)	TUB2	Candida albicans (Yeast)	449	TUB2
+P41799	reviewed	TBB_PHANO	Tubulin beta chain (Beta-tubulin)	tubB tubA SNOG_06790 SNOG_06791	Phaeosphaeria nodorum (strain SN15 / ATCC MYA-4574 / FGSC 10173) (Glume blotch fungus) (Parastagonospora nodorum)	447	tubB
+P54401	reviewed	TBG_ENTH1	Tubulin gamma chain (Gamma-tubulin)	G-TUB EHI_008240	Entamoeba histolytica (strain ATCC 30459 / HM-1:IMSS / ABRM)	452	G-TUB
+Q3KVN1	reviewed	TBB_CERBT	Tubulin beta chain (Beta-tubulin)	TUB1	Cercospora beticola (Sugarbeet leaf spot fungus)	447	TUB1
+Q7KQL5	reviewed	TBB_PLAF7	Tubulin beta chain (Beta-tubulin)	PF10_0084 PF3D7_1008700	Plasmodium falciparum (isolate 3D7)	445	
+P17938	reviewed	TBB_EPITY	Tubulin beta chain (Beta-tubulin)	TUBB TUB2	Epichloe typhina	448	TUBB
+Q75A43	reviewed	TBG_EREGS	Tubulin gamma chain (Gamma-tubulin)	TUB4 ADR076C	Eremothecium gossypii (strain ATCC 10895 / CBS 109.51 / FGSC 9923 / NRRL Y-1056) (Yeast) (Ashbya gossypii)	470	TUB4
+Q5XI57	reviewed	TTL10_RAT	Protein polyglycylase TTLL10 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 10)	Ttll10	Rattus norvegicus (Rat)	679	Ttll10
+Q9SMR2	reviewed	TBCC_ARATH	Tubulin-folding cofactor C (AtTFCC) (TFC C) (Protein PORCINO)	TFCC POR At4g39920 T5J17.90	Arabidopsis thaliana (Mouse-ear cress)	345	TFCC
+P68367	reviewed	TBA4A_MACFA	Tubulin alpha-4A chain (EC 3.6.5.-) (Alpha-tubulin 1) (Testis-specific alpha-tubulin) (Tubulin alpha-1 chain)	TUBA4A TUBA1	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	448	TUBA4A
+P38254	reviewed	TTL_YEAST	Probable tubulin--tyrosine ligase PBY1 (EC 6.3.2.25) (P-body-associated protein 1)	PBY1 YBR094W YBR0821	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	753	PBY1
+Q5ZI87	reviewed	TBCD_CHICK	Tubulin-specific chaperone D (Beta-tubulin cofactor D) (Tubulin-folding cofactor D)	TBCD RCJMB04_29e8	Gallus gallus (Chicken)	1019	TBCD
+O22348	reviewed	TBA2_ELEIN	Tubulin alpha-2 chain (EC 3.6.5.-) (Alpha-2-tubulin)	TUBA2 TUA2	Eleusine indica (Goosegrass) (Cynosurus indicus)	447	TUBA2
+O22349	reviewed	TBA3_ELEIN	Tubulin alpha-3 chain (EC 3.6.5.-) (Alpha-3-tubulin)	TUBA3 TUA3	Eleusine indica (Goosegrass) (Cynosurus indicus)	450	TUBA3
+P25862	reviewed	TBB1_AVESA	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1 TUB1	Avena sativa (Oat)	386	TUBB1
+P36221	reviewed	TBB1_NOTNE	Tubulin beta-1 chain (Beta-1-tubulin)	tubb1	Notothenia neglecta (Yellowbelly rockcod) (Notothenia coriiceps neglecta)	446	tubb1
+P40904	reviewed	TBB2_COLGL	Tubulin beta-2 chain (Beta-2-tubulin)	TUB2	Colletotrichum gloeosporioides (Anthracnose fungus) (Glomerella cingulata)	447	TUB2
+P46263	reviewed	TBB1_SOLTU	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Solanum tuberosum (Potato)	451	TUBB1
+P50260	reviewed	TBB2_OOMCK	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Oomycete-like sp. (strain MacKay2000)	423	TUBB2
+P50261	reviewed	TBB3_OOMCK	Tubulin beta-3 chain (Beta-3-tubulin)	TUBB3	Oomycete-like sp. (strain MacKay2000)	445	TUBB3
+P61858	reviewed	TBB2_DROHY	Tubulin beta-2 chain (Beta-2-tubulin)	betaTub85D TUBB85D	Drosophila hydei (Fruit fly)	446	betaTub85D
+Q02245	reviewed	TBA5_MAIZE	Tubulin alpha-5 chain (EC 3.6.5.-) (Alpha-5-tubulin)	TUBA5 TUA5	Zea mays (Maize)	450	TUBA5
+Q41784	reviewed	TBB7_MAIZE	Tubulin beta-7 chain (Beta-7-tubulin)	TUBB7 TUB7	Zea mays (Maize)	445	TUBB7
+Q43697	reviewed	TBB5_MAIZE	Tubulin beta-5 chain (Beta-5-tubulin)	TUBB5 TUB5	Zea mays (Maize)	445	TUBB5
+Q6VAF8	reviewed	TBB3_GOSHI	Tubulin beta-3 chain (Beta-3-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	430	
+Q9ZPN7	reviewed	TBB4_ELEIN	Tubulin beta-4 chain (Beta-4-tubulin)	TUBB4 TUB4	Eleusine indica (Goosegrass) (Cynosurus indicus)	446	TUBB4
+Q9ZPP0	reviewed	TBB1_ELEIN	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1 TUB1	Eleusine indica (Goosegrass) (Cynosurus indicus)	445	TUBB1
+P29501	reviewed	TBB2_PEA	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2 TUB2	Pisum sativum (Garden pea) (Lathyrus oleraceus)	447	TUBB2
+P33626	reviewed	TBA4_MAIZE	Tubulin alpha-4 chain (EC 3.6.5.-) (Alpha-4-tubulin)	TUBA4 TUA4	Zea mays (Maize)	61	TUBA4
+P50262	reviewed	TBB4_OOMCK	Tubulin beta-4 chain (Beta-4-tubulin)	TUBB4	Oomycete-like sp. (strain MacKay2000)	451	TUBB4
+P69895	reviewed	TBB5_MACMU	Tubulin beta chain (Tubulin beta-5 chain)	TUBB TUBB5	Macaca mulatta (Rhesus macaque)	444	TUBB
+Q7JJU6	reviewed	TBB5_PANTR	Tubulin beta chain (Tubulin beta-5 chain)	TUBB TUBB5	Pan troglodytes (Chimpanzee)	444	TUBB
+Q91575	reviewed	TBB5_XENLA	Tubulin beta chain (Tubulin beta-5 chain)	tubb tubb5	Xenopus laevis (African clawed frog)	444	tubb
+Q9ZRB0	reviewed	TBB3_WHEAT	Tubulin beta-3 chain (Beta-3-tubulin)	TUBB3	Triticum aestivum (Wheat)	445	TUBB3
+P07436	reviewed	TBB1_PHYPO	Tubulin beta-1 chain (Beta-1-tubulin)	BETA; BETB	Physarum polycephalum (Slime mold)	467	BETA; BETB
+P18025	reviewed	TBB1_MAIZE	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1 TUB1	Zea mays (Maize)	446	TUBB1
+P29500	reviewed	TBB1_PEA	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1 TUB1	Pisum sativum (Garden pea) (Lathyrus oleraceus)	450	TUBB1
+P33627	reviewed	TBA6_MAIZE	Tubulin alpha-6 chain (EC 3.6.5.-) (Alpha-6-tubulin)	TUBA6 TUA6	Zea mays (Maize)	450	TUBA6
+P46264	reviewed	TBB2_SOLTU	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Solanum tuberosum (Potato)	452	TUBB2
+P83130	reviewed	TBB2_DROER	Tubulin beta-2 chain (Beta-2-tubulin)	betaTub85D	Drosophila erecta (Fruit fly)	446	betaTub85D
+Q39697	reviewed	TBB2_DAUCA	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Daucus carota (Wild carrot)	444	TUBB2
+Q41785	reviewed	TBB8_MAIZE	Tubulin beta-8 chain (Beta-8-tubulin)	TUBB8 TUB8	Zea mays (Maize)	445	TUBB8
+Q42480	reviewed	TBB1_CHOCR	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB TUB1	Chondrus crispus (Carrageen Irish moss) (Polymorpha crispa)	453	TUBB
+Q6GLE7	reviewed	TBB5_XENTR	Tubulin beta chain (Tubulin beta-5 chain)	tubb tubb5	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	444	tubb
+Q6VAF5	reviewed	TBB7_GOSHI	Tubulin beta-7 chain (Beta-7-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	444	
+Q6VAG0	reviewed	TBA2_GOSHI	Tubulin alpha-2 chain (EC 3.6.5.-) (Alpha-2-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	450	
+Q9YHC3	reviewed	TBB1_GADMO	Tubulin beta-1 chain (Beta-1-tubulin)		Gadus morhua (Atlantic cod)	445	
+Q9ZPN9	reviewed	TBB2_ELEIN	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2 TUB2	Eleusine indica (Goosegrass) (Cynosurus indicus)	448	TUBB2
+P29502	reviewed	TBB3_PEA	Tubulin beta-3 chain (Beta-3-tubulin)	TUBB3 TUB3	Pisum sativum (Garden pea) (Lathyrus oleraceus)	440	TUBB3
+Q6VAF7	reviewed	TBB5_GOSHI	Tubulin beta-5 chain (Beta-5-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	445	
+Q6VAG1	reviewed	TBA1_GOSHI	Tubulin alpha-1 chain (EC 3.6.5.-) (Alpha-1-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	451	
+Q94572	reviewed	TBA3_HOMAM	Tubulin alpha-3 chain (EC 3.6.5.-) (Alpha-III tubulin)		Homarus americanus (American lobster)	451	
+Q9ZRA9	reviewed	TBB4_WHEAT	Tubulin beta-4 chain (Beta-4-tubulin)	TUBB4	Triticum aestivum (Wheat)	445	TUBB4
+Q9ZRB2	reviewed	TBB1_WHEAT	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Triticum aestivum (Wheat)	445	TUBB1
+P09244	reviewed	TBB7_CHICK	Tubulin beta-7 chain (Tubulin beta 4')		Gallus gallus (Chicken)	444	
+P10874	reviewed	TBB2_EMENI	Tubulin beta-2 chain (Beta-2-tubulin)	tubC AN6838	Emericella nidulans (strain FGSC A4 / ATCC 38163 / CBS 112.46 / NRRL 194 / M139) (Aspergillus nidulans)	449	tubC
+P12460	reviewed	TBB2_SOYBN	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Glycine max (Soybean) (Glycine hispida)	449	TUBB2
+P13602	reviewed	TBB2_XENLA	Tubulin beta-2 chain (Beta-2-tubulin)	tubb2	Xenopus laevis (African clawed frog)	443	tubb2
+Q17299	reviewed	TBB1_CAEBR	Tubulin beta-1 chain (Beta-1-tubulin)	mec-7 CBG16786	Caenorhabditis briggsae	441	mec-7
+Q25008	reviewed	TBA1_HOMAM	Tubulin alpha-1 chain (EC 3.6.5.-) (Alpha-I tubulin)		Homarus americanus (American lobster)	451	
+Q41782	reviewed	TBB4_MAIZE	Tubulin beta-4 chain (Beta-4-tubulin)	TUBB4 TUB4	Zea mays (Maize)	447	TUBB4
+Q43695	reviewed	TBB3_MAIZE	Tubulin beta-3 chain (Beta-3-tubulin)	TUBB3 TUB3	Zea mays (Maize)	445	TUBB3
+Q6VAF9	reviewed	TBA4_GOSHI	Tubulin alpha-4 chain (EC 3.6.5.-) (Alpha-4-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	450	
+Q9ZPN8	reviewed	TBB3_ELEIN	Tubulin beta-3 chain (Beta-3-tubulin)	TUBB3 TUB3	Eleusine indica (Goosegrass) (Cynosurus indicus)	446	TUBB3
+Q9ZRB1	reviewed	TBB2_WHEAT	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Triticum aestivum (Wheat)	447	TUBB2
+Q3UK37	reviewed	TEDC1_MOUSE	Tubulin epsilon and delta complex protein 1 (Uncharacterized protein C14orf80 homolog)	Tedc1	Mus musculus (Mouse)	420	Tedc1
+Q9XYP8	reviewed	GCP3_DROME	Gamma-tubulin complex component 3 (Gamma-ring complex protein 91 kDa)	Grip91 l(1)dd4 CG10988	Drosophila melanogaster (Fruit fly)	917	Grip91
+P04690	reviewed	TBB_CHLRE	Tubulin beta-1/beta-2 chain (Beta-tubulin)	TUBB1; TUBB2	Chlamydomonas reinhardtii (Chlamydomonas smithii)	443	TUBB1; TUBB2
+P09206	reviewed	TBB3_CHICK	Tubulin beta-3 chain (Beta-tubulin class-IV)		Gallus gallus (Chicken)	445	
+P09653	reviewed	TBB5_CHICK	Tubulin beta-5 chain (Beta-tubulin class-V)		Gallus gallus (Chicken)	446	
+P12458	reviewed	TBB2_PHYPO	Tubulin beta-2 chain (Tubulin beta-major chain)	BETC	Physarum polycephalum (Slime mold)	454	BETC
+Q4R4X8	reviewed	TBB4A_MACFA	Tubulin beta-4A chain (Tubulin beta-4 chain)	TUBB4A TUBB4 QtrA-11757	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	444	TUBB4A
+P31386	reviewed	ATS1_YEAST	Protein KTI13 (Alpha-tubulin suppressor 1) (Kluyveromyces lactis toxin-insensitive protein 13)	ATS1 KTI13 YAL020C FUN28 YAL006	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	333	ATS1
+P09652	reviewed	TBB4_CHICK	Tubulin beta-4 chain (Beta-tubulin class-III)		Gallus gallus (Chicken)	449	
+P11480	reviewed	TBAE_PHYPO	Tubulin alpha-2B chain (EC 3.6.5.-) (Tubulin alpha-E chain)	ALTBE ALTB2	Physarum polycephalum (Slime mold)	449	ALTBE
+P86221	reviewed	TBB4B_MESAU	Tubulin beta-4B chain (Tubulin beta-2C chain)	TUBB4B TUBB2C	Mesocricetus auratus (Golden hamster)	290	TUBB4B
+P09207	reviewed	TBB6_CHICK	Tubulin beta-6 chain (Beta-tubulin class-VI)		Gallus gallus (Chicken)	446	
+P09203	reviewed	TBB1_CHICK	Tubulin beta-1 chain (Beta-tubulin class-I)		Gallus gallus (Chicken)	445	
+Q9GKK5	reviewed	TBG1_CANLF	Tubulin gamma-1 chain (Gamma-1-tubulin) (Gamma-tubulin complex component 1) (GCP-1)	TUBG1 TUBG	Canis lupus familiaris (Dog) (Canis familiaris)	451	TUBG1
+Q91YK0	reviewed	LRC49_MOUSE	Leucine-rich repeat-containing protein 49 (Tubulin polyglutamylase complex subunit 4) (PGs4) (p79)	Lrrc49	Mus musculus (Mouse)	686	Lrrc49
+P02553	reviewed	TBA_LYTPI	Tubulin alpha chain (EC 3.6.5.-)		Lytechinus pictus (Painted sea urchin)	161	
+P04106	reviewed	TBA_TRYBR	Tubulin alpha chain (EC 3.6.5.-)		Trypanosoma brucei rhodesiense	451	
+P28268	reviewed	TBA_EUPVA	Tubulin alpha chain (EC 3.6.5.-)		Euplotes vannus (Marine ciliate) (Moneuplotes vannus)	450	
+P33625	reviewed	TBA_EUGGR	Tubulin alpha chain (EC 3.6.5.-)	TUBA	Euglena gracilis	451	TUBA
+P53372	reviewed	TBA1_PNECA	Tubulin alpha chain (EC 3.6.5.-)	TUB1	Pneumocystis carinii	449	TUB1
+P92120	reviewed	TBA_ENCHE	Tubulin alpha chain (EC 3.6.5.-)	TUB1 ATUB	Encephalitozoon hellem (Microsporidian parasite)	380	TUB1
+Q9ZRJ4	reviewed	TBA_CHLVU	Tubulin alpha chain (EC 3.6.5.-)	TUBA TUA1	Chlorella vulgaris (Green alga)	451	TUBA
+Q5R978	reviewed	TTLL5_PONAB	Tubulin polyglutamylase TTLL5 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 5)	TTLL5	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	1299	TTLL5
+P12543	reviewed	TBA_PLAYO	Tubulin alpha chain (EC 3.6.5.-)	PY01155	Plasmodium yoelii yoelii	453	
+P31017	reviewed	TBA1_ENTH1	Tubulin alpha chain (EC 3.6.5.-)	A-TUB EHI_005950	Entamoeba histolytica (strain ATCC 30459 / HM-1:IMSS / ABRM)	455	A-TUB
+P50719	reviewed	TBA_HAECO	Tubulin alpha chain (EC 3.6.5.-)		Haemonchus contortus (Barber pole worm)	450	
+Q23FE2	reviewed	TTL3C_TETTS	Tubulin glycylase 3C (EC 6.3.2.-)	TTLL3C TTHERM_00378750	Tetrahymena thermophila (strain SB210)	1065	TTLL3C
+Q92335	reviewed	TBA_SORMK	Tubulin alpha chain (EC 3.6.5.-)	TUBA SMAC_08161	Sordaria macrospora (strain ATCC MYA-333 / DSM 997 / K(L3346) / K-hell)	449	TUBA
+Q331T7	reviewed	TUBZ_CBCP	Tubulin-like protein TubZ (EC 3.6.5.-) (Tubulin/FtsZ-like protein TubZ)	tubZ CST189	Clostridium botulinum C phage (Clostridium botulinum C bacteriophage)	358	tubZ
+P14642	reviewed	TBA_PLAFK	Tubulin alpha chain (EC 3.6.5.-)		Plasmodium falciparum (isolate K1 / Thailand)	453	
+P24635	reviewed	TBA_OCTVU	Tubulin alpha chain (EC 3.6.5.-)		Octopus vulgaris (Common octopus)	240	
+P28287	reviewed	TBA_OXYGR	Tubulin alpha chain (EC 3.6.5.-)		Oxytricha granulifera (Ciliate)	450	
+P52273	reviewed	TBA_BOMMO	Tubulin alpha chain (EC 3.6.5.-)		Bombyx mori (Silk moth)	450	
+Q08114	reviewed	TBA_EUPOC	Tubulin alpha chain (EC 3.6.5.-)		Euplotoides octocarinatus (Freshwater ciliate) (Euplotes octocarinatus)	450	
+Q27352	reviewed	TBA_TRYCR	Tubulin alpha chain (EC 3.6.5.-)		Trypanosoma cruzi	451	
+Q8SRI6	reviewed	TBA_ENCCU	Tubulin alpha chain (EC 3.6.5.-)	TUB1 ECU07_1190	Encephalitozoon cuniculi (strain GB-M1) (Microsporidian parasite)	441	TUB1
+P10872	reviewed	TBA_TETPY	Tubulin alpha chain (EC 3.6.5.-)		Tetrahymena pyriformis	449	
+P33629	reviewed	TBA_PRUDU	Tubulin alpha chain (EC 3.6.5.-)	TUBA	Prunus dulcis (Almond) (Amygdalus dulcis)	450	TUBA
+P53371	reviewed	TBA_AJECA	Tubulin alpha chain (EC 3.6.5.-)	TUB1	Ajellomyces capsulatus (Darling's disease fungus) (Histoplasma capsulatum)	418	TUB1
+Q06331	reviewed	TBA_ENTDO	Tubulin alpha chain (EC 3.6.5.-)		Enteroctopus dofleini (North Pacific giant octopus) (Octopus dofleini)	451	
+O94128	reviewed	TBA_ZYMTR	Tubulin alpha chain (EC 3.6.5.-)		Zymoseptoria tritici (Speckled leaf blotch fungus) (Septoria tritici)	450	
+Q23AS2	reviewed	TTL3E_TETTS	Tubulin glycylase 3E (EC 6.3.2.-)	TTLL3E TTHERM_00770730	Tetrahymena thermophila (strain SB210)	1394	TTLL3E
+Q38771	reviewed	TBA_AVESA	Tubulin alpha chain (EC 3.6.5.-)	TUBA	Avena sativa (Oat)	447	TUBA
+Q752Y2	reviewed	TBA_EREGS	Tubulin alpha chain (EC 3.6.5.-)	TUB1 AFR441C	Eremothecium gossypii (strain ATCC 10895 / CBS 109.51 / FGSC 9923 / NRRL Y-1056) (Yeast) (Ashbya gossypii)	448	TUB1
+Q9ZRB7	reviewed	TBA_WHEAT	Tubulin alpha chain (EC 3.6.5.-)	TUBA	Triticum aestivum (Wheat)	451	TUBA
+Q8L5R3	reviewed	TBCD_ARATH	Tubulin-folding cofactor D (AtTFCD) (Protein CHAMPIGNON) (Protein EMBRYO DEFECTIVE 133) (Protein TITAN 1)	TFCD CHO EMB133 TBCD TTN1 At3g60740 T4C21.150	Arabidopsis thaliana (Mouse-ear cress)	1254	TFCD
+Q9VKU7	reviewed	GCP4_DROME	Gamma-tubulin complex component 4 homolog (Gamma-ring complex protein 75 kDa) (d75p) (dGrip75)	Grip75 75p CG6176	Drosophila melanogaster (Fruit fly)	650	Grip75
+Q23192	reviewed	ATAT2_CAEEL	Alpha-tubulin N-acetyltransferase 2 (Alpha-TAT 2) (TAT 2) (EC 2.3.1.108) (Mec-17-like protein)	atat-2 W06B11.1	Caenorhabditis elegans	263	atat-2
+Q23MT7	reviewed	TTL6A_TETTS	Probable beta-tubulin polyglutamylase (EC 6.-.-.-) (Tubulin-tyrosine ligase family protein 6A)	Ttll6a TTHERM_00284020	Tetrahymena thermophila (strain SB210)	1195	Ttll6a
+Q9VSY4	reviewed	ATAT1_DROME	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT 1) (TAT 1) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog 1)	Atat CG3967	Drosophila melanogaster (Fruit fly)	461	Atat
+P33623	reviewed	TBA1_ANEPH	Tubulin alpha-1 chain (EC 3.6.5.-)	TUBA1	Anemia phyllitidis (Fern) (Osmunda phyllitidis)	451	TUBA1
+P86234	reviewed	TBA3_MESAU	Tubulin alpha-3 chain (EC 3.6.5.-)		Mesocricetus auratus (Golden hamster)	196	
+Q4R5B3	reviewed	TBB2A_MACFA	Tubulin beta-2A chain	TUBB2A QtrA-12936	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	445	TUBB2A
+Q8T6A5	reviewed	TBA1_APLCA	Tubulin alpha-1 chain (EC 3.6.5.-)		Aplysia californica (California sea hare)	451	
+Q9ZRR5	reviewed	TBA3_HORVU	Tubulin alpha-3 chain (EC 3.6.5.-)	TUBA3 ATUB3	Hordeum vulgare (Barley)	451	TUBA3
+P09644	reviewed	TBA5_CHICK	Tubulin alpha-5 chain (EC 3.6.5.-)		Gallus gallus (Chicken)	448	
+P30883	reviewed	TBB4_XENLA	Tubulin beta-4 chain	tubb4	Xenopus laevis (African clawed frog)	445	tubb4
+P38669	reviewed	TBA2_NEUCR	Tubulin alpha-B chain (EC 3.6.5.-)	tba-2 B10K17.080 NCU09468	Neurospora crassa (strain ATCC 24698 / 74-OR23-1A / CBS 708.71 / DSM 1257 / FGSC 987)	449	tba-2
+Q96460	reviewed	TBA2_HORVU	Tubulin alpha-2 chain (EC 3.6.5.-)	TUBA2 ATUB2	Hordeum vulgare (Barley)	451	TUBA2
+P09645	reviewed	TBA8_CHICK	Tubulin alpha-8 chain (EC 3.6.5.-)		Gallus gallus (Chicken)	324	
+P49742	reviewed	TBAB_SCHCO	Tubulin alpha-1B chain (EC 3.6.5.-)	TUB-1B	Schizophyllum commune (Split gill fungus)	446	TUB-1B
+Q8WP13	reviewed	TBB8_PAPHA	Tubulin beta-8 chain	TUBB8	Papio hamadryas (Hamadryas baboon)	444	TUBB8
+Q23SI8	reviewed	TTLL1_TETTS	Probable alpha-tubulin polyglutamylase Ttll1 (EC 6.-.-.-) (Tubulin-tyrosine ligase family protein 1)	Ttll1 TTHERM_00136210	Tetrahymena thermophila (strain SB210)	413	Ttll1
+P09243	reviewed	TBA2_STYLE	Tubulin alpha-2 chain (EC 3.6.5.-)		Stylonychia lemnae (Ciliate)	449	
+P24634	reviewed	TBA2_EMENI	Tubulin alpha-2 chain (EC 3.6.5.-)	tubB AN7570	Emericella nidulans (strain FGSC A4 / ATCC 38163 / CBS 112.46 / NRRL 194 / M139) (Aspergillus nidulans)	451	tubB
+P38668	reviewed	TBA1_NEUCR	Tubulin alpha-A chain (EC 3.6.5.-)	tba-1 NCU09132	Neurospora crassa (strain ATCC 24698 / 74-OR23-1A / CBS 708.71 / DSM 1257 / FGSC 987)	454	tba-1
+Q43473	reviewed	TBA1_HORVU	Tubulin alpha-1 chain (EC 3.6.5.-)	TUBA1 ATUB1	Hordeum vulgare (Barley)	450	TUBA1
+Q8WP14	reviewed	TBB8_PANTR	Tubulin beta-8 chain	TUBB8	Pan troglodytes (Chimpanzee)	444	TUBB8
+P07304	reviewed	TBA1_STYLE	Tubulin alpha-1 chain (EC 3.6.5.-)		Stylonychia lemnae (Ciliate)	445	
+P09642	reviewed	TBA3_CHICK	Tubulin alpha-3 chain (EC 3.6.5.-)		Gallus gallus (Chicken)	322	
+P09643	reviewed	TBA4_CHICK	Tubulin alpha-4 chain (EC 3.6.5.-)		Gallus gallus (Chicken)	322	
+P33624	reviewed	TBA2_ANEPH	Tubulin alpha-2 chain (EC 3.6.5.-)	TUBA2	Anemia phyllitidis (Fern) (Osmunda phyllitidis)	364	TUBA2
+P49741	reviewed	TBAA_SCHCO	Tubulin alpha-1A chain (EC 3.6.5.-)	TUB-1A	Schizophyllum commune (Split gill fungus)	448	TUB-1A
+Q25563	reviewed	TBA13_NAEPR	Tubulin alpha-13 chain (EC 3.6.5.-)	TUBA13	Naegleria pringsheimi (Amoeba)	453	TUBA13
+Q40831	reviewed	TBA1_PELFA	Tubulin alpha-1 chain (EC 3.6.5.-)	TUBA1	Pelvetia fastigiata (Brown alga) (Fucodium fastigiatum)	453	TUBA1
+Q962P8	reviewed	TBA6_NAEPR	Tubulin alpha-6 chain (EC 3.6.5.-)	TUBA6	Naegleria pringsheimi (Amoeba)	452	TUBA6
+Q8BUR9	reviewed	MZT1_MOUSE	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	Mzt1 Mozart1	Mus musculus (Mouse)	78	Mzt1
+D4GVD7	reviewed	CETZ1_HALVD	Tubulin-like protein CetZ1 (Cell-structure-related euryarchaeota tubulin/FtsZ homolog 1)	cetZ1 ftsZ4 HVO_2204 C498_06313	Haloferax volcanii (strain ATCC 29605 / DSM 3757 / JCM 8879 / NBRC 14742 / NCIMB 2012 / VKM B-1768 / DS2) (Halobacterium volcanii)	395	cetZ1
+P80584	reviewed	TBCA_RABIT	Tubulin-specific chaperone A (TCP1-chaperonin cofactor A) (Tubulin-folding cofactor A) (CFA)	TBCA	Oryctolagus cuniculus (Rabbit)	108	TBCA
+Q8WQ47	reviewed	TBA_LEPDS	Tubulin alpha chain (EC 3.6.5.-) (allergen Lep d ?)		Lepidoglyphus destructor (Storage mite) (Glycyphagus destructor)	450	
+Q9Y703	reviewed	TBCA_SCHPO	Tubulin-specific chaperone A (Altered polarity protein 31) (Tubulin-folding cofactor A) (CFA)	alp31 SPAC8E11.07c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	119	alp31
+P80585	reviewed	TBCA_CHICK	Tubulin-specific chaperone A (TCP1-chaperonin cofactor A) (Tubulin-folding cofactor A) (CFA)	TBCA	Gallus gallus (Chicken)	108	TBCA
+Q9UT52	reviewed	MOD21_SCHPO	Gamma-tubulin complex subunit mod21	mod21 SPAC806.08c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	677	mod21
+Q54KM0	reviewed	GEPH_DICDI	Gephyrin (Putative glycine receptor-tubulin linker protein homolog) [Includes: Molybdopterin adenylyltransferase (MPT adenylyltransferase) (EC 2.7.7.75) (Domain G); Molybdopterin molybdenumtransferase (MPT Mo-transferase) (EC 2.10.1.1) (Domain E)]	gphn gph DDB_G0287261	Dictyostelium discoideum (Social amoeba)	718	gphn
+P08070	reviewed	TBA2_CHICK	Tubulin alpha-2 chain (EC 3.6.5.-) (Testis-specific)		Gallus gallus (Chicken)	446	
+P11481	reviewed	TBA1_VOLCA	Tubulin alpha-1/alpha-2 chain (EC 3.6.5.-)	TUBA1; TUBA2	Volvox carteri (Green alga)	451	TUBA1; TUBA2
+P11237	reviewed	TBA1_NAEGR	Tubulin alpha-1/2/3 chain (EC 3.6.5.-)	TBA1; TBA2; TBA3	Naegleria gruberi (Amoeba)	453	TBA1; TBA2; TBA3
+A0A644F7M7	reviewed	GCP2_GIAIC	Gamma-tubulin small complex component GCP2 (Gamma-TuSC component GCP2) (Gamma-tubulin complex protein 2) (GCP2) (GlGCP2)	GL50803_0017429	Giardia intestinalis (strain ATCC 50803 / WB clone C6) (Giardia lamblia)	961	
+A8BFK8	reviewed	GCP3_GIAIC	Gamma-tubulin small complex component GCP3 (Gamma-TuSC component GCP3) (Gamma-tubulin complex protein 3) (GCP3) (GlGCP3)	GL50803_0012057 GL50803_12057	Giardia intestinalis (strain ATCC 50803 / WB clone C6) (Giardia lamblia)	892	
+Q6EEF3	reviewed	TTLL5_CHLAE	Tubulin polyglutamylase TTLL5 (EC 6.3.2.-) (SRC1 and TIF2-associated modulatory protein) (STAMP protein) (Tubulin--tyrosine ligase-like protein 5)	TTLL5 STAMP	Chlorocebus aethiops (Green monkey) (Cercopithecus aethiops)	1299	TTLL5
+Q9P7R5	reviewed	GFH1_SCHPO	Gamma-tubulin complex component gfh1 (Gcp4 homolog 1)	gfh1 SPBC211.06	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	577	gfh1
+Q9UJT0	reviewed	TBE_HUMAN	Tubulin epsilon chain (Epsilon-tubulin)	TUBE1 TUBE	Homo sapiens (Human)	475	TUBE1
+Q5TM63	reviewed	ATAT_MACMU	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	ATAT1 MEC17	Macaca mulatta (Rhesus macaque)	323	ATAT1
+Q5FWM1	reviewed	ATAT_XENLA	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	atat1 mec17	Xenopus laevis (African clawed frog)	418	atat1
+Q767K7	reviewed	ATAT_PIG	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	ATAT1 MEC17	Sus scrofa (Pig)	300	ATAT1
+B2RZF9	reviewed	ATAT_XENTR	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT) (Alpha-TAT1) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	atat1 mec17	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	297	atat1
+Q9H853	reviewed	TBA4B_HUMAN	Putative tubulin-like protein alpha-4B (EC 3.6.5.-) (Alpha-tubulin 4B)	TUBA4B TUBA4	Homo sapiens (Human)	241	TUBA4B
+Q9BTE0	reviewed	NAT9_HUMAN	Alpha/beta-tubulin-N-acetyltransferase 9 (EC 2.3.1.308) (Embryo brain-specific protein)	NAT9 EBS	Homo sapiens (Human)	207	NAT9
+Q9D6T1	reviewed	TBE_MOUSE	Tubulin epsilon chain (Epsilon-tubulin)	Tube1	Mus musculus (Mouse)	475	Tube1
+O49068	reviewed	TBG2_ORYSJ	Tubulin gamma-2 chain (Gamma-2-tubulin)	TUBG2 TUBC Os05g0156600 LOC_Os05g06450 P0431G05.16 P0676G05.6	Oryza sativa subsp. japonica (Rice)	469	TUBG2
+Q76FS3	reviewed	TBB6_ORYSJ	Tubulin beta-6 chain (Beta-6-tubulin)	TUBB6 TUB6 Os05g0413200 LOC_Os05g34170 P0017D10.10	Oryza sativa subsp. japonica (Rice)	444	TUBB6
+Q55CN0	reviewed	TBCE_DICDI	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	tbce DDB_G0269990	Dictyostelium discoideum (Social amoeba)	525	tbce
+Q55G93	reviewed	TBCD_DICDI	Tubulin-specific chaperone D (Tubulin-folding cofactor D)	tbcd DDB_G0268516	Dictyostelium discoideum (Social amoeba)	1480	tbcd
+Q32KS0	reviewed	TBCE_BOVIN	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	TBCE	Bos taurus (Bovine)	528	TBCE
+Q54Z01	reviewed	TBCB_DICDI	Tubulin-specific chaperone B (Tubulin-folding cofactor B)	tbcb DDB_G0277983	Dictyostelium discoideum (Social amoeba)	270	tbcb
+Q5U378	reviewed	TBCE_DANRE	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	tbce zgc:123075	Danio rerio (Zebrafish) (Brachydanio rerio)	521	tbce
+Q54PY1	reviewed	TBCC_DICDI	Tubulin-specific chaperone C (Tubulin-folding cofactor C) (CFC)	tbcc DDB_G0284313	Dictyostelium discoideum (Social amoeba)	420	tbcc
+Q8VCN9	reviewed	TBCC_MOUSE	Tubulin-specific chaperone C (Tubulin-folding cofactor C) (CFC)	Tbcc	Mus musculus (Mouse)	341	Tbcc
+Q3SZE9	reviewed	TBCC_BOVIN	Tubulin-specific chaperone C (Tubulin-folding cofactor C) (CFC)	TBCC	Bos taurus (Bovine)	345	TBCC
+Q19493	reviewed	TBCD_CAEEL	Tubulin-specific chaperone D (Tubulin folding cofactor D homolog)	tbcd-1 F16D3.4	Caenorhabditis elegans	1163	tbcd-1
+A4Q9E4	reviewed	TTLL2_MOUSE	Probable tubulin polyglutamylase TTLL2 (EC 6.-.-.-) (Tubulin--tyrosine ligase-like protein 2)	Ttll2	Mus musculus (Mouse)	540	Ttll2
+Q564U4	reviewed	TTLL9_CAEEL	Probable tubulin polyglutamylase ttll-9 (EC 6.-.-.-) (Tubulin--tyrosine ligase-like protein 9)	ttll-9 F25C8.5	Caenorhabditis elegans	417	ttll-9
+Q21279	reviewed	TTL15_CAEEL	Probable tubulin polyglutamylase ttll-15 (EC 6.-.-.-) (Tubulin--tyrosine ligase-like protein 15)	ttll-15 K07C5.7	Caenorhabditis elegans	513	ttll-15
+Q9QXJ0	reviewed	TTL_RAT	Tubulin--tyrosine ligase (TTL) (EC 6.3.2.25)	Ttl	Rattus norvegicus (Rat)	377	Ttl
+P38584	reviewed	TTL_BOVIN	Tubulin--tyrosine ligase (TTL) (EC 6.3.2.25)	TTL	Bos taurus (Bovine)	377	TTL
+Q2KJ10	reviewed	RITA1_RAT	RBPJ-interacting and tubulin-associated protein 1 (RBPJ-interacting and tubulin-associated protein)	Rita1 Rita	Rattus norvegicus (Rat)	258	Rita1
+Q2HJ75	reviewed	RITA1_BOVIN	RBPJ-interacting and tubulin-associated protein 1 (RBPJ-interacting and tubulin-associated protein)	RITA1 RITA	Bos taurus (Bovine)	269	RITA1
+Q6PEC1	reviewed	TBCA_RAT	Tubulin-specific chaperone A (TCP1-chaperonin cofactor A) (Tubulin-folding cofactor A) (CFA)	Tbca	Rattus norvegicus (Rat)	108	Tbca
+Q9D1H0	reviewed	RITA1_MOUSE	RBPJ-interacting and tubulin-associated protein 1 (RBPJ-interacting and tubulin-associated protein)	Rita1 Rita	Mus musculus (Mouse)	253	Rita1
+Q66JT5	reviewed	TPGS2_MOUSE	Tubulin polyglutamylase complex subunit 2 (PGs2)	Tpgs2	Mus musculus (Mouse)	296	Tpgs2
+Q5PPN5	reviewed	TPPP3_RAT	Tubulin polymerization-promoting protein family member 3	Tppp3	Rattus norvegicus (Rat)	176	Tppp3
+Q9D4F8	reviewed	GCP4_MOUSE	Gamma-tubulin complex component 4 (GCP-4)	Tubgcp4 D2Ertd435e Gcp4	Mus musculus (Mouse)	667	Tubgcp4
+Q3T077	reviewed	TPPP2_BOVIN	Tubulin polymerization-promoting protein family member 2	TPPP2	Bos taurus (Bovine)	171	TPPP2
+Q3ZCC8	reviewed	TPPP3_BOVIN	Tubulin polymerization-promoting protein family member 3	TPPP3	Bos taurus (Bovine)	176	TPPP3
+Q8BHR8	reviewed	CSTP1_MOUSE	Centriolar satellite-associated tubulin polyglutamylase complex regulator 1	Cstpp1	Mus musculus (Mouse)	331	Cstpp1
+Q6DGK9	reviewed	CSTP1_DANRE	Centriolar satellite-associated tubulin polyglutamylase complex regulator 1	cstpp1 zgc:92873	Danio rerio (Zebrafish) (Brachydanio rerio)	331	cstpp1
+Q9W2P0	reviewed	DGT3_DROME	Augmin complex subunit dgt3 (Dim gamma-tubulin 3)	dgt3 CG3221	Drosophila melanogaster (Fruit fly)	565	dgt3
+P08562	reviewed	TBB_TRYCR	Tubulin beta chain (Beta-tubulin)		Trypanosoma cruzi	442	
+P16040	reviewed	TBB_BLUHO	Tubulin beta chain (Beta-tubulin)	TUB2	Blumeria hordei (Barley powdery mildew) (Blumeria graminis f. sp. hordei)	446	TUB2
+P20365	reviewed	TBB_EUPCR	Tubulin beta chain (Beta-tubulin)		Euplotes crassus	446	
+P28551	reviewed	TBB3_SOYBN	Tubulin beta chain (Beta-tubulin)	TUBB	Glycine max (Soybean) (Glycine hispida)	408	TUBB
+P53376	reviewed	TBB_RHYSE	Tubulin beta chain (Beta-tubulin)		Rhynchosporium secalis (Barley scald fungus)	447	
+P79008	reviewed	TBB_COPC7	Tubulin beta chain (Beta-tubulin)	CC1G_04743	Coprinopsis cinerea (strain Okayama-7 / 130 / ATCC MYA-4618 / FGSC 9003) (Inky cap fungus) (Hormographiella aspergillata)	445	
+P93176	reviewed	TBB_HORVU	Tubulin beta chain (Beta-tubulin)	TUBB	Hordeum vulgare (Barley)	447	TUBB
+Q04709	reviewed	TBB_BABBO	Tubulin beta chain (Beta-tubulin)		Babesia bovis	441	
+Q39445	reviewed	TBB_CICAR	Tubulin beta chain (Beta-tubulin)	TUBB	Cicer arietinum (Chickpea) (Garbanzo)	449	TUBB
+Q5UBX3	reviewed	TBB_TRIRU	Tubulin beta chain (Beta-tubulin)		Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	447	
+Q9GSR5	reviewed	TBB_ENCIN	Tubulin beta chain (Beta-tubulin)	TUB2	Encephalitozoon intestinalis (Microsporidian parasite)	439	TUB2
+A0AAL4	reviewed	TBA_DICPU	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin)	tuba	Dictyostelium purpureum (Slime mold)	333	tuba
+O04386	reviewed	TBB_CHLIN	Tubulin beta chain (Beta-tubulin)	TUBB	Chlamydomonas incerta	443	TUBB
+P02556	reviewed	TBB_LYTPI	Tubulin beta chain (Beta-tubulin)		Lytechinus pictus (Painted sea urchin)	177	
+P04107	reviewed	TBB_TRYBR	Tubulin beta chain (Beta-tubulin)		Trypanosoma brucei rhodesiense	442	
+P05304	reviewed	TBB_GIAIN	Tubulin beta chain (Beta-tubulin)		Giardia intestinalis (Giardia lamblia)	446	
+P10878	reviewed	TBB_TOXGO	Tubulin beta chain (Beta-tubulin)		Toxoplasma gondii	449	
+P14643	reviewed	TBB_PLAFK	Tubulin beta chain (Beta-tubulin)		Plasmodium falciparum (isolate K1 / Thailand)	445	
+P18699	reviewed	TBB_LYMST	Tubulin beta chain (Beta-tubulin)		Lymnaea stagnalis (Great pond snail) (Helix stagnalis)	111	
+P18700	reviewed	TBB_STRPU	Tubulin beta chain (Beta-tubulin)		Strongylocentrotus purpuratus (Purple sea urchin)	292	
+P32348	reviewed	TBG_USTVI	Tubulin gamma chain (Gamma-tubulin)	TUB4	Microbotryum violaceum (Anther smut fungus) (Ustilago violacea)	469	TUB4
+P33127	reviewed	TBB_EPICN	Tubulin beta chain (Beta-tubulin)	TUB2	Epichloe coenophiala (Tall fescue endophyte fungus) (Neotyphodium coenophialum)	448	TUB2
+P34787	reviewed	TBG_PLAFO	Tubulin gamma chain (Gamma-tubulin)	G-TUB	Plasmodium falciparum (isolate NF54)	452	G-TUB
+P41385	reviewed	TBB_BOMMO	Tubulin beta chain (Beta-tubulin)		Bombyx mori (Silk moth)	450	
+Q24829	reviewed	TBB_ENCHE	Tubulin beta chain (Beta-tubulin)	TUB2	Encephalitozoon hellem (Microsporidian parasite)	439	TUB2
+Q2U2U3	reviewed	TBB_ASPOR	Tubulin beta chain (Beta-tubulin)	benA56 AO090038000317	Aspergillus oryzae (strain ATCC 42149 / RIB 40) (Yellow koji mold)	448	benA56
+Q4P235	reviewed	TBB_USTMA	Tubulin beta chain (Beta-tubulin)	UMAG_05828	Ustilago maydis (strain 521 / FGSC 9021) (Corn smut fungus)	448	
+Q52NY7	reviewed	TBB_METAN	Tubulin beta chain (Beta-tubulin)		Metarhizium anisopliae (Entomophthora anisopliae)	448	
+Q6DIM3	reviewed	TBD_XENTR	Tubulin delta chain (Delta-tubulin)	tubd1	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	451	tubd1
+Q8HZV4	reviewed	TBD_CANLF	Tubulin delta chain (Delta-tubulin)	TUBD1 TUBD	Canis lupus familiaris (Dog) (Canis familiaris)	453	TUBD1
+Q96TU8	reviewed	TBB_UROFA	Tubulin beta chain (Beta-tubulin)	TBB1	Uromyces fabae (Rust fungus)	447	TBB1
+Q9LKI8	reviewed	TBB_THAWE	Tubulin beta chain (Beta-tubulin)		Thalassiosira weissflogii (Marine diatom)	443	
+Q9UV72	reviewed	TBB_PESMI	Tubulin beta chain (Beta-tubulin)	TUBB	Pestalotiopsis microspora	446	TUBB
+O44388	reviewed	TBB_TRITR	Tubulin beta chain (Beta-tubulin)		Trichuris trichiura (Whipworm) (Trichocephalus trichiurus)	444	
+P14140	reviewed	TBB_PLAFA	Tubulin beta chain (Beta-tubulin)		Plasmodium falciparum	445	
+P20802	reviewed	TBB_ACHKL	Tubulin beta chain (Beta-tubulin)		Achlya klebsiana	444	
+P30668	reviewed	TBB_SCHCO	Tubulin beta chain (Beta-tubulin)	TUB-2	Schizophyllum commune (Split gill fungus)	445	TUB-2
+P34108	reviewed	TBB_NAEPR	Tubulin beta chain (Beta-tubulin)		Naegleria pringsheimi (Amoeba)	451	
+P41741	reviewed	TBB_HAPCH	Tubulin beta chain (Beta-tubulin)	TUB2	Hapsidospora chrysogena (Acremonium chrysogenum)	447	TUB2
+P54405	reviewed	TBG_RETFI	Tubulin gamma chain (Gamma-tubulin)		Reticulomyxa filosa	478	
+Q08115	reviewed	TBB_EUPOC	Tubulin beta chain (Beta-tubulin)		Euplotoides octocarinatus (Freshwater ciliate) (Euplotes octocarinatus)	444	
+Q4R9N3	reviewed	TBB_COCHE	Tubulin beta chain (Beta-tubulin)	TUB1	Cochliobolus heterostrophus (Southern corn leaf blight fungus) (Bipolaris maydis)	447	TUB1
+Q86ZP5	reviewed	TBB_UNCNE	Tubulin beta chain (Beta-tubulin)		Uncinula necator (Grape powdery mildew)	447	
+Q8WZE0	reviewed	TBB_USTVI	Tubulin beta chain (Beta-tubulin)		Microbotryum violaceum (Anther smut fungus) (Ustilago violacea)	444	
+Q92268	reviewed	TBB_PLESA	Tubulin beta chain (Beta-tubulin)		Pleurotus sajor-caju (Oyster mushroom)	446	
+Q9HFQ3	reviewed	TBB_MELLI	Tubulin beta chain (Beta-tubulin)	TUB1	Melampsora lini (Rust fungus)	448	TUB1
+Q9Y882	reviewed	TBG_SCHJP	Tubulin gamma chain (Gamma-tubulin)	tug1 gtb1	Schizosaccharomyces japonicus (Fission yeast)	446	tug1
+O42786	reviewed	TBB_DOTSE	Tubulin beta chain (Beta-tubulin)	TUB1	Dothistroma septosporum (Red band needle blight fungus) (Mycosphaerella pini)	447	TUB1
+P21148	reviewed	TBB_LEIME	Tubulin beta chain (Beta-tubulin)		Leishmania mexicana	445	
+P22012	reviewed	TBB_ASPFL	Tubulin beta chain (Beta-tubulin)		Aspergillus flavus	448	
+P24637	reviewed	TBB_PNECA	Tubulin beta chain (Beta-tubulin)	TUB-B	Pneumocystis carinii	442	TUB-B
+P41386	reviewed	TBB_HALDI	Tubulin beta chain (Beta-tubulin)		Haliotis discus (Abalone) (Nordotis discus)	341	
+P41387	reviewed	TBB_ONCGI	Tubulin beta chain (Beta-tubulin)	TBB	Onchocerca gibsoni	444	TBB
+P41742	reviewed	TBB_AJECA	Tubulin beta chain (Beta-tubulin)	TUB2	Ajellomyces capsulatus (Darling's disease fungus) (Histoplasma capsulatum)	445	TUB2
+P50259	reviewed	TBB_PORPU	Tubulin beta chain (Beta-tubulin)	TUBB1	Porphyra purpurea (Red seaweed) (Ulva purpurea)	457	TUBB1
+P53375	reviewed	TBB_PENDI	Tubulin beta chain (Beta-tubulin)	TUB2	Penicillium digitatum (Green mold)	447	TUB2
+Q27380	reviewed	TBB_EIMTE	Tubulin beta chain (Beta-tubulin)		Eimeria tenella (Coccidian parasite)	449	
+Q4HZS8	reviewed	TBB_GIBZE	Tubulin beta chain (Beta-tubulin)	TUB2 FGRRES_09530_M FGSG_09530	Gibberella zeae (strain ATCC MYA-4620 / CBS 123657 / FGSC 9075 / NRRL 31084 / PH-1) (Wheat head blight fungus) (Fusarium graminearum)	446	TUB2
+Q8SS99	reviewed	TBB_ENCCU	Tubulin beta chain (Beta-tubulin)	TUB2 ECU03_0820i	Encephalitozoon cuniculi (strain GB-M1) (Microsporidian parasite)	439	TUB2
+Q9N2N6	reviewed	TBB_EUPFO	Tubulin beta chain (Beta-tubulin)		Euplotes focardii	444	
+O59837	reviewed	TBB_PHYCI	Tubulin beta chain (Beta-tubulin)		Phytophthora cinnamomi (Cinnamon fungus)	444	
+O93807	reviewed	TBG_CANAX	Tubulin gamma chain (Gamma-tubulin)	TUB4	Candida albicans (Yeast)	502	TUB4
+P11833	reviewed	TBB_PARLI	Tubulin beta chain (Beta-tubulin)		Paracentrotus lividus (Common sea urchin)	447	
+P12457	reviewed	TBB_EUGGR	Tubulin beta chain (Beta-tubulin)	TUBB	Euglena gracilis	442	TUBB
+P33188	reviewed	TBB1_PARTE	Tubulin beta chain (Beta-tubulin)	bPT2 GSPATT00021361001; bPT3 GSPATT00036831001	Paramecium tetraurelia	442	bPT2; bPT3
+P35394	reviewed	TBB_ENTDO	Tubulin beta chain (Beta-tubulin)		Enteroctopus dofleini (North Pacific giant octopus) (Octopus dofleini)	447	
+P40633	reviewed	TBG_COCH5	Tubulin gamma chain (Gamma-tubulin)	TUB4 COCHEDRAFT_1179534	Cochliobolus heterostrophus (strain C5 / ATCC 48332 / race O) (Southern corn leaf blight fungus) (Bipolaris maydis)	459	TUB4
+P41388	reviewed	TBB_VENIN	Tubulin beta chain (Beta-tubulin)		Venturia inaequalis (Apple scab fungus)	447	
+Q00264	reviewed	TBB_ASPPA	Tubulin beta chain (Beta-tubulin)	benR	Aspergillus parasiticus	448	benR
+Q39582	reviewed	TBG_CHLRE	Tubulin gamma chain (Gamma-tubulin)	TUBG TBG1 TUBC	Chlamydomonas reinhardtii (Chlamydomonas smithii)	468	TUBG
+Q4R7T7	reviewed	TBD_MACFA	Tubulin delta chain (Delta-tubulin)	TUBD1 QtsA-14412	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	453	TUBD1
+Q4WA70	reviewed	TBB_ASPFU	Tubulin beta chain (Beta-tubulin)	AFUA_7G00250	Aspergillus fumigatus (strain ATCC MYA-4609 / CBS 101355 / FGSC A1100 / Af293) (Neosartorya fumigata)	448	
+Q6FNU9	reviewed	TBG_CANGA	Tubulin gamma chain (Gamma-tubulin)	TUB4 CAGL0J08888g	Candida glabrata (strain ATCC 2001 / BCRC 20586 / JCM 3761 / NBRC 0622 / NRRL Y-65 / CBS 138) (Yeast) (Nakaseomyces glabratus)	465	TUB4
+Q6QDC9	reviewed	TBB_ZYMTR	Tubulin beta chain (Beta-tubulin)	TUB1	Zymoseptoria tritici (Speckled leaf blotch fungus) (Septoria tritici)	447	TUB1
+Q84TG9	reviewed	TBB_NEOYE	Tubulin beta chain (Beta-tubulin)	TUBB1	Neopyropia yezoensis (Susabi-nori) (Pyropia yezoensis)	458	TUBB1
+Q9XFG3	reviewed	TBG_PHYPA	Tubulin gamma chain (Gamma-tubulin)	TUBG1 PHYPADRAFT_170153	Physcomitrium patens (Spreading-leaved earth moss) (Physcomitrella patens)	475	TUBG1
+P18026	reviewed	TBB2_MAIZE	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2 TUB2	Zea mays (Maize)	444	TUBB2
+P33632	reviewed	TBB3_ANEPH	Tubulin beta-3 chain (Beta-3-tubulin)	TUBB3	Anemia phyllitidis (Fern) (Osmunda phyllitidis)	239	TUBB3
+Q875L2	reviewed	TBB2_HYPVI	Tubulin beta-2 chain (Beta-2-tubulin)		Hypocrea virens (Gliocladium virens) (Trichoderma virens)	446	
+Q9NFZ5	reviewed	TBB3_ECHMU	Tubulin beta-3 chain (Beta-3-tubulin)	TUB-3	Echinococcus multilocularis (Fox tapeworm)	443	TUB-3
+Q9NFZ7	reviewed	TBB1_ECHMU	Tubulin beta-1 chain (Beta-tubulin 1)	TUB-1	Echinococcus multilocularis (Fox tapeworm)	448	TUB-1
+Q8SDC3	reviewed	PHUZ_BPDPK	Phage tubulin-like protein (PhuZ) (EC 3.6.5.-) (Phage tubulin/FtsZ) (Tubulin-like protein TubZ)	PHIKZ039	Pseudomonas phage phiKZ	327	
+P18241	reviewed	TBB1_BRUPA	Tubulin beta-1 chain (Beta-1-tubulin)		Brugia pahangi (Filarial nematode worm)	448	
+P22013	reviewed	TBB1_COLGR	Tubulin beta-1 chain (Beta-1-tubulin)	TUB1	Colletotrichum graminicola (Maize anthracnose fungus) (Glomerella graminicola)	445	TUB1
+P30157	reviewed	TBB6_ECTVR	Tubulin beta-6 chain (Beta-6-tubulin)	TUBB6	Ectocarpus variabilis (Brown alga)	447	TUBB6
+P32928	reviewed	TBB1_COLGL	Tubulin beta-1 chain (Beta-1-tubulin)	TUB1	Colletotrichum gloeosporioides (Anthracnose fungus) (Glomerella cingulata)	448	TUB1
+P33631	reviewed	TBB2_ANEPH	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Anemia phyllitidis (Fern) (Osmunda phyllitidis)	411	TUBB2
+Q25009	reviewed	TBB1_HOMAM	Tubulin beta-1 chain (Beta-I tubulin)		Homarus americanus (American lobster)	451	
+Q6VAF4	reviewed	TBB9_GOSHI	Tubulin beta-9 chain (Beta-9-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	445	
+Q9NFZ6	reviewed	TBB2_ECHMU	Tubulin beta-2 chain (Beta-tubulin 2)	TUB-2	Echinococcus multilocularis (Fox tapeworm)	445	TUB-2
+Q9ZSW1	reviewed	TBB1_CYAPA	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Cyanophora paradoxa	447	TUBB1
+P37392	reviewed	TBB1_LUPAL	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Lupinus albus (White lupine) (Lupinus termis)	447	TUBB1
+P54404	reviewed	TBG2_EUPCR	Tubulin gamma-2 chain (Gamma-2-tubulin)		Euplotes crassus	462	
+Q27U48	reviewed	TBB1_GLOMM	Tubulin beta-1 chain (Beta-1-tubulin)		Glossina morsitans morsitans (Savannah tsetse fly)	447	
+Q40106	reviewed	TBB2_LUPAL	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Lupinus albus (White lupine) (Lupinus termis)	448	TUBB2
+Q41783	reviewed	TBB6_MAIZE	Tubulin beta-6 chain (Beta-6-tubulin)	TUBB6 TUB6	Zea mays (Maize)	446	TUBB6
+Q41808	reviewed	TBG2_MAIZE	Tubulin gamma-2 chain (Gamma-2-tubulin)	TUBG2 TUBC TUBG	Zea mays (Maize)	469	TUBG2
+Q41874	reviewed	TBG3_MAIZE	Tubulin gamma-3 chain (Gamma-3-tubulin)	TUBG3 TUBC TUBG	Zea mays (Maize)	421	TUBG3
+Q6EVK8	reviewed	TBB1_SUIBO	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Suillus bovinus (Jersey cow bolete) (Boletus bovinus)	446	TUBB1
+Q9SCC8	reviewed	TBAN_GUITH	Tubulin alpha chain, nucleomorph (EC 3.6.5.-) (Nucleomorph alpha-tubulin)	tubA atubNM	Guillardia theta (Cryptophyte) (Cryptomonas phi)	448	tubA
+Q9ZRA8	reviewed	TBB5_WHEAT	Tubulin beta-5 chain (Beta-5-tubulin)	TUBB5	Triticum aestivum (Wheat)	447	TUBB5
+F8SJR0	reviewed	PHUZ_BPPA3	Phage tubulin-like protein (PhuZ) (EC 3.6.5.-) (Phage tubulin/FtsZ) (Tubulin-like protein TubZ)	028	Pseudomonas phage PhiPA3 (Pseudomonas aeruginosa phage PhiPA3)	315	028
+P22014	reviewed	TBB2_COLGR	Tubulin beta-2 chain (Beta-2-tubulin)	TUB2	Colletotrichum graminicola (Maize anthracnose fungus) (Glomerella graminicola)	447	TUB2
+P30156	reviewed	TBB5_ECTVR	Tubulin beta-5 chain (Beta-5-tubulin)	TUBB5	Ectocarpus variabilis (Brown alga)	447	TUBB5
+P31863	reviewed	TBB2_HYPRU	Tubulin beta-2 chain (Beta-2-tubulin)	tub2	Hypocrea rufa (Trichoderma viride)	446	tub2
+P33630	reviewed	TBB1_ANEPH	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Anemia phyllitidis (Fern) (Osmunda phyllitidis)	443	TUBB1
+Q9SEV2	reviewed	TBBN_GUITH	Tubulin beta chain, nucleomorph (Nucleomorph beta-tubulin)	tubB btubNM	Guillardia theta (Cryptophyte) (Cryptomonas phi)	441	tubB
+O17449	reviewed	TBB1_MANSE	Tubulin beta-1 chain (Beta-1-tubulin)		Manduca sexta (Tobacco hawkmoth) (Tobacco hornworm)	447	
+P12459	reviewed	TBB1_SOYBN	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Glycine max (Soybean) (Glycine hispida)	445	TUBB1
+P20364	reviewed	TBB1_DAUCA	Tubulin beta-1 chain (Beta-1-tubulin)	TUBB1	Daucus carota (Wild carrot)	315	TUBB1
+P31864	reviewed	TBB1_HYPRU	Tubulin beta-1 chain (Beta-1-tubulin)	tub1	Hypocrea rufa (Trichoderma viride)	446	tub1
+P32924	reviewed	TBB1_GEOCN	Tubulin beta-1 chain (Beta-1-tubulin)		Geotrichum candidum (Oospora lactis) (Dipodascus geotrichum)	447	
+P32925	reviewed	TBB2_GEOCN	Tubulin beta-2 chain (Beta-2-tubulin)		Geotrichum candidum (Oospora lactis) (Dipodascus geotrichum)	453	
+P40905	reviewed	TBB2_ERYPI	Tubulin beta-2 chain (Beta-2-tubulin)	TUB2	Erysiphe pisi (Pea powdery mildew)	447	TUB2
+Q41807	reviewed	TBG1_MAIZE	Tubulin gamma-1 chain (Gamma-1-tubulin)	TUBG1 TUBC TUBG	Zea mays (Maize)	469	TUBG1
+Q6VAF6	reviewed	TBB6_GOSHI	Tubulin beta-6 chain (Beta-6-tubulin)		Gossypium hirsutum (Upland cotton) (Gossypium mexicanum)	450	
+Q875L3	reviewed	TBB1_HYPVI	Tubulin beta-1 chain (Beta-1-tubulin)		Hypocrea virens (Gliocladium virens) (Trichoderma virens)	445	
+Q8J1R4	reviewed	TBB2_SUIBO	Tubulin beta-2 chain (Beta-2-tubulin)	TUBB2	Suillus bovinus (Jersey cow bolete) (Boletus bovinus)	445	TUBB2
+Q94571	reviewed	TBB2_HOMAM	Tubulin beta-2 chain (Beta-II tubulin)		Homarus americanus (American lobster)	452	
+Q52PV9	reviewed	TBA_TYRPU	Tubulin alpha chain (EC 3.6.5.-) (Alpha-tubulin) (allergen Tyr p 33)		Tyrophagus putrescentiae (Mold mite) (Acarus putrescentiae)	450	
+Q5RBD9	reviewed	TBCE_PONAB	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	TBCE	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	527	TBCE
+P23330	reviewed	TBG1_XENLA	Tubulin gamma-1 chain (Gamma-1-tubulin) (xGAM)	tubg1	Xenopus laevis (African clawed frog)	451	tubg1
+Q5U508	reviewed	TBCE_XENLA	Tubulin-specific chaperone E (Tubulin-folding cofactor E)	tbce	Xenopus laevis (African clawed frog)	522	tbce
+Q5PQJ7	reviewed	TBCEL_RAT	Tubulin-specific chaperone cofactor E-like protein (Leucine-rich repeat-containing protein 35)	Tbcel Lrrc35	Rattus norvegicus (Rat)	424	Tbcel
+Q8C5W3	reviewed	TBCEL_MOUSE	Tubulin-specific chaperone cofactor E-like protein (Leucine-rich repeat-containing protein 35)	Tbcel Lrrc35	Mus musculus (Mouse)	424	Tbcel
+P0CAZ1	reviewed	TTL3F_TETTS	Tubulin glycylase 3F (EC 6.3.2.-)	TTLL3F TTHERM_00316230	Tetrahymena thermophila (strain SB210)	899	TTLL3F
+Q07972	reviewed	TBAA_PNECA	Tubulin alpha chain (EC 3.6.5.-)	TUB-A	Pneumocystis carinii	212	TUB-A
+Q08628	reviewed	TBA_BLEJA	Tubulin alpha chain (EC 3.6.5.-)		Blepharisma japonicum	50	
+P10489	reviewed	TBA_LEPSE	Tubulin alpha chain (EC 3.6.5.-)		Leptomonas seymouri	25	
+P84549	reviewed	TBA_POPEU	Tubulin alpha chain (EC 3.6.5.-)		Populus euphratica (Euphrates poplar)	50	
+Q5R5J7	reviewed	TBCC_PONAB	Tubulin-specific chaperone C (Tubulin-folding cofactor C) (CFC)	TBCC	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	346	TBCC
+Q23K29	reviewed	TTL3D_TETTS	Tubulin glycylase 3D (EC 6.3.2.-)	TTLL3D TTHERM_00196050	Tetrahymena thermophila (strain SB210)	1034	TTLL3D
+P33628	reviewed	TBA_PICAB	Tubulin alpha chain (EC 3.6.5.-)	TUBA	Picea abies (Norway spruce) (Picea excelsa)	113	TUBA
+A8X9V4	reviewed	TTLL4_CAEBR	Tubulin polyglutamylase ttll-4 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 4)	ttll-4 CBG09874	Caenorhabditis briggsae	597	ttll-4
+Q9W5X9	reviewed	ATAT2_DROME	Alpha-tubulin N-acetyltransferase 2 (Alpha-TAT 2) (TAT 2) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog 2)	CG17003	Drosophila melanogaster (Fruit fly)	287	
+P38160	reviewed	TTL_PIG	Tubulin--tyrosine ligase (TTL) (EC 6.3.2.25)	TTL	Sus scrofa (Pig)	379	TTL
+Q9HHD0	reviewed	CETZ_THEKO	Tubulin-like protein CetZ	cetZ ftsZ3 tubA TK1669	Thermococcus kodakarensis (strain ATCC BAA-918 / JCM 12380 / KOD1) (Pyrococcus kodakaraensis (strain KOD1))	380	cetZ
+P0C8Y1	reviewed	MZT1_DANRE	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	mzt1 mozart1	Danio rerio (Zebrafish) (Brachydanio rerio)	75	mzt1
+Q9CQ25	reviewed	MZT2_MOUSE	Mitotic-spindle organizing protein 2 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 2B)	Mzt2 Fam128b Mozart2	Mus musculus (Mouse)	159	Mzt2
+D4GW48	reviewed	CETZ3_HALVD	Tubulin-like protein CetZ3 (Cell-structure-related euryarchaeota tubulin/FtsZ homolog 3)	cetZ3 ftsZ5 HVO_1113 C498_13178	Haloferax volcanii (strain ATCC 29605 / DSM 3757 / JCM 8879 / NBRC 14742 / NCIMB 2012 / VKM B-1768 / DS2) (Halobacterium volcanii)	389	cetZ3
+D4GQ67	reviewed	CETZ4_HALVD	Tubulin-like protein CetZ4 (Cell-structure-related euryarchaeota tubulin/FtsZ homolog 4)	cetZ4 ftsZ6 HVO_A0035 C498_11071	Haloferax volcanii (strain ATCC 29605 / DSM 3757 / JCM 8879 / NBRC 14742 / NCIMB 2012 / VKM B-1768 / DS2) (Halobacterium volcanii)	394	cetZ4
+D4GU26	reviewed	CETZ5_HALVD	Tubulin-like protein CetZ5 (Cell-structure-related euryarchaeota tubulin/FtsZ homolog 5)	cetZ5 ftsZ7 HVO_2013 C498_05346	Haloferax volcanii (strain ATCC 29605 / DSM 3757 / JCM 8879 / NBRC 14742 / NCIMB 2012 / VKM B-1768 / DS2) (Halobacterium volcanii)	394	cetZ5
+D4GTC1	reviewed	CETZ2_HALVD	Tubulin-like protein CetZ2 (Cell-structure-related euryarchaeota tubulin/FtsZ homolog 2)	cetZ2 ftsZ3 HVO_0745 C498_15008	Haloferax volcanii (strain ATCC 29605 / DSM 3757 / JCM 8879 / NBRC 14742 / NCIMB 2012 / VKM B-1768 / DS2) (Halobacterium volcanii)	360	cetZ2
+D4GU81	reviewed	CETZ6_HALVD	Tubulin-like protein CetZ6 (Cell-structure-related euryarchaeota tubulin/FtsZ homolog 6)	cetZ6 ftsZ8 HVO_2068 C498_05628	Haloferax volcanii (strain ATCC 29605 / DSM 3757 / JCM 8879 / NBRC 14742 / NCIMB 2012 / VKM B-1768 / DS2) (Halobacterium volcanii)	370	cetZ6
+Q4MKK8	reviewed	TUBZ_BACCE	Tubulin-like protein TubZ (EC 3.6.5.-) (FtsZ/tubulin-like protein TubZ) (Plasmid replication protein RepX)	tubZ repX BCE_G9241_pBCXO1_0052	Bacillus cereus	435	tubZ
+D2HS03	reviewed	RITA1_AILME	RBPJ-interacting and tubulin-associated protein 1 (RBPJ-interacting and tubulin-associated protein)	RITA1 RITA PANDA_014816	Ailuropoda melanoleuca (Giant panda)	269	RITA1
+Q10438	reviewed	TTL_SCHPO	Probable tubulin--tyrosine ligase C12B10.04 (EC 6.3.2.25)	SPAC12B10.04	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	403	
+Q5R5J6	reviewed	GCP2_PONAB	Gamma-tubulin complex component 2 (GCP-2)	TUBGCP2	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	902	TUBGCP2
+Q95K09	reviewed	GCP5_MACFA	Gamma-tubulin complex component 5 (GCP-5)	TUBGCP5 GCP5 QtsA-11379	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	725	TUBGCP5
+Q4R7H0	reviewed	TTL10_MACFA	Protein polyglycylase TTLL10 (EC 6.3.2.-) (Tubulin--tyrosine ligase-like protein 10)	TTLL10 QtsA-15349	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	618	TTLL10
+Q4Q9X8	reviewed	ATAT_LEIMA	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	LmjF25.1150 LmjF_25_1150	Leishmania major	246	
+Q16Y34	reviewed	ATAT_AEDAE	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	AAEL008679	Aedes aegypti (Yellowfever mosquito) (Culex aegypti)	272	
+Q57XX3	reviewed	ATAT_TRYB2	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	Tb927.3.1400	Trypanosoma brucei brucei (strain 927/4 GUTat10.1)	334	
+Q22XZ3	reviewed	ATAT_TETTS	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	TTHERM_00355780	Tetrahymena thermophila (strain SB210)	399	
+B0W3R7	reviewed	ATAT_CULQU	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	CPIJ002083	Culex quinquefasciatus (Southern house mosquito) (Culex pungens)	446	
+Q7PNM6	reviewed	ATAT_ANOGA	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	AGAP005828	Anopheles gambiae (African malaria mosquito)	483	
+O73787	reviewed	GCP3_XENLA	Gamma-tubulin complex component 3 homolog (Gamma-ring complex protein 109) (Xgrip109) (x109p)	tubgcp3	Xenopus laevis (African clawed frog)	906	tubgcp3
+A8XKM2	reviewed	ATAT2_CAEBR	Alpha-tubulin N-acetyltransferase 2 (Alpha-TAT 2) (TAT 2) (EC 2.3.1.108) (Mec-17-like protein)	atat-2 CBG14763	Caenorhabditis briggsae	263	atat-2
+Q4DTX9	reviewed	ATAT2_TRYCC	Alpha-tubulin N-acetyltransferase 2 (Alpha-TAT 2) (TAT 2) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog 2)	Tc00.1047053509233.160	Trypanosoma cruzi (strain CL Brener)	328	
+Q4CQJ5	reviewed	ATAT1_TRYCC	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT 1) (TAT 1) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog 1)	Tc00.1047053467287.10	Trypanosoma cruzi (strain CL Brener)	329	
+Q5BDL9	reviewed	MZT1_EMENI	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	AN1361	Emericella nidulans (strain FGSC A4 / ATCC 38163 / CBS 112.46 / NRRL 194 / M139) (Aspergillus nidulans)	74	
+Q20728	reviewed	TBCB_CAEEL	Tubulin-specific chaperone B (Tubulin-folding cofactor B) (CoB)	tbcb-1 F53F4.3	Caenorhabditis elegans	229	tbcb-1
+Q75JC8	reviewed	TBCA_DICDI	Tubulin-specific chaperone A (Tubulin-folding cofactor A) (CFA)	tbca DDB_G0271706	Dictyostelium discoideum (Social amoeba)	113	tbca
+G5EF84	reviewed	GIP2_CAEEL	Gamma-tubulin interacting protein 2	gip-2 C45G3.5	Caenorhabditis elegans	642	gip-2
+P91127	reviewed	TPPP_CAEEL	Tubulin polymerization-promoting protein homolog	tppp-1 C32E8.3	Caenorhabditis elegans	180	tppp-1
+Q3UG98	reviewed	NAT9_MOUSE	Alpha/beta-tubulin-N-acetyltransferase 9 (EC 2.3.1.308)	Nat9	Mus musculus (Mouse)	241	Nat9
+Q6AXS8	reviewed	TPGS2_RAT	Tubulin polyglutamylase complex subunit 2 (PGs2)	Tpgs2	Rattus norvegicus (Rat)	296	Tpgs2
+Q09503	reviewed	TTBK6_CAEEL	Inactive tau-tubulin kinase ttbk-6	ttbk-6 C45G9.1	Caenorhabditis elegans	290	ttbk-6
+Q3ZBU3	reviewed	TEDC2_BOVIN	Tubulin epsilon and delta complex protein 2	TEDC2	Bos taurus (Bovine)	443	TEDC2
+Q5M9F0	reviewed	CSTP1_RAT	Centriolar satellite-associated tubulin polyglutamylase complex regulator 1	Cstpp1	Rattus norvegicus (Rat)	331	Cstpp1
+Q32KQ7	reviewed	CSTP1_BOVIN	Centriolar satellite-associated tubulin polyglutamylase complex regulator 1	CSTPP1	Bos taurus (Bovine)	326	CSTPP1
+Q8SRD2	reviewed	TBG_ENCCU	Tubulin gamma chain (Gamma-tubulin)	TUB4 ECU08_0670	Encephalitozoon cuniculi (strain GB-M1) (Microsporidian parasite)	434	TUB4
+P34785	reviewed	TBG_ANEPH	Tubulin gamma chain (Gamma-tubulin)	TUBG	Anemia phyllitidis (Fern) (Osmunda phyllitidis)	472	TUBG
+P54402	reviewed	TBG_EUPAE	Tubulin gamma chain (Gamma-tubulin)		Euplotes aediculatus (Ciliate)	461	
+Q7Z9Z2	reviewed	TBG_COPC7	Tubulin gamma chain (Gamma-tubulin)	TUB4 CC1G_05145	Coprinopsis cinerea (strain Okayama-7 / 130 / ATCC MYA-4618 / FGSC 9003) (Inky cap fungus) (Hormographiella aspergillata)	453	TUB4
+Q9CQM0	reviewed	NICN1_MOUSE	Nicolin-1 (Tubulin polyglutamylase complex subunit 5) (PGs5) (p24)	Nicn1	Mus musculus (Mouse)	213	Nicn1
+P34786	reviewed	TBG1_EUPOC	Tubulin gamma-1 chain (Gamma-1-tubulin)		Euplotoides octocarinatus (Freshwater ciliate) (Euplotes octocarinatus)	461	
+P54403	reviewed	TBG1_EUPCR	Tubulin gamma-1 chain (Gamma-1-tubulin)		Euplotes crassus	462	
+P90548	reviewed	TBG2_EUPOC	Tubulin gamma-2 chain (Gamma-2-tubulin)		Euplotoides octocarinatus (Freshwater ciliate) (Euplotes octocarinatus)	461	
+Q9SEA4	reviewed	TBGN_GUITH	Tubulin gamma chain, nucleomorph (Nucleomorph gamma-tubulin)	tubG gtubNM	Guillardia theta (Cryptophyte) (Cryptomonas phi)	424	tubG
+Q9P3T8	reviewed	TBCC_SCHPO	Tubulin-specific chaperone C (Tubulin-folding cofactor C) (CFC)	cin2 SPAC328.08c	Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast)	259	cin2
+A0B5R2	reviewed	CETZ_METTP	Tubulin-like protein CetZ (Cell-structure-related euryarchaeota tubulin/FtsZ homolog)	cetZ Mthe_0239	Methanothrix thermoacetophila (strain DSM 6194 / JCM 14653 / NBRC 101360 / PT) (Methanosaeta thermophila)	367	cetZ
+Q8U0S7	reviewed	CETZ_PYRFU	Tubulin-like protein CetZ	cetZ ftsZ3 PF1507	Pyrococcus furiosus (strain ATCC 43587 / DSM 3638 / JCM 8422 / Vc1)	366	cetZ
+Q9V0H5	reviewed	CETZ_PYRAB	Tubulin-like protein CetZ	cetZ ftsZ-3 ftsZ3 PYRAB08140 PAB1820	Pyrococcus abyssi (strain GE5 / Orsay)	365	cetZ
+O59060	reviewed	CETZ_PYRHO	Tubulin-like protein CetZ	cetZ ftsZ3 PH1335	Pyrococcus horikoshii (strain ATCC 700860 / DSM 12428 / JCM 9974 / NBRC 100139 / OT-3)	365	cetZ
+Q6DC17	reviewed	MZT2_DANRE	Mitotic-spindle organizing protein 2 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 2)	mzt2 fam128 mozart2 zgc:101080	Danio rerio (Zebrafish) (Brachydanio rerio)	153	mzt2
+A5PJV8	reviewed	MZT2_BOVIN	Mitotic-spindle organizing protein 2 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 2)	MZT2 FAM128 MOZART2	Bos taurus (Bovine)	158	MZT2
+A8XXC0	reviewed	TTL12_CAEBR	Tubulin--tyrosine ligase-like protein 12 (Inactive tubulin--tyrosine ligase-like protein 12)	ttll-12 CBG20224	Caenorhabditis briggsae	672	ttll-12
+Q9SC88	reviewed	GCP4_MEDTR	Gamma-tubulin complex component 4 homolog	85P	Medicago truncatula (Barrel medic) (Medicago tribuloides)	739	85P
+Q4R3A0	reviewed	TPPP2_MACFA	Tubulin polymerization-promoting protein family member 2	TPPP2 QtsA-18383	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	170	TPPP2
+Q2VPM9	reviewed	TPPP3_XENLA	Tubulin polymerization-promoting protein family member 3	tppp3	Xenopus laevis (African clawed frog)	176	tppp3
+A4IIY2	reviewed	TPPP3_XENTR	Tubulin polymerization-promoting protein family member 3	tppp3	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	176	tppp3
+Q4R5A4	reviewed	CSTP1_MACFA	Centriolar satellite-associated tubulin polyglutamylase complex regulator 1	CSTPP1 QccE-10352	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	331	CSTPP1
+Q5RC14	reviewed	CSTP1_PONAB	Centriolar satellite-associated tubulin polyglutamylase complex regulator 1	CSTPP1	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	331	CSTPP1
+B3L2R5	reviewed	ATAT_PLAKH	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	PKH_072200	Plasmodium knowlesi (strain H)	184	
+C0H559	reviewed	ATAT_PLAF7	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	ATAT PF3D7_0924900 PFI1220w	Plasmodium falciparum (isolate 3D7)	184	ATAT
+D0NK82	reviewed	ATAT_PHYIT	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	PITG_13069	Phytophthora infestans (strain T30-4) (Potato late blight agent)	179	
+A4I1F7	reviewed	ATAT_LEIIN	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	LinJ25.1190 LinJ_25_1190	Leishmania infantum	246	
+Q5DD96	reviewed	ATAT_SCHJA	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	SJCHGC00609	Schistosoma japonicum (Blood fluke)	267	
+A5K6W4	reviewed	ATAT_PLAVS	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	PVX_099660	Plasmodium vivax (strain Salvador I)	184	
+A4HE59	reviewed	ATAT_LEIBR	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	LbrM25_V2.1130 LbrM_25_1130	Leishmania braziliensis	236	
+A8BM50	reviewed	ATAT_GIAIC	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	GL50803_16348	Giardia intestinalis (strain ATCC 50803 / WB clone C6) (Giardia lamblia)	362	
+B3RNE8	reviewed	ATAT_TRIAD	Alpha-tubulin N-acetyltransferase (Alpha-TAT) (TAT) (EC 2.3.1.108) (Acetyltransferase mec-17 homolog)	TRIADDRAFT_53139	Trichoplax adhaerens (Trichoplax reptans)	238	
+A8XRF5	reviewed	ATAT1_CAEBR	Alpha-tubulin N-acetyltransferase 1 (Alpha-TAT 1) (TAT 1) (EC 2.3.1.108) (Mechanosensory abnormality protein 17)	mec-17 CBG17726	Caenorhabditis briggsae	277	mec-17
+A1CQI3	reviewed	MZT1_ASPCL	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	ACLA_026210	Aspergillus clavatus (strain ATCC 1007 / CBS 513.65 / DSM 816 / NCTC 3887 / NRRL 1 / QM 1276 / 107)	71	
+Q5U4M5	reviewed	MZT1_XENLA	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	mzt1 mozart1	Xenopus laevis (African clawed frog)	72	mzt1
+A4QYG1	reviewed	MZT1_PYRO7	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	MGG_14000	Pyricularia oryzae (strain 70-15 / ATCC MYA-4617 / FGSC 8958) (Rice blast fungus) (Magnaporthe oryzae)	80	
+P0CP04	reviewed	MZT1_CRYNJ	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	CNA01750	Cryptococcus neoformans var. neoformans serotype D (strain JEC21 / ATCC MYA-565) (Filobasidiella neoformans)	72	
+A7EXZ2	reviewed	MZT1_SCLS1	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	SS1G_10207	Sclerotinia sclerotiorum (strain ATCC 18683 / 1980 / Ss-1) (White mold) (Whetzelinia sclerotiorum)	83	
+B5FXZ4	reviewed	MZT1_TAEGU	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	mzt1 mozart1	Taeniopygia guttata (Zebra finch) (Poephila guttata)	72	mzt1
+P0CP05	reviewed	MZT1_CRYNB	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	CNBA1680	Cryptococcus neoformans var. neoformans serotype D (strain B-3501A) (Filobasidiella neoformans)	72	
+Q0VFD6	reviewed	MZT1_XENTR	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	mzt1 mozart1	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	72	mzt1
+A6S6H9	reviewed	MZT1_BOTFB	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	BC1G_08507	Botryotinia fuckeliana (strain B05.10) (Noble rot fungus) (Botrytis cinerea)	83	
+Q28DB1	reviewed	MZT2B_XENTR	Mitotic-spindle organizing protein 2B (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 2B)	mzt2b fam128 mozart2 TEgg010b01.1	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	170	mzt2b
+Q2GVR6	reviewed	MZT1_CHAGB	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	CHGG_07938	Chaetomium globosum (strain ATCC 6205 / CBS 148.51 / DSM 1962 / NBRC 6347 / NRRL 1970) (Soil fungus)	87	
+A9NKD9	reviewed	MZT1_PICSI	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)		Picea sitchensis (Sitka spruce) (Pinus sitchensis)	69	
+Q1DRC2	reviewed	MZT1_COCIM	Mitotic-spindle organizing protein 1 (Mitotic-spindle organizing protein associated with a ring of gamma-tubulin 1)	CIMG_07141	Coccidioides immitis (strain RS) (Valley fever fungus)	72	
+Q861Y6	reviewed	NICN1_CANLF	Nicolin-1 (Tubulin polyglutamylase complex subunit 5) (PGs5)	NICN1	Canis lupus familiaris (Dog) (Canis familiaris)	213	NICN1

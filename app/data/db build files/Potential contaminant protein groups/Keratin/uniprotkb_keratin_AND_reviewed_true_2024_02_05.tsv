@@ -1,0 +1,618 @@
+Entry	Reviewed	Entry Name	Protein names	Gene Names	Organism	Length	Gene Names (primary)	Organism (ID)
+A0A0G2JZ79	reviewed	SIR1_RAT	NAD-dependent protein deacetylase sirtuin-1 (EC 2.3.1.286) (NAD-dependent protein deacylase sirtuin-1) (EC 2.3.1.-)	Sirt1	Rattus norvegicus (Rat)	555	Sirt1	10116
+A0A0H2URK1	reviewed	PSRP_STRPN	Pneumococcal serine-rich repeat protein (PsrP) (Adhesin PsrP) (Serine-rich repeat protein PsrP)	psrP SP_1772	Streptococcus pneumoniae serotype 4 (strain ATCC BAA-334 / TIGR4)	4776	psrP	170187
+D3ZER2	reviewed	BFSP2_RAT	Phakinin (49 kDa cytoskeletal protein) (Beaded filament structural protein 2) (Lens fiber cell beaded filament protein CP 47) (CP47) (Lens fiber cell beaded filament protein CP 49) (CP49) (Lens intermediate filament-like light) (LIFL-L)	Bfsp2	Rattus norvegicus (Rat)	416	Bfsp2	10116
+F7EQ49	reviewed	GPER1_MACMU	G-protein coupled estrogen receptor 1 (G protein-coupled estrogen receptor 1) (G-protein coupled receptor 30)	GPER1 GPER GPR30	Macaca mulatta (Rhesus macaque)	375	GPER1	9544
+O08878	reviewed	GPER1_RAT	G-protein coupled estrogen receptor 1 (Chemoattractant receptor-like 2) (G protein-coupled estrogen receptor 1) (G-protein coupled receptor 30) (G-protein coupled receptor 41) (Membrane estrogen receptor) (mER)	Gper1 Cmkrl2 Gper Gpr30 Gpr41	Rattus norvegicus (Rat)	375	Gper1	10116
+O42779	reviewed	CARP9_CANAX	Secreted aspartic protease 9 (ACP 9) (Aspartate protease 9) (EC 3.4.23.24) (Candidapepsin-9)	SAP9	Candida albicans (Yeast)	544	SAP9	5476
+O43790	reviewed	KRT86_HUMAN	Keratin, type II cuticular Hb6 (Hair keratin K2.11) (Keratin-86) (K86) (Type II hair keratin Hb6) (Type-II keratin Kb26)	KRT86 KRTHB6	Homo sapiens (Human)	486	KRT86	9606
+O70126	reviewed	AURKB_MOUSE	Aurora kinase B (EC 2.7.11.1) (Aurora 1) (Aurora- and IPL1-like midbody-associated protein 1) (Aurora/IPL1-related kinase 2) (ARK-2) (Aurora-related kinase 2) (STK-1) (Serine/threonine-protein kinase 12) (Serine/threonine-protein kinase 5) (Serine/threonine-protein kinase aurora-B)	Aurkb Aik2 Aim1 Airk2 Ark2 Stk1 Stk12 Stk5	Mus musculus (Mouse)	345	Aurkb	10090
+O70456	reviewed	1433S_MOUSE	14-3-3 protein sigma (Stratifin)	Sfn Mkrn3	Mus musculus (Mouse)	248	Sfn	10090
+O75190	reviewed	DNJB6_HUMAN	DnaJ homolog subfamily B member 6 (HHDJ1) (Heat shock protein J2) (HSJ-2) (MRJ) (MSJ-1)	DNAJB6 HSJ2 MRJ MSJ1	Homo sapiens (Human)	326	DNAJB6	9606
+O76011	reviewed	KRT34_HUMAN	Keratin, type I cuticular Ha4 (Hair keratin, type I Ha4) (Keratin-34) (K34)	KRT34 HHA4 HKA4 KRTHA4	Homo sapiens (Human)	394	KRT34	9606
+O76013	reviewed	KRT36_HUMAN	Keratin, type I cuticular Ha6 (Hair keratin, type I Ha6) (Keratin-36) (K36)	KRT36 HHA6 HKA6 KRTHA6	Homo sapiens (Human)	467	KRT36	9606
+O76014	reviewed	KRT37_HUMAN	Keratin, type I cuticular Ha7 (Hair keratin, type I Ha7) (Keratin-37) (K37)	KRT37 HHA7 HKA7 KRTHA7	Homo sapiens (Human)	449	KRT37	9606
+O76015	reviewed	KRT38_HUMAN	Keratin, type I cuticular Ha8 (Hair keratin, type I Ha8) (Keratin-38) (K38)	KRT38 HHA8 HKA8 KRTHA8	Homo sapiens (Human)	456	KRT38	9606
+O76070	reviewed	SYUG_HUMAN	Gamma-synuclein (Breast cancer-specific gene 1 protein) (Persyn) (Synoretin) (SR)	SNCG BCSG1 PERSYN PRSN	Homo sapiens (Human)	127	SNCG	9606
+O77788	reviewed	NFM_BOVIN	Neurofilament medium polypeptide (NF-M) (160 kDa neurofilament protein) (Neurofilament 3) (Neurofilament triplet M protein)	NEFM NEF3 NFM	Bos taurus (Bovine)	926	NEFM	9913
+O88898	reviewed	P63_MOUSE	Tumor protein 63 (p63) (Transformation-related protein 63) (TP63) (Tumor protein p73-like) (p73L)	Tp63 P63 P73l Tp73l Trp63	Mus musculus (Mouse)	680	Tp63	10090
+O89094	reviewed	CASPE_MOUSE	Caspase-14 (CASP-14) (EC 3.4.22.-) (Mini-ICE) (MICE) [Cleaved into: Caspase-14 subunit p17, mature form; Caspase-14 subunit p10, mature form; Caspase-14 subunit p20, intermediate form; Caspase-14 subunit p8, intermediate form]	Casp14	Mus musculus (Mouse)	257	Casp14	10090
+O95678	reviewed	K2C75_HUMAN	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (hK6hf) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	KRT75 K6HF KB18	Homo sapiens (Human)	551	KRT75	9606
+P00780	reviewed	SUBC_BACLI	Subtilisin Carlsberg (EC 3.4.21.62)	subC apr	Bacillus licheniformis	379	subC	1402
+P02533	reviewed	K1C14_HUMAN	Keratin, type I cytoskeletal 14 (Cytokeratin-14) (CK-14) (Keratin-14) (K14)	KRT14	Homo sapiens (Human)	472	KRT14	9606
+P02535	reviewed	K1C10_MOUSE	Keratin, type I cytoskeletal 10 (56 kDa cytokeratin) (Cytokeratin-10) (CK-10) (Keratin, type I cytoskeletal 59 kDa) (Keratin-10) (K10)	Krt10 Krt1-10	Mus musculus (Mouse)	570	Krt10	10090
+P02538	reviewed	K2C6A_HUMAN	Keratin, type II cytoskeletal 6A (Cytokeratin-6A) (CK-6A) (Cytokeratin-6D) (CK-6D) (Keratin-6A) (K6A) (Type-II keratin Kb6) (allergen Hom s 5)	KRT6A K6A KRT6D	Homo sapiens (Human)	564	KRT6A	9606
+P04104	reviewed	K2C1_MOUSE	Keratin, type II cytoskeletal 1 (67 kDa cytokeratin) (Cytokeratin-1) (CK-1) (Keratin-1) (K1) (Type-II keratin Kb1)	Krt1 Krt2-1	Mus musculus (Mouse)	637	Krt1	10090
+P04259	reviewed	K2C6B_HUMAN	Keratin, type II cytoskeletal 6B (Cytokeratin-6B) (CK-6B) (Keratin-6B) (K6B) (Type-II keratin Kb10)	KRT6B K6B KRTL1	Homo sapiens (Human)	564	KRT6B	9606
+P04264	reviewed	K2C1_HUMAN	Keratin, type II cytoskeletal 1 (67 kDa cytokeratin) (Cytokeratin-1) (CK-1) (Hair alpha protein) (Keratin-1) (K1) (Type-II keratin Kb1)	KRT1 KRTA	Homo sapiens (Human)	644	KRT1	9606
+P05783	reviewed	K1C18_HUMAN	Keratin, type I cytoskeletal 18 (Cell proliferation-inducing gene 46 protein) (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	KRT18 CYK18 PIG46	Homo sapiens (Human)	430	KRT18	9606
+P05784	reviewed	K1C18_MOUSE	Keratin, type I cytoskeletal 18 (Cytokeratin endo B) (Keratin D) (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	Krt18 Kerd Krt1-18	Mus musculus (Mouse)	423	Krt18	10090
+P05787	reviewed	K2C8_HUMAN	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Keratin-8) (K8) (Type-II keratin Kb8)	KRT8 CYK8	Homo sapiens (Human)	483	KRT8	9606
+P06394	reviewed	K1C10_BOVIN	Keratin, type I cytoskeletal 10 (Cytokeratin VIB) (Cytokeratin-10) (CK-10) (Cytokeratin-6B) (Keratin-10) (K10)	KRT10	Bos taurus (Bovine)	526	KRT10	9913
+P06873	reviewed	PRTK_PARAQ	Proteinase K (EC 3.4.21.64) (Endopeptidase K) (Tritirachium alkaline proteinase)	PROK	Parengyodontium album (Tritirachium album)	384	PROK	37998
+P06922	reviewed	VE4_HPV16	Protein E4 (E1^E4)	E4	Human papillomavirus type 16	92	E4	333760
+P07197	reviewed	NFM_HUMAN	Neurofilament medium polypeptide (NF-M) (160 kDa neurofilament protein) (Neurofilament 3) (Neurofilament triplet M protein)	NEFM NEF3 NFM	Homo sapiens (Human)	916	NEFM	9606
+P07476	reviewed	INVO_HUMAN	Involucrin	IVL	Homo sapiens (Human)	585	IVL	9606
+P07744	reviewed	K2C4_MOUSE	Keratin, type II cytoskeletal 4 (Cytokeratin-4) (CK-4) (Cytoskeletal 57 kDa keratin) (Keratin-4) (K4) (Type-II keratin Kb4)	Krt4 Krt2-4	Mus musculus (Mouse)	525	Krt4	10090
+P08553	reviewed	NFM_MOUSE	Neurofilament medium polypeptide (NF-M) (160 kDa neurofilament protein) (Neurofilament 3) (Neurofilament triplet M protein)	Nefm Nef3 Nfm	Mus musculus (Mouse)	848	Nefm	10090
+P08670	reviewed	VIME_HUMAN	Vimentin	VIM	Homo sapiens (Human)	466	VIM	9606
+P08727	reviewed	K1C19_HUMAN	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	KRT19	Homo sapiens (Human)	400	KRT19	9606
+P08729	reviewed	K2C7_HUMAN	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Sarcolectin) (Type-II keratin Kb7)	KRT7 SCL	Homo sapiens (Human)	469	KRT7	9606
+P08730	reviewed	K1C13_MOUSE	Keratin, type I cytoskeletal 13 (47 kDa cytokeratin) (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	Krt13 Krt1-13	Mus musculus (Mouse)	437	Krt13	10090
+P08779	reviewed	K1C16_HUMAN	Keratin, type I cytoskeletal 16 (Cytokeratin-16) (CK-16) (Keratin-16) (K16)	KRT16 KRT16A	Homo sapiens (Human)	473	KRT16	9606
+P09216	reviewed	KPCE_RAT	Protein kinase C epsilon type (EC 2.7.11.13) (nPKC-epsilon)	Prkce Pkce	Rattus norvegicus (Rat)	737	Prkce	10116
+P0CS83	reviewed	CARP2_CANAX	Secreted aspartic protease 2 (ACP 2) (Aspartate protease 2) (EC 3.4.23.24) (Candidapepsin-2) (Pepsinogen-11)	SAP2 PEP11 PRA11	Candida albicans (Yeast)	398	SAP2	5476
+P0CY26	reviewed	CARP1_CANAX	Secreted aspartic protease 1 (ACP 1) (Aspartate protease 1) (EC 3.4.23.24) (Candidapepsin-1) (Pepsinogen-1) (Pepsinogen-10)	SAP1 PEP1 PEP10 PRA10	Candida albicans (Yeast)	391	SAP1	5476
+P0CY27	reviewed	CARP1_CANAL	Secreted aspartic protease 1 (ACP 1) (Aspartate protease 1) (EC 3.4.23.24) (Candidapepsin-1) (Pepsinogen-1) (Pepsinogen-10)	SAP1 PEP1 PEP10 PRA10 CAALFM_C603490CA CaO19.13137 CaO19.5714	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	391	SAP1	237561
+P0CY28	reviewed	CARP3_CANAX	Secreted aspartic protease 3 (ACP 3) (Aspartate protease 3) (EC 3.4.23.24) (Candidapepsin-3)	SAP3	Candida albicans (Yeast)	398	SAP3	5476
+P0CY29	reviewed	CARP3_CANAL	Secreted aspartic protease 3 (ACP 3) (Aspartate protease 3) (EC 3.4.23.24) (Candidapepsin-3)	SAP3 CAALFM_C305230WA CaO19.13422 CaO19.6001	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	398	SAP3	237561
+P0DJ06	reviewed	CARP2_CANAL	Secreted aspartic protease 2 (ACP 2) (Aspartate protease 2) (EC 3.4.23.24) (Candidapepsin-2) (Pepsinogen-11)	SAP2 PEP11 PRA11 CAALFM_CR07800WA CaO19.11193 CaO19.3708	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	398	SAP2	237561
+P10830	reviewed	KPCE_RABIT	Protein kinase C epsilon type (EC 2.7.11.13) (nPKC-epsilon)	PRKCE	Oryctolagus cuniculus (Rabbit)	736	PRKCE	9986
+P11440	reviewed	CDK1_MOUSE	Cyclin-dependent kinase 1 (CDK1) (EC 2.7.11.22) (EC 2.7.11.23) (Cell division control protein 2 homolog) (Cell division protein kinase 1) (p34 protein kinase)	Cdk1 Cdc2 Cdc2a Cdkn1	Mus musculus (Mouse)	297	Cdk1	10090
+P11532	reviewed	DMD_HUMAN	Dystrophin	DMD	Homo sapiens (Human)	3685	DMD	9606
+P11679	reviewed	K2C8_MOUSE	Keratin, type II cytoskeletal 8 (Cytokeratin endo A) (Cytokeratin-8) (CK-8) (Keratin-8) (K8) (Type-II keratin Kb8)	Krt8 Krt2-8	Mus musculus (Mouse)	490	Krt8	10090
+P12035	reviewed	K2C3_HUMAN	Keratin, type II cytoskeletal 3 (65 kDa cytokeratin) (Cytokeratin-3) (CK-3) (Keratin-3) (K3) (Type-II keratin Kb3)	KRT3	Homo sapiens (Human)	628	KRT3	9606
+P12839	reviewed	NFM_RAT	Neurofilament medium polypeptide (NF-M) (160 kDa neurofilament protein) (Neurofilament 3) (Neurofilament triplet M protein)	Nefm Nef3 Nfm	Rattus norvegicus (Rat)	846	Nefm	10116
+P13645	reviewed	K1C10_HUMAN	Keratin, type I cytoskeletal 10 (Cytokeratin-10) (CK-10) (Keratin-10) (K10)	KRT10 KPP	Homo sapiens (Human)	584	KRT10	9606
+P13646	reviewed	K1C13_HUMAN	Keratin, type I cytoskeletal 13 (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	KRT13	Homo sapiens (Human)	458	KRT13	9606
+P13647	reviewed	K2C5_HUMAN	Keratin, type II cytoskeletal 5 (58 kDa cytokeratin) (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	KRT5	Homo sapiens (Human)	590	KRT5	9606
+P15331	reviewed	PERI_MOUSE	Peripherin	Prph Prph1	Mus musculus (Mouse)	475	Prph	10090
+P16054	reviewed	KPCE_MOUSE	Protein kinase C epsilon type (EC 2.7.11.13) (nPKC-epsilon)	Prkce Pkce Pkcea	Mus musculus (Mouse)	737	Prkce	10090
+P16144	reviewed	ITB4_HUMAN	Integrin beta-4 (GP150) (CD antigen CD104)	ITGB4	Homo sapiens (Human)	1822	ITGB4	9606
+P17661	reviewed	DESM_HUMAN	Desmin	DES	Homo sapiens (Human)	470	DES	9606
+P19001	reviewed	K1C19_MOUSE	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	Krt19 Krt1-19	Mus musculus (Mouse)	403	Krt19	10090
+P19012	reviewed	K1C15_HUMAN	Keratin, type I cytoskeletal 15 (Cytokeratin-15) (CK-15) (Keratin-15) (K15)	KRT15 KRTB	Homo sapiens (Human)	456	KRT15	9606
+P19013	reviewed	K2C4_HUMAN	Keratin, type II cytoskeletal 4 (Cytokeratin-4) (CK-4) (Keratin-4) (K4) (Type-II keratin Kb4)	KRT4 CYK4	Homo sapiens (Human)	520	KRT4	9606
+P20152	reviewed	VIME_MOUSE	Vimentin	Vim	Mus musculus (Mouse)	466	Vim	10090
+P20930	reviewed	FILA_HUMAN	Filaggrin	FLG	Homo sapiens (Human)	4061	FLG	9606
+P21807	reviewed	PERI_RAT	Peripherin	Prph Prph1	Rattus norvegicus (Rat)	468	Prph	10116
+P26371	reviewed	KRA59_HUMAN	Keratin-associated protein 5-9 (Keratin, cuticle, ultrahigh sulfur 1) (Keratin, ultra high-sulfur matrix protein A) (Keratin-associated protein 5.9) (UHS keratin A) (UHS KerA) (Ultrahigh sulfur keratin-associated protein 5.9)	KRTAP5-9 KAP5.9 KRN1 KRTAP5.9 UHSK1	Homo sapiens (Human)	169	KRTAP5-9	9606
+P27782	reviewed	LEF1_MOUSE	Lymphoid enhancer-binding factor 1 (LEF-1)	Lef1	Mus musculus (Mouse)	397	Lef1	10090
+P31000	reviewed	VIME_RAT	Vimentin	Vim	Rattus norvegicus (Rat)	466	Vim	10116
+P31001	reviewed	DESM_MOUSE	Desmin	Des	Mus musculus (Mouse)	469	Des	10090
+P31944	reviewed	CASPE_HUMAN	Caspase-14 (CASP-14) (EC 3.4.22.-) [Cleaved into: Caspase-14 subunit p17, mature form; Caspase-14 subunit p10, mature form; Caspase-14 subunit p20, intermediate form; Caspase-14 subunit p8, intermediate form]	CASP14	Homo sapiens (Human)	242	CASP14	9606
+P35527	reviewed	K1C9_HUMAN	Keratin, type I cytoskeletal 9 (Cytokeratin-9) (CK-9) (Keratin-9) (K9)	KRT9	Homo sapiens (Human)	623	KRT9	9606
+P35900	reviewed	K1C20_HUMAN	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20) (Protein IT)	KRT20	Homo sapiens (Human)	424	KRT20	9606
+P35908	reviewed	K22E_HUMAN	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	KRT2 KRT2A KRT2E	Homo sapiens (Human)	639	KRT2	9606
+P41219	reviewed	PERI_HUMAN	Peripherin (Neurofilament 4)	PRPH NEF4 PRPH1	Homo sapiens (Human)	470	PRPH	9606
+P43094	reviewed	CARP5_CANAL	Secreted aspartic protease 5 (ACP 5) (Aspartate protease 5) (EC 3.4.23.24) (Candidapepsin-5)	SAP5 CAALFM_C603030WA CaO19.13032 CaO19.5585	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	418	SAP5	237561
+P43096	reviewed	CARP7_CANAX	Secreted aspartic protease 7 (ACP 7) (Aspartate protease 7) (EC 3.4.23.24) (Candidapepsin-7)	SAP7	Candida albicans (Yeast)	588	SAP7	5476
+P48432	reviewed	SOX2_MOUSE	Transcription factor SOX-2	Sox2 Sox-2	Mus musculus (Mouse)	319	Sox2	10090
+P48616	reviewed	VIME_BOVIN	Vimentin	VIM	Bos taurus (Bovine)	466	VIM	9913
+P48668	reviewed	K2C6C_HUMAN	Keratin, type II cytoskeletal 6C (Cytokeratin-6C) (CK-6C) (Cytokeratin-6E) (CK-6E) (Keratin K6h) (Keratin-6C) (K6C) (Type-II keratin Kb12)	KRT6C KRT6E	Homo sapiens (Human)	564	KRT6C	9606
+P48729	reviewed	KC1A_HUMAN	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	CSNK1A1	Homo sapiens (Human)	337	CSNK1A1	9606
+P50207	reviewed	HXC13_MOUSE	Homeobox protein Hox-C13	Hoxc13 Hoxc-13	Mus musculus (Mouse)	328	Hoxc13	10090
+P50446	reviewed	K2C6A_MOUSE	Keratin, type II cytoskeletal 6A (Cytokeratin-6A) (CK-6A) (Keratin-6-alpha) (mK6-alpha) (Keratin-6A) (K6A)	Krt6a Ker2 Krt2-6 Krt2-6a Krt6	Mus musculus (Mouse)	553	Krt6a	10090
+P58107	reviewed	EPIPL_HUMAN	Epiplakin (450 kDa epidermal antigen)	EPPK1 EPIPL	Homo sapiens (Human)	5088	EPPK1	9606
+P59990	reviewed	KR121_HUMAN	Keratin-associated protein 12-1 (High sulfur keratin-associated protein 12.1) (Keratin-associated protein 12.1)	KRTAP12-1 KAP12.1 KRTAP12.1	Homo sapiens (Human)	96	KRTAP12-1	9606
+P59991	reviewed	KR122_HUMAN	Keratin-associated protein 12-2 (High sulfur keratin-associated protein 12.2) (Keratin-associated protein 12.2)	KRTAP12-2 KAP12.2 KRTAP12.2	Homo sapiens (Human)	146	KRTAP12-2	9606
+P60014	reviewed	KR10A_HUMAN	Keratin-associated protein 10-10 (High sulfur keratin-associated protein 10.10) (Keratin-associated protein 10.10) (Keratin-associated protein 18-10) (Keratin-associated protein 18.10)	KRTAP10-10 KAP10.10 KAP18-10 KRTAP10.10 KRTAP18-1 KRTAP18.10	Homo sapiens (Human)	251	KRTAP10-10	9606
+P60328	reviewed	KR123_HUMAN	Keratin-associated protein 12-3 (High sulfur keratin-associated protein 12.3) (Keratin-associated protein 12.3)	KRTAP12-3 KAP12.3 KRTAP12.3	Homo sapiens (Human)	96	KRTAP12-3	9606
+P60329	reviewed	KR124_HUMAN	Keratin-associated protein 12-4 (High sulfur keratin-associated protein 12.4) (Keratin-associated protein 12.4)	KRTAP12-4 KAP12.4 KRTAP12.4	Homo sapiens (Human)	112	KRTAP12-4	9606
+P60368	reviewed	KR102_HUMAN	Keratin-associated protein 10-2 (High sulfur keratin-associated protein 10.2) (Keratin-associated protein 10.2) (Keratin-associated protein 18-2) (Keratin-associated protein 18.2)	KRTAP10-2 KAP10.2 KAP18-2 KRTAP10.2 KRTAP18-2 KRTAP18.2	Homo sapiens (Human)	255	KRTAP10-2	9606
+P60370	reviewed	KR105_HUMAN	Keratin-associated protein 10-5 (High sulfur keratin-associated protein 10.5) (Keratin-associated protein 10.5) (Keratin-associated protein 18-5) (Keratin-associated protein 18.5)	KRTAP10-5 KAP10.5 KAP18-5 KRTAP10.5 KRTAP18-5 KRTAP18.5	Homo sapiens (Human)	271	KRTAP10-5	9606
+P60371	reviewed	KR106_HUMAN	Keratin-associated protein 10-6 (High sulfur keratin-associated protein 10.6) (Keratin-associated protein 10.6) (Keratin-associated protein 18-6) (Keratin-associated protein 18.6)	KRTAP10-6 KAP10.6 KAP18-6 KRTAP10.6 KRTAP18-6 KRTAP18.6	Homo sapiens (Human)	365	KRTAP10-6	9606
+P60372	reviewed	KR104_HUMAN	Keratin-associated protein 10-4 (High sulfur keratin-associated protein 10.4) (Keratin-associated protein 10.4) (Keratin-associated protein 18-4) (Keratin-associated protein 18.4)	KRTAP10-4 KAP10.4 KAP18-4 KRTAP10.4 KRTAP18-4 KRTAP18.4	Homo sapiens (Human)	401	KRTAP10-4	9606
+P60409	reviewed	KR107_HUMAN	Keratin-associated protein 10-7 (High sulfur keratin-associated protein 10.7) (Keratin-associated protein 10.7) (Keratin-associated protein 18-7) (Keratin-associated protein 18.7)	KRTAP10-7 KAP10.7 KAP18-7 KRTAP10.7 KRTAP18-7 KRTAP18.7	Homo sapiens (Human)	370	KRTAP10-7	9606
+P60410	reviewed	KR108_HUMAN	Keratin-associated protein 10-8 (High sulfur keratin-associated protein 10.8) (Keratin-associated protein 10.8) (Keratin-associated protein 18-8) (Keratin-associated protein 18.8)	KRTAP10-8 KAP10.8 KAP18-8 KRTAP10.8 KRTAP18-8 KRTAP18.8	Homo sapiens (Human)	259	KRTAP10-8	9606
+P60411	reviewed	KR109_HUMAN	Keratin-associated protein 10-9 (High sulfur keratin-associated protein 10.9) (Keratin-associated protein 10.9) (Keratin-associated protein 18-9) (Keratin-associated protein 18.9)	KRTAP10-9 KAP10.9 KAP18-9 KRTAP10.9 KRTAP18-9 KRTAP18.9	Homo sapiens (Human)	292	KRTAP10-9	9606
+P60412	reviewed	KR10B_HUMAN	Keratin-associated protein 10-11 (High sulfur keratin-associated protein 10.11) (Keratin-associated protein 10.11) (Keratin-associated protein 18-11) (Keratin-associated protein 18.11)	KRTAP10-11 KAP10.11 KAP18-11 KRTAP10.11 KRTAP18-11 KRTAP18.11	Homo sapiens (Human)	298	KRTAP10-11	9606
+P67827	reviewed	KC1A_BOVIN	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	CSNK1A1	Bos taurus (Bovine)	325	CSNK1A1	9913
+P67828	reviewed	KC1A_RABIT	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	CSNK1A1	Oryctolagus cuniculus (Rabbit)	325	CSNK1A1	9986
+P67829	reviewed	KC1A_SHEEP	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	CSNK1A1	Ovis aries (Sheep)	325	CSNK1A1	9940
+P67962	reviewed	KC1A_CHICK	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	CSNK1A1	Gallus gallus (Chicken)	337	CSNK1A1	9031
+P67963	reviewed	KC1A_XENLA	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	csnk1a1	Xenopus laevis (African clawed frog)	337	csnk1a1	8355
+P78385	reviewed	KRT83_HUMAN	Keratin, type II cuticular Hb3 (Hair keratin K2.10) (Keratin-83) (K83) (Type II hair keratin Hb3) (Type-II keratin Kb23)	KRT83 KRTHB3	Homo sapiens (Human)	493	KRT83	9606
+P78386	reviewed	KRT85_HUMAN	Keratin, type II cuticular Hb5 (Hair keratin K2.12) (Keratin-85) (K85) (Type II hair keratin Hb5) (Type-II keratin Kb25)	KRT85 KRTHB5	Homo sapiens (Human)	507	KRT85	9606
+P97633	reviewed	KC1A_RAT	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	Csnk1a1	Rattus norvegicus (Rat)	325	Csnk1a1	10116
+Q01546	reviewed	K22O_HUMAN	Keratin, type II cytoskeletal 2 oral (Cytokeratin-2P) (CK-2P) (K2P) (Keratin-76) (K76) (Type-II keratin Kb9)	KRT76 KRT2B KRT2P	Homo sapiens (Human)	638	KRT76	9606
+Q02156	reviewed	KPCE_HUMAN	Protein kinase C epsilon type (EC 2.7.11.13) (nPKC-epsilon)	PRKCE PKCE	Homo sapiens (Human)	737	PRKCE	9606
+Q03001	reviewed	DYST_HUMAN	Dystonin (230 kDa bullous pemphigoid antigen) (230/240 kDa bullous pemphigoid antigen) (Bullous pemphigoid antigen 1) (BPA) (Bullous pemphigoid antigen) (Dystonia musculorum protein) (Hemidesmosomal plaque protein)	DST BP230 BP240 BPAG1 DMH DT KIAA0728	Homo sapiens (Human)	7570	DST	9606
+Q04695	reviewed	K1C17_HUMAN	Keratin, type I cytoskeletal 17 (39.1) (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	KRT17	Homo sapiens (Human)	432	KRT17	9606
+Q07283	reviewed	TRHY_HUMAN	Trichohyalin	TCHH THH THL TRHY	Homo sapiens (Human)	1943	TCHH	9606
+Q07627	reviewed	KRA11_HUMAN	Keratin-associated protein 1-1 (High sulfur keratin-associated protein 1.1) (Keratin-associated protein 1.1) (Keratin-associated protein 1.6) (Keratin-associated protein 1.7)	KRTAP1-1 B2A KAP1.1 KAP1.6 KAP1.7 KRTAP1.1	Homo sapiens (Human)	177	KRTAP1-1	9606
+Q10758	reviewed	K2C8_RAT	Keratin, type II cytoskeletal 8 (Cytokeratin endo A) (Cytokeratin-8) (CK-8) (Keratin-8) (K8) (Type-II keratin Kb8)	Krt8 Krt2-8	Rattus norvegicus (Rat)	483	Krt8	10116
+Q13515	reviewed	BFSP2_HUMAN	Phakinin (49 kDa cytoskeletal protein) (Beaded filament structural protein 2) (Lens fiber cell beaded filament protein CP 47) (CP47) (Lens fiber cell beaded filament protein CP 49) (CP49) (Lens intermediate filament-like light) (LIFL-L)	BFSP2	Homo sapiens (Human)	415	BFSP2	9606
+Q13618	reviewed	CUL3_HUMAN	Cullin-3 (CUL-3)	CUL3 KIAA0617	Homo sapiens (Human)	768	CUL3	9606
+Q13835	reviewed	PKP1_HUMAN	Plakophilin-1 (Band 6 protein) (B6P)	PKP1	Homo sapiens (Human)	747	PKP1	9606
+Q14525	reviewed	KT33B_HUMAN	Keratin, type I cuticular Ha3-II (Hair keratin, type I Ha3-II) (Keratin-33B) (K33B)	KRT33B HHA3-II HKA3B KRTHA3B	Homo sapiens (Human)	404	KRT33B	9606
+Q14532	reviewed	K1H2_HUMAN	Keratin, type I cuticular Ha2 (Hair keratin, type I Ha2) (Keratin-32) (K32)	KRT32 HHA2 HKA2 KRTHA2	Homo sapiens (Human)	448	KRT32	9606
+Q14533	reviewed	KRT81_HUMAN	Keratin, type II cuticular Hb1 (Hair keratin K2.9) (Keratin, hair, basic, 1) (Keratin-81) (K81) (Metastatic lymph node 137 gene protein) (MLN 137) (Type II hair keratin Hb1) (Type-II keratin Kb21) (ghHKb1) (ghHb1)	KRT81 KRTHB1 MLN137	Homo sapiens (Human)	505	KRT81	9606
+Q14956	reviewed	GPNMB_HUMAN	Transmembrane glycoprotein NMB (Hematopoietic growth factor inducible neurokinin-1 type)	GPNMB HGFIN NMB UNQ1725/PRO9925	Homo sapiens (Human)	572	GPNMB	9606
+Q14CN4	reviewed	K2C72_HUMAN	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	KRT72 K6IRS2 KB35 KRT6 KRT6IRS2	Homo sapiens (Human)	511	KRT72	9606
+Q15149	reviewed	PLEC_HUMAN	Plectin (PCN) (PLTN) (Hemidesmosomal protein 1) (HD1) (Plectin-1)	PLEC PLEC1	Homo sapiens (Human)	4684	PLEC	9606
+Q15323	reviewed	K1H1_HUMAN	Keratin, type I cuticular Ha1 (Hair keratin, type I Ha1) (Keratin-31) (K31)	KRT31 HHA1 HKA1 KRTHA1	Homo sapiens (Human)	416	KRT31	9606
+Q15628	reviewed	TRADD_HUMAN	Tumor necrosis factor receptor type 1-associated DEATH domain protein (TNFR1-associated DEATH domain protein) (TNFRSF1A-associated via death domain)	TRADD	Homo sapiens (Human)	312	TRADD	9606
+Q28177	reviewed	BFSP2_BOVIN	Phakinin (49 kDa cytoskeletal protein) (Beaded filament structural protein 2) (Lens fiber cell beaded filament protein CP 47) (CP47) (Lens fiber cell beaded filament protein CP 49) (CP49) (Lens intermediate filament-like light) (LIFL-L) [Cleaved into: Phakinin N-terminal fragment; Phakinin C-terminal fragment]	BFSP2	Bos taurus (Bovine)	415	BFSP2	9913
+Q29983	reviewed	MICA_HUMAN	MHC class I polypeptide-related sequence A (MIC-A)	MICA PERB11.1	Homo sapiens (Human)	383	MICA	9606
+Q2M2I5	reviewed	K1C24_HUMAN	Keratin, type I cytoskeletal 24 (Cytokeratin-24) (CK-24) (Keratin-24) (K24) (Type I keratin-24)	KRT24 KA24	Homo sapiens (Human)	525	KRT24	9606
+Q3LHN2	reviewed	KR192_HUMAN	Keratin-associated protein 19-2	KRTAP19-2 KAP19.2	Homo sapiens (Human)	52	KRTAP19-2	9606
+Q3LI59	reviewed	KR212_HUMAN	Keratin-associated protein 21-2	KRTAP21-2 KAP21.2	Homo sapiens (Human)	83	KRTAP21-2	9606
+Q3LI64	reviewed	KRA61_HUMAN	Keratin-associated protein 6-1	KRTAP6-1 C21orf103 KAP6.1	Homo sapiens (Human)	71	KRTAP6-1	9606
+Q3LI66	reviewed	KRA62_HUMAN	Keratin-associated protein 6-2	KRTAP6-2 KAP6.2	Homo sapiens (Human)	62	KRTAP6-2	9606
+Q3LI70	reviewed	KR196_HUMAN	Keratin-associated protein 19-6	KRTAP19-6 KAP19.6	Homo sapiens (Human)	58	KRTAP19-6	9606
+Q3LI72	reviewed	KR195_HUMAN	Keratin-associated protein 19-5	KRTAP19-5 KAP19.5	Homo sapiens (Human)	72	KRTAP19-5	9606
+Q3LI76	reviewed	KR151_HUMAN	Keratin-associated protein 15-1	KRTAP15-1 KAP15.1	Homo sapiens (Human)	137	KRTAP15-1	9606
+Q3SY46	reviewed	KR133_HUMAN	Keratin-associated protein 13-3	KRTAP13-3 KAP13.3	Homo sapiens (Human)	172	KRTAP13-3	9606
+Q3SY84	reviewed	K2C71_HUMAN	Keratin, type II cytoskeletal 71 (Cytokeratin-71) (CK-71) (Keratin-71) (K71) (Type II inner root sheath-specific keratin-K6irs1) (Keratin 6 irs) (hK6irs) (hK6irs1) (Type-II keratin Kb34)	KRT71 K6IRS1 KB34 KRT6IRS1	Homo sapiens (Human)	523	KRT71	9606
+Q3SYF9	reviewed	KR197_HUMAN	Keratin-associated protein 19-7	KRTAP19-7 KAP19.7	Homo sapiens (Human)	63	KRTAP19-7	9606
+Q3TTY5	reviewed	K22E_MOUSE	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	Krt2 K2e Krt2-17 Krt2a	Mus musculus (Mouse)	707	Krt2	10090
+Q3TVW5	reviewed	TCHP_MOUSE	Trichoplein keratin filament-binding protein (Protein TCHP) (Mitochondrial protein with oncostatic activity) (Mitostatin)	Tchp	Mus musculus (Mouse)	497	Tchp	10090
+Q3U0V2	reviewed	TRADD_MOUSE	Tumor necrosis factor receptor type 1-associated DEATH domain protein (TNFR1-associated DEATH domain protein) (TNFRSF1A-associated via death domain)	Tradd	Mus musculus (Mouse)	310	Tradd	10090
+Q4R4X4	reviewed	VIME_MACFA	Vimentin	VIM QtrA-12155	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	466	VIM	9541
+Q52LG2	reviewed	KR132_HUMAN	Keratin-associated protein 13-2	KRTAP13-2 KAP13.2	Homo sapiens (Human)	175	KRTAP13-2	9606
+Q59SU1	reviewed	CARP9_CANAL	Secreted aspartic protease 9 (ACP 9) (Aspartate protease 9) (EC 3.4.23.24) (Candidapepsin-9)	SAP9 YPS1 CAALFM_C303870CA CaO19.14190 CaO19.6928	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	544	SAP9	237561
+Q59VH7	reviewed	CARP7_CANAL	Secreted aspartic protease 7 (ACP 7) (Aspartate protease 7) (EC 3.4.23.24) (Candidapepsin-7)	SAP7 CAALFM_C104870WA CaO19.756 CaO19.8376	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	588	SAP7	237561
+Q5A651	reviewed	CAR10_CANAL	Secreted aspartic protease 10 (ACP 10) (Aspartate protease 10) (EC 3.4.23.24) (Candidapepsin-10)	SAP10 YPS3 CAALFM_C404470WA CaO19.11320 CaO19.3839	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	453	SAP10	237561
+Q5A8N2	reviewed	CARP4_CANAL	Secreted aspartic protease 4 (ACP 4) (Aspartate protease 4) (EC 3.4.23.24) (Candidapepsin-4)	SAP4 CAALFM_C603500CA CaO19.13139 CaO19.5716	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	417	SAP4	237561
+Q5AC08	reviewed	CARP6_CANAL	Secreted aspartic protease 6 (ACP 6) (Aspartate protease 6) (EC 3.4.23.24) (Candidapepsin-6)	SAP6 CAALFM_C602710CA CaO19.12988 CaO19.5542	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	418	SAP6	237561
+Q5AEM6	reviewed	CARP8_CANAL	Secreted aspartic protease 8 (ACP 8) (Aspartate protease 8) (EC 3.4.23.24) (Candidapepsin-8)	SAP8 CAALFM_C302510CA CaO19.242 CaO19.7872	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	405	SAP8	237561
+Q5BJY9	reviewed	K1C18_RAT	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	Krt18 Krt1-18	Rattus norvegicus (Rat)	423	Krt18	10116
+Q5XKE5	reviewed	K2C79_HUMAN	Keratin, type II cytoskeletal 79 (Cytokeratin-79) (CK-79) (Keratin-6-like) (Keratin-6L) (Keratin-79) (K79) (Type-II keratin Kb38)	KRT79 K6L KB38 KRT6L	Homo sapiens (Human)	535	KRT79	9606
+Q61781	reviewed	K1C14_MOUSE	Keratin, type I cytoskeletal 14 (Cytokeratin-14) (CK-14) (Keratin-14) (K14)	Krt14 Krt1-14	Mus musculus (Mouse)	484	Krt14	10090
+Q63279	reviewed	K1C19_RAT	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19) (Type I keratin Ka19)	Krt19 Ka19 Krt1-19	Rattus norvegicus (Rat)	403	Krt19	10116
+Q63544	reviewed	SYUG_RAT	Gamma-synuclein (Persyn) (Sensory neuron synuclein)	Sncg	Rattus norvegicus (Rat)	123	Sncg	10116
+Q64291	reviewed	K1C12_MOUSE	Keratin, type I cytoskeletal 12 (Cytokeratin-12) (CK-12) (Keratin-12) (K12)	Krt12 Krt1-12 Krt1.12	Mus musculus (Mouse)	487	Krt12	10090
+Q6A162	reviewed	K1C40_HUMAN	Keratin, type I cytoskeletal 40 (Cytokeratin-40) (CK-40) (Keratin-40) (K40) (Type I hair keratin Ka36)	KRT40 KA36	Homo sapiens (Human)	431	KRT40	9606
+Q6A163	reviewed	K1C39_HUMAN	Keratin, type I cytoskeletal 39 (Cytokeratin-39) (CK-39) (Keratin-39) (K39) (Type I hair keratin Ka35)	KRT39 KA35	Homo sapiens (Human)	491	KRT39	9606
+Q6IFU8	reviewed	K1C17_RAT	Keratin, type I cytoskeletal 17 (Cytokeratin-17) (CK-17) (Keratin-17) (K17) (Type I keratin Ka17)	Krt17 Ka17	Rattus norvegicus (Rat)	433	Krt17	10116
+Q6IFV1	reviewed	K1C14_RAT	Keratin, type I cytoskeletal 14 (Cytokeratin-14) (CK-14) (Keratin-14) (K14) (Type I keratin Ka14)	Krt14 Ka14 Krt1-14	Rattus norvegicus (Rat)	485	Krt14	10116
+Q6IFW6	reviewed	K1C10_RAT	Keratin, type I cytoskeletal 10 (Cytokeratin-10) (CK-10) (Keratin-10) (K10) (Type I keratin Ka10)	Krt10 Ka10	Rattus norvegicus (Rat)	526	Krt10	10116
+Q6IMF3	reviewed	K2C1_RAT	Keratin, type II cytoskeletal 1 (Cytokeratin-1) (CK-1) (Keratin-1) (K1) (Type-II keratin Kb1)	Krt1 Kb1	Rattus norvegicus (Rat)	625	Krt1	10116
+Q6KB66	reviewed	K2C80_HUMAN	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	KRT80 KB20	Homo sapiens (Human)	452	KRT80	9606
+Q6L8G4	reviewed	KR511_HUMAN	Keratin-associated protein 5-11 (Keratin-associated protein 5.11) (Ultrahigh sulfur keratin-associated protein 5.11)	KRTAP5-11 KAP5.11 KRTAP5.11	Homo sapiens (Human)	156	KRTAP5-11	9606
+Q6L8G8	reviewed	KRA57_HUMAN	Keratin-associated protein 5-7 (Keratin-associated protein 5-3) (Keratin-associated protein 5.3) (Keratin-associated protein 5.7) (Ultrahigh sulfur keratin-associated protein 5.7)	KRTAP5-7 KAP5-7 KAP5.3 KRTAP5.3 KRTAP5.7	Homo sapiens (Human)	165	KRTAP5-7	9606
+Q6L8G9	reviewed	KRA56_HUMAN	Keratin-associated protein 5-6 (Keratin-associated protein 5.6) (Ultrahigh sulfur keratin-associated protein 5.6)	KRTAP5-6 KAP5.6 KRTAP5.6	Homo sapiens (Human)	129	KRTAP5-6	9606
+Q6L8H1	reviewed	KRA54_HUMAN	Keratin-associated protein 5-4 (Keratin-associated protein 5.4) (Ultrahigh sulfur keratin-associated protein 5.4)	KRTAP5-4 KAP5.4 KRTAP5.4	Homo sapiens (Human)	288	KRTAP5-4	9606
+Q6L8H2	reviewed	KRA53_HUMAN	Keratin-associated protein 5-3 (Keratin-associated protein 5-9) (Keratin-associated protein 5.3) (Keratin-associated protein 5.9) (UHS KerB-like) (Ultrahigh sulfur keratin-associated protein 5.3)	KRTAP5-3 KAP5-9 KAP5.3 KRTAP5-9 KRTAP5.3 KRTAP5.9	Homo sapiens (Human)	238	KRTAP5-3	9606
+Q6L8H4	reviewed	KRA51_HUMAN	Keratin-associated protein 5-1 (Keratin, cuticle, ultrahigh sulphur 1-like) (Keratin-associated protein 5.1) (Ultrahigh sulfur keratin-associated protein 5.1)	KRTAP5-1 KAP5.1 KRN1L KRTAP5.1	Homo sapiens (Human)	278	KRTAP5-1	9606
+Q6NVD9	reviewed	BFSP2_MOUSE	Phakinin (49 kDa cytoskeletal protein) (Beaded filament structural protein 2) (Lens fiber cell beaded filament protein CP 47) (CP47) (Lens fiber cell beaded filament protein CP 49) (CP49) (Lens intermediate filament-like light) (LIFL-L)	Bfsp2	Mus musculus (Mouse)	416	Bfsp2	10090
+Q6PEX3	reviewed	KR261_HUMAN	Keratin-associated protein 26-1	KRTAP26-1 KAP26.1	Homo sapiens (Human)	210	KRTAP26-1	9606
+Q6TFL4	reviewed	KLH24_HUMAN	Kelch-like protein 24 (Kainate receptor-interacting protein for GluR6) (KRIP6) (Protein DRE1)	KLHL24 DRE1	Homo sapiens (Human)	600	KLHL24	9606
+Q6ZRV2	reviewed	FA83H_HUMAN	Protein FAM83H	FAM83H	Homo sapiens (Human)	1179	FAM83H	9606
+Q701N4	reviewed	KRA52_HUMAN	Keratin-associated protein 5-2 (Keratin-associated protein 5-8) (Keratin-associated protein 5.2) (Keratin-associated protein 5.8) (Ultrahigh sulfur keratin-associated protein 5.2)	KRTAP5-2 KAP5-8 KAP5.2 KRTAP5-8 KRTAP5.2 KRTAP5.8	Homo sapiens (Human)	177	KRTAP5-2	9606
+Q7RTS7	reviewed	K2C74_HUMAN	Keratin, type II cytoskeletal 74 (Cytokeratin-74) (CK-74) (Keratin-5c) (K5C) (Keratin-74) (K74) (Type II inner root sheath-specific keratin-K6irs4) (Type-II keratin Kb37)	KRT74 K6IRS4 KB37 KRT5C KRT6IRS4	Homo sapiens (Human)	529	KRT74	9606
+Q7Z3Y7	reviewed	K1C28_HUMAN	Keratin, type I cytoskeletal 28 (Cytokeratin-28) (CK-28) (Keratin-25D) (K25D) (Keratin-28) (K28) (Type I inner root sheath-specific keratin-K25irs4)	KRT28 KRT25D	Homo sapiens (Human)	464	KRT28	9606
+Q7Z3Y8	reviewed	K1C27_HUMAN	Keratin, type I cytoskeletal 27 (Cytokeratin-27) (CK-27) (Keratin-25C) (K25C) (Keratin-27) (K27) (Type I inner root sheath-specific keratin-K25irs3)	KRT27 KRT25C	Homo sapiens (Human)	459	KRT27	9606
+Q7Z3Y9	reviewed	K1C26_HUMAN	Keratin, type I cytoskeletal 26 (Cytokeratin-26) (CK-26) (Keratin-25B) (K25B) (Keratin-26) (K26) (Type I inner root sheath-specific keratin-K25irs2)	KRT26 KRT25B	Homo sapiens (Human)	468	KRT26	9606
+Q7Z3Z0	reviewed	K1C25_HUMAN	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Keratin-25A) (K25A) (Type I inner root sheath-specific keratin-K25irs1)	KRT25 KRT25A	Homo sapiens (Human)	450	KRT25	9606
+Q7Z4W3	reviewed	KR193_HUMAN	Keratin-associated protein 19-3 (GTHRP) (Glycine/tyrosine-rich protein)	KRTAP19-3 KAP19.3	Homo sapiens (Human)	81	KRTAP19-3	9606
+Q7Z794	reviewed	K2C1B_HUMAN	Keratin, type II cytoskeletal 1b (Cytokeratin-1B) (CK-1B) (Keratin-77) (K77) (Type-II keratin Kb39)	KRT77 KRT1B	Homo sapiens (Human)	578	KRT77	9606
+Q86Y46	reviewed	K2C73_HUMAN	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	KRT73 K6IRS3 KB36 KRT6IRS3	Homo sapiens (Human)	540	KRT73	9606
+Q8BGZ7	reviewed	K2C75_MOUSE	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (mK6hf) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	Krt75 Kb18	Mus musculus (Mouse)	551	Krt75	10090
+Q8BK63	reviewed	KC1A_MOUSE	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	Csnk1a1	Mus musculus (Mouse)	337	Csnk1a1	10090
+Q8BMP4	reviewed	GPER1_MOUSE	G-protein coupled estrogen receptor 1 (Chemoattractant receptor-like 2) (G protein-coupled estrogen receptor 1) (G-protein coupled receptor 30) (Membrane estrogen receptor) (mER)	Gper1 Cmkrl2 Gper Gpr30	Mus musculus (Mouse)	375	Gper1	10090
+Q8IUB9	reviewed	KR191_HUMAN	Keratin-associated protein 19-1 (High tyrosine-glycine keratin-associated protein 19.1)	KRTAP19-1 KAP19.1 KRTAP19.1	Homo sapiens (Human)	90	KRTAP19-1	9606
+Q8IUC1	reviewed	KR111_HUMAN	Keratin-associated protein 11-1 (High sulfur keratin-associated protein 11.1)	KRTAP11-1 KAP11.1 KRTAP11.1	Homo sapiens (Human)	163	KRTAP11-1	9606
+Q8IUC2	reviewed	KRA81_HUMAN	Keratin-associated protein 8-1 (High glycine-tyrosine keratin-associated protein 8.1)	KRTAP8-1 KAP8.1 KRTAP8.1	Homo sapiens (Human)	63	KRTAP8-1	9606
+Q8IUC3	reviewed	KRA71_HUMAN	Keratin-associated protein 7-1 (High tyrosine-glycine keratin-associated protein 7.1)	KRTAP7-1 KAP7.1 KRTAP7.1	Homo sapiens (Human)	87	KRTAP7-1	9606
+Q8IUG1	reviewed	KRA13_HUMAN	Keratin-associated protein 1-3 (Keratin-associated protein 1.8) (Keratin-associated protein 1.9)	KRTAP1-3 B2B KAP1.2 KAP1.3 KAP1.8 KAP1.9 KRATP1.9 KRTAP1.8	Homo sapiens (Human)	167	KRTAP1-3	9606
+Q8N1A0	reviewed	KT222_HUMAN	Keratin-like protein KRT222 (Keratin-222) (Keratin-222 pseudogene)	KRT222 KA21 KRT222P	Homo sapiens (Human)	295	KRT222	9606
+Q8N1N4	reviewed	K2C78_HUMAN	Keratin, type II cytoskeletal 78 (Cytokeratin-78) (CK-78) (Keratin-5b) (Keratin-78) (K78) (Type-II keratin Kb40)	KRT78 K5B KB40	Homo sapiens (Human)	520	KRT78	9606
+Q8N6L1	reviewed	KTAP2_HUMAN	Keratinocyte-associated protein 2 (KCP-2) (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	KRTCAP2 KCP2	Homo sapiens (Human)	136	KRTCAP2	9606
+Q8N8W4	reviewed	PLPL1_HUMAN	Omega-hydroxyceramide transacylase (EC 2.3.1.296) (Patatin-like phospholipase domain-containing protein 1)	PNPLA1	Homo sapiens (Human)	532	PNPLA1	9606
+Q8NI17	reviewed	IL31R_HUMAN	Interleukin-31 receptor subunit alpha (IL-31 receptor subunit alpha) (IL-31R subunit alpha) (IL-31R-alpha) (IL-31RA) (Cytokine receptor-like 3) (GLM-R) (hGLM-R) (Gp130-like monocyte receptor) (Gp130-like receptor) (ZcytoR17)	IL31RA CRL3 GPL UNQ6368/PRO21073/PRO21384	Homo sapiens (Human)	732	IL31RA	9606
+Q8R0W0	reviewed	EPIPL_MOUSE	Epiplakin	Eppk1 EPPK	Mus musculus (Mouse)	6548	Eppk1	10090
+Q8TES7	reviewed	FBF1_HUMAN	Fas-binding factor 1 (FBF-1) (Protein albatross)	FBF1 ALB KIAA1863	Homo sapiens (Human)	1133	FBF1	9606
+Q8TEW0	reviewed	PARD3_HUMAN	Partitioning defective 3 homolog (PAR-3) (PARD-3) (Atypical PKC isotype-specific-interacting protein) (ASIP) (CTCL tumor antigen se2-5) (PAR3-alpha)	PARD3 PAR3 PAR3A	Homo sapiens (Human)	1356	PARD3	9606
+Q8VCW2	reviewed	K1C25_MOUSE	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Type I inner root sheath-specific keratin-K25irs1) (mIRSa1)	Krt25	Mus musculus (Mouse)	446	Krt25	10090
+Q91ZU6	reviewed	DYST_MOUSE	Dystonin (Bullous pemphigoid antigen 1) (BPA) (Dystonia musculorum protein) (Hemidesmosomal plaque protein) (Microtubule actin cross-linking factor 2)	Dst Bpag1 Macf2	Mus musculus (Mouse)	7393	Dst	10090
+Q922U2	reviewed	K2C5_MOUSE	Keratin, type II cytoskeletal 5 (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	Krt5 Krt2-5	Mus musculus (Mouse)	580	Krt5	10090
+Q923E4	reviewed	SIR1_MOUSE	NAD-dependent protein deacetylase sirtuin-1 (EC 2.3.1.286) (NAD-dependent protein deacylase sirtuin-1) (EC 2.3.1.-) (Regulatory protein SIR2 homolog 1) (SIR2-like protein 1) (SIR2alpha) (Sir2) (mSIR2a) [Cleaved into: SirtT1 75 kDa fragment (75SirT1)]	Sirt1 Sir2l1	Mus musculus (Mouse)	737	Sirt1	10090
+Q925H4	reviewed	KR211_MOUSE	Keratin-associated protein 21-1 (Keratin-associated protein 16-7) (Keratin-associated protein 16.7)	Krtap21-1 Krtap16-7 Krtap16.7	Mus musculus (Mouse)	128	Krtap21-1	10090
+Q92764	reviewed	KRT35_HUMAN	Keratin, type I cuticular Ha5 (Hair keratin, type I Ha5) (Keratin-35) (K35)	KRT35 HHA5 HKA5 KRTHA5	Homo sapiens (Human)	455	KRT35	9606
+Q93LQ6	reviewed	FLS_FERPE	Fervidolysin (EC 3.4.21.-) (Keratinase) (Subtilisin-like serine protease)	fls	Fervidobacterium pennivorans	699	fls	93466
+Q96EB6	reviewed	SIR1_HUMAN	NAD-dependent protein deacetylase sirtuin-1 (hSIRT1) (EC 2.3.1.286) (NAD-dependent protein deacylase sirtuin-1) (EC 2.3.1.-) (Regulatory protein SIR2 homolog 1) (SIR2-like protein 1) (hSIR2) [Cleaved into: SirtT1 75 kDa fragment (75SirT1)]	SIRT1 SIR2L1	Homo sapiens (Human)	747	SIRT1	9606
+Q96M91	reviewed	CFA53_HUMAN	Cilia- and flagella-associated protein 53 (Coiled-coil domain-containing protein 11)	CFAP53 CCDC11	Homo sapiens (Human)	514	CFAP53	9606
+Q99405	reviewed	PRTM_SHOC1	M-protease (EC 3.4.21.-)	aprE ABC0761	Shouchella clausii (strain KSM-K16) (Alkalihalobacillus clausii)	380	aprE	66692
+Q99456	reviewed	K1C12_HUMAN	Keratin, type I cytoskeletal 12 (Cytokeratin-12) (CK-12) (Keratin-12) (K12)	KRT12	Homo sapiens (Human)	494	KRT12	9606
+Q99527	reviewed	GPER1_HUMAN	G-protein coupled estrogen receptor 1 (Chemoattractant receptor-like 2) (Flow-induced endothelial G-protein coupled receptor 1) (FEG-1) (G protein-coupled estrogen receptor 1) (G-protein coupled receptor 30) (GPCR-Br) (IL8-related receptor DRY12) (Lymphocyte-derived G-protein coupled receptor) (LYGPR) (Membrane estrogen receptor) (mER)	GPER1 CEPR CMKRL2 DRY12 GPER GPR30	Homo sapiens (Human)	375	GPER1	9606
+Q99650	reviewed	OSMR_HUMAN	Oncostatin-M-specific receptor subunit beta (Interleukin-31 receptor subunit beta) (IL-31 receptor subunit beta) (IL-31R subunit beta) (IL-31R-beta) (IL-31RB)	OSMR OSMRB	Homo sapiens (Human)	979	OSMR	9606
+Q9BQ66	reviewed	KR412_HUMAN	Keratin-associated protein 4-12 (Keratin-associated protein 4.12) (Ultrahigh sulfur keratin-associated protein 4.12)	KRTAP4-12 KAP4.12 KRTAP4.12	Homo sapiens (Human)	201	KRTAP4-12	9606
+Q9BT92	reviewed	TCHP_HUMAN	Trichoplein keratin filament-binding protein (Protein TCHP) (Mitochondrial protein with oncostatic activity) (Mitostatin) (Tumor suppressor protein)	TCHP	Homo sapiens (Human)	498	TCHP	9606
+Q9BYP8	reviewed	KR171_HUMAN	Keratin-associated protein 17-1 (Keratin-associated protein 16.1)	KRTAP17-1 KAP17.1 KRTAP16.1	Homo sapiens (Human)	105	KRTAP17-1	9606
+Q9BYP9	reviewed	KRA99_HUMAN	Keratin-associated protein 9-9 (Keratin-associated protein 9-5) (Keratin-associated protein 9.5) (Keratin-associated protein 9.9) (Ultrahigh sulfur keratin-associated protein 9.9)	KRTAP9-9 KAP9.5 KAP9.9 KRTAP9-5 KRTAP9.5 KRTAP9.9	Homo sapiens (Human)	154	KRTAP9-9	9606
+Q9BYQ0	reviewed	KRA98_HUMAN	Keratin-associated protein 9-8 (Keratin-associated protein 9.8) (Ultrahigh sulfur keratin-associated protein 9.8)	KRTAP9-8 KAP9.8 KRTAP9.8	Homo sapiens (Human)	159	KRTAP9-8	9606
+Q9BYQ2	reviewed	KRA94_HUMAN	Keratin-associated protein 9-4 (Keratin-associated protein 9.4) (Ultrahigh sulfur keratin-associated protein 9.4)	KRTAP9-4 KAP9.4 KRTAP9.4	Homo sapiens (Human)	154	KRTAP9-4	9606
+Q9BYQ3	reviewed	KRA93_HUMAN	Keratin-associated protein 9-3 (Keratin-associated protein 9.3) (Ultrahigh sulfur keratin-associated protein 9.3)	KRTAP9-3 KAP9.3 KRTAP9.3	Homo sapiens (Human)	159	KRTAP9-3	9606
+Q9BYQ4	reviewed	KRA92_HUMAN	Keratin-associated protein 9-2 (Keratin-associated protein 9.2) (Ultrahigh sulfur keratin-associated protein 9.2)	KRTAP9-2 KAP9.2 KRTAP9.2	Homo sapiens (Human)	174	KRTAP9-2	9606
+Q9BYQ5	reviewed	KRA46_HUMAN	Keratin-associated protein 4-6 (Keratin-associated protein 4-15) (Keratin-associated protein 4.15) (Keratin-associated protein 4.6) (Ultrahigh sulfur keratin-associated protein 4.15)	KRTAP4-6 KAP4.15 KRTAP4-15 KRTAP4.15 KRTAP4.6	Homo sapiens (Human)	205	KRTAP4-6	9606
+Q9BYQ6	reviewed	KR411_HUMAN	Keratin-associated protein 4-11 (Keratin-associated protein 4-14) (Keratin-associated protein 4.11) (Keratin-associated protein 4.14) (Ultrahigh sulfur keratin-associated protein 4.14)	KRTAP4-11 KAP4.14 KRTAP4-14 KRTAP4.11 KRTAP4.14	Homo sapiens (Human)	195	KRTAP4-11	9606
+Q9BYQ7	reviewed	KRA41_HUMAN	Keratin-associated protein 4-1 (Keratin-associated protein 4-10) (Keratin-associated protein 4.1) (Keratin-associated protein 4.10) (Ultrahigh sulfur keratin-associated protein 4.10)	KRTAP4-1 KAP4.10 KRTAP4-10 KRTAP4.1 KRTAP4.10	Homo sapiens (Human)	146	KRTAP4-1	9606
+Q9BYR0	reviewed	KRA47_HUMAN	Keratin-associated protein 4-7 (Keratin-associated protein 4.7) (Ultrahigh sulfur keratin-associated protein 4.7)	KRTAP4-7 KAP4.7 KRTAP4.7	Homo sapiens (Human)	155	KRTAP4-7	9606
+Q9BYR2	reviewed	KRA45_HUMAN	Keratin-associated protein 4-5 (Keratin-associated protein 4.5) (Ultrahigh sulfur keratin-associated protein 4.5)	KRTAP4-5 KAP4.5 KRTAP4.5	Homo sapiens (Human)	181	KRTAP4-5	9606
+Q9BYR3	reviewed	KRA44_HUMAN	Keratin-associated protein 4-4 (Keratin-associated protein 4-13) (Keratin-associated protein 4.13) (Keratin-associated protein 4.4) (Ultrahigh sulfur keratin-associated protein 4.13) (Ultrahigh sulfur keratin-associated protein 4.4)	KRTAP4-4 KAP4.13 KAP4.4 KRTAP4-13 KRTAP4.13 KRTAP4.4	Homo sapiens (Human)	166	KRTAP4-4	9606
+Q9BYR4	reviewed	KRA43_HUMAN	Keratin-associated protein 4-3 (Keratin-associated protein 4.3) (Ultrahigh sulfur keratin-associated protein 4.3)	KRTAP4-3 KAP4.3 KRTAP4.3	Homo sapiens (Human)	195	KRTAP4-3	9606
+Q9BYR5	reviewed	KRA42_HUMAN	Keratin-associated protein 4-2 (Keratin-associated protein 4.2) (Ultrahigh sulfur keratin-associated protein 4.2)	KRTAP4-2 KAP4.2 KRTAP4.2	Homo sapiens (Human)	136	KRTAP4-2	9606
+Q9BYR6	reviewed	KRA33_HUMAN	Keratin-associated protein 3-3 (High sulfur keratin-associated protein 3.3) (Keratin-associated protein 3.3)	KRTAP3-3 KAP3.3 KRTAP3.3	Homo sapiens (Human)	98	KRTAP3-3	9606
+Q9BYR7	reviewed	KRA32_HUMAN	Keratin-associated protein 3-2 (High sulfur keratin-associated protein 3.2) (Keratin-associated protein 3.2)	KRTAP3-2 KAP3.2 KRTAP3.2	Homo sapiens (Human)	98	KRTAP3-2	9606
+Q9BYR8	reviewed	KRA31_HUMAN	Keratin-associated protein 3-1 (High sulfur keratin-associated protein 3.1) (Keratin-associated protein 3.1)	KRTAP3-1 KAP3.1 KRTAP3.1	Homo sapiens (Human)	98	KRTAP3-1	9606
+Q9BYR9	reviewed	KRA24_HUMAN	Keratin-associated protein 2-4 (High sulfur keratin-associated protein 2.4) (Keratin-associated protein 2.4)	KRTAP2-4 KAP2.4 KRTAP2.4	Homo sapiens (Human)	128	KRTAP2-4	9606
+Q9BYS1	reviewed	KRA15_HUMAN	Keratin-associated protein 1-5 (High sulfur keratin-associated protein 1.5) (Keratin-associated protein 1.5)	KRTAP1-5 KAP1.5 KRTAP1.5	Homo sapiens (Human)	174	KRTAP1-5	9606
+Q9D312	reviewed	K1C20_MOUSE	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20)	Krt20	Mus musculus (Mouse)	431	Krt20	10090
+Q9D439	reviewed	CFA53_MOUSE	Cilia- and flagella-associated protein 53 (Coiled-coil domain-containing protein 11)	Cfap53 Ccdc11	Mus musculus (Mouse)	514	Cfap53	10090
+Q9NSB2	reviewed	KRT84_HUMAN	Keratin, type II cuticular Hb4 (Keratin-84) (K84) (Type II hair keratin Hb4) (Type-II keratin Kb24)	KRT84 KRTHB4	Homo sapiens (Human)	600	KRT84	9606
+Q9NSB4	reviewed	KRT82_HUMAN	Keratin, type II cuticular Hb2 (Keratin-82) (K82) (Type II hair keratin Hb2) (Type-II keratin Kb22)	KRT82 KRTHB2	Homo sapiens (Human)	513	KRT82	9606
+Q9NZ50	reviewed	SYUG_BOVIN	Gamma-synuclein (Synoretin) (SR)	SNCG	Bos taurus (Bovine)	127	SNCG	9913
+Q9QWL7	reviewed	K1C17_MOUSE	Keratin, type I cytoskeletal 17 (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	Krt17 Krt1-17	Mus musculus (Mouse)	433	Krt17	10090
+Q9QXS1	reviewed	PLEC_MOUSE	Plectin (PCN) (PLTN) (Plectin-1) (Plectin-6)	Plec Plec1	Mus musculus (Mouse)	4691	Plec	10090
+Q9R0H5	reviewed	K2C71_MOUSE	Keratin, type II cytoskeletal 71 (Cytokeratin-6G) (CK-6G) (Cytokeratin-71) (CK-71) (Keratin-6G) (K6G) (Keratin-71) (K71) (Type II inner root sheath-specific keratin-K6irs1) (mK6irs) (mK6irs1/Krt2-6g) (Type-II keratin Kb34)	Krt71 K6irs1 Kb34 Krt2-6g Krt6g	Mus musculus (Mouse)	524	Krt71	10090
+Q9UMD9	reviewed	COHA1_HUMAN	Collagen alpha-1(XVII) chain (180 kDa bullous pemphigoid antigen 2) (Bullous pemphigoid antigen 2) [Cleaved into: 120 kDa linear IgA disease antigen (120 kDa linear IgA dermatosis antigen) (Linear IgA disease antigen 1) (LAD-1); 97 kDa linear IgA disease antigen (97 kDa linear IgA bullous dermatosis antigen) (97 kDa LAD antigen) (97-LAD) (Linear IgA bullous disease antigen of 97 kDa) (LABD97)]	COL17A1 BP180 BPAG2	Homo sapiens (Human)	1497	COL17A1	9606
+Q9Z0F7	reviewed	SYUG_MOUSE	Gamma-synuclein (Persyn)	Sncg Persyn	Mus musculus (Mouse)	123	Sncg	10090
+Q9Z2K1	reviewed	K1C16_MOUSE	Keratin, type I cytoskeletal 16 (Cytokeratin-16) (CK-16) (Keratin-16) (K16)	Krt16 Krt1-16	Mus musculus (Mouse)	469	Krt16	10090
+Q9Z320	reviewed	K1C27_MOUSE	Keratin, type I cytoskeletal 27 (Cytokeratin-27) (CK-27) (Keratin complex-1, acidic, gene C29) (Keratin-27) (K27) (Type I inner root sheath-specific keratin-K25irs3)	Krt27 c29 Krt1-c29	Mus musculus (Mouse)	448	Krt27	10090
+Q9Z331	reviewed	K2C6B_MOUSE	Keratin, type II cytoskeletal 6B (Cytokeratin-6B) (CK-6B) (Keratin-6-beta) (mK6-beta) (Keratin-6B) (K6B)	Krt6b K6-beta Krt2-6b	Mus musculus (Mouse)	562	Krt6b	10090
+A0A059JJ46	reviewed	MDR2_TRIIM	ABC multidrug transporter MDR2 (Multidrug resistance protein 2)	MDR2 H109_00372	Trichophyton interdigitale (strain MR816)	1331	MDR2	1215338
+A0A0R4IFG5	reviewed	CFA53_DANRE	Cilia- and flagella-associated protein 53	cfap53	Danio rerio (Zebrafish) (Brachydanio rerio)	519	cfap53	7955
+A2A870	reviewed	FBF1_MOUSE	Fas-binding factor 1 (FBF-1)	Fbf1	Mus musculus (Mouse)	1173	Fbf1	10090
+A3KN27	reviewed	K2C74_BOVIN	Keratin, type II cytoskeletal 74 (Cytokeratin-74) (CK-74) (Keratin-74) (K74) (Type II inner root sheath-specific keratin-K6irs4) (Type-II keratin Kb37)	KRT74	Bos taurus (Bovine)	550	KRT74	9913
+A5A6M6	reviewed	K2C1_PANTR	Keratin, type II cytoskeletal 1 (Cytokeratin-1) (CK-1) (Keratin-1) (K1) (Type-II keratin Kb1)	KRT1	Pan troglodytes (Chimpanzee)	637	KRT1	9598
+A5A6M8	reviewed	K2C5_PANTR	Keratin, type II cytoskeletal 5 (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	KRT5	Pan troglodytes (Chimpanzee)	592	KRT5	9598
+A6BLY7	reviewed	K1C28_MOUSE	Keratin, type I cytoskeletal 28 (Cytokeratin-28) (CK-28) (Keratin-25D) (K25D) (Keratin-28) (K28) (Type I inner root sheath-specific keratin-K25irs4)	Krt28 Krt25d	Mus musculus (Mouse)	462	Krt28	10090
+A6QQQ9	reviewed	K1C20_BOVIN	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20)	KRT20	Bos taurus (Bovine)	422	KRT20	9913
+A6XGK3	reviewed	MCPA_TRIRU	Metallocarboxypeptidase A (MCPA) (EC 3.4.17.-) (Carboxypeptidase M14A)	MCPA	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	422	MCPA	5551
+A7YWK3	reviewed	K2C73_BOVIN	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	KRT73	Bos taurus (Bovine)	540	KRT73	9913
+B1AQ75	reviewed	KRT36_MOUSE	Keratin, type I cuticular Ha6 (Keratin-36) (K36) (Keratin-5) (MHRa-1) (Type I keratin 48 kDa)	Krt36 Hra-1 Krt1-22 Krt1-5	Mus musculus (Mouse)	473	Krt36	10090
+C4YMJ3	reviewed	CARP2_CANAW	Candidapepsin-2 (EC 3.4.23.24) (ACP 2) (Aspartate protease 2) (Secreted aspartic protease 2)	SAP2 PRA11 PRA2 CAWG_02075	Candida albicans (strain WO-1) (Yeast)	398	SAP2	294748
+C4YNQ5	reviewed	CARP3_CANAW	Candidapepsin-3 (EC 3.4.23.24) (ACP 3) (Aspartate protease 3) (Secreted aspartic protease 3)	SAP3 CAWG_02837	Candida albicans (strain WO-1) (Yeast)	398	SAP3	294748
+C4YSF6	reviewed	CARP1_CANAW	Candidapepsin-1 (EC 3.4.23.24) (ACP 1) (Aspartate protease 1) (Secreted aspartic protease 1)	SAP1 PRA10 PRA3 CAWG_05021	Candida albicans (strain WO-1) (Yeast)	391	SAP1	294748
+O19175	reviewed	KC1A_PIG	Casein kinase I isoform alpha (CKI-alpha) (EC 2.7.11.1) (CK1)	CSNK1A1	Sus scrofa (Pig)	125	CSNK1A1	9823
+O42778	reviewed	CARP8_CANAX	Secreted aspartic protease 8 (ACP 8) (Aspartate protease 8) (EC 3.4.23.24) (Candidapepsin-8)	SAP8	Candida albicans (Yeast)	405	SAP8	5476
+O75690	reviewed	KRA58_HUMAN	Keratin-associated protein 5-8 (Keratin, ultra high-sulfur matrix protein B) (Keratin-associated protein 5.8) (UHS keratin B) (UHS KerB) (Ultrahigh sulfur keratin-associated protein 5.8)	KRTAP5-8 KAP5.8 KRTAP5.8 UHSKB	Homo sapiens (Human)	187	KRTAP5-8	9606
+O76009	reviewed	KT33A_HUMAN	Keratin, type I cuticular Ha3-I (Hair keratin, type I Ha3-I) (Keratin-33A) (K33A)	KRT33A HHA3-I HKA3A KRTHA3A	Homo sapiens (Human)	404	KRT33A	9606
+P02446	reviewed	KRA31_SHEEP	Keratin-associated protein 3-1 (Keratin, high sulfur matrix protein, IIIB2)	KRTAP3-1	Ovis aries (Sheep)	98	KRTAP3-1	9940
+P02447	reviewed	KRA31_CAPHI	Keratin-associated protein 3-1 (Keratin, high sulfur matrix protein, IIIB2) (Keratin-associated protein 3.2) (M1.2 protein)	KRTAP3-1	Capra hircus (Goat)	98	KRTAP3-1	9925
+P02448	reviewed	KRA81_SHEEP	Keratin-associated protein 8-1 (Component 0.62) (HGT keratin) (HGT keratin component F) (Keratin, high-tyrosine matrix protein)	KRTAP8-1 HGT	Ovis aries (Sheep)	62	KRTAP8-1	9940
+P05786	reviewed	K2C8_BOVIN	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Cytokeratin-A) (Keratin-8) (K8) (Type-II keratin Kb8)	KRT8	Bos taurus (Bovine)	478	KRT8	9913
+P08552	reviewed	NFM_PIG	Neurofilament medium polypeptide (NF-M) (160 kDa neurofilament protein) (Neurofilament 3) (Neurofilament triplet M protein)	NEFM NEF3	Sus scrofa (Pig)	455	NEFM	9823
+P08728	reviewed	K1C19_BOVIN	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	KRT19	Bos taurus (Bovine)	399	KRT19	9913
+P08802	reviewed	K118A_XENLA	Keratin, type I cytoskeletal 18-A (Cytokeratin-18-A) (CK-18-A) (Keratin, type I cytoskeletal endo B) (Keratin-18-A) (K18-A)	krt18-a	Xenopus laevis (African clawed frog)	428	krt18-a	8355
+P0C7H8	reviewed	KRA23_HUMAN	Keratin-associated protein 2-3 (High sulfur keratin-associated protein 2.4) (Keratin-associated protein 2.3)	KRTAP2-3 KAP2.3 KRTAP2.3	Homo sapiens (Human)	128	KRTAP2-3	9606
+P11088	reviewed	FILA_MOUSE	Filaggrin	Flg	Mus musculus (Mouse)	336	Flg	10090
+P16053	reviewed	NFM_CHICK	Neurofilament medium polypeptide (NF-M) (160 kDa neurofilament protein) (Neurofilament triplet M protein)	NEFM	Gallus gallus (Chicken)	858	NEFM	9031
+P18165	reviewed	LORI_MOUSE	Loricrin	Loricrin Lor	Mus musculus (Mouse)	486	Loricrin	10090
+P22793	reviewed	TRHY_SHEEP	Trichohyalin	TCHH THH	Ovis aries (Sheep)	1549	TCHH	9940
+P25030	reviewed	K1C20_RAT	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Cytokeratin-21) (CK-21) (Keratin-20) (K20)	Krt20 Krt21	Rattus norvegicus (Rat)	429	Krt20	10116
+P32951	reviewed	CARP1_CANPA	Candidapepsin-1 (EC 3.4.23.24) (ACP 1) (Aspartate protease 1)	SAPP1 ACPR	Candida parapsilosis (Yeast)	402	SAPP1	5480
+P37709	reviewed	TRHY_RABIT	Trichohyalin	TCHH THH	Oryctolagus cuniculus (Rabbit)	1407	TCHH	9986
+P43095	reviewed	CARP6_CANAX	Secreted aspartic protease 6 (ACP 6) (Aspartate protease 6) (EC 3.4.23.24) (Candidapepsin-6)	SAP6	Candida albicans (Yeast)	418	SAP6	5476
+P60331	reviewed	KR101_HUMAN	Keratin-associated protein 10-1 (High sulfur keratin-associated protein 10.1) (Keratin-associated protein 10.1) (Keratin-associated protein 18-1) (Keratin-associated protein 18.1)	KRTAP10-1 KAP10.1 KAP18-1 KRTAP10.1 KRTAP18-1 KRTAP18.1	Homo sapiens (Human)	282	KRTAP10-1	9606
+P60369	reviewed	KR103_HUMAN	Keratin-associated protein 10-3 (High sulfur keratin-associated protein 10.3) (Keratin-associated protein 10.3) (Keratin-associated protein 18-3) (Keratin-associated protein 18.3)	KRTAP10-3 KAP10.3 KAP18-3 KRTAP10.3 KRTAP18-3 KRTAP18.3	Homo sapiens (Human)	221	KRTAP10-3	9606
+P60413	reviewed	KR10C_HUMAN	Keratin-associated protein 10-12 (High sulfur keratin-associated protein 10.12) (Keratin-associated protein 10.12) (Keratin-associated protein 18-12) (Keratin-associated protein 18.12)	KRTAP10-12 KAP10.12 KAP18-12 KRTAP10.12 KRTAP18-12 KRTAP18.12	Homo sapiens (Human)	245	KRTAP10-12	9606
+Q00663	reviewed	CARP_CANTR	Candidapepsin (EC 3.4.23.24) (ACP) (Aspartate protease) (Secreted aspartic proteinase) (SAPT)	SAPT1	Candida tropicalis (Yeast)	394	SAPT1	5482
+Q02916	reviewed	NFL_COTJA	Neurofilament light polypeptide (NF-L) (Neurofilament triplet L protein)	NEFL	Coturnix japonica (Japanese quail) (Coturnix coturnix japonica)	556	NEFL	93934
+Q08D91	reviewed	K2C75_BOVIN	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	KRT75	Bos taurus (Bovine)	543	KRT75	9913
+Q0VBK2	reviewed	K2C80_MOUSE	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	Krt80 Kb20	Mus musculus (Mouse)	452	Krt80	10090
+Q148H7	reviewed	K2C79_BOVIN	Keratin, type II cytoskeletal 79 (Cytokeratin-79) (CK-79) (Keratin-79) (K79) (Type-II keratin Kb38)	KRT79	Bos taurus (Bovine)	535	KRT79	9913
+Q148H8	reviewed	K2C72_BOVIN	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	KRT72	Bos taurus (Bovine)	524	KRT72	9913
+Q2KI74	reviewed	TRADD_BOVIN	Tumor necrosis factor receptor type 1-associated DEATH domain protein (TNFR1-associated DEATH domain protein) (TNFRSF1A-associated via death domain)	TRADD	Bos taurus (Bovine)	312	TRADD	9913
+Q3LI77	reviewed	KR134_HUMAN	Keratin-associated protein 13-4	KRTAP13-4 KAP13.4	Homo sapiens (Human)	160	KRTAP13-4	9606
+Q4FZU2	reviewed	K2C6A_RAT	Keratin, type II cytoskeletal 6A (Cytokeratin-6A) (CK-6A) (Keratin-6A) (K6A) (Type-II keratin Kb6)	Krt6a	Rattus norvegicus (Rat)	552	Krt6a	10116
+Q59XL0	reviewed	IFF6_CANAL	Cell wall protein IFF6 (Adhesin-like protein IFF6) (Hyphally regulated cell wall protein 10)	IFF6 HYR10 CAALFM_C209130CA CaO19.11553 CaO19.4072	Candida albicans (strain SC5314 / ATCC MYA-2876) (Yeast)	1085	IFF6	237561
+Q5QHG5	reviewed	LAP1_TRIRU	Leucine aminopeptidase 1 (EC 3.4.11.-) (Leucyl aminopeptidase 1) (LAP1)	LAP1	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	373	LAP1	5551
+Q5QHG6	reviewed	LAP2_TRIRU	Leucine aminopeptidase 2 (EC 3.4.11.-) (Leucyl aminopeptidase 2) (LAP2)	LAP2	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	495	LAP2	5551
+Q5XQN5	reviewed	K2C5_BOVIN	Keratin, type II cytoskeletal 5 (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	KRT5	Bos taurus (Bovine)	601	KRT5	9913
+Q61414	reviewed	K1C15_MOUSE	Keratin, type I cytoskeletal 15 (Cytokeratin-15) (CK-15) (Keratin-15) (K15)	Krt15 Krt1-15	Mus musculus (Mouse)	452	Krt15	10090
+Q6EIY9	reviewed	K2C1_CANLF	Keratin, type II cytoskeletal 1 (Cytokeratin-1) (CK-1) (Epithelial keratin-1) (Keratin-1) (K1) (Type-II keratin Kb1)	KRT1 KER1	Canis lupus familiaris (Dog) (Canis familiaris)	619	KRT1	9615
+Q6EIZ0	reviewed	K1C10_CANLF	Keratin, type I cytoskeletal 10 (Cytokeratin-10) (CK-10) (Epithelial keratin-10) (Keratin-10) (K10)	KRT10 KER10	Canis lupus familiaris (Dog) (Canis familiaris)	568	KRT10	9615
+Q6EIZ1	reviewed	K22E_CANLF	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	KRT2 K2E KRT2A	Canis lupus familiaris (Dog) (Canis familiaris)	633	KRT2	9615
+Q6IFV3	reviewed	K1C15_RAT	Keratin, type I cytoskeletal 15 (Cytokeratin-15) (CK-15) (Keratin-15) (K15) (Type I keratin Ka15)	Krt15 Ka15	Rattus norvegicus (Rat)	447	Krt15	10116
+Q6IFV4	reviewed	K1C13_RAT	Keratin, type I cytoskeletal 13 (Cytokeratin-13) (CK-13) (Keratin-13) (K13) (Type I keratin Ka13)	Krt13 Ka13	Rattus norvegicus (Rat)	438	Krt13	10116
+Q6IFW2	reviewed	K1C40_RAT	Keratin, type I cytoskeletal 40 (Cytokeratin-40) (CK-40) (Keratin-40) (K40) (Type I hair keratin Ka36)	Krt40 Ka36	Rattus norvegicus (Rat)	431	Krt40	10116
+Q6IFW3	reviewed	K1C39_RAT	Keratin, type I cytoskeletal 39 (Cytokeratin-39) (CK-39) (Keratin-39) (K39) (Type I hair keratin Ka35)	Krt39 Ka35	Rattus norvegicus (Rat)	481	Krt39	10116
+Q6IFX0	reviewed	K1C25_RAT	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Keratin-25A) (K25A) (Type I inner root sheath-specific keratin-K25irs1) (Type I keratin KA38)	Krt25 Ka38 Krt25a	Rattus norvegicus (Rat)	446	Krt25	10116
+Q6IFX1	reviewed	K1C24_RAT	Keratin, type I cytoskeletal 24 (Cytokeratin-24) (CK-24) (Keratin-24) (K24) (Type I keratin-24)	Krt24 Ka24	Rattus norvegicus (Rat)	491	Krt24	10116
+Q6IFX3	reviewed	K1C40_MOUSE	Keratin, type I cytoskeletal 40 (Cytokeratin-40) (CK-40) (Keratin-40) (K40) (Type I hair keratin Ka36)	Krt40 Ka36	Mus musculus (Mouse)	439	Krt40	10090
+Q6IFX4	reviewed	K1C39_MOUSE	Keratin, type I cytoskeletal 39 (Cytokeratin-39) (CK-39) (Keratin-39) (K39) (Type I hair keratin Ka35)	Krt39 Ka35	Mus musculus (Mouse)	482	Krt39	10090
+Q6IFZ6	reviewed	K2C1B_MOUSE	Keratin, type II cytoskeletal 1b (Cytokeratin-1B) (CK-1B) (Embryonic type II keratin-1) (Keratin-77) (K77) (Type-II keratin Kb39)	Krt77 Krt1b	Mus musculus (Mouse)	572	Krt77	10090
+Q6IG00	reviewed	K2C4_RAT	Keratin, type II cytoskeletal 4 (Cytokeratin-4) (CK-4) (Keratin-4) (K4) (Type-II keratin Kb4)	Krt4 Kb4	Rattus norvegicus (Rat)	536	Krt4	10116
+Q6IG01	reviewed	K2C1B_RAT	Keratin, type II cytoskeletal 1b (Cytokeratin-1B) (CK-1B) (Keratin-77) (K77) (Type-II keratin Kb39)	Krt77 Kb39 Krt1b	Rattus norvegicus (Rat)	519	Krt77	10116
+Q6IG02	reviewed	K22E_RAT	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	Krt2 Kb2 Krt2a	Rattus norvegicus (Rat)	685	Krt2	10116
+Q6IG03	reviewed	K2C73_RAT	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	Krt73 Kb36	Rattus norvegicus (Rat)	553	Krt73	10116
+Q6IG04	reviewed	K2C72_RAT	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	Krt72 Kb35	Rattus norvegicus (Rat)	520	Krt72	10116
+Q6IG05	reviewed	K2C75_RAT	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	Krt75 Kb18	Rattus norvegicus (Rat)	542	Krt75	10116
+Q6IG12	reviewed	K2C7_RAT	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	Krt7 Kb7 Krt2-7	Rattus norvegicus (Rat)	457	Krt7	10116
+Q6IME9	reviewed	K2C72_MOUSE	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	Krt72 Kb35 Krt72-ps	Mus musculus (Mouse)	520	Krt72	10090
+Q6IMF1	reviewed	K2C80_RAT	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	Krt80 Kb20	Rattus norvegicus (Rat)	452	Krt80	10116
+Q6NWF6	reviewed	K2C8_DANRE	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Keratin-8) (K8)	krt8 krt2-8	Danio rerio (Zebrafish) (Brachydanio rerio)	520	krt8	7955
+Q6NXH9	reviewed	K2C73_MOUSE	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	Krt73 Kb36	Mus musculus (Mouse)	539	Krt73	10090
+Q6P6Q2	reviewed	K2C5_RAT	Keratin, type II cytoskeletal 5 (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	Krt5 Krt2-5	Rattus norvegicus (Rat)	576	Krt5	10116
+Q6RHW0	reviewed	K1C9_MOUSE	Keratin, type I cytoskeletal 9 (Cytokeratin-9) (CK-9) (Keratin-9) (K9)	Krt9 K9 Krt1-9	Mus musculus (Mouse)	743	Krt9	10090
+Q701N2	reviewed	KRA55_HUMAN	Keratin-associated protein 5-5 (Keratin-associated protein 5-11) (Keratin-associated protein 5.11) (Keratin-associated protein 5.5) (Ultrahigh sulfur keratin-associated protein 5.5)	KRTAP5-5 KAP5-11 KAP5.5 KRTAP5-11 KRTAP5.11 KRTAP5.5	Homo sapiens (Human)	237	KRTAP5-5	9606
+Q7ZTS4	reviewed	K1C18_DANRE	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Dorsal aorta proneprin kinesin-1) (DreK18) (Keratin-18) (K18)	krt18 dapk1	Danio rerio (Zebrafish) (Brachydanio rerio)	431	krt18	7955
+Q8BRG6	reviewed	KLH24_MOUSE	Kelch-like protein 24 (Kainate receptor-interacting protein for GluR6) (KRIP6)	Klhl24	Mus musculus (Mouse)	600	Klhl24	10090
+Q8CIS9	reviewed	K1C9_RAT	Keratin, type I cytoskeletal 9 (Cytokeratin-9) (CK-9) (Keratin-9) (K9) (Spermatid perinuclear ring manchette protein K9)	Krt9 Krt1-9	Rattus norvegicus (Rat)	618	Krt9	10116
+Q8IUC0	reviewed	KR131_HUMAN	Keratin-associated protein 13-1 (High sulfur keratin-associated protein 13.1)	KRTAP13-1 KAP13.1 KRTAP13.1	Homo sapiens (Human)	172	KRTAP13-1	9606
+Q8VED5	reviewed	K2C79_MOUSE	Keratin, type II cytoskeletal 79 (Cytokeratin-79) (CK-79) (Keratin-79) (K79) (Type-II keratin Kb38)	Krt79 Kb38	Mus musculus (Mouse)	531	Krt79	10090
+Q99M73	reviewed	KRT84_MOUSE	Keratin, type II cuticular Hb4 (65 kDa type II keratin) (Keratin-84) (K84) (Type II hair keratin Hb4) (Type-II keratin Kb24)	Krt84 Krt2-16 Krthb4	Mus musculus (Mouse)	603	Krt84	10090
+Q9BYQ8	reviewed	KRA49_HUMAN	Keratin-associated protein 4-9 (Keratin-associated protein 4.9) (Ultrahigh sulfur keratin-associated protein 4.9)	KRTAP4-9 KAP4.9 KRTAP4.9	Homo sapiens (Human)	210	KRTAP4-9	9606
+Q9BYQ9	reviewed	KRA48_HUMAN	Keratin-associated protein 4-8 (Keratin-associated protein 4.8) (Ultrahigh sulfur keratin-associated protein 4.8)	KRTAP4-8 KAP4.8 KRTAP4.8	Homo sapiens (Human)	185	KRTAP4-8	9606
+Q9C075	reviewed	K1C23_HUMAN	Keratin, type I cytoskeletal 23 (Cytokeratin-23) (CK-23) (Keratin-23) (K23)	KRT23	Homo sapiens (Human)	422	KRT23	9606
+Q9DCV7	reviewed	K2C7_MOUSE	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	Krt7 Krt2-7	Mus musculus (Mouse)	457	Krt7	10090
+A0JND2	reviewed	K2C80_BOVIN	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	KRT80	Bos taurus (Bovine)	422	KRT80	9913
+A1A580	reviewed	KR231_HUMAN	Keratin-associated protein 23-1	KRTAP23-1 KAP23.1	Homo sapiens (Human)	65	KRTAP23-1	9606
+A1KQY9	reviewed	K118A_POLSE	Keratin, type I cytoskeletal 18-A (Cytokeratin-18-A) (CK-18-A) (Keratin-18-A) (K18-A)	krt18a	Polypterus senegalus (Senegal bichir)	428	krt18a	55291
+A1L317	reviewed	K1C24_MOUSE	Keratin, type I cytoskeletal 24 (Cytokeratin-24) (CK-24) (Keratin-24) (K24) (Type I keratin-24)	Krt24 Ka24	Mus musculus (Mouse)	512	Krt24	10090
+A1L595	reviewed	K1C17_BOVIN	Keratin, type I cytoskeletal 17 (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	KRT17	Bos taurus (Bovine)	441	KRT17	9913
+A2A5X5	reviewed	KR161_MOUSE	Keratin-associated protein 16-1	Krtap16-1 Gm11570	Mus musculus (Mouse)	502	Krtap16-1	10090
+A3R044	reviewed	SSU1_ARTBC	Sulfite efflux pump SSU1	SSU1 ARB_03529 ARB_03530	Arthroderma benhamiae (strain ATCC MYA-4681 / CBS 112371) (Trichophyton mentagrophytes)	375	SSU1	663331
+A5A6M0	reviewed	K1C17_PANTR	Keratin, type I cytoskeletal 17 (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	KRT17	Pan troglodytes (Chimpanzee)	432	KRT17	9598
+A5A6M5	reviewed	K1H1_PANTR	Keratin, type I cuticular Ha1 (Hair keratin, type I Ha1) (Keratin-31) (K31)	KRT31 KRTHA1	Pan troglodytes (Chimpanzee)	416	KRT31	9598
+A5A6N0	reviewed	K2C7_PANTR	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	KRT7	Pan troglodytes (Chimpanzee)	469	KRT7	9598
+A5A6N2	reviewed	K1C25_PANTR	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Keratin-25A) (K25A) (Type I inner root sheath-specific keratin-K25irs1)	KRT25 KRT25A	Pan troglodytes (Chimpanzee)	450	KRT25	9598
+A6NCN2	reviewed	KR87P_HUMAN	Putative keratin-87 protein (Keratin, hair, basic pseudogene 4) (Keratin-121 pseudogene)	KRT87P KRT121P KRTHBP4	Homo sapiens (Human)	255	KRT87P	9606
+A6QNX5	reviewed	K2C78_BOVIN	Keratin, type II cytoskeletal 78 (Cytokeratin-78) (CK-78) (Keratin-78) (K78) (Type-II keratin Kb40)	KRT78	Bos taurus (Bovine)	528	KRT78	9913
+A6QQJ3	reviewed	PERI_BOVIN	Peripherin	PRPH	Bos taurus (Bovine)	469	PRPH	9913
+A7YWM2	reviewed	K1C40_BOVIN	Keratin, type I cytoskeletal 40 (Cytokeratin-40) (CK-40) (Keratin-40) (K40)	KRT40	Bos taurus (Bovine)	431	KRT40	9913
+A8MTY7	reviewed	KRA97_HUMAN	Keratin-associated protein 9-7 (Keratin-associated protein 9-like 1)	KRTAP9-7 KAP9.7 KRTAP9.7 KRTAP9L1	Homo sapiens (Human)	169	KRTAP9-7	9606
+A8MVA2	reviewed	KRA96_HUMAN	Keratin-associated protein 9-6 (Keratin-associated protein 9-like 2)	KRTAP9-6 KAP9.6 KRTAP9.6 KRTAP9L2	Homo sapiens (Human)	160	KRTAP9-6	9606
+A8MXZ3	reviewed	KRA91_HUMAN	Keratin-associated protein 9-1 (Keratin-associated protein 9-like 3)	KRTAP9-1 KAP9.1 KRTAP9.1 KRTAP9L3	Homo sapiens (Human)	250	KRTAP9-1	9606
+B2RZC9	reviewed	KTAP2_RAT	Keratinocyte-associated protein 2 (KCP-2) (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	Krtcap2	Rattus norvegicus (Rat)	136	Krtcap2	10116
+D4AN26	reviewed	CDO_ARTBC	Cysteine dioxygenase (CDO) (EC 1.13.11.20)	CDO1 ARB_05630	Arthroderma benhamiae (strain ATCC MYA-4681 / CBS 112371) (Trichophyton mentagrophytes)	219	CDO1	663331
+D4B3J8	reviewed	SREA_ARTBC	GATA-type transcription factor sreA (Siderophore uptake regulator sreA)	sreA ARB_03037	Arthroderma benhamiae (strain ATCC MYA-4681 / CBS 112371) (Trichophyton mentagrophytes)	542	sreA	663331
+E1AB55	reviewed	K2C71_FELCA	Keratin, type II cytoskeletal 71 (Cytokeratin-71) (CK-71) (Keratin-71) (K71)	KRT71	Felis catus (Cat) (Felis silvestris catus)	524	KRT71	9685
+F1N7G5	reviewed	CFA53_BOVIN	Cilia- and flagella-associated protein 53	CFAP53 MBD1	Bos taurus (Bovine)	514	CFAP53	9913
+G5E9R7	reviewed	KR416_HUMAN	Putative keratin-associated protein 4-16 (Keratin-associated protein 4 pseudogene 1) (Keratin-associated protein 4-16 pseudogene)	KRTAP4-16 KRTAP4-16P KRTAP4P1	Homo sapiens (Human)	235	KRTAP4-16	9606
+O08633	reviewed	KRA81_MOUSE	Keratin-associated protein 8-1 (HGTp type I F) (High-glycine/tyrosine protein keratin) (HGT keratin)	Krtap8-1	Mus musculus (Mouse)	61	Krtap8-1	10090
+O08640	reviewed	KRA14_MOUSE	Keratin-associated protein 14 (Anagen-specific protein KAP13) (mKAP13) (Pubertal mammary gland-specific protein 1)	Krtap14 Pmg1	Mus musculus (Mouse)	167	Krtap14	10090
+O18740	reviewed	K1C9_CANLF	Keratin, type I cytoskeletal 9 (Cytokeratin-9) (CK-9) (Keratin-9) (K9)	KRT9	Canis lupus familiaris (Dog) (Canis familiaris)	786	KRT9	9615
+O33479	reviewed	ICEV_PSESX	Ice nucleation protein	inaV	Pseudomonas syringae	1196	inaV	317
+O57607	reviewed	K1C18_ONCMY	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Keratin-18) (K18) (Simple type I keratin)	krt18	Oncorhynchus mykiss (Rainbow trout) (Salmo gairdneri)	438	krt18	8022
+O57611	reviewed	K1C18_SCYST	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	krt18	Scyliorhinus stellaris (Nursehound) (Greater spotted dogfish)	415	krt18	68454
+O93256	reviewed	K1C19_CHICK	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (GK-19) (Keratin-19) (K19)	KRT19	Gallus gallus (Chicken)	423	KRT19	9031
+P02438	reviewed	KRB2A_SHEEP	Keratin, high-sulfur matrix protein, B2A		Ovis aries (Sheep)	172		9940
+P02444	reviewed	KRA33_SHEEP	Keratin, high sulfur matrix protein, IIIB3		Ovis aries (Sheep)	98		9940
+P02445	reviewed	KRA34_SHEEP	Keratin, high sulfur matrix protein, IIIB4		Ovis aries (Sheep)	98		9940
+P02451	reviewed	KRFT_CHRNO	Feather keratin (F-ker)		Chroicocephalus novaehollandiae (Silver gull) (Larus novaehollandiae)	98		2547444
+P02534	reviewed	K1M1_SHEEP	Keratin, type I microfibrillar 48 kDa, component 8C-1 (Low-sulfur keratin)		Ovis aries (Sheep)	412		9940
+P02537	reviewed	K1C0_XENLA	Keratin-3, type I cytoskeletal 51 kDa (51 kDa cytokeratin)		Xenopus laevis (African clawed frog)	486		8355
+P04260	reviewed	K2C4_BOVIN	Keratin, type II cytoskeletal 59 kDa, component IV (Keratin K6-gamma)		Bos taurus (Bovine)	182		9913
+P04261	reviewed	K2C3_BOVIN	Keratin, type II cytoskeletal 60 kDa, component III		Bos taurus (Bovine)	182		9913
+P04263	reviewed	K2CA_BOVIN	Keratin, type II cytoskeletal 68 kDa, component IA		Bos taurus (Bovine)	182		9913
+P04265	reviewed	K2C2_XENLA	Keratin, type II cytoskeletal I (Clone PUF164)		Xenopus laevis (African clawed frog)	419		8355
+P04266	reviewed	K2C1_XENLA	Keratin, type II cytoskeletal I (Clone PUF23)		Xenopus laevis (African clawed frog)	425		8355
+P05785	reviewed	K1C14_BOVIN	Keratin, type I cytoskeletal 14 (Cytokeratin VII) (Cytokeratin-14) (CK-14) (Cytokeratin-7) (Keratin-14) (K14)	KRT14	Bos taurus (Bovine)	93	KRT14	9913
+P06459	reviewed	VE4_HPV6B	Protein E4 (E1^E4)	E4	Human papillomavirus type 6b	91	E4	10600
+P06620	reviewed	ICEN_PSESY	Ice nucleation protein	inaZ	Pseudomonas syringae pv. syringae	1200	inaZ	321
+P08776	reviewed	K2C8_XENLA	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Keratin-8) (K8)		Xenopus laevis (African clawed frog)	502		8355
+P08777	reviewed	K1C1_XENLA	Keratin, type I cytoskeletal 47 kDa	xk81a1	Xenopus laevis (African clawed frog)	429	xk81a1	8355
+P0C5Y4	reviewed	KRA14_HUMAN	Keratin-associated protein 1-4 (High sulfur keratin-associated protein 1.4) (Keratin-associated protein 1.4)	KRTAP1-4 KAP1.4 KRTAP1.4	Homo sapiens (Human)	121	KRTAP1-4	9606
+P0DSO2	reviewed	SCGR9_HUMAN	Small cysteine and glycine repeat-containing protein 9 (Keratin-associated protein 28-1 pseudogene)	SCYGR9 KRTAP28p1	Homo sapiens (Human)	92	SCYGR9	9606
+P15241	reviewed	K2M2_SHEEP	Keratin, type II microfibrillar, component 7C		Ovis aries (Sheep)	491		9940
+P16878	reviewed	K2C7_XENLA	Keratin, type II cytoskeletal 7 (XENCK55(5/6))	krt7	Xenopus laevis (African clawed frog)	513	krt7	8355
+P25690	reviewed	K1M2_SHEEP	Keratin, type I microfibrillar, 47.6 kDa (Low-sulfur keratin)		Ovis aries (Sheep)	404		9940
+P25691	reviewed	K2M3_SHEEP	Keratin, type II microfibrillar, component 5		Ovis aries (Sheep)	502		9940
+P32950	reviewed	CARP2_CANPA	Candidapepsin-2 (EC 3.4.23.24) (ACP 2) (Aspartate protease 2)	SAPP2 ACPL	Candida parapsilosis (Yeast)	412	SAPP2	5480
+P35323	reviewed	SPRR1_PIG	Cornifin (SPRP) (Small proline-rich protein I) (SPR-I) (Small proline-rich squamous cell marker)	SPRP	Sus scrofa (Pig)	97	SPRP	9823
+P43093	reviewed	CARP4_CANAW	Candidapepsin-4 (EC 3.4.23.24) (ACP 4) (Aspartate protease 4) (Secreted aspartic protease 4)	SAP4 CAWG_05020	Candida albicans (strain WO-1) (Yeast)	417	SAP4	294748
+P48676	reviewed	PERI_XENLA	Peripherin (Neuronal intermediate filament IF3)	prph if3	Xenopus laevis (African clawed frog)	456	prph	8355
+P51856	reviewed	K1C19_POTTR	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	KRT19	Potorous tridactylus (Potoroo)	401	KRT19	9310
+P84718	reviewed	PSBO_PINST	Putative oxygen-evolving enhancer protein 1 (OEE1) (33 kDa subunit of oxygen evolving system of photosystem II) (33 kDa thylakoid membrane protein) (OEC 33 kDa subunit) (PS2)	PSBO	Pinus strobus (Eastern white pine)	116	PSBO	3348
+P86229	reviewed	KTAP2_CANLF	Keratinocyte-associated protein 2 (KCP-2) (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	KRTCAP2 KCP2	Canis lupus familiaris (Dog) (Canis familiaris)	136	KRTCAP2	9615
+P86247	reviewed	K2C8_MESAU	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Keratin-8) (K8)	KRT8	Mesocricetus auratus (Golden hamster)	110	KRT8	10036
+P97861	reviewed	KRT86_MOUSE	Keratin, type II cuticular Hb6 (Keratin-86) (K86) (Type II hair keratin Hb6) (Type-II keratin Kb26)	Krt86 Krt2-10 Krthb6	Mus musculus (Mouse)	486	Krt86	10090
+Q02957	reviewed	KRA61_RABIT	Keratin-associated protein 6-1 (Keratin, glycine/tyrosine-rich of hair)	KRTAP6-1 KAP6-1	Oryctolagus cuniculus (Rabbit)	80	KRTAP6-1	9986
+Q02958	reviewed	KRA61_SHEEP	Keratin-associated protein 6-1 (Keratin, glycine/tyrosine-rich of hair)	KRTAP6-1 KAP6-1	Ovis aries (Sheep)	83	KRTAP6-1	9940
+Q04948	reviewed	IFE_BRALA	Non-neuronal cytoplasmic intermediate filament protein		Branchiostoma lanceolatum (Common lancelet) (Amphioxus lanceolatum)	464		7740
+Q07427	reviewed	K1C18_CARAU	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	krt18	Carassius auratus (Goldfish)	435	krt18	7957
+Q0P5J4	reviewed	K1C25_BOVIN	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Type I inner root sheath-specific keratin-K25irs1)	KRT25	Bos taurus (Bovine)	450	KRT25	9913
+Q0P5J6	reviewed	K1C27_BOVIN	Keratin, type I cytoskeletal 27 (Cytokeratin-27) (CK-27) (Keratin-27) (K27) (Type I inner root sheath-specific keratin-K25irs3)	KRT27	Bos taurus (Bovine)	460	KRT27	9913
+Q0P5J7	reviewed	KRT35_BOVIN	Keratin, type I cuticular Ha5 (Keratin-35) (K35)	KRT35	Bos taurus (Bovine)	454	KRT35	9913
+Q148H4	reviewed	KRT81_BOVIN	Keratin, type II cuticular Hb1 (Keratin-81) (K81) (Type II hair keratin Hb1) (Type-II keratin Kb21)	KRT81	Bos taurus (Bovine)	500	KRT81	9913
+Q148H5	reviewed	K2C71_BOVIN	Keratin, type II cytoskeletal 71 (Cytokeratin-71) (CK-71) (Keratin-71) (K71) (Type II inner root sheath-specific keratin-K6irs1) (Type-II keratin Kb34)	KRT71	Bos taurus (Bovine)	525	KRT71	9913
+Q148H6	reviewed	K1C28_BOVIN	Keratin, type I cytoskeletal 28 (Cytokeratin-28) (CK-28) (Keratin-28) (K28) (Type I inner root sheath-specific keratin-K25irs4)	KRT28	Bos taurus (Bovine)	464	KRT28	9913
+Q148V8	reviewed	FA83H_MOUSE	Protein FAM83H	Fam83h	Mus musculus (Mouse)	1209	Fam83h	10090
+Q28580	reviewed	KRA71_SHEEP	Keratin-associated protein 7-1 (HGT keratin) (HGT-C2) (High glycine-tyrosine keratin-associated protein 7.1)	KRTAP7-1 HGTC2	Ovis aries (Sheep)	85	KRTAP7-1	9940
+Q28706	reviewed	K1C12_RABIT	Keratin, type I cytoskeletal 12 (Cytokeratin-12) (CK-12) (Keratin-12) (K12)	KRT12	Oryctolagus cuniculus (Rabbit)	411	KRT12	9986
+Q28810	reviewed	K2C8_POTTR	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Keratin-8) (K8) (Type-II keratin Kb8)	KRT8	Potorous tridactylus (Potoroo)	310	KRT8	9310
+Q29426	reviewed	K2C3_RABIT	Keratin, type II cytoskeletal 3 (Cytokeratin-3) (CK-3) (Keratin-3) (K3) (Type-II keratin Kb3)	KRT3	Oryctolagus cuniculus (Rabbit)	629	KRT3	9986
+Q29S21	reviewed	K2C7_BOVIN	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	KRT7	Bos taurus (Bovine)	466	KRT7	9913
+Q2G2B2	reviewed	SASG_STAA8	Surface protein G	sasG SAOUHSC_02798	Staphylococcus aureus (strain NCTC 8325 / PS 47)	1627	sasG	93061
+Q2PFW6	reviewed	SYUG_MACFA	Gamma-synuclein	SNCG QflA-20719	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	127	SNCG	9541
+Q3LI61	reviewed	KR202_HUMAN	Keratin-associated protein 20-2	KRTAP20-2 KAP20.2	Homo sapiens (Human)	65	KRTAP20-2	9606
+Q3LI67	reviewed	KRA63_HUMAN	Keratin-associated protein 6-3	KRTAP6-3 KAP6.3	Homo sapiens (Human)	110	KRTAP6-3	9606
+Q3LI73	reviewed	KR194_HUMAN	Keratin-associated protein 19-4	KRTAP19-4 KAP19.4	Homo sapiens (Human)	84	KRTAP19-4	9606
+Q3LI81	reviewed	KR271_HUMAN	Keratin-associated protein 27-1	KRTAP27-1 KAP27.1	Homo sapiens (Human)	207	KRTAP27-1	9606
+Q3LI83	reviewed	KR241_HUMAN	Keratin-associated protein 24-1	KRTAP24-1 KAP24.1	Homo sapiens (Human)	254	KRTAP24-1	9606
+Q3TRJ4	reviewed	K1C26_MOUSE	Keratin, type I cytoskeletal 26 (Cytokeratin-26) (CK-26) (Keratin-26) (K26) (Type I inner root sheath-specific keratin-K25irs2)	Krt26	Mus musculus (Mouse)	462	Krt26	10090
+Q3UV17	reviewed	K22O_MOUSE	Keratin, type II cytoskeletal 2 oral (Keratin-76) (K76) (Type-II keratin Kb9)	Krt76	Mus musculus (Mouse)	594	Krt76	10090
+Q497I4	reviewed	KRT35_MOUSE	Keratin, type I cuticular Ha5 (Hair keratin, type I Ha5) (Keratin-35) (K35)	Krt35 Krt1-24	Mus musculus (Mouse)	455	Krt35	10090
+Q4W7G7	reviewed	KR134_SAPAP	Keratin-associated protein 13-4	KRTAP13-4 KAP13.4	Sapajus apella (Brown-capped capuchin) (Cebus apella)	156	KRTAP13-4	9515
+Q4W7G8	reviewed	KR134_MACFU	Keratin-associated protein 13-4	KRTAP13-4 KAP13.4	Macaca fuscata fuscata (Japanese macaque)	156	KRTAP13-4	9543
+Q4W7G9	reviewed	KR134_MACFA	Keratin-associated protein 13-4	KRTAP13-4 KAP13.4	Macaca fascicularis (Crab-eating macaque) (Cynomolgus monkey)	156	KRTAP13-4	9541
+Q4W7H0	reviewed	KR134_HYLLA	Keratin-associated protein 13-4	KRTAP13-4 KAP13.4	Hylobates lar (Lar gibbon) (White-handed gibbon)	160	KRTAP13-4	9580
+Q4W7H1	reviewed	KR134_HYLAG	Keratin-associated protein 13-4	KRTAP13-4 KAP13.4	Hylobates agilis (Agile gibbon)	160	KRTAP13-4	9579
+Q5K2N3	reviewed	K2C8_PROAT	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Keratin-8) (K8)	KRT8	Protopterus aethiopicus (Marbled lungfish)	497	KRT8	7886
+Q5K2N9	reviewed	K1C18_PROAT	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	krt18	Protopterus aethiopicus (Marbled lungfish)	438	krt18	7886
+Q5K2P6	reviewed	K1C11_PROAT	Keratin, type 1 cytoskeletal 11 (Type I keratin 11)	krt11	Protopterus aethiopicus (Marbled lungfish)	467	krt11	7886
+Q5R8S9	reviewed	K1C19_PONAB	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	KRT19	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	400	KRT19	9601
+Q5RE49	reviewed	TCHP_PONAB	Trichoplein keratin filament-binding protein (Protein TCHP) (Mitochondrial protein with oncostatic activity) (Mitostatin)	TCHP	Pongo abelii (Sumatran orangutan) (Pongo pygmaeus abelii)	498	TCHP	9601
+Q5RL79	reviewed	KTAP2_MOUSE	Keratinocyte-associated protein 2 (KCP-2) (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	Krtcap2	Mus musculus (Mouse)	136	Krtcap2	10090
+Q5ZIB2	reviewed	FBF1_CHICK	Fas-binding factor 1 homolog (FBF-1)	FBF1 RCJMB04_28i8	Gallus gallus (Chicken)	1132	FBF1	9031
+Q61765	reviewed	K1H1_MOUSE	Keratin, type I cuticular Ha1 (HKA-1) (Hair keratin, type I Ha1) (Keratin-31) (K31)	Krt31 Hka1 Krt1-1 Krtha1	Mus musculus (Mouse)	416	Krt31	10090
+Q61897	reviewed	KT33B_MOUSE	Keratin, type I cuticular Ha3-II (Hair keratin, type I Ha3) (Keratin, type I cuticular Ha3) (Keratin-33B) (K33B)	Krt33b Hka3 Krt1-3	Mus musculus (Mouse)	404	Krt33b	10090
+Q62168	reviewed	K1H2_MOUSE	Keratin, type I cuticular Ha2 (Hair keratin, type I Ha2) (Keratin-32) (K32)	Krt32 Hka2 Krt1-2 Krtha2	Mus musculus (Mouse)	407	Krt32	10090
+Q64507	reviewed	KRA51_MOUSE	Keratin-associated protein 5-1 (Ultra high sulfur serine protein 1) (UHS-Ser-1)	Krtap5-1	Mus musculus (Mouse)	230	Krtap5-1	10090
+Q69F34	reviewed	SUB5_TRIRU	Subtilisin-like protease 5 (EC 3.4.21.-)	SUB5	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	396	SUB5	5551
+Q69F35	reviewed	SUB4_TRIRU	Subtilisin-like protease 4 (EC 3.4.21.-)	SUB4	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	399	SUB4	5551
+Q69F56	reviewed	SUB3_TRIRU	Subtilisin-like protease 3 (EC 3.4.21.-)	SUB3	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	397	SUB3	5551
+Q69F58	reviewed	SUB1_TRIRU	Subtilisin-like protease 1 (EC 3.4.21.-)	SUB1	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	504	SUB1	5551
+Q6IFU7	reviewed	K1C42_RAT	Keratin, type I cytoskeletal 42 (Cytokeratin-42) (CK-42) (Keratin-42) (K42) (Type I keratin Ka22)	Krt42 Ka22	Rattus norvegicus (Rat)	452	Krt42	10116
+Q6IFW5	reviewed	K1C12_RAT	Keratin, type I cytoskeletal 12 (Cytokeratin-12) (CK-12) (Keratin-12) (K12) (Type I keratin Ka12)	Krt12 Ka12 Krt1-12	Rattus norvegicus (Rat)	456	Krt12	10116
+Q6IFW8	reviewed	K1C27_RAT	Keratin, type I cytoskeletal 27 (Cytokeratin-27) (CK-27) (Keratin-27) (K27) (Type I inner root sheath-specific keratin-K25irs3) (Type I keratin KA40)	Krt27 Ka40	Rattus norvegicus (Rat)	449	Krt27	10116
+Q6IFX2	reviewed	K1C42_MOUSE	Keratin, type I cytoskeletal 42 (Cytokeratin-42) (CK-42) (Keratin-17n) (Keratin-42) (K42) (Type I keratin Ka22)	Krt42 Ka22	Mus musculus (Mouse)	452	Krt42	10090
+Q6IFZ9	reviewed	K2C74_MOUSE	Keratin, type II cytoskeletal 74 (Keratin-74) (K74) (Type-II keratin Kb37)	Krt74 Kb37	Mus musculus (Mouse)	495	Krt74	10090
+Q6IMF0	reviewed	KRT87_MOUSE	Keratin, type II cuticular 87 (Keratin-87) (K87)	Krt87 Kb25 Krt2-25 Krt83	Mus musculus (Mouse)	495	Krt87	10090
+Q6L8G5	reviewed	KR510_HUMAN	Keratin-associated protein 5-10 (Keratin-associated protein 5.10) (Ultrahigh sulfur keratin-associated protein 5.10)	KRTAP5-10 KAP5.10 KRTAP5.10	Homo sapiens (Human)	202	KRTAP5-10	9606
+Q6P864	reviewed	K1C18_XENTR	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	krt18 TEgg011c19.1	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	429	krt18	8364
+Q6PVZ1	reviewed	K1C14_CHICK	Keratin, type I cytoskeletal 14 (Cytokeratin-14) (CK-14) (Keratin-14) (K14)	KRT14	Gallus gallus (Chicken)	467	KRT14	9031
+Q6R648	reviewed	KR111_CAPHI	Keratin-associated protein 11-1 (High sulfur keratin-associated protein 11.1)	KRTAP11-1	Capra hircus (Goat)	159	KRTAP11-1	9925
+Q6R649	reviewed	K1C27_CAPHI	Keratin, type I cytoskeletal 27 (Cytokeratin-27) (CK-27) (Keratin-27) (K27) (Type I inner root sheath-specific keratin-K25irs3) (Type I keratin intermediate filament C29)	KRT27	Capra hircus (Goat)	460	KRT27	9925
+Q6R650	reviewed	K1C25_CAPHI	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Type I inner root sheath-specific keratin-K25irs1) (Type I keratin intermediate filament IRSa1)	KRT25	Capra hircus (Goat)	450	KRT25	9925
+Q6S343	reviewed	KRA32_SHEEP	Keratin-associated protein 3-2 (BIIIB2 high-sulfur keratin) (High sulfur keratin IF-associated protein 3.2)	KAP3.2 BIIIB2	Ovis aries (Sheep)	98	KAP3.2	9940
+Q6WIH8	reviewed	MEP3_TRIRU	Extracellular metalloproteinase 3 (EC 3.4.24.-) (Fungalysin MEP3)	MEP3	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	633	MEP3	5551
+Q7SY65	reviewed	K118B_XENLA	Keratin, type I cytoskeletal 18-B (Cytokeratin-18-B) (CK-18-B) (Keratin-18-B) (K18-B)	krt18-b	Xenopus laevis (African clawed frog)	432	krt18-b	8355
+Q7SYF8	reviewed	K1C18_ACIBE	Keratin, type I cytoskeletal 18 (Cytokeratin-18) (CK-18) (Keratin type Is) (Keratin-18) (K18)	krt18	Acipenser baerii (Siberian sturgeon)	435	krt18	27689
+Q8C1I6	reviewed	KR163_MOUSE	Keratin-associated protein 16-3 (Keratin-associated protein 16-10) (Keratin-associated protein 16.3)	Krtap16-3 Krtap16-10 Krtap16.3	Mus musculus (Mouse)	86	Krtap16-3	10090
+Q8HZR5	reviewed	K2C7_POTTR	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	KRT7	Potorous tridactylus (Potoroo)	483	KRT7	9310
+Q8JFQ6	reviewed	K1C13_ONCMY	Keratin, type I cytoskeletal 13 (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	krt13	Oncorhynchus mykiss (Rainbow trout) (Salmo gairdneri)	492	krt13	8022
+Q8NIB6	reviewed	MEP1_TRIRU	Extracellular metalloproteinase 1 (EC 3.4.24.-) (Fungalysin MEP1)	MEP1	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	635	MEP1	5551
+Q8NIE3	reviewed	MEP2_TRIRU	Extracellular metalloproteinase 2 (EC 3.4.24.-) (Fungalysin MEP2)	MEP2	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	632	MEP2	5551
+Q8NIJ4	reviewed	MEP4_TRIRU	Extracellular metalloproteinase 4 (EC 3.4.24.-) (Fungalysin MEP4)	MEP4	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	643	MEP4	5551
+Q90303	reviewed	K1C1_CARAU	Keratin, type I cytoskeletal 50 kDa (GK50)		Carassius auratus (Goldfish)	467		7957
+Q90502	reviewed	TBFG_EPTST	Thread biopolymer filament subunit gamma		Eptatretus stoutii (Pacific hagfish)	603		7765
+Q99M74	reviewed	KRT82_MOUSE	Keratin, type II cuticular Hb2 (Keratin-82) (K82) (Type II hair keratin Hb2) (Type-II keratin Kb22)	Krt82 Krt2-20 Krthb2	Mus musculus (Mouse)	516	Krt82	10090
+Q99PS0	reviewed	K1C23_MOUSE	Keratin, type I cytoskeletal 23 (Cytokeratin-23) (CK-23) (Keratin-23) (K23)	Krt23 Haik1 Krt1-23	Mus musculus (Mouse)	422	Krt23	10090
+Q9BGM5	reviewed	K1C25_SHEEP	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Type I inner root sheath-specific keratin-K25irs1) (Type I keratin intermediate filament IRSa1)	KRT25	Ovis aries (Sheep)	450	KRT25	9940
+Q9BYT5	reviewed	KRA22_HUMAN	Keratin-associated protein 2-2 (High sulfur keratin-associated protein 2.2) (Keratin-associated protein 2.2)	KRTAP2-2 KAP2.2 KRTAP2.2	Homo sapiens (Human)	123	KRTAP2-2	9606
+Q9BYU5	reviewed	KRA21_HUMAN	Keratin-associated protein 2-1 (High sulfur keratin-associated protein 2.1) (Keratin-associated protein 2.1)	KRTAP2-1 KAP2.1 KRTAP2.1A KRTAP2.1B	Homo sapiens (Human)	128	KRTAP2-1	9606
+Q9D3I6	reviewed	KRA71_MOUSE	Keratin-associated protein 7-1 (High glycine-tyrosine keratin-associated protein 7.1)	Krtap7-1 Kap7.1 Krtap7.1	Mus musculus (Mouse)	87	Krtap7-1	10090
+Q9D638	reviewed	KRA32_MOUSE	Keratin-associated protein 3-2 (Keratin-associated protein 3-3)	Krtap3-2 Krtap3-3	Mus musculus (Mouse)	99	Krtap3-2	10090
+Q9D646	reviewed	KRT34_MOUSE	Keratin, type I cuticular Ha4 (Hair keratin, type I Ha4) (Keratin-34) (K34)	Krt34 Ha4 Krt1-4	Mus musculus (Mouse)	392	Krt34	10090
+Q9ERE2	reviewed	KRT81_MOUSE	Keratin, type II cuticular Hb1 (Keratin-81) (K81) (Type II hair keratin Hb1)	Krt81 Krt2-19	Mus musculus (Mouse)	481	Krt81	10090
+Q9UW98	reviewed	DPP5_TRIRU	Dipeptidyl-peptidase 5 (EC 3.4.14.-) (Dipeptidyl-peptidase V) (DPP V) (DppV) (allergen Tri r 4)	DPPV	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	726	DPPV	5551
+Q9Z2T6	reviewed	KRT85_MOUSE	Keratin, type II cuticular Hb5 (Keratin-85) (K85) (Type II hair keratin Hb5) (Type-II keratin Kb25)	Krt85 Krt2-18 Krthb5	Mus musculus (Mouse)	507	Krt85	10090
+A0A286YEV6	reviewed	SCGR4_HUMAN	Small cysteine and glycine repeat-containing protein 4 (Keratin-associated protein 28-4)	SCYGR4 KRTAP28-4	Homo sapiens (Human)	105	SCYGR4	9606
+A0A286YEX9	reviewed	SCGRX_HUMAN	Small cysteine and glycine repeat-containing protein 10 (Keratin-associated protein 28 family pseudogene 2)	SCYGR10 KRTAP28p2	Homo sapiens (Human)	47	SCYGR10	9606
+A0A286YEY9	reviewed	SCGR1_HUMAN	Small cysteine and glycine repeat-containing protein 1 (Keratin-associated protein 28-1)	SCYGR1 KRTAP28-1	Homo sapiens (Human)	88	SCYGR1	9606
+A0A286YF01	reviewed	SCGR7_HUMAN	Small cysteine and glycine repeat-containing protein 7 (Keratin-associated protein 28-7)	SCYGR7 KRTAP28-7	Homo sapiens (Human)	96	SCYGR7	9606
+A0A286YF46	reviewed	SCGR5_HUMAN	Small cysteine and glycine repeat-containing protein 5 (Keratin-associated protein 28-5)	SCYGR5 KRTAP28-5	Homo sapiens (Human)	85	SCYGR5	9606
+A0A286YF60	reviewed	SCGR3_HUMAN	Small cysteine and glycine repeat-containing protein 3 (Keratin-associated protein 28-3)	SCYGR3 KRTAP28-3	Homo sapiens (Human)	100	SCYGR3	9606
+A0A286YF77	reviewed	SCGR6_HUMAN	Small cysteine and glycine repeat-containing protein 6 (Keratin-associated protein 28-6)	SCYGR6 KRTAP28-6	Homo sapiens (Human)	105	SCYGR6	9606
+A0A286YFB4	reviewed	SCGR2_HUMAN	Small cysteine and glycine repeat-containing protein 2 (Keratin-associated protein 28-2)	SCYGR2 KRTAP28-2	Homo sapiens (Human)	120	SCYGR2	9606
+A0A286YFG1	reviewed	SCGR8_HUMAN	Small cysteine and glycine repeat-containing protein 8 (Keratin-associated protein 28-8)	SCYGR8 KRTAP28-8	Homo sapiens (Human)	108	SCYGR8	9606
+A0AUT1	reviewed	TCHP_XENLA	Trichoplein keratin filament-binding protein (Protein TCHP)	tchp	Xenopus laevis (African clawed frog)	499	tchp	8355
+A2A591	reviewed	KRA31_MOUSE	Keratin-associated protein 3-1 (High-sulfur keratin protein)	Krtap3-1	Mus musculus (Mouse)	98	Krtap3-1	10090
+A2A5X4	reviewed	KR291_MOUSE	Keratin-associated protein 29-1 (Keratin-associated protein 29.2)	Krtap29-1 Gm14195 Kap29.2	Mus musculus (Mouse)	342	Krtap29-1	10090
+A3QUP1	reviewed	SSU1_TRIRU	Sulfite efflux pump SSU1	SSU1	Trichophyton rubrum (Athlete's foot fungus) (Epidermophyton rubrum)	375	SSU1	5551
+A4FUZ0	reviewed	KRT83_BOVIN	Keratin, type II cuticular Hb3 (Keratin-83) (K83) (Type II hair keratin Hb3) (Type-II keratin Kb23)	KRT83	Bos taurus (Bovine)	493	KRT83	9913
+A5A6P3	reviewed	KT33A_PANTR	Keratin, type I cuticular Ha3-I (Hair keratin, type I Ha3-I) (Keratin-33A) (K33A)	KRT33A KRTHA3A	Pan troglodytes (Chimpanzee)	404	KRT33A	9598
+A5A6P5	reviewed	KRA92_PANTR	Keratin-associated protein 9-2 (Keratin-associated protein 9.2)	KRTAP9-2	Pan troglodytes (Chimpanzee)	170	KRTAP9-2	9598
+A6H712	reviewed	K1C26_BOVIN	Keratin, type I cytoskeletal 26 (Cytokeratin-26) (CK-26) (Keratin-26) (K26) (Type I inner root sheath-specific keratin-K25irs2)	KRT26	Bos taurus (Bovine)	469	KRT26	9913
+A6QP35	reviewed	KR108_BOVIN	Keratin-associated protein 10-8	KRTAP10-8	Bos taurus (Bovine)	218	KRTAP10-8	9913
+A6QQ59	reviewed	KTAP2_BOVIN	Keratinocyte-associated protein 2 (KCP-2) (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	KRTCAP2	Bos taurus (Bovine)	136	KRTCAP2	9913
+A8IRJ7	reviewed	CFA53_CHLRE	Cilia- and flagella-associated protein 53	CFAP53 FAP53 CHLREDRAFT_196792	Chlamydomonas reinhardtii (Chlamydomonas smithii)	482	CFAP53	3055
+A8MUX0	reviewed	KR161_HUMAN	Keratin-associated protein 16-1	KRTAP16-1 KAP16.1	Homo sapiens (Human)	517	KRTAP16-1	9606
+A8MX34	reviewed	KR291_HUMAN	Keratin-associated protein 29-1 (Keratin-associated protein 29.2)	KRTAP29-1 KAP29.2	Homo sapiens (Human)	341	KRTAP29-1	9606
+A9JRM0	reviewed	FA83H_XENTR	Protein FAM83H	fam83h	Xenopus tropicalis (Western clawed frog) (Silurana tropicalis)	1277	fam83h	8364
+B0LKP1	reviewed	KRT35_SHEEP	Keratin, type I cuticular Ha5 (Keratin-35) (K35)	KRT35	Ovis aries (Sheep)	455	KRT35	9940
+C5G0E3	reviewed	SSU1_ARTOC	Sulfite efflux pump SSU1	SSU1 MCYG_08415	Arthroderma otae (strain ATCC MYA-4605 / CBS 113480) (Microsporum canis)	375	SSU1	554155
+D1MF76	reviewed	CDO_ARTBE	Cysteine dioxygenase (CDO) (EC 1.13.11.20)	CDO1	Arthroderma benhamiae (Trichophyton mentagrophytes)	219	CDO1	63400
+D4AQ83	reviewed	PGA52_ARTBC	Probable circularly permuted 1,3-beta-glucanase (EC 3.2.1.39) (Allergen Asp f 4 homolog) (PGA52-like secreted protein ARB_06390)	ARB_06390	Arthroderma benhamiae (strain ATCC MYA-4681 / CBS 112371) (Trichophyton mentagrophytes)	440		663331
+O08632	reviewed	KR195_MOUSE	Keratin-associated protein 19-5 (Glycine tyrosine-rich hair protein) (High-glycine tyrosine keratin type 1 alpha) (HGTp type 1 alpha) (Keratin-associated protein 8-2)	Krtap19-5 Krtap8-2	Mus musculus (Mouse)	62	Krtap19-5	10090
+O08884	reviewed	KRA62_MOUSE	Keratin-associated protein 6-2 (High-glycine tyrosine keratin type II.4) (HGTp type II.4) (HgtpII.4)	Krtap6-2	Mus musculus (Mouse)	159	Krtap6-2	10090
+O13152	reviewed	KRFJ_CHICK	Beta-keratin-related protein	BKJ	Gallus gallus (Chicken)	109	BKJ	9031
+O77727	reviewed	K1C15_SHEEP	Keratin, type I cytoskeletal 15 (Cytokeratin-15) (CK-15) (Keratin-15) (K15)	KRT15	Ovis aries (Sheep)	453	KRT15	9940
+O93499	reviewed	KRF2_COLLI	Feather keratin Cos1-2 (F-ker)		Columba livia (Rock dove)	101		8932
+O93500	reviewed	KRF3_COLLI	Feather keratin Cos2-2 (F-ker)		Columba livia (Rock dove)	101		8932
+O93532	reviewed	K2CO_CHICK	Keratin, type II cytoskeletal cochleal (Cytokeratin otokeratin)		Gallus gallus (Chicken)	492		9031
+P02439	reviewed	KRB2B_SHEEP	Keratin, high-sulfur matrix protein, B2B		Ovis aries (Sheep)	156		9940
+P02440	reviewed	KRB2C_SHEEP	Keratin, high-sulfur matrix protein, B2C		Ovis aries (Sheep)	152		9940
+P02441	reviewed	KRA3_SHEEP	Keratin, high-sulfur matrix protein, IIIA3		Ovis aries (Sheep)	131		9940
+P02442	reviewed	KRA3_CAPHI	Keratin, high-sulfur matrix protein, IIIA3 (M2.6 protein)		Capra hircus (Goat)	132		9925
+P02443	reviewed	KRA3A_SHEEP	Keratin, high-sulfur matrix protein, IIIA3A		Ovis aries (Sheep)	130		9940
+P02449	reviewed	KRFT_DRONO	Feather keratin (F-ker)		Dromaius novaehollandiae (Emu)	102		8790
+P02450	reviewed	KRFC_CHICK	Feather keratin 1 (F-ker) (Keratin gene C protein)		Gallus gallus (Chicken)	98		9031
+P02539	reviewed	K2M1_SHEEP	Keratin, type II microfibrillar (Low-sulfur keratin)		Ovis aries (Sheep)	109		9940
+P04016	reviewed	VE4_HPV11	Protein E4	E4	Human papillomavirus 11	90	E4	10580
+P04262	reviewed	K2CB_BOVIN	Keratin, type II cytoskeletal 68 kDa, component IB		Bos taurus (Bovine)	166		9913
+P04458	reviewed	KRFB_CHICK	Feather keratin 2 (F-ker) (Keratin gene B protein)		Gallus gallus (Chicken)	98		9031
+P04459	reviewed	KRSC_CHICK	Scale keratin (S-ker) (sKer)		Gallus gallus (Chicken)	155		9031
+P05781	reviewed	K1C4_XENLA	Keratin, type I cytoskeletal 47 kDa	xk81b2	Xenopus laevis (African clawed frog)	419	xk81b2	8355
+P05782	reviewed	K1C3_XENLA	Keratin, type I cytoskeletal 47 kDa	xk81b1	Xenopus laevis (African clawed frog)	280	xk81b1	8355
+P06424	reviewed	VE4_HPV33	Protein E4 (E1^E4)	E4	Human papillomavirus 33	80	E4	10586
+P06425	reviewed	VE4_HPV08	Protein E4	E4	Human papillomavirus type 8	222	E4	10579
+P06791	reviewed	VE4_HPV18	Protein E4	E4	Human papillomavirus type 18	88	E4	333761
+P06923	reviewed	VE4_HPV1	Protein E4	E4	Human papillomavirus type 1 (Human papillomavirus type 1a)	83	E4	10583
+P06924	reviewed	VE4_HPV05	Protein E4	E4	Human papillomavirus 5	240	E4	333923
+P06926	reviewed	VE4_BPV1	Protein E4	E4	Bovine papillomavirus type 1	114	E4	337052
+P07521	reviewed	KRFT_COLLI	Feather keratin B-4 (F-ker)		Columba livia (Rock dove)	95		8932
+P08131	reviewed	KRB2D_SHEEP	Keratin, high-sulfur matrix protein, B2D		Ovis aries (Sheep)	182		9940
+P08335	reviewed	KRFT_ANAPL	Feather keratin B-4 (F-ker)		Anas platyrhynchos (Mallard) (Anas boschas)	95		8839
+P08778	reviewed	K1C5_XENLA	Keratin, type I cytoskeletal 47 kDa	xk70a	Xenopus laevis (African clawed frog)	433	xk70a	8355
+P09815	reviewed	ICEN_PSEFL	Ice nucleation protein	inaW	Pseudomonas fluorescens	1210	inaW	294
+P11301	reviewed	VE4_BPV2	Probable protein E4	E4	Bos taurus papillomavirus 2 (Bovine papillomavirus 2)	106	E4	2758382
+P16239	reviewed	ICEN_ENTAG	Ice nucleation protein	iceE	Enterobacter agglomerans (Erwinia herbicola) (Pantoea agglomerans)	1258	iceE	549
+P17384	reviewed	VE4_HPV31	Protein E4	E4	Human papillomavirus 31	99	E4	10585
+P18127	reviewed	ICEN_XANCT	Ice nucleation protein	inaX	Xanthomonas campestris pv. translucens	1567	inaX	343
+P18520	reviewed	ION3_CARAU	Intermediate filament protein ON3		Carassius auratus (Goldfish)	520		7957
+P19577	reviewed	PRTE_DICNO	Extracellular serine protease (EC 3.4.21.-)	prvA	Dichelobacter nodosus (Bacteroides nodosus)	448	prvA	870
+P20307	reviewed	KRFD_CHICK	Feather keratin 3 (F-ker) (Keratin gene D protein)		Gallus gallus (Chicken)	98		9031
+P20308	reviewed	KRFA_CHICK	Feather keratin 4 (F-ker) (Keratin gene A protein)		Gallus gallus (Chicken)	98		9031
+P20469	reviewed	ICEA_PANAN	Ice nucleation protein InaA	inaA	Pantoea ananas (Erwinia uredovora)	1322	inaA	553
+P22157	reviewed	VE4_HPV57	Protein E4	E4	Human papillomavirus 57	105	E4	333753
+P22421	reviewed	VE4_HPV47	Protein E4	E4	Human papillomavirus 47	230	E4	10594
+P23729	reviewed	IF3T_TETCF	Type III intermediate filament		Tetronarce californica (Pacific electric ray) (Torpedo californica)	458		7787
+P24831	reviewed	VE4_HPV39	Protein E4	E4	Human papillomavirus 39	91	E4	10588
+P25483	reviewed	VE4_HPV2A	Protein E4	E4	Human papillomavirus type 2a	113	E4	10584
+P25692	reviewed	KRCL_CHICK	Claw keratin (C-ker) (cKer)	CKER1	Gallus gallus (Chicken)	128	CKER1	9031
+P26372	reviewed	KRUC_SHEEP	Keratin, ultra high-sulfur matrix protein (UHS keratin)		Ovis aries (Sheep)	182		9940
+P26548	reviewed	VE4_HPV51	Protein E4	E4	Human papillomavirus 51	88	E4	10595
+P26549	reviewed	VE4_HPV58	Protein E4	E4	Human papillomavirus 58	88	E4	10598
+P26550	reviewed	VE4_HPV5B	Protein E4	E4	Human papillomavirus type 5b	240	E4	10599
+P27224	reviewed	VE4_HPV35	Protein E4	E4	Human papillomavirus 35	93	E4	10587
+P27225	reviewed	VE4_HPV42	Protein E4	E4	Human papillomavirus 42	117	E4	10590
+P27553	reviewed	VE4_HPV41	Protein E4	E4	Human papillomavirus type 41	103	E4	10589
+P31393	reviewed	PLST_CARAU	Plasticin		Carassius auratus (Goldfish)	453		7957
+P35617	reviewed	XNIF_XENLA	Low molecular weight neuronal intermediate filament (XNIF)		Xenopus laevis (African clawed frog)	470		8355
+P48677	reviewed	GFAP_CARAU	Glial fibrillary acidic protein (GFAP)	gfap	Carassius auratus (Goldfish)	365	gfap	7957
+P51896	reviewed	VE4_HPV28	Protein E4	E4	Human papillomavirus 28	97	E4	37111
+P51897	reviewed	VE4_HPV29	Protein E4	E4	Human papillomavirus 29	110	E4	37112
+P86246	reviewed	K1C19_MESAU	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	KRT19	Mesocricetus auratus (Golden hamster)	110	KRT19	10036
+Q02265	reviewed	VE4_HPV13	Protein E4	E4	Human papillomavirus 13	100	E4	10573
+Q05B44	reviewed	KR122_BOVIN	Keratin-associated protein 12-2	KRTAP12-2	Bos taurus (Bovine)	124	KRTAP12-2	9913
+Q07852	reviewed	VE4_HPV04	Protein E4	E4	Human papillomavirus 4	127	E4	10617
+Q07853	reviewed	VE4_HPV63	Protein E4	E4	Human papillomavirus type 63	117	E4	28311
+Q07873	reviewed	VE4_HPV65	Protein E4	E4	Human papillomavirus 65	127	E4	28312
+Q1HQF8	reviewed	KTAP2_AEDAE	Protein KRTCAP2 homolog (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	AAEL007634	Aedes aegypti (Yellowfever mosquito) (Culex aegypti)	132		7159
+Q1LVV0	reviewed	FA83H_DANRE	Protein FAM83H	fam83h si:ch211-199g17.1	Danio rerio (Zebrafish) (Brachydanio rerio)	1192	fam83h	7955
+Q1RM03	reviewed	TCHP_DANRE	Trichoplein keratin filament-binding protein (Protein TCHP)	tchp zgc:136634	Danio rerio (Zebrafish) (Brachydanio rerio)	499	tchp	7955
+Q24JX8	reviewed	KRA31_BOVIN	Keratin-associated protein 3-1	KRTAP3-1	Bos taurus (Bovine)	98	KRTAP3-1	9913
+Q24JX9	reviewed	KRA33_BOVIN	Keratin-associated protein 3-3	KRTAP3-3	Bos taurus (Bovine)	98	KRTAP3-3	9913
+Q29218	reviewed	K1C20_PIG	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20)	KRT20	Sus scrofa (Pig)	107	KRT20	9823
+Q295N5	reviewed	KTAP2_DROPS	Protein KRTCAP2 homolog (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	GA16263	Drosophila pseudoobscura pseudoobscura (Fruit fly)	140		46245
+Q2KI75	reviewed	KT222_BOVIN	Keratin-like protein KRT222 (Keratin-222)	KRT222	Bos taurus (Bovine)	295	KRT222	9913
+Q2TA51	reviewed	KRA55_MOUSE	Keratin-associated protein 5-5	Krtap5-5	Mus musculus (Mouse)	241	Krtap5-5	10090
+Q3LHN0	reviewed	KR251_HUMAN	Keratin-associated protein 25-1	KRTAP25-1 KAP25.1	Homo sapiens (Human)	102	KRTAP25-1	9606
+Q3LHN1	reviewed	KR213_HUMAN	Keratin-associated protein 21-3	KRTAP21-3 KAP21.3	Homo sapiens (Human)	58	KRTAP21-3	9606
+Q3LI54	reviewed	KR198_HUMAN	Keratin-associated protein 19-8	KRTAP19-8 KAP19.8	Homo sapiens (Human)	63	KRTAP19-8	9606
+Q3LI58	reviewed	KR211_HUMAN	Keratin-associated protein 21-1	KRTAP21-1 KAP21.1	Homo sapiens (Human)	79	KRTAP21-1	9606
+Q3LI60	reviewed	KR203_HUMAN	Keratin-associated protein 20-3	KRTAP20-3 KAP20.3	Homo sapiens (Human)	44	KRTAP20-3	9606
+Q3LI62	reviewed	KR204_HUMAN	Putative keratin-associated protein 20-4	KRTAP20-4 KAP20.4	Homo sapiens (Human)	44	KRTAP20-4	9606
+Q3LI63	reviewed	KR201_HUMAN	Keratin-associated protein 20-1	KRTAP20-1 KAP20.1	Homo sapiens (Human)	56	KRTAP20-1	9606
+Q3LI68	reviewed	KR222_HUMAN	Keratin-associated protein 22-2	KRTAP22-2 KAP22.2	Homo sapiens (Human)	45	KRTAP22-2	9606
+Q3MIV0	reviewed	KR221_HUMAN	Keratin-associated protein 22-1	KRTAP22-1 KAP22.1	Homo sapiens (Human)	48	KRTAP22-1	9606
+Q3V2C1	reviewed	KRA93_MOUSE	Keratin-associated protein 9-3 (Keratin-associated protein 9.3) (Ultrahigh sulfur keratin-associated protein 9.3)	Krtap9-3	Mus musculus (Mouse)	136	Krtap9-3	10090
+Q47879	reviewed	ICEN_PANAN	Ice nucleation protein InaU	inaU	Pantoea ananas (Erwinia uredovora)	1034	inaU	553
+Q54L98	reviewed	KTAP2_DICDI	Protein KRTCAP2 homolog (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	DDB_G0286759	Dictyostelium discoideum (Social amoeba)	127		44689
+Q5K2P2	reviewed	K1C15_PROAT	Keratin, type I cytoskeletal 15 (Cytokeratin-15) (CK-15) (Keratin-15) (K15)	KRT15	Protopterus aethiopicus (Marbled lungfish)	441	KRT15	7886
+Q5K2P4	reviewed	K1C13_PROAT	Keratin, type I cytoskeletal 13 (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	KRT13	Protopterus aethiopicus (Marbled lungfish)	465	KRT13	7886
+Q5Q995	reviewed	KTAP2_IXOSC	Protein KRTCAP2 homolog (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)		Ixodes scapularis (Black-legged tick) (Deer tick)	135		6945
+Q62220	reviewed	KRA54_MOUSE	Keratin-associated protein 5-4 (Ultra high sulfur serine protein 2) (UHS-Ser-2)	Krtap5-4	Mus musculus (Mouse)	223	Krtap5-4	10090
+Q6R645	reviewed	KR151_CAPHI	Keratin-associated protein 15-1 (Keratin-associated protein 15.1)	KRTAP15-1	Capra hircus (Goat)	136	KRTAP15-1	9925
+Q81022	reviewed	VE4_HPV54	Protein E4	E4	Human papillomavirus type 54	91	E4	1671798
+Q84295	reviewed	VE4_HPV6A	Protein E4	E4	Human papillomavirus type 6a	91	E4	37122
+Q8AWA7	reviewed	K1C11_LAMFL	Keratin, type 1 cytoskeletal 11 (Type I keratin 11)		Lampetra fluviatilis (European river lamprey) (Petromyzon fluviatilis)	482		7748
+Q8CCX5	reviewed	KT222_MOUSE	Keratin-like protein KRT222 (Keratin-222)	Krt222	Mus musculus (Mouse)	294	Krt222	10090
+Q8INQ7	reviewed	KTAP2_DROME	Protein KRTCAP2 homolog (Dolichyl-diphosphooligosaccharide--protein glycosyltransferase subunit KCP2) (Oligosaccharyl transferase subunit KCP2)	CG31460	Drosophila melanogaster (Fruit fly)	141		7227
+Q8K0Y2	reviewed	KT33A_MOUSE	Keratin, type I cuticular Ha3-I (Hair keratin, type I Ha3-I) (Keratin-33A) (K33A)	Krt33a	Mus musculus (Mouse)	404	Krt33a	10090
+Q92012	reviewed	KRFJ_COTJA	Beta-keratin-related protein	BKJ	Coturnix japonica (Japanese quail) (Coturnix coturnix japonica)	109	BKJ	93934
+Q925H2	reviewed	KR191_MOUSE	Keratin-associated protein 19-1 (Keratin-associated protein 16-9) (Keratin-associated protein 16.9)	Krtap19-1 Krtap16-9 Krtap16.9	Mus musculus (Mouse)	87	Krtap19-1	10090
+Q925H3	reviewed	KRA65_MOUSE	Keratin-associated protein 6-5 (Keratin-associated protein 16-8) (Keratin-associated protein 16.8)	Krtap6-5 Krtap16-8 Krtap16.8	Mus musculus (Mouse)	78	Krtap6-5	10090
+Q925H6	reviewed	KR193_MOUSE	Keratin-associated protein 19-3 (Keratin-associated protein 16-5) (Keratin-associated protein 16.5)	Krtap19-3 Krtap16-5 Krtap16.5	Mus musculus (Mouse)	87	Krtap19-3	10090
+Q925H7	reviewed	KR194_MOUSE	Keratin-associated protein 19-4 (Keratin-associated protein 16-4) (Keratin-associated protein 16.4)	Krtap19-4 Krtap16-4 Krtap16.4	Mus musculus (Mouse)	84	Krtap19-4	10090
+Q925I0	reviewed	KR192_MOUSE	Keratin-associated protein 19-2 (Keratin-associated protein 16-1) (Keratin-associated protein 16.1)	Krtap19-2 Krtap16-1 Krtap16.1	Mus musculus (Mouse)	141	Krtap19-2	10090
+Q98U05	reviewed	KRFB_MYCAM	Feather beta keratin (F-ker)		Mycteria americana (Wood stork)	98		33587
+Q98U06	reviewed	KRFB_CATAU	Feather beta keratin (F-ker)		Cathartes aura (Turkey vulture) (Vultur aura)	98		43455
+Q99NG9	reviewed	K199B_MOUSE	Keratin-associated protein 19-9b (High-glycine/tyrosine protein type I E5) (Keratin-associated protein 16-10-like) (Keratin-associated protein 16-10b)	Krtap19-9b Krtap16-10b Krtap16.10L	Mus musculus (Mouse)	58	Krtap19-9b	10090
+Q9D226	reviewed	KRA53_MOUSE	Keratin-associated protein 5-3	Krtap5-3	Mus musculus (Mouse)	196	Krtap5-3	10090
+Q9D5Z7	reviewed	KRA52_MOUSE	Keratin-associated protein 5-2	Krtap5-2	Mus musculus (Mouse)	189	Krtap5-2	10090
+Q9D7N2	reviewed	KR261_MOUSE	Keratin-associated protein 26-1	Krtap26-1	Mus musculus (Mouse)	215	Krtap26-1	10090
+Q9D7P0	reviewed	KRA33_MOUSE	Keratin-associated protein 3-3	Krtap3-3	Mus musculus (Mouse)	99	Krtap3-3	10090
+Q9PRI5	reviewed	KRF1_COLLI	Feather keratin Cos1-1/Cos1-3/Cos2-1 (F-ker)		Columba livia (Rock dove)	101		8932
+Q9PSV3	reviewed	KRF4_COLLI	Feather keratin Cos2-3 (F-ker)		Columba livia (Rock dove)	101		8932
+Q9QZU5	reviewed	KR151_MOUSE	Keratin-associated protein 15-1 (Keratin-associated protein 15) (Pubertal mammary gland-specific protein 2)	Krtap15-1 Krtap15 Pmg2	Mus musculus (Mouse)	150	Krtap15-1	10090
+Q9Z287	reviewed	KR121_MOUSE	Keratin-associated protein 12-1	Krtap12-1	Mus musculus (Mouse)	130	Krtap12-1	10090
+A2JGV3	reviewed	TARP_HUMAN	T-cell receptor gamma alternate reading frame protein (TARP)	TRGC1	Homo sapiens (Human)	58	TRGC1	9606
+P08105	reviewed	Z_SHEEP	Putative uncharacterized protein Z		Ovis aries (Sheep)	79		9940
+P86498	reviewed	KRT_CEREL	Keratin		Cervus elaphus (Red deer)	23		9860

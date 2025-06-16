@@ -124,9 +124,9 @@ The parse_tims_data.py script requires four parameters:
 ```
 docker run
 ```
-#### Caveats
 
 #### Upgrading dockerhub image to full version
+In order to upgrade the dockerhub image to full version, one will need to build a new database (see [Image building](#build-the-docker-images-and-run-the-pg-updater) ). Dockerhub version is intended for evaluation use, and as such contains everything needed to deploy PG for evaluation.
 
 ### Docker Installation (recommended use case)
 ```
@@ -135,7 +135,7 @@ cd proteogyver
 ```
 #### Build the Docker images and run the PG updater
 These commands may need sudo depending on the system.
-PG updater is used to generate a database. Due to possible licensing issues in the future, a production ready database is not provided. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface.
+PG updater is used to generate a database. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface. The test database contains scrambled data, and is thus not recommended as a base for a production database. Proper database should be built before real use.
 
 Build the main docker image. This can take up to an hour, mostly due to R requirements being built. Removing the need to compile so much is on the TODO list.
 ```
@@ -165,6 +165,14 @@ In order to keep the parameters.toml in sync with PG and the updater container, 
 ```
 docker compose -f dockerfiles/docker-compose.yaml up
 ```
+
+##### Volume paths
+PG will generate data on disk in the form of tempfiles when a dataset is requested for download, and when certain functions are used (e.g. imputation). As such, it is suggested that the cache folder (/proteogyver/cache) is mounted from e.g. tmpfs (/tmp on most linux distros) or similar, for speed and latency.
+
+Database is suggested to live on an externally mounted directory due to size. 
+
+/data/Server_input should contain the MS_rundata directory, which houses .json files for MS runs that should be included in the database by the updater.
+/data/Server_output currently has no use, but will in the future be used for larger exports.
 
 ### Run PG locally (unsupported, but possible)
 

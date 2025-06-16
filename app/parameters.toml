@@ -18,7 +18,7 @@ randomize = true
 ["Data paths"]
 "Cache dir" = ["/proteogyver", "cache"]
 "Database file" = ["data", "db", "proteogyver.db"]
-"Minimal database file" = ["data", "db", "proteogyver_test.db"]
+"Minimal database file" = ["data", "proteogyver_test.db"]
 "Example files zip" = ["data", "PG example files.zip"]
 "Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
 "Run list" = ["data_assets", "combined runlist.xlsx"]
@@ -33,7 +33,7 @@ randomize = true
 "Temporary directory for database generation" = "db_tmp"
 "Control table" = "control table.tsv"
 "Crapome table" = "crapome table.tsv"
-"Database build files directory" = ["data", "db", "db build files"]
+"Database build files directory" = ["data", "db build files"]
 "Organisms to include in database" = [9606]
 "Database directory" = ["data", "db"]
 "Sets not included in controls" = ["Nesvilab"]
