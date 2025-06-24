@@ -82,14 +82,14 @@ done <<< "$volumes"
 
 # Print results
 if [ ${#CREATED_PATHS[@]} -gt 0 ]; then
-    echo "📁 Created directories:"
+    echo "Created directories:"
     for path in "${CREATED_PATHS[@]}"; do
         echo "  + $path"
     done
 fi
 
 if [ ${#MISSING_PATHS[@]} -eq 0 ]; then
-    echo "✅ All required paths exist"
+    echo "All required paths exist"
     if [ "$VERBOSE" = true ] && [ ${#EXISTING_PATHS[@]} -gt 0 ]; then
         echo "Existing paths:"
         for path in "${EXISTING_PATHS[@]}"; do
@@ -100,7 +100,7 @@ if [ ${#MISSING_PATHS[@]} -eq 0 ]; then
     cp app/parameters.toml $PARAMETERS_TOML
     exit 0
 else
-    echo "❌ Some required paths are missing:"
+    echo "Some required paths are missing:"
     for path in "${MISSING_PATHS[@]}"; do
         echo "  ✗ $path"
     done

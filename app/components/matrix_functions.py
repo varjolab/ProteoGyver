@@ -128,7 +128,7 @@ def median_normalize(data_frame: DataFrame) -> DataFrame:
         pandas.DataFrame: The median-normalized dataframe.
     """
     medians: Series = data_frame.median(axis=0)
-    mean_of_medians: float = medians.median()
+    mean_of_medians: float = medians.mean()
     norm_df: DataFrame = DataFrame(index=data_frame.index)
     for col in data_frame.columns:
         norm_df[col] = (data_frame[col] / medians[col]) * mean_of_medians
