@@ -121,18 +121,16 @@ def median_normalize(data_frame: DataFrame) -> DataFrame:
     Median-normalizes a dataframe by dividing each column by its median and multiplying by the median of the medians.
 
     Args:
-        df (pandas.DataFrame): The dataframe to median-normalize.
+        df (pandas.DataFrame): The dataframe to median-normalize. Needs to be log2-transformed.
         Each column represents a sample, and each row represents a measurement.
 
     Returns:
         pandas.DataFrame: The median-normalized dataframe.
     """
-    medians: Series = data_frame.median(axis=0)
-    mean_of_medians: float = medians.mean()
-    norm_df: DataFrame = DataFrame(index=data_frame.index)
-    for col in data_frame.columns:
-        norm_df[col] = (data_frame[col] / medians[col]) * mean_of_medians
-    return norm_df
+    medians: Series = data_frame.median(axis=0, skipna=True)
+    median_of_medians: float = medians.median(skipna=True)
+    normalized_df = data_frame.subtract(medians - median_of_medians, axis=1)
+    return normalized_df
 
 
 def quantile_normalize(dataframe: DataFrame) -> DataFrame:
