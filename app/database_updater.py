@@ -287,8 +287,9 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
         'Length': 'length',
         'Sequence': 'sequence',
     }
-    #uniprot_df = uniprot.download_uniprot_for_database(organisms=organisms)
-    uniprot_df = pd.read_csv('uniprot_df_full.tsv', sep='\t', index_col=0)
+    uniprot_df = uniprot.download_uniprot_for_database(organisms=organisms)
+    uniprot_df.to_csv('uniprot_df_full.tsv',sep='\t')
+    #uniprot_df = pd.read_csv('uniprot_df_full.tsv', sep='\t', index_col=0)
     uniprot_df.index.name = 'uniprot_id'
     uniprot_id_set = set(uniprot_df.index)
     uniprot_df.rename(columns=uniprot_renames, inplace=True)

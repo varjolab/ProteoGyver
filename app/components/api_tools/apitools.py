@@ -51,7 +51,7 @@ def get_save_location(databasename) -> str:
         os.makedirs(dir_name)
     return dir_name
 
-def get_files_newer_than(directory:str, date:str, days:int, namefilter:str=None) -> list:
+def get_files_newer_than(directory:str, date_str:str, days:int, namefilter:str=None) -> list:
     """
     Gets files newer than a given date in a dictionary, only going back a given number of days. Uses os.path.getmtime to establish file dates.
 
@@ -65,7 +65,7 @@ def get_files_newer_than(directory:str, date:str, days:int, namefilter:str=None)
     if not os.path.isdir(directory):
         return ''
     # Convert the date string to a datetime object
-    date:str = datetime.strptime(date, '%Y-%m-%d')
+    date:datetime = datetime.strptime(date_str, '%Y-%m-%d')
     # Calculate the cutoff date
     cutoff_date = date - timedelta(days=days)
     newer_files: list = []

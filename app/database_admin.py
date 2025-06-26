@@ -84,7 +84,7 @@ if __name__ == "__main__":
             snapshots_to_keep = parameters['Database snapshot settings']['Snapshots to keep']
             print('Exporting snapshot')
             db_functions.export_snapshot(db_path, snapshot_dir, snapshots_to_keep)
-            database_updater.update_log_table(conn, ['snapshot'], [1], timestamp, 'snapshot')
+            database_updater.update_log_table(conn, ['snapshot snapshot'], [1], timestamp, 'snapshot')
 
         if do_external_update:
             print('Updating external data')

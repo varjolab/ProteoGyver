@@ -254,7 +254,7 @@ Deleting columns from tables is not supported this way, nor is deleting entire t
 ### Update logging
 Updates will be logged to the update_log table.
 
-## Advanced use cases
+## Rare use cases
 
 ### Embedding other websites as tabs within Proteogyver
 To embed another website/tool within Proteogyver, add a line to embed_pages.tsv, and run the embedded_page_updater.py script. Preferably these will be things hosted on the same server, but this is not required. Current example is proteomics.fi (hosted externally). Keep in mind that most websites ban browsers from accessing if they are embedded in an html.Embed element.
@@ -265,12 +265,7 @@ Adding custom tools to Proteogyver is supported as pages in the app/pages folder
 - Use GENERIC_PAGE from element_styles.py for styling starting point. Mostly required from this is the offset on top of the page to fit the navbar
 
 ### Accessing the database from other tools
-Other tools can access the database, preferably using methods contained within the db_functions.py file. Writes to the database should not require any specific precautions. However, please check that the database is not locked, and another transaction is not in progress. Other scenarios when one should not write to the database include if it is in the process of being backed up (currently not implemented, but planned), or while the updater is actively running.
-
-
-## License
-
-[Add your license information here]
+Other tools can access the database. Writes to the database should not require any specific precautions. However, please check that the database is not locked, and another transaction is not in progress. Other scenarios when one should not write to the database include if it is in the process of being backed up, or while the updater is actively running.
 
 ## Citation
 

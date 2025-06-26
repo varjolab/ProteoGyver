@@ -35,7 +35,6 @@ randomize = true
 "Crapome table" = "crapome table.tsv"
 "Database build files directory" = ["data", "db build files"]
 "Organisms to include in database" = [9606]
-"Database directory" = ["data", "db"]
 "Sets not included in controls" = ["Nesvilab"]
 "Control and crapome db detailed columns" = [
     "protein_id",
@@ -70,7 +69,7 @@ randomize = true
 "MS run ID regex" = "^(\\d+)(?:(_Tomppa))?"
 # This excel should contain columns defined by Additional info excel columns.
 # Column name changes requires changes to database_generator.py, and also anywhere where such columns are referenced.
-"Additional info excel" = ["data", "db", "db build files", "combined runlist for PG.xlsx"]
+"Additional info excel" = ["data", "db build files", "combined runlist for PG.xlsx"]
 "Additional info excel columns" = ["Sample name","Who","Sample type","Bait name","Bait / other uniprot or ID","Bait mutation","Cell line / material","Project","Notes","tag"]
 
 
@@ -106,8 +105,8 @@ randomize = true
 "Nesvilab" = ["nesvilab"]
 
 ["Database creation"."Control and crapome column mapping"]
-"crapome" = ["data", "db", "db build files", "crapome sets.json"]
-"control" = ["data", "db", "db build files", "control sets.json"]
+"crapome" = ["data", "db build files", "crapome sets.json"]
+"control" = ["data", "db build files", "control sets.json"]
 
 ["Database updater"]
 "Allowed missing columns" = 2

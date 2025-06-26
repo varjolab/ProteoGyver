@@ -161,7 +161,7 @@ if len(sys.argv) != 5:
 indir, outdir, errorfile, parameters_file = sys.argv[1:]
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-parameters = read_toml(parameters_file)
+parameters = read_toml(parameters_file)['Database creation']['MS runs information']
 run_id_regex = parameters['MS run ID regex']
 for root, dirs, files in os.walk(indir):
     for d in dirs:
