@@ -18,7 +18,7 @@ randomize = true
 ["Data paths"]
 "Cache dir" = ["/proteogyver", "cache"]
 "Database file" = ["data", "db", "proteogyver.db"]
-"Minimal database file" = ["data", "proteogyver_test.db"]
+"Minimal database file" = ["data", "minimal_pg_test_db.sqlite3"]
 "Example files zip" = ["data", "PG example files.zip"]
 "Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
 "Run list" = ["data_assets", "combined runlist.xlsx"]
