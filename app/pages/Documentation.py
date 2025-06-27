@@ -54,4 +54,4 @@ def user_manual():
             className='md-table')
     ], style=umstyle)
 
-layout = [user_manual(), other_tools(), announcements()]
+layout = [user_manual(), other_tools()]
