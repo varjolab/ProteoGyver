@@ -1296,6 +1296,7 @@ def interactomics_saint_analysis(
 @callback(
     Output({'type': 'data-store',
            'name': 'interactomics-saint-output-data-store'}, 'data'),
+    Output('interactomics-saint-has-error','children'),
     Output('interactomics-saint-running-loading', 'children'),
     Input({'type': 'data-store', 'name': 'interactomics-saint-input-data-store'}, 'data'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
@@ -1305,7 +1306,7 @@ def interactomics_saint_analysis(
 def interactomics_run_saint(
     saint_input: Dict[str, Any], 
     data_dictionary: Dict[str, Any]
-) -> Tuple[Union[Dict[str, Any], str], str]:
+) -> Tuple[Union[Dict[str, Any], str], str, str]:
     """Executes SAINT analysis using prepared input data.
     
     Args:
@@ -1315,14 +1316,19 @@ def interactomics_run_saint(
     Returns:
         tuple: Contains:
             - dict: SAINT analysis output data
+            - bool: Whether SAINT executable was found
             - str: Empty string to clear loading indicator
     """
-    return (interactomics.run_saint(
+    saint_data, saint_not_found = interactomics.run_saint(
         saint_input,
         parameters['External tools']['SAINT tempdir'],
         data_dictionary['other']['session name'],
         data_dictionary['other']['bait uniprots']
-    ), '')
+    )
+    sainterr = ''
+    if saint_not_found:
+        sainterr = 'SAINT executable was not found, scoring data is randomized'
+    return (saint_data, sainterr, '')
 
 @callback(
     Output({'type': 'data-store',
@@ -1354,11 +1360,13 @@ def interactomics_add_crapome_to_saint(
     Output('interactomics-saint-filtering-container', 'children'),
     Input({'type': 'data-store',
           'name': 'interactomics-saint-final-output-data-store'}, 'data'),
+    State('interactomics-saint-has-error', 'children'),
     State('interactomics-rescue-filtered-out', 'value'),
     prevent_initial_call=True
 )
 def interactomics_create_saint_filtering_container(
     saint_output_ready: Union[Dict[str, Any], str], 
+    saint_not_found: str,
     rescue: List[str]
 ) -> Tuple[str, html.Div]:
     """Creates the filtering interface container for SAINT analysis results.
@@ -1377,10 +1385,11 @@ def interactomics_create_saint_filtering_container(
         sample group" is selected.
     """
     rescue_bool: bool = ('Rescue interactions that pass filter in any sample group' in rescue)
+    saint_found: bool = len(saint_not_found) == 0
     if 'SAINT failed.' in saint_output_ready:
         return ('',html.Div(id='saint-failed', children=saint_output_ready))
     else:
-        return ('',ui.saint_filtering_container(parameters['Figure defaults']['half-height'], rescue_bool))
+        return ('',ui.saint_filtering_container(parameters['Figure defaults']['half-height'], rescue_bool, saint_found))
 
 @callback(
     Output('interactomics-saint-bfdr-histogram', 'figure'),

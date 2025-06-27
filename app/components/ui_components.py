@@ -974,7 +974,8 @@ def interactomics_input_card(
 
 def saint_filtering_container(
     defaults: Dict[str, Any], 
-    rescue: bool
+    rescue: bool,
+    saint_found: bool
 ) -> html.Div:
     """Creates a container for SAINT analysis filtering controls and visualizations.
 
@@ -1002,6 +1003,19 @@ def saint_filtering_container(
     return html.Div(
         id={'type': 'input-div', 'id': 'interactomics-saint-filtering-area'},
         children=[
+            html.Div(
+                id='interactomics-saint-has-error',
+                children='SAINT EXECUTABLE WAS NOT FOUND, SCORING DATA IS RANDOMIZED',
+                hidden = saint_found, 
+                style={
+                    'fontSize': '24px',
+                    'fontWeight': 'bold',
+                    'textDecoration': 'underline',
+                    'color': 'black',
+                    'backgroundColor': 'red',
+                    'padding': '10px',
+                }, 
+            ),
             html.H4(id='interactomics-saint-histo-header',
                     children='SAINT BFDR value distribution'),
             dcc.Graph(id='interactomics-saint-bfdr-histogram',

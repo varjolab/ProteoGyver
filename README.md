@@ -137,7 +137,16 @@ cd proteogyver
 These commands may need sudo depending on the system.
 PG updater is used to generate a database. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface. The test database contains scrambled data, and is thus not recommended as a base for a production database. Proper database should be built before real use.
 
-Build the main docker image. This can take up to an hour, mostly due to R requirements being built. Removing the need to compile so much is on the TODO list.
+##### Prerequisites:
+- Download SAINTexpress from https://saint-apms.sourceforge.net/Main.html and place the **linux** executables into app/external/SAINTexpress:
+  - Folder structure should contain:
+    app/external/SAINTexpress/SAINTexpress-int
+    app/external/SAINTexpress/SAINTexpress-spc
+- IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data
+  - Afterwards, you need to format the data into a format usable by pg_updater, see [Updating the database](#updating-the-database) for details
+
+##### Build the main docker image.
+This can take up to an hour, mostly due to R requirements being built. Removing the need to compile so much is on the TODO list.
 ```
 docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
 ```

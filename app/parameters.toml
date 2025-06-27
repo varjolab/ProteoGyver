@@ -21,7 +21,6 @@ randomize = true
 "Minimal database file" = ["data", "minimal_pg_test_db.sqlite3"]
 "Example files zip" = ["data", "PG example files.zip"]
 "Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
-"Run list" = ["data_assets", "combined runlist.xlsx"]
 
 ["Data paths"."Data import and export"]
 "Data import dir" = ["/proteogyver", "data", "Server_input"]

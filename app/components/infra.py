@@ -615,6 +615,7 @@ def invisible_utilities() -> html.Div:
             working_data_stores(),
             upload_data_stores(),
             temporary_download_divs(),
+            html.Div(id='interactomics-saint-has-error',children=''),
         ],
         hidden=True
     )

@@ -643,14 +643,81 @@ def saint_cmd(saint_input: Dict[str, List[List[str]]],
         preyfile.flush()
         intfile.flush()
         print(f'running saint in {temp_dir}, {intfile.name} {preyfile.name} {baitfile.name}: {datetime.now()}')
-        sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
+        try:
+            sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
+        except sh.CommandNotFound:
+            create_dummy_list_txt(temp_dir, saint_input)
     return temp_dir
+
+# Horrible code, it works and hopefully will not be needed much.
+def create_dummy_list_txt(temp_dir: str, saint_input: Dict[str, List[List[str]]]) -> None:
+    baits = {}
+    baitmap = {}
+    for baitrun, group, ctrl in saint_input['bait']:
+        baits.setdefault(ctrl, {}).setdefault(group, [])
+        baits[ctrl][group].append(baitrun)
+        baitmap[baitrun] = (ctrl, group)
+
+    preys = {}
+    for prey, _, gname in saint_input['prey']:
+        preys[prey] = gname
+
+    counts = {}
+    max_b_len = 0
+    for baitrun, group, prey, spc in saint_input['int']:
+        counts.setdefault(group, {}).setdefault(prey, [])
+        counts[group][prey].append(spc)
+        max_b_len = max(max_b_len, len(counts[group][prey]))
+
+    control_counts = {}
+    max_ctrl_len = 0
+    for baitgrp in baits['C'].keys():
+        for prey, spc in counts[baitgrp].items():
+            control_counts.setdefault(prey,[])
+            control_counts[prey].extend(spc)
+            max_ctrl_len = max(max_ctrl_len, len(control_counts[prey]))
+
+    def pad(li, le):
+        if len(li) > le:
+            return li
+        rlist = li
+        for i in range(len(li), le):
+            rlist.append('0')
+        return rlist
+
+    list_txt = []
+    alpha = 1
+    beta = 0.3
+    for group, pdic in counts.items():
+        if group in baits['C']: continue
+        for prey, spclist in pdic.items():
+            bfdr_random = np.random.beta(alpha, beta)
+            score_random = 1-bfdr_random*3
+            p_ctrl_list = []
+            if prey in control_counts:
+                p_ctrl_list = control_counts[prey]
+            spclist = pad(spclist, max_b_len)
+            p_ctrl_list = pad(p_ctrl_list, max_ctrl_len)
+            list_txt.append([
+                group,
+                prey, 
+                preys[prey], 
+                '|'.join(spclist), 
+                sum([int(x) for x in spc])/len(spc),
+                sum([int(x) for x in spc]),
+                len(baits['T'][group]),
+                '|'.join(p_ctrl_list),
+                0,0,0,0,score_random, 1200, bfdr_random, np.nan])
+    lt = pd.DataFrame(data=list_txt, columns=['Bait', 'Prey', 'PreyGene', 'Spec', 'SpecSum', 'AvgSpec', 'NumReplicates', 'ctrlCounts', 'AvgP', 'MaxP', 'TopoAvgP', 'TopoMaxP', 'SaintScore', 'FoldChange', 'BFDR', 'boosted_by'])
+    lt.to_csv(os.path.join(temp_dir, 'list.txt'), sep='\t', index=False)
+    with open(os.path.join(temp_dir, 'list_is_dummy.txt'), 'w') as f:
+        f.write('this list has been created by dummy saint simulator that produces nonsense. This happened because SAINTexpressSpc was not found.')
 
 def run_saint(saint_input: Dict[str, List[List[str]]], 
              saint_tempdir: List[str], 
              session_uid: str, 
              bait_uniprots: Dict[str, str], 
-             cleanup: bool = True) -> str:
+             cleanup: bool = True) -> Tuple[str, bool]:
     """Runs SAINT analysis on interaction data.
 
     Executes SAINT analysis pipeline and processes the results.
@@ -676,6 +743,8 @@ def run_saint(saint_input: Dict[str, List[List[str]]],
     if ('bait' in saint_input) and ('prey' in saint_input):
         temp_dir = saint_cmd(saint_input, saint_tempdir, session_uid)
     failed: bool = not os.path.isfile(os.path.join(temp_dir, 'list.txt'))
+    print(temp_dir, os.listdir(temp_dir))
+    saintfail: bool = os.path.isfile(os.path.join(temp_dir, 'list_is_dummy.txt'))
     if failed:
         ret: str = 'SAINT failed. Can not proceed.'
     else:
@@ -688,7 +757,7 @@ def run_saint(saint_input: Dict[str, List[List[str]]],
             except PermissionError as e:
                 print(
                     f'run_saint:  Could not clean up after SAINT run: {datetime.now()} {e}')
-    return ret
+    return (ret, saintfail)
 
 
 def prepare_crapome(db_conn: sqlite3.Connection, 
@@ -893,7 +962,13 @@ def make_saint_dict(spc_table: pd.DataFrame,
         f'make_saint_dict: Control table shape: {control_table.shape}')
     control_melt: pd.DataFrame = pd.melt(
         control_table, ignore_index=False).replace(0, np.nan).dropna().reset_index()
-    control_melt['sgroup'] = 'inbuilt_ctrl'
+    sgroups = []
+    for _, srow in control_melt.iterrows():
+        sgroup = 'inbuilt_ctrl'
+        if srow['variable'] in rev_sample_groups:
+            sgroup = rev_sample_groups[srow['variable']]+'_bait'
+        sgroups.append(sgroup)
+    control_melt['sgroup'] = sgroups
     control_melt = control_melt.reindex(
         columns=['variable', 'sgroup', 'index', 'value'])
     control_melt['value'] = control_melt['value'].astype(int)
