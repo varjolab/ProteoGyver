@@ -1005,16 +1005,21 @@ def saint_filtering_container(
         children=[
             html.Div(
                 id='interactomics-saint-has-error',
-                children='SAINT EXECUTABLE WAS NOT FOUND, SCORING DATA IS RANDOMIZED',
+                children=[
+                    html.Div(
+                        'SAINT EXECUTABLE WAS NOT FOUND, SCORING DATA IS RANDOMIZED',
+                        style={
+                            'fontSize': '24px',
+                            'fontWeight': 'bold',
+                            'textDecoration': 'underline',
+                            'color': 'black',
+                            'backgroundColor': 'red',
+                            'padding': '10px',
+                        }
+                    ),
+                    html.Div('If this is the demo version, this is expected behavior. Otherwise, you need to rebuild the docker image with SAINTExpress available in the expected folder (see README), or you need to add SAINTexpress as executable to the container itself.')
+                ],
                 hidden = saint_found, 
-                style={
-                    'fontSize': '24px',
-                    'fontWeight': 'bold',
-                    'textDecoration': 'underline',
-                    'color': 'black',
-                    'backgroundColor': 'red',
-                    'padding': '10px',
-                }, 
             ),
             html.H4(id='interactomics-saint-histo-header',
                     children='SAINT BFDR value distribution'),

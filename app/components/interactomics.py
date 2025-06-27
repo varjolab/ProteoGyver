@@ -644,7 +644,7 @@ def saint_cmd(saint_input: Dict[str, List[List[str]]],
         intfile.flush()
         print(f'running saint in {temp_dir}, {intfile.name} {preyfile.name} {baitfile.name}: {datetime.now()}')
         try:
-            sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
+            sh.SAINTexpressSpcs(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
         except sh.CommandNotFound:
             create_dummy_list_txt(temp_dir, saint_input)
     return temp_dir

@@ -77,10 +77,14 @@ RUN chmod +x /docker_entrypoint.sh
 
 # Make SAINT executable
 WORKDIR /proteogyver/external/SAINTexpress
-RUN chmod 777 SAINTexpress-spc
-RUN chmod 777 SAINTexpress-int
-RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc
-RUN ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt
+RUN if [ -f SAINTexpress-spc ]; then \
+        chmod 777 SAINTexpress-spc && \
+        ln -s /proteogyver/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc; \
+    fi
+RUN if [ -f SAINTexpress-int ]; then \
+        chmod 777 SAINTexpress-int && \
+        ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt; \
+    fi
 
 RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/Server_input
@@ -99,7 +103,6 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 WORKDIR /proteogyver
 RUN conda env create -f resources/environment.yml
 RUN conda clean -afy
-WORKDIR /proteogyver/resources
 
 EXPOSE 8090 8050
 

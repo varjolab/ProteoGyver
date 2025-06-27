@@ -119,14 +119,10 @@ The parse_tims_data.py script requires four parameters:
 - error file to write error information
 - parameters file (parameters.toml from PG repository).
 
-### Dockerhub image
-#TODO
-```
-docker run
-```
-
-#### Upgrading dockerhub image to full version
-In order to upgrade the dockerhub image to full version, one will need to build a new database (see [Image building](#build-the-docker-images-and-run-the-pg-updater) ). Dockerhub version is intended for evaluation use, and as such contains everything needed to deploy PG for evaluation.
+### Demo image for testing use
+Demo image is available in Zenodo (). However, few caveats apply:
+- Database included in the demo image only contains the bare minimum required to use the test files, and all data within the database has been scrambled. 
+- Similarly, SAINTExpress is not available on the demo image. This CAN be added by adding the executables to the container and making sure they are found in the path. However, we cannot distribute them by default.
 
 ### Docker Installation (recommended use case)
 ```
@@ -142,6 +138,7 @@ PG updater is used to generate a database. A small test database is provided, an
   - Folder structure should contain:
     app/external/SAINTexpress/SAINTexpress-int
     app/external/SAINTexpress/SAINTexpress-spc
+  - These will be registered as executables and put into the path of the PG container during the container creation (see dockerfile)
 - IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data
   - Afterwards, you need to format the data into a format usable by pg_updater, see [Updating the database](#updating-the-database) for details
 
@@ -171,6 +168,7 @@ utils/run_updater.sh
 In order to keep the parameters.toml in sync with PG and the updater container, it is copied into path specified in the docker-compose.yaml. The file needs to be edited in that location ONLY, in order for the updated parameters to be applied to existing docker container, and the updater (e.g. different database name, or modified update intervals).
 
 #### Run the container
+- Modify the dockerfiles/docker-compose.yaml file to suit your environment, and then deploy the container:
 ```
 docker compose -f dockerfiles/docker-compose.yaml up
 ```
@@ -183,7 +181,7 @@ Database is suggested to live on an externally mounted directory due to size.
 /data/Server_input should contain the MS_rundata directory, which houses .json files for MS runs that should be included in the database by the updater.
 /data/Server_output currently has no use, but will in the future be used for larger exports.
 
-### Run PG locally (unsupported, but possible)
+### Run PG locally (not encouraged, but possible)
 
 Running PG locally is possible, especially for testing and development use. However, it is not a supported use case.
 On a windows computer, it is recommended to use WSL. These instructions apply only to linux systems.
@@ -193,9 +191,10 @@ On a windows computer, it is recommended to use WSL. These instructions apply on
 - Python 3.10+
 - redis-cli
 - celery
+- SaintExpressSpc available in path
 
 First step is to adjust the parameters.toml file:
-- Change "Data paths"."Cache dir" to suit your local machine (e.g. /tmp/pg_cache)
+- Change "Data paths"."Cache dir" to suit your local machin e (e.g. /tmp/pg_cache)
 - Change "Data paths."Data import and export": both paths need to be adjusted
 - Optional: Change "Config"."Local debug" to true, if you encounter problems or are doing development and want to see error messages.
 
@@ -206,8 +205,6 @@ conda env create -f resources/environment.yml
 conda activate PG
 python database_admin.py
 ```
-
-
 #### Run PG:
 ```
 conda activate PG
