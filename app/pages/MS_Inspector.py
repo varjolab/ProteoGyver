@@ -59,35 +59,6 @@ pio.templates.default = 'plotly_white'
 logger = logging.getLogger(__name__)
 dash.register_page(__name__, path=f'/MS_inspector')
 logger.warning(f'{__name__} loading')
-parameters = parsing.parse_parameters('parameters.toml')
-database_file = os.path.join(*parameters['Data paths']['Database file'])    
-
-num_of_traces_visible = 7
-trace_color = 'rgb(56, 8, 35)'
-trace_types: list = ['TIC','MSn_unfiltered']
-required_columns = ['run_id','run_time','sample_type','instrument','chromatogram_max_time']
-for tracename in trace_types:
-    tracename = tracename.lower()
-    required_columns.append(f'{tracename}_trace')
-    required_columns.append(f'{tracename}_mean_intensity')
-    required_columns.append(f'{tracename}_auc')
-    required_columns.append(f'{tracename}_max_intensity')
-
-db_conn = db_functions.create_connection(database_file)
-data = db_functions.get_full_table_as_pd(db_conn, 'ms_runs', index_col='run_id').replace('',np.nan)
-db_conn.close() # type: ignore
-data.drop(columns=[c for c in data.columns if c not in required_columns],inplace=True)
-
-ms_list = data['instrument'].unique()
-sample_list: list = sorted(list(data['sample_type'].fillna('No sampletype').unique()))
-data['run_time'] = data.apply(lambda x: datetime.strptime(x['run_time'],parameters['Config']['Time format']),axis=1)
-d = data['run_time'].max()
-maxtime = date(d.year,d.month, d.day)
-d = data['run_time'].min()
-mintime = date(d.year,d.month, d.day)
-del data
-logger.warning(f'{__name__} preliminary data loaded')
-run_limit = 100
 
 def description_card() -> html.Div:
     """Creates the description card component for the dashboard.
@@ -628,5 +599,38 @@ def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
     except Exception as e:
         logger.error(f"Error creating download package: {str(e)}")
         return no_update
+    
+parameters = parsing.parse_parameters('parameters.toml')
+database_file = os.path.join(*parameters['Data paths']['Database file'])    
 
-layout = ms_analytics_layout()
+num_of_traces_visible = 7
+trace_color = 'rgb(56, 8, 35)'
+trace_types: list = ['TIC','MSn_unfiltered']
+required_columns = ['run_id','run_time','sample_type','instrument','chromatogram_max_time']
+for tracename in trace_types:
+    tracename = tracename.lower()
+    required_columns.append(f'{tracename}_trace')
+    required_columns.append(f'{tracename}_mean_intensity')
+    required_columns.append(f'{tracename}_auc')
+    required_columns.append(f'{tracename}_max_intensity')
+
+db_conn = db_functions.create_connection(database_file)
+data = db_functions.get_full_table_as_pd(db_conn, 'ms_runs', index_col='run_id').replace('',np.nan)
+db_conn.close() # type: ignore
+data.drop(columns=[c for c in data.columns if c not in required_columns],inplace=True)
+
+ms_list = data['instrument'].unique()
+sample_list: list = sorted(list(data['sample_type'].fillna('No sampletype').unique()))
+if data.shape[0] > 0:
+    data['run_time'] = data.apply(lambda x: datetime.strptime(x['run_time'],parameters['Config']['Time format']),axis=1)
+    d = data['run_time'].max()
+    maxtime = date(d.year,d.month, d.day)
+    d = data['run_time'].min()
+    mintime = date(d.year,d.month, d.day)
+    del data
+    logger.warning(f'{__name__} preliminary data loaded')
+    run_limit = 100
+    use_layout = ms_analytics_layout()
+else:
+    use_layout = html.Div('No MS runs in database.')
+layout = use_layout

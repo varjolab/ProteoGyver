@@ -288,7 +288,7 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
         'Sequence': 'sequence',
     }
     uniprot_df = uniprot.download_uniprot_for_database(organisms=organisms)
-    uniprot_df.to_csv('uniprot_df_full.tsv',sep='\t')
+    #uniprot_df.to_csv('uniprot_df_full.tsv',sep='\t')
     #uniprot_df = pd.read_csv('uniprot_df_full.tsv', sep='\t', index_col=0)
     uniprot_df.index.name = 'uniprot_id'
     uniprot_id_set = set(uniprot_df.index)
@@ -507,6 +507,8 @@ def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_
     get_chunks = sorted(list(set(intact.get_available()) | set(biogrid.get_available())))
     num_cpus = ncpu
     odir = os.path.join(*parameters['Update files']['known_interactions'])
+    if not os.path.exists(odir):
+        os.makedirs(odir)
     with ProcessPoolExecutor(max_workers=num_cpus) as executor:
         futures = []
         for L in get_chunks:    

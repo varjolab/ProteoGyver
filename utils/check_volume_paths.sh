@@ -97,7 +97,7 @@ if [ ${#MISSING_PATHS[@]} -eq 0 ]; then
         done
     fi
     echo "Copying over parameters.toml for the PG and updater containers"
-    cp app/parameters.toml $PARAMETERS_TOML
+    cp app/parameters.toml $PARAMETERS_TOML # TODO: would be better to just link.
     exit 0
 else
     echo "Some required paths are missing:"

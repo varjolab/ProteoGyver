@@ -2,6 +2,8 @@
 
 Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).
 
+## Table of contents:
+
 ## Security
 
 The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet, and contain data only accessible to trusted users.
@@ -25,6 +27,7 @@ The app is insecure as it is. It is intended to be run on a network that is not 
 
 
 ### Usage
+Example files are downloadable from the sidebar of the main interface. These include example data files and sample tables for interactomics, and proteomics workflows.
 
 1. Access the web interface (host:port, e.g. localhost:8050, if running locally)
 2. Upload your data and sample tables
@@ -126,8 +129,8 @@ Demo image is available in Zenodo (). However, few caveats apply:
 
 ### Docker Installation (recommended use case)
 ```
-git clone [TODO: add path]
-cd proteogyver
+git clone https://github.com/varjolab/Proteogyver/
+cd Proteogyver
 ```
 #### Build the Docker images and run the PG updater
 These commands may need sudo depending on the system.
@@ -142,7 +145,16 @@ PG updater is used to generate a database. A small test database is provided, an
 - IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data
   - Afterwards, you need to format the data into a format usable by pg_updater, see [Updating the database](#updating-the-database) for details
 
+##### Used API data
+During database building, PG downloads data from several sources:
+- Known interactions are downloaded from [IntACT](https://www.ebi.ac.uk/intact/home) and [BioGRID](https://thebiogrid.org/)
+- Protein data is downloaded from [UniProt](https://www.uniprot.org/)
+- Common contaminants are downloaded from [Global proteome machine](https://thegpm.org/), [MaxQuant](https://www.maxquant.org/), and a publication by Frankenfield et al., 2022 (PMID: 35793413).
+- MS-microscopy data is from a previous publication (PMID: 29568061)
+Some are included in the files already.
+
 ##### Build the main docker image.
+!!NOTE!! docker commands in particular may require superuser rights (sudo).
 This can take up to an hour, mostly due to R requirements being built. Removing the need to compile so much is on the TODO list.
 ```
 docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
@@ -150,17 +162,18 @@ docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
 
 Next make sure that the paths specified in docker-compose.yaml exist. Modify docker-compose NOW to suit your local system if needed.
 ```
-utils/check_volume_paths -v
+utils/check_volume_paths.sh -v
 ```
 IF the script says that some paths are missing and you want to modify those, change them in the docker-compose.yaml. If the missing paths are OK, they can be created with --create switch:
 ```
-utils/check_volume_paths -v --create
+utils/check_volume_paths.sh -v --create
 ```
 For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater script as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn't yet exist. If you want to see what docker command the updater would run, run with --test flag (>utils/run_updater.sh --test)
 
 In order to have run annotations that are not parsed from the raw MS data files (see [MS run pre-analysis](#ms-run-data-pre-analysis) ), an excel file CAN be supplied. The file name is specified in parameters.toml under "Database creation"."MS runs information"."Additional nfo excel". Minimal example is supplied in this repo.
+Runnin the updater can take a long time, especially on the first run.
 ```
-docker build -t pg_updater:1.0 -f dockerfiles/dockerfile_pg_updater .
+docker build -t pg_updater:1.0 -f dockerfiles/dockerfile_updater .
 utils/run_updater.sh
 ```
 

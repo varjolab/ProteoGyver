@@ -146,7 +146,7 @@ remove_data = ["data", "Server_input", "db_updates", "remove_data"]
 
 ["Database updater"."Database snapshot settings"]
 "Snapshot interval days" = 30
-"Snapshot dir" = ["data", "Server_output", "db snapshots"]
+"Snapshot dir" = ["proteogyver", "data", "Server_output", "db snapshots"]
 "Snapshots to keep" = 3
 
 ["Database updater"."Versions to keep"]
