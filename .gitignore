@@ -1,10 +1,10 @@
 # PG specific additions
-api_data/
+app/components/api_tools/data/
 *.ipynb
 Server_output/
 Server_input/
 app/data/db/db build files/
-app/data/db/db build files/*
+app/pages/proteomics_fi.py
 
 __pycache__/
 .ipynb_checkpoints/

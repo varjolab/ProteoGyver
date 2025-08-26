@@ -6,9 +6,9 @@ import pandas as pd
 import json
 import numpy as np
 from components import text_handling
-from components.api_tools.annotation import intact
-from components.api_tools.annotation import biogrid
-from components.api_tools.annotation import uniprot
+from components.annotation import intact
+from components.annotation import biogrid
+from components.annotation import uniprot
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import Iterator
 import pandas as pd

@@ -35,6 +35,20 @@ def is_newer(reference:str, new_date:str) -> bool:
     new_date_date: date = parse_timestamp_from_str(new_date)
     return (new_date_date>reference_date)
 
+def get_nbibfile(databasename:str) -> str:
+    """
+    Fetches the nbib reference file for the given database. Does not check, if the file exists.
+
+    :param databasename: name of the database
+
+    :returns: path to the nbib file for that database.
+    """
+    nbibpath: str = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'nbibs',
+        f'{databasename.lower()}.nbib')
+    return nbibpath
+
 def get_save_location(databasename) -> str:
     """
     Finds the appropriate location to save a database file
@@ -44,7 +58,7 @@ def get_save_location(databasename) -> str:
     """
     base_location: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        'api_data'
+        'data'
     )
     dir_name: str = os.path.join(base_location, databasename)
     if not os.path.isdir(dir_name):
@@ -114,20 +128,6 @@ def get_newest_file(directory:str, namefilter:str = None) -> str:
             newest_time = mod_time
     
     return newest_file
-
-def get_nbibfile(databasename:str) -> str:
-    """
-    Fetches the nbib reference file for the given database. Does not check, if the file exists.
-
-    :param databasename: name of the database
-
-    :returns: path to the nbib file for that database.
-    """
-    nbibpath: str = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'nbibs',
-        f'{databasename.lower()}.nbib')
-    return nbibpath
 
 def get_pub_ref(databasename:str) -> list:
     """

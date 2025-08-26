@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 from components import text_handling
 from components import db_functions
-from components.api_tools.annotation import intact
-from components.api_tools.annotation import biogrid
+from components.annotation import intact
+from components.annotation import biogrid
 
 def update_table_with_file(cursor, table_name, file_path, parameters, timestamp):
     """
@@ -276,7 +276,7 @@ def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_colum
     return list(new_or_modified), missing_rows
 
 def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
-    from components.api_tools.annotation import uniprot
+    from components.annotation import uniprot
 # Move these into parameters or somesuch:
     uniprot_renames = {
         'Reviewed': 'is_reviewed',
