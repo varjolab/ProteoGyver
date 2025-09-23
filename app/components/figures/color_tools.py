@@ -1,6 +1,13 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
+def rgba_to_hex(rgba: str) -> str:
+    """Converts an rgba color to a hex color.
+    :param rgba: input color as  "rgba(123,321,123,0.5)"
+    :returns: new color string in the  "rgb(123,321,123)" format.
+    """
+    return f'#{rgba.split("(")[1].split(")")[0].split(",")[0:3]}'
+
 def get_assigned_colors(sample_group_dict: dict) -> dict:
     """Returns a dictionary with each sample name from the sample group dict assigned a color\
         corresponding to its sample group.

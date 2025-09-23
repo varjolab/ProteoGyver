@@ -251,7 +251,7 @@ See [MS run data pre-analysis](#ms-run-data-pre-analysis) section of the install
 
 ### Adding new crapome or control sets:
 Two files per set are needed:
-1) The crapome/control overall table needs an update, and for that the control_sets.tsv or crapome_sets.tsv example file can be added to, and then put into the db_updates/crpaome_sets or db_updates/control_sets directory.
+1) The crapome/control overall table needs an update, and for that the control_sets.tsv or crapome_sets.tsv example file can be added to, and then put into the db_updates/crapome_sets or db_updates/control_sets directory.
 2) The individual crapome/control set needs its own update file added to the db_updates/add_or_replace directory. The file should have the same columns, as existing crapome/control set tables (specified in parameters.toml at "database creation"."control and crapome db detailed columns"). The column types can be found in "database creation"."control and crapome db detailed types". 
 
 ### Adding other new tables:

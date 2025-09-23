@@ -1,0 +1,53 @@
+[general]
+# Workflow type: "proteomics" or "interactomics"
+workflow = "proteomics"
+
+# Input data files (paths relative to this TOML file)
+data = "app/data/PG example files/Proteomics data file.tsv"
+samples = "app/data/PG example files/Proteomics sample table.tsv"
+
+# Output directory
+outdir = "proteomics_batch_out_4"
+
+# Figure template
+figure_template = "plotly_white"
+
+# Data processing options
+remove_common_contaminants = true
+rename_replicates = false
+unique_only = false
+
+[proteomics]
+# NA filtering
+na_filter_percent = 70
+na_filter_type = "sample-group"  # "sample-group" or "sample-set"
+
+# Normalization method
+normalization = "no_normalization"  # "Median", "Quantile", "Vsn", or "no_normalization"
+
+# Imputation method
+imputation = "QRILC"  # "knn", "mean", "QRILC", etc.
+
+# Comparisons file (contains sample vs control comparisons)
+comparison_file = "app/data/PG example files/Proteomics comparisons file.tsv"
+
+# Statistical thresholds
+fc_threshold = 1.5
+p_threshold = 0.05
+test_type = "independent"
+
+# Alternative: specify control group directly instead of comparison file
+# control_group = "SG1"
+
+[interactomics]
+# These settings are not used for proteomics workflow but included for completeness
+uploaded_controls = []
+additional_controls = []
+crapome_sets = []
+proximity_filtering = false
+n_controls = 3
+saint_bfdr_threshold = 0.05
+crapome_percentage_threshold = 20
+crapome_fc_threshold = 2
+rescue_enabled = false
+chosen_enrichments = []

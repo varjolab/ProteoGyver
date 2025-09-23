@@ -15,21 +15,25 @@ nodeSpacing = 15
 padding = 10
 randomize = true
 
+["Maintenance"."Cleanup"."Cache dir"]
+"Path" = "Data paths" # Either a list (e.g. ["/proteogyver", "cache"]), or if a string, the path must be found in "Data paths" below.
+"Clean unusedinterval days" = 4 # either integer or "NO CLEANUP"
+"Archive dir" = "" # If not empty, instead of deleting old cahce dirs, they will be moved here instead
+
 ["Data paths"]
 "Cache dir" = ["/proteogyver", "cache"]
-"Database file" = ["data", "db", "proteogyver.db"]
+"Database file" = ["data", "db", "proteogyver.sqlite3"]
+"Schema file" = ["resources", "proteogyver_schema.sql"]
 "Minimal database file" = ["data", "minimal_pg_test_db.sqlite3"]
-"Example files zip" = ["data", "PG example files.zip"]
+"Example files" = ["data", "PG example files"]
 "Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
 
 ["Data paths"."Data import and export"]
 "Data import dir" = ["/proteogyver", "data", "Server_input"]
 "Data export dir" = ["/proteogyver", "data", "Server_output"]
 
-
 ["Database creation"]
 "Contaminants table" = "contaminant_list.tsv"
-"Temporary directory for database generation" = "db_tmp"
 "Control table" = "control table.tsv"
 "Crapome table" = "crapome table.tsv"
 "Database build files directory" = ["data", "db build files"]
@@ -108,11 +112,12 @@ randomize = true
 "control" = ["data", "db build files", "control sets.json"]
 
 ["Database updater"]
-"Allowed missing columns" = 2
+"Allowed missing columns" = 3
 "Allowed new columns" = 2
 "Log table" = "update_log"
-"Update interval seconds" = 900
+"Update interval minutes" = 15
 "External data update interval days" = 30
+"MS runs update interval minutes" = 15
 "Tsv templates directory" = ["data", "Server_output", "db update tsv templates"]
 "Database clean interval days" = 60
 # These specify whether we should delete data from the database that is no longer in uniprot or known databases during database update.
@@ -121,6 +126,8 @@ randomize = true
 "Delete old interactions" = true
 # These columns are not compared when checking for differences between existing database and new incoming data from update tables.
 "Ignore diffs" = [ "biological_role_interactor_a", "annotation_interactor_a", "annotation_interactor_b", "biological_role_interactor_b", "is_latest", "contamination_source", "entry_source", "version_update_time", "prev_version", "update_time", "modification", "ontology_term_categories",    "intact_creation_date",    "intact_update_date",    "experimental_role_interactor_a",    "experimental_role_interactor_b",    "ontology_term_ids",    "ontology_term_names",    "ontology_term_qualifier_ids",    "ontology_term_qualifier_names",    "ontology_term_types",    "qualifications",    "tags",    "publication_count",    "throughput"]
+"MS run json directory" = ["data", "Server_input", "MS runs","MS_run_jsons"]
+"Move MS run jsons to directory" = ["data", "Server_input", "MS runs", "Done jsons"]
 
 ["Database updater"."Database table primary keys"]
 common_proteins = "uniprot_id"
@@ -128,7 +135,8 @@ contaminants = "uniprot_id"
 control_sets = "control_set"
 crapome_sets = "crapome_set"
 known_interactions = "interaction"
-ms_runs = "run_id"
+ms_runs = "internal_run_id"
+ms_plots = "internal_run_id"
 msmicroscopy = "Interaction"
 proteins = "uniprot_id"
 
@@ -139,6 +147,7 @@ control_sets = ["data", "Server_input", "db_updates", "control_sets"]
 crapome_sets = ["data", "Server_input", "db_updates", "crapome_sets"]
 known_interactions = ["data", "Server_input", "db_updates", "known_interactions"]
 ms_runs = ["data", "Server_input", "db_updates", "ms_runs"]
+ms_plots = ["data", "Server_input", "db_updates", "ms_plots"]
 msmicroscopy = ["data", "Server_input", "db_updates", "msmicroscopy"]
 proteins = ["data", "Server_input", "db_updates", "proteins"]
 add_or_replace = ["data", "Server_input", "db_updates", "add_or_replace"]
@@ -146,14 +155,14 @@ remove_data = ["data", "Server_input", "db_updates", "remove_data"]
 
 ["Database updater"."Database snapshot settings"]
 "Snapshot interval days" = 30
-"Snapshot dir" = ["proteogyver", "data", "Server_output", "db snapshots"]
+"Snapshot dir" = ["data", "Server_output", "db snapshots"]
 "Snapshots to keep" = 3
 
 ["Database updater"."Versions to keep"]
 biogrid = 3
 intact = 3
-biogrid_path = "components/api_tools/api_data/BioGRID/"
-intact_path = "components/api_tools/api_data/IntAct/"
+biogrid_path = "components/api_tools/data/BioGRID/"
+intact_path = "components/api_tools/data/IntAct/"
 biogrid_regex = "BIOGRID-ALL-(\\d+\\.\\d+\\.\\d+)"
 intact_regex = "^(\\d{4}-\\d{2}-\\d{2})_intact"
 
@@ -163,12 +172,18 @@ intact_regex = "^(\\d{4}-\\d{2}-\\d{2})_intact"
 ["Figure defaults".full-height]
 width = 1000
 height = 700
+["Figure defaults".full-height.config]
+staticPlot = false
+editable = false
 ["Figure defaults".full-height.config.toImageButtonOptions]
 format = "png"
 
 ["Figure defaults".half-height]
 width = 1000
 height = 350
+["Figure defaults".half-height.config]
+staticPlot = false
+editable = false
 ["Figure defaults".half-height.config.toImageButtonOptions]
 format = "png"
 

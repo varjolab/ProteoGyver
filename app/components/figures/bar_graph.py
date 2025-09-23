@@ -96,12 +96,15 @@ def bar_plot(
 
 
 def make_graph(graph_id: str, defaults: dict, *args, **kwargs) -> None:
-    return Graph(
-        id=graph_id,
-        config=defaults['config'],
-        figure=bar_plot(
+    config=defaults['config']
+    figure = bar_plot(
             defaults,
             *args,
             **kwargs
         )
+    figure.update_layout(hovermode='closest', dragmode=False)
+    return Graph(
+        id=graph_id,
+        config=config,
+        figure=figure
     )

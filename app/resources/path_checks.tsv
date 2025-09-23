@@ -1,0 +1,6 @@
+# path	warning_message	final_message
+# Example rows below. Replace or extend as needed. Lines starting with # are ignored.
+/proteogyver/app/data/db	Database volume missing. Mount host db to /proteogyver/app/data/db.	Database still not found; app will start but DB features will fail.
+/proteogyver/app/external/SAINTexpress-int	SAINTexpress-int folder missing. Copy binaries into /proteogyver/app/external/.	SAINTexpress-int still missing; SAINT runs will be unavailable.
+/proteogyver/app/external/SAINTexpress-spc	SAINTexpress-spc folder missing. Copy binaries into /proteogyver/app/external/.	SAINTexpress-spc still missing; SAINT runs will be unavailable.
+

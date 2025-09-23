@@ -13,13 +13,13 @@ def tic_figure(defaults:dict, traces: dict, datatype: str = 'TIC', height: int =
     else:
         use_width: int = width
     tic_figure: go.Figure = go.Figure()
-    max_x: float = traces[datatype.lower()]['max_x']
-    max_y: float = traces[datatype.lower()]['max_y']
-    for trace in traces[datatype.lower()]['traces']:
+    max_x: float = traces[datatype]['max_x']
+    max_y: float = traces[datatype]['max_y']
+    for trace in traces[datatype]['traces']:
         #print(json.dumps(trace, indent=2))
         tic_figure.add_traces(pio.from_json(json.dumps(trace))['data'][0])
     hmode: str = 'closest'
-    if len(traces[datatype.lower()]['traces']) < 10:
+    if len(traces[datatype]['traces']) < 10:
         hmode = 'x unified' # Gets cluttered with too many traces
     tic_figure.update_layout(
         height=use_height,

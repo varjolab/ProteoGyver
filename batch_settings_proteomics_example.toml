@@ -1,0 +1,27 @@
+# Example batch settings file for ProteoGyver proteomics workflow
+# Save this as "batch_settings.toml" and run with: python app/pipeline_from_toml.py
+
+[general]
+workflow = "proteomics"
+data = "data/PG example files/example_proteinGroups.tsv"
+samples = "data/PG example files/example_experimental_design.tsv"
+outdir = "proteomics_batch_output"
+figure_template = "plotly_white"
+remove_common_contaminants = true
+rename_replicates = false
+unique_only = false
+
+[proteomics]
+na_filter_percent = 70
+na_filter_type = "sample-group"  # "sample-group" or "sample-set"
+normalization = "no_normalization"  # "Median", "Quantile", "Vsn", or "no_normalization"
+imputation = "QRILC"  # "QRILC", "minProb", "gaussian", "minValue"
+control_group = "Control"  # Set to the name of your control group, or leave empty to use comparison_file
+# comparison_file = "comparisons.tsv"  # Optional: file with custom comparisons
+fc_threshold = 2.0
+p_threshold = 0.05
+test_type = "independent"  # "independent" or "paired"
+
+# Interactomics section not used for proteomics workflow
+[interactomics]
+# Left empty for proteomics workflow

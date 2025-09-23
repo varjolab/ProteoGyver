@@ -9,6 +9,11 @@ from urllib.parse import quote
 from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
+__all__ = [
+    'handler', 'get_available', 'get_pantherdb_datasets',
+    'retrieve_pantherdb_gene_classification', 'get_default_panel',
+    'panel_to_usable', 'enrich', 'run_panther_overrepresentation_analysis'
+]
 
 
 class handler():
@@ -179,6 +184,18 @@ class handler():
     def get_default_panel(self) -> list:
         return self._defaults
 
+    def panel_to_usable(self, entries: list) -> list:
+        new_list = [ ]
+        for e in entries:
+            started = len(new_list)
+            if e in self._names:
+                new_list.append([self._names[e], e])
+            elif e in self._names_rev:
+                new_list.append([e, self._names_rev[e]])
+            if len(new_list)>started:
+                new_list[-1].append(self._datasets[new_list[-1][1]])
+        return new_list
+
     def enrich(self,data_lists: list, options: str, filter_out_negative: bool = True) -> list:
         """
         """
@@ -215,7 +232,7 @@ class handler():
         logger.warning(f'Enrich done')
         return (result_names, result_dataframes, result_legends)
 
-    def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list, data_set_name: str,
+    def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list, data_set_name: str | None= None,
                                                 background_list: list = None,
                                                 organism: int = 9606,
                                                 test_type: str = 'FISHER',
@@ -233,6 +250,7 @@ class handler():
         datasets: pantherDB datasets to run overrepresentation analysis against, see \
             get_pantherdb_datasets method
         protein_list: list of identified proteins
+        data_set_name: Name for the incoming dataset (protein list). if None, f'{datetime.today().strftime("%Y-%m-%d")}_proteinlist' will be used.
         background_list: list of background proteins. if None, entire annotation database \
             will be used
         organism: numerical ID of the organism, e.g. human is 9606
@@ -242,6 +260,8 @@ class handler():
         """
         baseurl: str = 'http://pantherdb.org/services/oai/pantherdb/enrich/overrep?'
         ret: dict = {}
+        if data_set_name is None:
+            data_set_name = f'{datetime.today().strftime("%Y-%m-%d")}_proteinlist'
         for annotation, name, description in datasets:
             data: dict = {
                 'organism': organism,
@@ -261,6 +281,7 @@ class handler():
             reference_string: str = f'PANTHER overrepresentation analysis for {data_set_name} with {name}\n----------\n'
             success: bool = False
             logger.warning(f'Run enrichment: {data_set_name} {name}')
+            req_json = {}
             for i in range(20, 100, 20):
                 try:
                     request: requests.Response = requests.post(
@@ -275,16 +296,18 @@ class handler():
                 except requests.exceptions.ConnectionError as e:
                     logger.warning(f'Run enrichment: fail-ConnectionError - {e}')
                     continue
+            if not 'results' in req_json:
+                success = False
             if not success:
                 ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': pd.DataFrame(),
-                                                    'Reference information': 'PANTHER failed.'}
+                                                    'Reference information': 'PANTHER failed.', 'json': req_json}
                 continue
             try:
                 reference_string += f'PANTHERDB reference information:\nTool release date: \
                     {req_json["results"]["tool_release_date"]}\nAnalysis run: {datetime.now()}\n'
             except KeyError as exc:
                 logger.warning(f'Run enrichment: fail-KeyError - {exc}')
-                raise exc
+            
             reference_string += (
                 f'Enrichment test type: '
                 f'{req_json["results"]["enrichment_test_type"]}\n'
@@ -318,7 +341,7 @@ class handler():
             reference_string += '-----\n'
             reference_string += (
                 f'Mapped IDs: '
-                f'{", ".join(req_json["results"]["input_list"]["mapped_ids"])}\n'
+                f'{req_json["results"]["input_list"]["mapped_ids"]}\n'
             )
             reference_string += '-----\n'
             results: pd.DataFrame = pd.DataFrame(
@@ -327,12 +350,15 @@ class handler():
                 drop(columns=['term'])
             results.loc[:, 'DB'] = self._names_rev[annotation]
             order: list = ['DB', 'id', 'label']
-            with np.errstate(divide='ignore'):
-                results.loc[:, 'log2_fold_enrichment'] = np.log2(
-                    results['fold_enrichment'])
+            try:
+                with np.errstate(divide='ignore'):
+                    results.loc[:, 'log2_fold_enrichment'] = np.log2(
+                        results['fold_enrichment'])
+            except TypeError:
+                results.loc[:, 'log2_fold_enrichment'] = 'ERR'
             order.extend([c for c in results.columns if c not in order])
             results = results[order]
 
             ret[self._names_rev[annotation]] = {'Name': name, 'Description': description, 'Results': results,
-                                                'Reference information': reference_string}
+                                                'Reference information': reference_string, 'json': req_json}
         return ret

@@ -87,6 +87,10 @@ def ranked_dist_n_per_run(main_df, supplemental_df, per_run):
 
 def count_per_sample(data_table: DataFrame, rev_sample_groups: dict) -> Series:
     """Counts non-zero values per sample (sample names from rev_sample_groups.keys()) and returns a series with sample names in index and counts as values."""
+    if not rev_sample_groups:
+        raise ValueError("rev_sample_groups is empty")
+    if data_table.empty:
+        raise ValueError("data_table is empty")
     index: list = list(rev_sample_groups.keys())
     retser: Series = Series(
         index=index,

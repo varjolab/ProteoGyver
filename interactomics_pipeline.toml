@@ -1,0 +1,49 @@
+[general]
+# Workflow type: "proteomics" or "interactomics"
+workflow = "interactomics"
+
+# Input data files (paths relative to this TOML file)
+data = "app/data/PG example files/Interactomics data file.tsv"
+samples = "app/data/PG example files/Interactomics sample table.tsv"
+
+# Output directory
+outdir = "interactomics_batch_out_4"
+
+# Figure template
+figure_template = "plotly_white"
+
+# Data processing options
+remove_common_contaminants = true
+rename_replicates = false
+unique_only = false
+
+# Proteomics section not used for interactomics workflow
+[proteomics]
+# Left empty for interactomics workflow
+
+[interactomics]
+# Controls uploaded with your data (sample names from your experimental design)
+# Based on the sample table, these are the control groups
+uploaded_controls = ["Control_Group_1", "Control_Group_7"]
+
+# Built-in control sets from the database (see parameters.toml for available sets)
+# Using available GFP control sets
+additional_controls = ["VL GFP MAC3 10min AP", "VL GFP MAC2 18h AP"]
+
+# CRAPome datasets for filtering (see parameters.toml for available sets)
+# Common CRAPome sets available in most installations
+crapome_sets = ["Nesvilab"]
+
+# SAINT analysis settings
+proximity_filtering = false  # Use most similar controls only
+n_controls = 3  # Number of controls to keep if proximity_filtering is true
+saint_bfdr_threshold = 0.05  # SAINT BFDR threshold for significance
+
+# CRAPome filtering settings
+crapome_percentage_threshold = 20  # Percentage threshold for CRAPome filtering
+crapome_fc_threshold = 2  # Fold change threshold for CRAPome filtering
+rescue_enabled = false  # Enable rescue filtering for borderline hits
+
+# Enrichment analysis (optional)
+# Using correct PantherDB enrichment names from the available options
+chosen_enrichments = ["Panther GOBP slim", "Panther GOMF slim", "Panther Reactome pathways"]

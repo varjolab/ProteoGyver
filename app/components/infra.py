@@ -133,10 +133,12 @@ def save_data_stores(data_stores, export_dir) -> dict:
         data_stores: List of data store components containing data to export
         export_dir: Directory path where files should be saved
         
-    Returns:
-        dict: Mapping of data store names to their modification timestamps
     """
-    timestamps: dict = {}
+    odir = 'debug/datastores'
+    os.makedirs(odir, exist_ok=True)
+    with open(os.path.join(odir, 'data_stores.pickle'),'wb') as fil:
+        import pickle
+        pickle.dump(data_stores, fil)
     prev_time: datetime = datetime.now()
     logger.warning(f'save data stores - started: {prev_time}')
     fails = {}
@@ -146,7 +148,8 @@ def save_data_stores(data_stores, export_dir) -> dict:
         if isinstance(d['props']['data'], str):
             if d['props']['data'].strip() == '':
                 continue
-        timestamps[d['props']['id']['name']] = d['props']['modified_timestamp']
+        with open(os.path.join(odir, f'{d["props"]["id"]["name"]}.json'),'w') as fil:
+            json.dump(d, fil, indent=2)
         export_format: str
         export_subdir: str
         file_name: str
@@ -286,8 +289,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
             json.dump(fails, fil, indent = 4)
     logger.warning(
         f'save data stores - Done with export: {datetime.now() - prev_time}')
-    return timestamps
-
 
 def get_all_props(elements, marker_key, match_partial=True) -> list:
     """Recursively finds all props containing the marker key in a nested element structure.
@@ -364,6 +365,19 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
     headers_and_figures: list = get_all_types(
         analysis_divs, ['h4', 'h5', 'graph', 'img', 'P'])
     figure_names_and_figures: list = []
+    odir = 'debug/figures'
+    os.makedirs(odir, exist_ok=True)
+    with open(os.path.join(odir, 'analysis_divs.pickle'),'wb') as fil:
+        import pickle
+        pickle.dump(analysis_divs, fil)
+    with open(os.path.join(odir, 'export_dir.pickle'),'wb') as fil:
+        import pickle
+        pickle.dump(export_dir, fil)
+    with open(os.path.join(odir, 'commonality_pdf_data.pickle'),'wb') as fil:
+        import pickle
+        pickle.dump(commonality_pdf_data, fil)
+    prev_time: datetime = datetime.now()
+    # if there is pdf data, it means that matplotlib engine was used to generate this particular figure, and we need to add it to the queue in this form:
     if (commonality_pdf_data is not None) and (len(commonality_pdf_data) > 0):
         header: str = 'Shared identifications'
         figure_names_and_figures.append([

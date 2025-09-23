@@ -75,7 +75,7 @@ def description_card() -> html.Div:
                 id="intro",
                 children=[
                     html.P("Explore TICs of any MS run or sample set. Choose runs based on times, run IDs, or sample types."),
-                    html.P(f"NOTE: only {run_limit} runs can be loaded at once. If more than {run_limit} runs are chosen, only the {run_limit} most recent ones will be loaded."),
+                    html.P(f"NOTE: only {RUN_LIMIT} runs can be loaded at once. If more than {RUN_LIMIT} runs are chosen, only the {RUN_LIMIT} most recent ones will be loaded."),
                     html.P("NOTE: If you want to switch to a different runset, you might want to reload the page. Otherwise it will load a bunch of runs right from the start. This will be fixed at some point, and there will be a note about it on the announcements page.")
                 ]
             ),
@@ -89,6 +89,7 @@ def generate_control_card() -> html.Div:
         html.Div: A Dash HTML Div containing controls for MS selection, date range,
             sample type selection, and run ID input.
     """
+    ms_list: list = sorted(list(MASS_SPECS.keys()))
     return html.Div(
         id='control-card',
         children=[
@@ -103,19 +104,19 @@ def generate_control_card() -> html.Div:
             dcc.DatePickerRange(
                 id='date-picker-select',
                 display_format='YYYY.MM.DD',
-                start_date = mintime,
-                end_date = maxtime,
-                min_date_allowed = mintime,
-                max_date_allowed = maxtime,
-                initial_visible_month=maxtime
+                start_date = MINTIME,
+                end_date = MAXTIME,
+                min_date_allowed = MINTIME,
+                max_date_allowed = MAXTIME,
+                initial_visible_month=MAXTIME
             ),
             html.Br(),
             html.Br(),
-            html.H5('Select sample type'),
+            html.H5('Select data type'),
             dcc.Dropdown(
-                id='sampletype-select',
-                options=[{'label': i, 'value': i} for i in sample_list],
-                value=sample_list[:],
+                id='ddadia-select',
+                options=[{'label': i, 'value': i} for i in DATA_TYPES],
+                value=DATA_TYPES[:],
                 multi=True,
             ),
             html.Br(),
@@ -216,9 +217,7 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     Notes:
         The number of times the previous, next, or reset button is clicked is not used.
     """
-    supp_datatype = supp_datatype.lower()
     data_to_use: pd.DataFrame = pd.read_json(StringIO(plot_data),orient='split')
-    datatype = datatype.lower()
     ticlist.sort()
     next_offset: int = 0
     if ctx.triggered_id == 'reset-animation-button':
@@ -243,7 +242,7 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     these_tics = these_tics[:num_of_traces_visible]
     for i, trace_dict in enumerate(these_tics[::-1]):
         tic_figure.add_traces(trace_dict[datatype][str(i)])
-    max_x = data_to_use['chromatogram_max_time'].max()
+    max_x = data_to_use[f'{datatype}_maxtime'].max()
     supp_graph_max_x: int = data_to_use.shape[0]
     auc_graph_max_y: int = data_to_use[f'{supp_datatype}_auc'].max()
     max_intensity_graph_max_y: int = data_to_use[f'{supp_datatype}_max_intensity'].max()
@@ -366,10 +365,11 @@ def delim_runs(runs):
     Output('plot-max-y','data'),
     Output('load-runs-spinner-div','children'),
     Output('start-stop-btn','n_clicks'),
+    Output('run-ids-not-found','children'),
     Input('load-runs-button','n_clicks'),
     State('date-picker-select', 'start_date'),
     State('date-picker-select', 'end_date'),
-    State('sampletype-select', 'value'),
+    State('ddadia-select', 'value'),
     State('load-runs-from-runids','value'),
     State('load-runs-spinner-div','children'),
     prevent_initial_call=True
@@ -387,6 +387,8 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
     Returns:
         list: Contains [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks]
     """
+    db_conn = db_functions.create_connection(database_file)
+    not_found_ids = []
     if (run_id_list is None ) or (run_id_list.strip() == ''):
         start:str
         end: str
@@ -395,40 +397,55 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
         end = end+' 23:59:59'
         #start: datetime = datetime.strptime(start+' 00:00:00',parameters['Config']['Time format'])
         #end: datetime = datetime.strptime(end+' 23:59:59',parameters['Config']['Time format'])
-        db_conn = db_functions.create_connection(database_file)
         chosen_runs: pd.DataFrame = db_functions.get_from_table(
             db_conn, # type: ignore
             'ms_runs',
             'run_time',
             (start, end),
-            select_col=', '.join(required_columns),
+            select_col=', '.join(REQUIRED_MAINCOLS),
             as_pandas=True,
-            pandas_index_col='run_id',
-            operator = 'BETWEEN'
+            operator = 'BETWEEN',
+            index_col = 'internal_run_id'
         )
-        db_conn.close() # type: ignore
         chosen_runs = chosen_runs[chosen_runs['sample_type'].isin(sample_types)]
         chosen_runs.sort_values(by='run_time',ascending=True, inplace=True)
-        chosen_runs.to_csv('chosen_runs.csv')
         #chosen_runs.index = chosen_runs.index.astype(str)# And flip back to make passing trace_dict easier. Keys of the dict will be converted to strings when passed through data store.
-        if chosen_runs.shape[0] > run_limit:
-            chosen_runs = chosen_runs.tail(run_limit)
+        if chosen_runs.shape[0] > RUN_LIMIT:
+            chosen_runs = chosen_runs.tail(RUN_LIMIT)
     else:
         run_ids = delim_runs(run_id_list)
-        db_conn = db_functions.create_connection(database_file)
-        chosen_runs = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_runs','run_id',run_ids)
-        db_conn.close() # type: ignore
+        # Filter run_ids to only those found in KNOWN_SAMPLES
+        not_found_ids = [rid for rid in run_ids if rid not in IDMAP]
+        run_ids = [IDMAP[i] for i in run_ids if i in IDMAP]
+        chosen_runs = db_functions.get_from_table_by_list_criteria(
+            db_conn, 
+            'ms_runs',
+            'internal_run_id',
+            run_ids,
+            select_col=', '.join(REQUIRED_MAINCOLS),
+            index_col = 'internal_run_id'
+        )
         chosen_runs.sort_values(by='run_time',ascending=True, inplace=True)
+    run_plots = db_functions.get_from_table_by_list_criteria(
+        db_conn, 
+        'ms_plots',
+        'internal_run_id',
+        list(chosen_runs.index),
+        index_col = 'internal_run_id'
+    )
+    db_conn.close() # type: ignore
+    not_found_text = None
+    if len(not_found_ids) > 0:
+        not_found_text: list[str] = ['IDs NOT FOUND IN DATABASE:']+not_found_ids+['\n']
     max_y = {}
     for t in trace_types:
-        t = t.lower()
-        max_y[t] = chosen_runs[f'{t}_max_intensity'].max()
+        max_y[t] = run_plots[f'{t}_max_intensity'].max()
     trace_dict: dict = {}
-    for runid, rundata in chosen_runs.iterrows():
+    for runid, rundata in run_plots.iterrows():
         runid = str(runid)
         trace_dict[runid] = {}
         for tracename in trace_types:
-            tracename = tracename.lower()
+            tracename = tracename
             trace_dict[runid][tracename] = {}
             for color_i in range(num_of_traces_visible):
                 d = json.loads(rundata[f'{tracename}_trace'])
@@ -439,8 +456,8 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
     return (
         sorted(list(chosen_runs.index)),
         trace_dict,
-        chosen_runs.to_json(orient='split'),
-        max_y,button_text,1
+        run_plots.to_json(orient='split'),
+        max_y,button_text,1, not_found_text
     )
 
 def ms_analytics_layout():
@@ -481,6 +498,11 @@ def ms_analytics_layout():
                 ],
                 width = 4),
                 dbc.Col([
+                    dbc.Row([
+                        html.Div(
+                            id = 'run-ids-not-found'
+                        )
+                    ]),
                     dbc.Row([
                         html.H4('TICs'),
                         html.Hr(),
@@ -605,31 +627,63 @@ database_file = os.path.join(*parameters['Data paths']['Database file'])
 
 num_of_traces_visible = 7
 trace_color = 'rgb(56, 8, 35)'
-trace_types: list = ['TIC','MSn_unfiltered']
-required_columns = ['run_id','run_time','sample_type','instrument','chromatogram_max_time']
+trace_types: list = ['TIC','BPC','MSn']
+samplecols = ['file_name', 'file_name_clean', 'sample_id', 'sample_name' ]
+REQUIRED_MAINCOLS = [
+    'internal_run_id',
+    'inst_model',
+    'inst_serial_no',
+    'run_date',
+    'data_type'
+] + samplecols
+required_plot_cols = ['internal_run_id']
 for tracename in trace_types:
-    tracename = tracename.lower()
-    required_columns.append(f'{tracename}_trace')
-    required_columns.append(f'{tracename}_mean_intensity')
-    required_columns.append(f'{tracename}_auc')
-    required_columns.append(f'{tracename}_max_intensity')
+    required_plot_cols.append(f'{tracename} trace')
+    required_plot_cols.append(f'{tracename} mean_intensity')
+    required_plot_cols.append(f'{tracename} auc')
+    required_plot_cols.append(f'{tracename} max_intensity')
 
 db_conn = db_functions.create_connection(database_file)
-data = db_functions.get_full_table_as_pd(db_conn, 'ms_runs', index_col='run_id').replace('',np.nan)
+data = db_functions.get_from_table(
+    db_conn,
+    'ms_runs', 
+    select_col = REQUIRED_MAINCOLS,
+    as_pandas = True,
+    pandas_index_col = 'internal_run_id'
+).replace('',np.nan)
 db_conn.close() # type: ignore
-data.drop(columns=[c for c in data.columns if c not in required_columns],inplace=True)
 
-ms_list = data['instrument'].unique()
-sample_list: list = sorted(list(data['sample_type'].fillna('No sampletype').unique()))
+MASS_SPECS = {}
+for row in data[['inst_model','inst_serial_no']].drop_duplicates().values:
+    if not row[0]:
+        continue
+    if not row[1]:
+        continue
+    MASS_SPECS.setdefault(row[0], [])
+    MASS_SPECS[row[0]].append(row[1])
+DATA_TYPES = list(data['data_type'].unique())
+
+IDMAP: dict = {}
+# TODO: handle better runs with names or IDs that are repeated. e.g. two files with the same sample_id
+del_runs = set()
+for internal_run_id, row in data[samplecols].iterrows():
+    for c in samplecols:
+        if row[c] in IDMAP:
+            del_runs.add(row[c]) # For now we just delete ambiguous entries
+        else:
+            IDMAP[row[c]] = internal_run_id
+for d in del_runs:
+    del IDMAP[d]
+
 if data.shape[0] > 0:
-    data['run_time'] = data.apply(lambda x: datetime.strptime(x['run_time'],parameters['Config']['Time format']),axis=1)
-    d = data['run_time'].max()
-    maxtime = date(d.year,d.month, d.day)
-    d = data['run_time'].min()
-    mintime = date(d.year,d.month, d.day)
+    data['run_date'] = data.apply(lambda x: datetime.strptime(x['run_date'],parameters['Config']['Time format']),axis=1)
+    d = data['run_date'].max()
+    MAXTIME = date(d.year,d.month, d.day)
+    d = data['run_date'].min()
+    MINTIME = date(d.year,d.month, d.day)
     del data
     logger.warning(f'{__name__} preliminary data loaded')
-    run_limit = 100
+    RUN_LIMIT = 100
     use_layout = ms_analytics_layout()
 else:
     use_layout = html.Div('No MS runs in database.')

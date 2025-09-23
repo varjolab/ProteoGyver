@@ -30,5 +30,9 @@ def make_graph(non_imputed, imputed, defaults, id_name: str = None, title:str = 
     figure.update_layout(
         barmode='overlay'
     )
-    figure.update_traces(opacity=0.75)
-    return Graph(config=defaults['config'], id=id_name, figure=figure)
+    figure.update_traces(opacity=0.75) 
+    config=dict(defaults['config'],displayModeBar = False)
+    figure.update_layout(hovermode=False)
+    figure.update_traces(hoverinfo='skip', hovertemplate=None)
+    return Graph(config=config, id=id_name, figure=figure)
+    

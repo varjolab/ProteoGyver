@@ -7,10 +7,10 @@ import pandas as pd
 import numpy as np
 from components import text_handling
 from components import db_functions
-from components.annotation import intact
-from components.annotation import biogrid
+from components.api_tools import intact
+from components.api_tools import biogrid
 
-def update_table_with_file(cursor, table_name, file_path, parameters, timestamp):
+def update_table_with_file(cursor, table_name, file_path, parameters, timestamp, add_info: str = ''):
     """
     Updates a database table with data from a TSV file, handling column additions and value updates.
 
@@ -46,7 +46,7 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp)
         error_msg = f"Too many new columns in file: {', '.join(extra_cols)}"
         raise ValueError(f"Column mismatch for table {table_name}. {error_msg}")
     if len(missing_cols) > parameters['Allowed missing columns']:
-        error_msg = f"Too many missing columns in file: {', '.join(missing_cols)}"
+        error_msg = f"Too many missing columns in file {file_path}: {', '.join(missing_cols)}"
         raise ValueError(f"Column mismatch for table {table_name}. {error_msg}")
     
     # Add extra columns to database if they exist in file
@@ -102,12 +102,9 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp)
             # If new entry is the same as old one, do nothing
             if differences == 0:
                 continue
-                        
-            new_pk_value = f"{pk_value}_{timestamp}"
-            cursor.execute(f"UPDATE {table_name} SET {primary_key} = ? WHERE {primary_key} = ?", (new_pk_value, pk_value))
             modifications += 1
 
-            # Prepare the INSERT statement with preserved values
+            # Prepare the INSERT statement with preserved values from earlier
             columns = ', '.join(all_columns)
             placeholders = ', '.join(['?'] * len(all_columns))
             values = tuple(new_values[col] for col in all_columns)
@@ -122,7 +119,7 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp)
         insertions += 1
 
     insertions -= modifications
-    print(f"Updated table {table_name} with data from {file_path}. {modifications} modifications, {insertions} insertions.")
+    print(f"Updated table {table_name}: {modifications} modifications, {insertions} insertions. {add_info} data file: {file_path}.")
 
     return insertions, modifications
 
@@ -191,7 +188,7 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                         cursor.execute(f"DROP TABLE IF EXISTS {new_table_name}")
                         # Create table with columns from the file
                         if set(cc_cols) != set(df.columns):
-                            with open(os.path.join(folder_path, file_name.replace('.tsv','txt')), 'r') as f:
+                            with open(os.path.join(folder_path, file_name.replace('.tsv','.txt')), 'r') as f:
                                 cc_types = [l.strip() for l in f.readlines()]
                                 cc_types = [l for l in cc_types if not l.startswith('#')]
                                 cc_types = [l for l in cc_types if l != '']
@@ -212,11 +209,15 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                         if os.path.isfile(os.path.join(folder_path, file_name.replace('.tsv','txt'))):
                             delete_files.append(os.path.join(folder_path, file_name.replace('.tsv','txt')))
             else:
-                for file_name in os.listdir(folder_path):
+                dirfiles = os.listdir(folder_path)
+                for i, file_name in enumerate(dirfiles):
                     if file_name.endswith('.tsv'):
                         file_path = os.path.join(folder_path, file_name)
 
-                        insertions, modifications = update_table_with_file(cursor, table_name, file_path, parameters, timestamp)
+                        add_info = ''
+                        if len(dirfiles) > 100:
+                            add_info = f'{i}/{len(dirfiles)}'
+                        insertions, modifications = update_table_with_file(cursor, table_name, file_path, parameters, timestamp, add_info)
                         delete_files.append(file_path)
         else:
             os.makedirs(folder_path)
@@ -276,7 +277,7 @@ def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_colum
     return list(new_or_modified), missing_rows
 
 def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
-    from components.annotation import uniprot
+    from components.api_tools import uniprot
 # Move these into parameters or somesuch:
     uniprot_renames = {
         'Reviewed': 'is_reviewed',
@@ -343,7 +344,7 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
         if not os.path.exists(odir):
             os.makedirs(odir)
         modfile = os.path.join(odir, f'{timestamp}_proteins.tsv')
-        uniprot_df.to_csv(modfile, sep='\t')
+        uniprot_df.to_csv(modfile.replace(':','-'), sep='\t')
     return uniprot_id_set
 
 def merge_multiple_string_dataframes(dfs: list[pd.DataFrame]) -> pd.DataFrame:
@@ -405,7 +406,7 @@ def handle_new(new_interactions, odir, timestamp, L) -> None:
         modfile = os.path.join(odir, f'{timestamp}_known_interactions_{L}_{i}.tsv')
         i += 1
     df = pd.DataFrame(new_interactions).set_index('interaction')
-    df.to_csv(modfile, sep='\t')
+    df.to_csv(modfile.replace(':','-'), sep='\t')
 
 def handle_mods(check_for_mods, existing, timestamp, L, parameters, odir) -> None:
 
@@ -435,7 +436,7 @@ def handle_mods(check_for_mods, existing, timestamp, L, parameters, odir) -> Non
         while os.path.exists(modfile):
             modfile = os.path.join(odir, f'{timestamp}_known_interactions_{L}_{i}.tsv')
             i += 1
-        merg.to_csv(modfile, sep='\t',)
+        merg.to_csv(modfile.replace(':','-'), sep='\t')
 
 def handle_merg_chunk(existing:pd.DataFrame, organisms: set|None, timestamp: str, L: str, last_update_date: datetime|None, odir: str, parameters: dict) -> None:
     existing_interactions: set = set(existing.index)
@@ -444,7 +445,7 @@ def handle_merg_chunk(existing:pd.DataFrame, organisms: set|None, timestamp: str
             intact.get_latest(organisms, subset_letter=L, since_date = last_update_date),   # type: ignore
             biogrid.get_latest(organisms, subset_letter=L, since_date = last_update_date),  # type: ignore
         ]
-        print(L, 'sources', sources[0].shape, sources[1].shape) # type: ignore
+        print('Merging', L, 'source df shapes', sources[0].shape, sources[1].shape) # type: ignore
         merged = {}
         for df in sources:
             for row in stream_flattened_rows(df):
@@ -525,149 +526,110 @@ def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_
         for future in as_completed(futures):
             future.result()
 
-def update_ms_runs(conn, parameters, timestamp, time_format, output_dir) -> None:
-    import json
-    import re
-    from datetime import datetime
-    """
-    Updates the ms_runs table in the database.
-
-    Args:
-        conn: SQLite database connection object
-        parameters (dict): Configuration parameters including 'Update files' with table-to-directory mappings
-        timestamp (str): Current timestamp
-        time_format (str): Format string for datetime objects
-
-    """
-    cursor = conn.cursor()
-    cursor.execute("PRAGMA table_info(ms_runs)")
-    ms_cols = [row[1] for row in cursor.fetchall()]
-    cursor.close()
-
-    banned_run_dirs = parameters['Ignore runs from dirs']
-    run_id_regex = parameters['MS run ID regex']
-    if parameters['Additional info excel'] != '':
-        runlist = pd.read_excel(os.path.join(*parameters['Additional info excel']))
-    else:
-        runlist = pd.DataFrame(columns=['Sample name','Who','Sample type','Bait name','Bait / other uniprot or ID','Bait mutation','Cell line / material','Project','Notes','tag'])
+def update_ms_runs(conn, json_dir, timestamp, time_format: str, outdir_runs: str, outdir_plots: str, move_done_dir: str|None = None):
+    base_id = 'PG_runID_'
+    run_index = max([int(i.rsplit('_',maxsplit=1)[-1]) for i in db_functions.get_from_table(conn, 'ms_runs', select_col = 'internal_run_id')]) + 1
     
-    ms_run_datadir = os.path.join(*parameters['MS run data dir'])
-    done_dir = os.path.join(*parameters['handled MS run data dir'])
-    if not os.path.exists(ms_run_datadir):
-        os.makedirs(ms_run_datadir)
+    trace_keys = ['internal_run_id']
+    for tt in ['BPC','MSn','TIC']:
+        trace_keys.extend([
+            f'{tt}_auc',
+            f'{tt}_maxtime',
+            f'{tt}_max_intensity',
+            f'{tt}_mean_intensity',
+            f'{tt}_trace',
+    ])
+    base_keys = [
+        'data_type',
+        'file_name',
+        'file_size',
+        'parsed_date',
+        'sample_id'
+    ]
+    instrument_to_main = [
+        'inst_model',
+        'inst_serial_no',
+        'inst_name',
+        'extras'
+    ]
+    run_to_main = [
+        'processing_method',
+        'method_name',
+        'ms_method',
+        'run_date',
+        'start_time',
+        'end_time',
+        'last_scan_number'
+    ]    
+    sample_to_main = [
+        'sample_name',
+    ]
+    headers = [ 'internal_run_id' ] + base_keys + [ 'file_name_clean' ]
+    headers.extend(['sample_' + c for c in sample_to_main])
+    headers.extend(['run_' + c for c in run_to_main])
+    headers.extend(['inst_' + c for c in instrument_to_main])
+    for rep in ['sample','run','inst']:
+        headers = [h.replace(f'{rep}_{rep}_', f'{rep}_') for h in headers]
+    MS_rows = []
+    trace_rows = []
+    print_i = 0
+    done_files = []
 
-    new_data = []
-    for datafilename in os.listdir(ms_run_datadir):
-        with open(os.path.join(ms_run_datadir, datafilename)) as fil:
-            try:
-                dat = json.load(fil)
-            except json.JSONDecodeError:
-                continue
-        if dat['SampleInfo'] == ['']: continue
-        banned = False
-        for b in banned_run_dirs:
-            if b in dat['SampleInfo']['SampleTable']['AnalysisHeader']['@FileName']:
-                banned = True
-        if banned:
+    for file in os.listdir(json_dir):
+        print_i +=1
+        if not os.path.isfile(os.path.join(json_dir,file)):
             continue
-        lc_method = None
-        ms_method = None
-        if isinstance(dat['SampleInfo'], list):
-            continue
-        if not 'polarity_1' in dat:
-            continue
-        if not re.match(run_id_regex, dat['SampleID']):
-            continue
-        for propdic in dat['SampleInfo']['SampleTable']['SampleTableProperties']['Property']:
-            if propdic['@Name'] == 'HyStar_LC_Method_Name':
-                lc_method = propdic['@Value']
-            if propdic['@Name'] == 'HyStar_MS_Method_Name':
-                ms_method = propdic['@Value']
-        sample_names = {
-            dat['SampleInfo']['SampleTable']['Sample']['@SampleID'],
-            dat['SampleInfo']['SampleTable']['Sample']['@SampleID']+'.d',
-            dat['SampleInfo']['SampleTable']['Sample']['@DataPath'],
-        }
-        samplerow = runlist[runlist['Raw file'].isin(sample_names)]
-        if 'polarity_1_sers' in dat.keys():
-            del dat['polarity_1_sers']
-        if (lc_method is None) or (ms_method is None):
-            print('LC or MS method not found')
-            continue
-        if len([k for k in dat.keys() if 'polarity' in k]) > 1:
-            print('Multiple polarities found!')
-            continue
-        if samplerow.shape[0] == 0:
-            samplerow = pd.Series(index = samplerow.columns, data = ['No data' for c in samplerow.columns])
-        else:
-            samplerow = samplerow.iloc[0]
-        instrument = 'TimsTOF 1'
-        runtime = datetime.strftime(
-            datetime.strptime(
-                dat['SampleInfo']['SampleTable']['AnalysisHeader']['@CreationDateTime'].split('+')[0],
-                '%Y-%m-%dT%H:%M:%S'
-            ),
-            time_format
-        )
-        
-        samplename = samplerow['Sample name']
-        author = samplerow['Who']
-        sample_type = samplerow['Sample type']
-        bait = samplerow['Bait name']
-        bait_uniprot = samplerow['Bait / other uniprot or ID']
-        bait_mut = samplerow['Bait mutation']
-        cell_line = samplerow['Cell line / material']
-        project = samplerow['Project']
-        author_notes = samplerow['Notes']
-        bait_tag = samplerow['tag']
-        try:
-            precur = dat['NumPrecursors']
-        except KeyError:
-            precur = 'No precursor data'
-        ms_run_row = [
-            dat['SampleID'],
-            dat['SampleInfo']['SampleTable']['AnalysisHeader']['@SampleID'],
-            samplename,
-            dat['SampleInfo']['SampleTable']['AnalysisHeader']['@FileName'],
-            runtime,
-            runtime.split()[0],
-            instrument,
-            author,
-            sample_type,
-            dat['DataType'],
-            lc_method,
-            ms_method,
-            precur,
-            bait,
-            bait_uniprot,
-            bait_mut,
-            max([int(i) for i in pd.Series(dat['polarity_1']['tic df']['Series']).index.values]),
-            cell_line,
-            project,
-            author_notes,
-            bait_tag,
-            timestamp,
-            -1
-        ]
-        for dataname in ['bpc filtered df', 'tic df', 'bpc unfiltered df']:
-            ms_run_row.extend([
-                dat['polarity_1'][dataname]['auc'],
-                dat['polarity_1'][dataname]['intercepts'],
-                dat['polarity_1'][dataname]['mean_intensity'],
-                dat['polarity_1'][dataname]['max_intensity'],
-                json.dumps(dat['polarity_1'][dataname]['Series']),
-                dat['polarity_1'][dataname]['trace'],
-                json.dumps(dat['polarity_1'][dataname]['intercept_dict']),
-                json.dumps(dat['polarity_1'][dataname]['Series_smooth']),
-                dat['polarity_1'][dataname]['trace_smooth'],
-            ])   
-        new_data.append(ms_run_row)
-        os.makedirs(done_dir,exist_ok=True)
-        shutil.move(os.path.join(ms_run_datadir, datafilename), os.path.join(done_dir, datafilename))
+        with open(os.path.join(json_dir, file)) as fil:
+            dic = json.load(fil)
+        internal_run_ID = f'{base_id}{run_index}'
+        run_index += 1
+            
+        new_row = [ internal_run_ID]
+        for bk in base_keys:
+            if bk in dic:
+                new_row.append(dic[bk])
+            else:
+                new_row.append('')
+        new_row.append(normalize_key(dic['file_name']))
+        for bk in sample_to_main:
+            if bk in dic['sample']:
+                new_row.append(dic['sample'][bk])
+            else:
+                new_row.append('')
+        for bk in run_to_main:
+            if bk in dic['run']:
+                new_row.append(dic['run'][bk])
+            else:
+                new_row.append('')
+        for bk in instrument_to_main:
+            if bk in dic['instrument']:
+                new_row.append(dic['instrument'][bk])
+            else:
+                new_row.append('')
+        trace_row = [ internal_run_ID ]
+        print(dic.keys())
+        for tk in trace_keys:
+            if tk == 'internal_run_id': continue
+            if tk not in dic['traces']:
+                trace_row.append('placeholder')
+            else:
+                trace_row.append(dic['traces'][tk])
+        MS_rows.append(new_row)
+        trace_rows.append(trace_row)
+        if print_i % 1000 == 0: 
+            print(f'{print_i} MS run json files processed')
+        done_files.append(file)
+    msrows_filename = f'{timestamp}_MS_runs_table'.replace(':','-')
+    tracerows_filename = f'{timestamp}_MS_traces_table'.replace(':','-')
+    pd.DataFrame(data = MS_rows, columns=headers).to_csv(os.path.join(outdir_runs,f'{msrows_filename}.tsv'),sep='\t',index=False)
+    pd.DataFrame(data = trace_rows, columns=trace_keys).to_csv(os.path.join(outdir_plots,f'{tracerows_filename}.tsv'),sep='\t',index=False)
+    if move_done_dir:
+        for file in done_files:
+            shutil.move(os.path.join(json_dir, file), os.path.join(move_done_dir, file))
+    else:
+        for file in done_files:
+            os.remove(os.path.join(json_dir, file))
 
-    if len(new_data) > 0:
-        os.makedirs(output_dir, exist_ok=True)
-        pd.DataFrame(data = new_data, columns = ms_cols).to_csv(os.path.join(output_dir, f'{timestamp}_ms_runs.tsv'), sep='\t', index=False)
 
 def update_external_data(conn, parameters, timestamp, organisms: set|None = None, last_update_date: datetime|None = None, ncpu: int = 1):
     """

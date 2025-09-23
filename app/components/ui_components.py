@@ -1017,7 +1017,7 @@ def saint_filtering_container(
                             'padding': '10px',
                         }
                     ),
-                    html.Div('If this is the demo version, this is expected behavior. Otherwise, you need to rebuild the docker image with SAINTExpress available in the expected folder (see README), or you need to add SAINTexpress as executable to the container itself.')
+                    html.Div('If this is the demo version, this is expected behavior. Otherwise, you need to rebuild the docker image with SAINTExpress available in the expected folder (see README), or you need to add SAINTexpress as executable to the container itself, and make sure it\'s in PATH.')
                 ],
                 hidden = saint_found, 
             ),

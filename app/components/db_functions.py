@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import csv
 from datetime import datetime
+from typing import Iterable, Dict, Any, List, Optional, Tuple
 
 
 def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: list | str = None, db_file_path: str|None = None):
@@ -20,6 +21,8 @@ def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: li
         placeholder = 'PLACEHOLDER_IS_INPUT_UPID'
     if isinstance(placeholder, str):
         placeholder = [placeholder for _ in info]
+    if len(uniprot_ids) == 0:
+        return []
     return_mapping = {}
     if db_file_path is None:
         for u in uniprot_ids:
@@ -44,6 +47,164 @@ def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: li
     if len(retlist[0]) == 1:
         retlist = [r[0] for r in retlist]
     return retlist
+    
+def get_from_table_match_with_priority(
+    conn: sqlite3.Connection,
+    criteria_list: Iterable[str],
+    table: str,
+    criteria_cols: List[str],
+    *,
+    case_insensitive: bool = False,
+    key_col: Optional[str] = None,
+    extra_tiebreak: Optional[List[Tuple[str, str]]] = None,  # e.g. [("acq_time","DESC")]
+    return_cols: Optional[List[str]] = None,  # default: all columns in table
+) -> Dict[str, Optional[Dict[str, Any]]]:
+    """
+    For each value in criteria_list, find the single best-matching row from `table`
+    using `criteria_cols` in priority order (1,2,3,...). Returns {value -> row_dict or None}.
+    """
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    # --- validate table & columns
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (table,))
+    if cur.fetchone() is None:
+        raise ValueError(f"Table not found: {table}")
+
+    cur.execute(f'PRAGMA table_info("{table}")')
+    table_cols = [r["name"] for r in cur.fetchall()]
+
+    missing = [c for c in criteria_cols if c not in table_cols]
+    if missing:
+        raise ValueError(f"Columns not in {table}: {missing}")
+
+    if return_cols is None:
+        ret_cols = table_cols[:]  # all
+    else:
+        bad = [c for c in return_cols if c not in table_cols]
+        if bad:
+            raise ValueError(f"return_cols not in {table}: {bad}")
+        ret_cols = return_cols[:]  # may be empty!
+
+    if key_col is None:
+        key_col = "rowid"
+    elif key_col not in table_cols and key_col.lower() != "rowid":
+        raise ValueError(f"key_col '{key_col}' not in {table} (or rowid)")
+
+    # --- create helpful indexes (idempotent)
+    for col in criteria_cols:
+        cur.execute(f'CREATE INDEX IF NOT EXISTS "idx_{table}_{col}" ON "{table}"("{col}");')
+
+    # --- temp input table
+    cur.execute("DROP TABLE IF EXISTS temp.criteria_list;")
+    cur.execute("CREATE TEMP TABLE temp.criteria_list(val TEXT PRIMARY KEY)")
+    cur.executemany("INSERT OR IGNORE INTO temp.criteria_list(val) VALUES (?)",
+                    ((v,) for v in criteria_list))
+
+    # --- build the UNION ALL (keyed) with a robust select list
+    # Always include: pri, the match key, plus any columns needed for ordering (key_col, extra_tiebreak cols)
+    needed_for_order: set[str] = set()
+    if key_col.lower() != "rowid":
+        needed_for_order.add(key_col)
+    if extra_tiebreak:
+        for col, direction in extra_tiebreak:
+            if col not in table_cols:
+                raise ValueError(f"extra_tiebreak column not in {table}: {col}")
+            if direction.upper() not in ("ASC", "DESC"):
+                raise ValueError("extra_tiebreak direction must be 'ASC' or 'DESC'")
+            needed_for_order.add(col)
+
+    # The columns we actually SELECT in the CTE:
+    # - the requested return columns (may be empty), PLUS
+    # - the needed ordering columns (so ORDER BY works), deduped.
+    select_payload_cols = []
+    seen = set()
+    for c in ret_cols + [c for c in needed_for_order if c not in ret_cols]:
+        if c.lower() == "rowid":  # rowid is implicit; we won’t list it here
+            continue
+        if c not in seen:
+            select_payload_cols.append(c)
+            seen.add(c)
+
+    collate = " COLLATE NOCASE" if case_insensitive else ""
+
+    unions = []
+    for pri, col in enumerate(criteria_cols, start=1):
+        # Base select list
+        select_bits = [f'"{col}" AS key', f"{pri} AS pri"]
+
+        # key_col for ordering (as a stable alias) – include rowid explicitly if used
+        if key_col.lower() == "rowid":
+            select_bits.append("rowid AS __ord_key")
+        else:
+            select_bits.append(f'"{key_col}" AS __ord_key')
+
+        # extra tie-break columns (if any)
+        for tcol in (c for c in needed_for_order if c != key_col and c.lower() != "rowid"):
+            select_bits.append(f'"{tcol}"')
+
+        # return columns (may be empty) – avoid duplicating ones we already added
+        for rc in ret_cols:
+            if rc == key_col or rc.lower() == "rowid" or rc in needed_for_order:
+                continue
+            select_bits.append(f'"{rc}"')
+
+        select_list_sql = ", ".join(select_bits)
+
+        unions.append(
+            f'SELECT {select_list_sql} FROM "{table}" WHERE "{col}" IS NOT NULL'
+        )
+
+    union_sql = "\nUNION ALL\n".join(unions)
+
+    # --- ORDER BY for ranking
+    order_terms = ["k.pri", "k.__ord_key"]
+    if extra_tiebreak:
+        for col, direction in extra_tiebreak:
+            order_terms.append(f'k."{col}" {direction.upper()}')
+    order_by = ", ".join(order_terms)
+
+    sql = f"""
+    WITH keyed AS (
+      {union_sql}
+    ),
+    ranked AS (
+      SELECT
+        cl.val AS query_val,
+        k.*,
+        ROW_NUMBER() OVER (
+          PARTITION BY cl.val
+          ORDER BY {order_by}
+        ) AS rnk
+      FROM temp.criteria_list cl
+      LEFT JOIN keyed k
+        ON k.key{collate} = cl.val{collate}
+    )
+    SELECT * FROM ranked WHERE rnk = 1;
+    """
+
+    # Execute & build results
+    results: Dict[str, Optional[Dict[str, Any]]] = {}
+    for row in cur.execute(sql):
+        q = row["query_val"]
+        if row["pri"] is None:
+            results[q] = None
+        else:
+            # Return only requested columns (defaulted earlier), not the helper fields
+            out: Dict[str, Any] = {}
+            for c in ret_cols:
+                out[c] = row[c]
+            # If caller passed return_cols=[], return {} for matches
+            results[q] = out
+
+    # Ensure all inputs present
+    cur.execute("SELECT val FROM temp.criteria_list;")
+    for (v,) in cur.fetchall():
+        results.setdefault(v, None)
+
+    return results
+
+
 
 def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter_col: str|None = None, startswith: str|None = None) -> pd.DataFrame:
     query = f"SELECT * FROM {table_name}"
@@ -51,7 +212,7 @@ def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter
     if filter_col and startswith is not None:
         query += f" WHERE {filter_col} LIKE '{startswith}%'"
 
-    return pd.read_sql_query(query, db_conn, index_col=index_col)
+    return pd.read_sql_query(query, db_conn, index_col=index_col).convert_dtypes()
 
 def get_last_update(conn, uptype: str) -> str:
     """
@@ -258,22 +419,27 @@ def add_multiple_records(db_conn, tablename, column_names, list_of_values) -> No
     finally:
         cursor.close()
         
-def create_connection(db_file, error_file: str|None = None):
+def create_connection(db_file, error_file: str|None = None, mode: str = 'ro'):
     """ create a database connection to the SQLite database
         specified by the db_file
-    :param db_file: database file
+    :param db_file: database file. If file doesn't exist, returns None
     :error_file: file to write errors to. If none, print errors to output
     :return: Connection object or None
     """
+    if not os.path.exists(db_file):
+        return None
     conn = None
     try:
-        conn = sqlite3.connect(db_file)
-    except Exception as e:
-        if error_file is None:
-            print(e)
+        if mode == 'ro':
+            conn = sqlite3.connect(f'file:{db_file}?mode=ro', uri=True)
         else:
+            conn = sqlite3.connect(db_file)
+    except Exception as e:
+        if error_file:
             with open(error_file,'a') as fil:
                 fil.write(str(e)+'\n')
+        else:
+            print(e)
     return conn
 
 def generate_database_table_templates_as_tsvs(db_conn, output_dir, primary_keys):
@@ -323,7 +489,15 @@ def generate_database_table_templates_as_tsvs(db_conn, output_dir, primary_keys)
         print(f"Template generated for table '{table}' at '{tsv_file_path}'.")
     cursor.close()
 
-def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|None = None, criteria:str|tuple|None = None, select_col:str|None = None, as_pandas:bool = False, pandas_index_col:str|None = None, operator:str = '=') -> list[tuple] | pd.DataFrame:
+def get_from_table(
+        conn:sqlite3.Connection,
+        table_name: str,
+        criteria_col:str|None = None,
+        criteria:str|tuple|None = None,
+        select_col:str|list|None = None,
+        as_pandas:bool = False,
+        pandas_index_col:str|None = None,
+        operator:str = '=') -> list[tuple] | pd.DataFrame:
     """Get data from a table in an SQLite database.
 
     Args:
@@ -331,7 +505,7 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|No
         table_name (str): Name of the table to get data from.
         criteria_col (str|None): Column name to use for the WHERE clause.
         criteria (str|None): Value to match in the WHERE clause.
-        select_col (str|None): Column name to select. If None, all columns are selected.
+        select_col (str|list|None): Column name to select. If None, all columns are selected.
         as_pandas (bool): If True, return a pandas DataFrame. If False, return a list of tuples.
         pandas_index_col (str|None): Column name to use as the index of the pandas DataFrame.
         operator (str): Operator to use in the WHERE clause.
@@ -357,7 +531,7 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|No
         params = ()
 
     if as_pandas:
-        result = pd.read_sql_query(query, conn, params=params, index_col=pandas_index_col)  # type: ignore
+        result = pd.read_sql_query(query, conn, params=params, index_col=pandas_index_col).convert_dtypes()  # type: ignore
     else:
         cursor: sqlite3.Cursor = conn.cursor()
         cursor.execute(query, params)
@@ -366,7 +540,15 @@ def get_from_table(conn:sqlite3.Connection, table_name: str, criteria_col:str|No
         cursor.close()
     return result
 
-def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, criteria_col:str, criteria:list,as_pandas:bool = True, select_col: str = None):
+def get_from_table_by_list_criteria(
+    conn:sqlite3.Connection,
+    table_name: str, 
+    criteria_col:str, 
+    criteria:list,
+    as_pandas:bool = True, 
+    select_col: str = None,
+    pandas_index_col:str|None = None
+    ):
     """"""
     cursor: sqlite3.Cursor = conn.cursor()
     if select_col is None:
@@ -375,7 +557,7 @@ def get_from_table_by_list_criteria(conn:sqlite3.Connection, table_name: str, cr
         select_col = f'({", ".join(select_col)})'
     query: str = f'SELECT {select_col} FROM {table_name} WHERE {criteria_col} IN ({", ".join(["?" for _ in criteria])})'
     if as_pandas:
-        ret: pd.DataFrame = pd.read_sql_query(query, con=conn, params=criteria)
+        ret: pd.DataFrame = pd.read_sql_query(query, con=conn, params=criteria, index_col = pandas_index_col).convert_dtypes()
     else:
         cursor.execute(query, criteria)
         ret: list = cursor.fetchall()

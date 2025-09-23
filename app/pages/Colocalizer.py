@@ -25,8 +25,9 @@ import plotly.express as px
 import uuid
 import dash_uploader as du
 from dash.dependencies import Input, Output, State
-
+from importlib.resources import files
 from element_styles import UPLOAD_INDICATOR_STYLE, UPLOAD_STYLE,GENERIC_PAGE
+
 
 register_page(__name__, path='/colocalizer')
 parameters = parse_parameters('parameters.toml')

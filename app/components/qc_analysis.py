@@ -3,7 +3,7 @@ from pandas import DataFrame, Series
 from pandas import read_json as pd_read_json
 from dash import html
 import dash_bootstrap_components as dbc
-from components.figures import bar_graph, comparative_plot, commonality_graph, reproducibility_graph
+from components.figures import bar_graph, comparative_plot, commonality_graph, reproducibility_graph, color_tools
 from components import quick_stats, db_functions
 from components.figures.figure_legends import QC_LEGENDS as legends
 from components.ui_components import checklist
@@ -121,54 +121,59 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
     )
 
 
-
 def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,defaults: dict) -> tuple:
     expdesign = pd_read_json(StringIO(expdesign_json),orient='split')
     expdesign['color'] = [replicate_colors['samples'][rep_name] for rep_name in expdesign['Sample name']]
-    sam_ids = []
-    for _, row in expdesign.iterrows():
-        if not '_Tomppa' in row['Sample name']:
-            try:
-                sid = row['Sample name'].split('_')[0]
-                int(sid)
-                sam_ids.append(sid)
-            except:
-                sam_ids.append(row['Sample name'].split('_')[-1].split('.')[0])
-        else:
-            sam_ids.append(row['Sample name'].split('_Tomppa')[0]+'_Tomppa')
-    expdesign['Sampleid'] = sam_ids
-    db_conn = db_functions.create_connection(db_file)
-    ms_runs = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_runs','run_id',expdesign['Sampleid'].values)
-    db_conn.close()
-    dtypes: list = ['TIC','MSn_unfiltered']
-    tic_dic: dict = {t_type.lower(): {'traces': [] } for t_type in dtypes}
-    for trace_type in dtypes:
-        trace_type = trace_type.lower()
+    expdesign['Sample name nopath'] = [sn.split('/')[-1].split('\\')[-1] for sn in expdesign['Sample name'].values]
+    with db_functions.create_connection(db_file, mode='rw') as db_conn:# Need rw connection for this one to be able to do this
+        run_data = db_functions.get_from_table_match_with_priority(
+            db_conn,
+            list(expdesign['Sample name nopath'].values),
+            'ms_runs',
+            ['file_name', 'file_name_clean', 'sample_id', 'sample_name' ],
+            case_insensitive = True,
+            return_cols = ['internal_run_id']
+        )
+    int_run_ids = []
+    int_id_to_sample = {}
+    for _,row in expdesign.iterrows():
+        sample = row['Sample name nopath']
+        if run_data[sample]:
+            int_run_ids.append(run_data[sample]['internal_run_id'])
+            int_id_to_sample[run_data[sample]['internal_run_id']] = sample
+    if len(int_run_ids) == 0:
+        return (html.Div, {})
+    with db_functions.create_connection(db_file, mode='ro') as db_conn:# No need for rw anymore
+        graph_data = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_plots', 'internal_run_id', int_run_ids)
+    tracetypes = ['TIC','MSn','BPC']
+    tic_dic = {}
+    for trace_type in tracetypes:
+        tracelist = []
         max_x: float = 1.0
         max_y: float = 1.0
-        for _,row in ms_runs.iterrows():
-            sample_row = expdesign[expdesign['Sampleid']==row['run_id']].iloc[0]
+        for index,row in graph_data.iterrows():
+            sample_row = expdesign[expdesign['Sample name nopath'] == int_id_to_sample[row['internal_run_id']]].iloc[0]
             trace = json.loads(row[f'{trace_type}_trace'])
-            max_x = max(max_x, max(trace['x']))
-            max_y = max(max_y, max(trace['y']))
+            max_x = max(max_x, row[f'{trace_type}_maxtime'])
+            max_y = max(max_y, row[f'{trace_type}_max_intensity'])
             trace['line'] = {'color': sample_row['color'], 'width': 1}
-            tic_dic[trace_type]['traces'].append(trace)
-        tic_dic[trace_type]['max_x'] = max_x
-        tic_dic[trace_type]['max_y'] = max_y
-    if ms_runs.shape[0] == 0:
-        return (html.Div(),{})
-    else:
-        graph_div: html.Div = html.Div(
-            id = 'qc-tic-div',
-            children = [
+            tracelist.append(trace)
+        tic_dic[trace_type] = {
+            'traces': tracelist,
+            'max_x': max_x,
+            'max_y': max_y
+        }
+    graph_div = html.Div(
+        id = 'qc-tic-fic',
+        children = [
                 html.H4(id='qc-heading-tic-graph',
                         children='Sample run TICs'),
                 Graph(id='qc-tic-plot', config=defaults['config']),
                 legends['tic'],
-                Dropdown(id='qc-tic-dropdown',options=dtypes, value='TIC')
-            ]
-        )
-        return (graph_div, tic_dic)
+                Dropdown(id='qc-tic-dropdown',options=tracetypes, value='TIC')
+        ]
+    )
+    return (graph_div, tic_dic)
 
 def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
     logger.warning(f'coverage - started: {datetime.now()}')

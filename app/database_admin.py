@@ -39,14 +39,20 @@ if __name__ == "__main__":
         ncpu = parameters['Config']['CPU count limit']
     db_path = os.path.join(*parameters['Data paths']['Database file'])
     organisms = set(parameters['Database creation']['Organisms to include in database'])
-    # # Connect to the database (create it if it doesn't exist)
-    tmpdir = parameters['Database creation']['Temporary directory for database generation']
-    if not os.path.exists(tmpdir):
-        os.makedirs(tmpdir)
+    output_dir = os.path.join(*parameters['Database updater']['Tsv templates directory'])
+    os.makedirs(output_dir,exist_ok=True)
+    for table_name, path in parameters['Database updater']['Update files'].items():
+        os.makedirs(os.path.join(*path), exist_ok = True)
+
     if not os.path.exists(db_path):
         print('Database file does not exist, generating database')
-        database_generator.generate_database(parameters['Database creation'], db_path, time_format, timestamp, tmpdir, ncpu, organisms)
-        print('Database generated')
+        dbfile = os.path.join(*parameters['Data paths']['Database file'])
+        schema_file = os.path.join(*parameters['Data paths']['Schema file'])
+        database_generator.create_sqlite_from_schema(schema_file, dbfile) # type: ignore
+        conn: sqlite3.Connection = db_functions.create_connection(db_path) # type: ignore
+        database_updater.update_log_table(conn, ['db creation'], [1], timestamp, 'created')
+        db_functions.generate_database_table_templates_as_tsvs(conn, output_dir, parameters['Database updater']['Database table primary keys'])
+        conn.close()
     else:
         # Export a snapshot, if required:
         cc_cols = parameters['Database creation']['Control and crapome db detailed columns']
@@ -54,14 +60,12 @@ if __name__ == "__main__":
         ms_runs_parameters = parameters['Database creation']['MS runs information']
         
         parameters = parameters['Database updater']
-        update_interval = int(parameters['Update interval seconds'])
+        update_interval = int(parameters['Update interval minutes'])*60
         snapshot_interval = int(parameters['Database snapshot settings']['Snapshot interval days'])*24*60*60
+        ms_runs_interval = int(parameters['MS runs update interval minutes'])*60
         api_update_interval = int(parameters['External data update interval days'])*24*60*60
         clean_interval = int(parameters['Database clean interval days'])*24*60*60
-        output_dir = os.path.join(*parameters['Tsv templates directory'])
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        conn: sqlite3.Connection = db_functions.create_connection(db_path) # type: ignore
+        conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
 
         last_external_update_date = last_update(conn, 'external', api_update_interval, time_format)
 
@@ -69,6 +73,7 @@ if __name__ == "__main__":
         do_external_update = last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval))
         do_main_db_update = last_update(conn, 'main_db_update', update_interval, time_format) < (datetime.now() - relativedelta(seconds=update_interval))
         do_clean_update = last_update(conn, 'clean', clean_interval, time_format) < (datetime.now() - relativedelta(seconds=clean_interval))
+        do_ms_runs_update = last_update(conn, 'ms_runs', ms_runs_interval, time_format) < (datetime.now() - relativedelta(seconds=ms_runs_interval))
         updates_to_do = [update for update in [
             'External' if do_external_update else '',
             'Main db' if do_main_db_update else '',
@@ -79,24 +84,26 @@ if __name__ == "__main__":
             print('Going to do updates:', ', '.join(updates_to_do))
         else:
             print('No updates to do')
-        if do_snapshot:
+        if False:#do_snapshot:
             snapshot_dir = os.path.join(*parameters['Database snapshot settings']['Snapshot dir'])
             snapshots_to_keep = parameters['Database snapshot settings']['Snapshots to keep']
             print('Exporting snapshot')
-            db_functions.export_snapshot(db_path, snapshot_dir, snapshots_to_keep)
-            database_updater.update_log_table(conn, ['snapshot snapshot'], [1], timestamp, 'snapshot')
-
-        if do_external_update:
+            #db_functions.export_snapshot(db_path, snapshot_dir, snapshots_to_keep)
+            #database_updater.update_log_table(conn, ['snapshot snapshot'], [1], timestamp, 'snapshot')
+        if False:#do_external_update:
             print('Updating external data')
             database_updater.update_external_data(conn, parameters, timestamp, organisms, last_external_update_date, ncpu)
             database_updater.update_log_table(conn, ['external update'], [1], timestamp, 'external')
-        if do_main_db_update:
+        if False:#do_ms_runs_update:
+            print('Updating MS runs')
+            database_updater.update_ms_runs(conn, parameters['MS run json directory'], timestamp, time_format, os.path.join(*parameters['Update files']['ms_runs']),os.path.join(*parameters['Update files']['ms_plots']))
+            database_updater.update_log_table(conn, ['ms_runs update'], [1], timestamp, 'ms_runs')
+        if True:#do_main_db_update:
             print('Updating database')
-            database_updater.update_ms_runs(conn, ms_runs_parameters, timestamp, time_format, os.path.join(*parameters['Update files']['ms_runs']))
             inmod_names, inmod_vals = database_updater.update_database(conn, parameters, cc_cols, cc_types, timestamp)
             database_updater.update_log_table(conn, inmod_names, inmod_vals, timestamp, 'main_db_update')
             db_functions.generate_database_table_templates_as_tsvs(conn, output_dir, parameters['Database table primary keys'])
-        if do_clean_update:
+        if False:#do_clean_update:
             print('Cleaning database')
             clean_database(parameters['Versions to keep'])
             database_updater.update_log_table(conn, ['clean update'], [1], timestamp, 'clean')

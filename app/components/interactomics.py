@@ -353,7 +353,8 @@ def enrich(saint_output_json: str,
           chosen_enrichments: List[str], 
           figure_defaults: Dict[str, Any], 
           keep_all: bool = False, 
-          sig_threshold: float = 0.01) -> Tuple[List[html.Div], Dict[str, Any], List[Any]]:
+          sig_threshold: float = 0.01,
+          parameters_file: str = 'parameters.toml') -> Tuple[List[html.Div], Dict[str, Any], List[Any]]:
     """Enriches SAINT output data using selected enrichment methods.
 
     Performs enrichment analysis on the filtered interactions using specified methods
@@ -385,8 +386,8 @@ def enrich(saint_output_json: str,
             div_contents,
             enrichment_data,
             enrichment_information
-        )
-    e_admin = ea.EnrichmentAdmin()
+        )   
+    e_admin = ea.EnrichmentAdmin(parameters_file)
     saint_output: pd.DataFrame = pd.read_json(
         StringIO(saint_output_json), orient='split')
     enrichment_names: list
@@ -644,7 +645,7 @@ def saint_cmd(saint_input: Dict[str, List[List[str]]],
         intfile.flush()
         print(f'running saint in {temp_dir}, {intfile.name} {preyfile.name} {baitfile.name}: {datetime.now()}')
         try:
-            sh.SAINTexpressSpcs(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
+            sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
         except sh.CommandNotFound:
             create_dummy_list_txt(temp_dir, saint_input)
     return temp_dir
@@ -743,7 +744,6 @@ def run_saint(saint_input: Dict[str, List[List[str]]],
     if ('bait' in saint_input) and ('prey' in saint_input):
         temp_dir = saint_cmd(saint_input, saint_tempdir, session_uid)
     failed: bool = not os.path.isfile(os.path.join(temp_dir, 'list.txt'))
-    print(temp_dir, os.listdir(temp_dir))
     saintfail: bool = os.path.isfile(os.path.join(temp_dir, 'list_is_dummy.txt'))
     if failed:
         ret: str = 'SAINT failed. Can not proceed.'

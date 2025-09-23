@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None, filter_type: str = 'at least one sample group') -> tuple:
+def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None, filter_type: str = 'sample-group') -> tuple:
 
     logger.warning(f'nafilter - start: {datetime.now()}')
     data_table: pd.DataFrame = pd.read_json(

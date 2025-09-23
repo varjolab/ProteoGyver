@@ -12,7 +12,7 @@ import numpy as np
 from collections.abc import Mapping
 import os
 from components import db_functions, text_handling
-from components import EnrichmentAdmin as ea
+from components import EnrichmentAdmin
 from components.tools import utils
 
 def update_nested_dict(base_dict: Dict[str, Any], update_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -144,8 +144,7 @@ def parse_parameters(parameters_file: str) -> Dict[str, Any]:
         - Updates SAINT temporary directory path
     """
     parameters = utils.read_toml(parameters_file)
-    db_file = os.path.join(*parameters['Data paths']['Database file'])
-    if not os.path.exists(db_file):
+    if not os.path.exists(os.path.join(*parameters['Data paths']['Database file'])):
         parameters['Data paths']['Database file'] = parameters['Data paths']['Minimal database file']
     db_conn = db_functions.create_connection(
         os.path.join(*parameters['Data paths']['Database file']))
@@ -196,6 +195,7 @@ def parse_parameters(parameters_file: str) -> Dict[str, Any]:
         'disabled': disabled_control_sets,
         'default': default_control_sets
     }
+    ea = EnrichmentAdmin.EnrichmentAdmin(parameters_file)
     parameters['workflow parameters']['interactomics']['enrichment'] = {
         'available': ea.get_available(),
         'default': ea.get_default(),

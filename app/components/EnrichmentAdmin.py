@@ -4,53 +4,57 @@ import pandas as pd
 from components import parsing
 from components.tools import utils
 
-parameters: dict = utils.read_toml('parameters.toml')
-
-_enrichment_handlers: dict = {}
-_enrichments: dict = {}
-_defaults: dict = {}
-_disabled: list = []
-_handler_basedir: str = os.path.join(*parameters['Module paths']['Enrichers'])
-for _module_filename in os.listdir(_handler_basedir):
-    if _module_filename.endswith('.py'):
-        _filepath: str = os.path.join(_handler_basedir, _module_filename)
-        _module_name: str = _module_filename.rsplit('.',maxsplit=1)[0]
-        _spec = import_util.spec_from_file_location(
-            'module.name', _filepath)
-        _api_module = import_util.module_from_spec(_spec)
-        _spec.loader.exec_module(_api_module)
-        _handler = _api_module.handler()
-        _enrichment_handlers[_module_name] = {
-            'handler': _handler,
-            'available': _handler.get_available(),
-            'name': _handler.nice_name,
-            'defaults': _handler.get_default_panel()
-        }
-        for a in _enrichment_handlers[_module_name]['available']:
-            _enrichments[a] = _module_name
-        for a in _enrichment_handlers[_module_name]['defaults']:
-            show = True
-            for ban_str in parameters['file loading']['Do not show in enrichment default']:
-                if ban_str in a.lower():
-                    show = False
-            if show:
-                _defaults[a] = _module_name
-
-def get_available() -> list:
-    return sorted(list(_enrichments.keys()))
-def get_default() -> list:
-    return sorted(list(_defaults.keys()))
-def get_disabled() -> list:
-    return sorted(_disabled)
 
 class EnrichmentAdmin:
-    def __init__(self) -> None:
+    def __init__(self, parameters_file: str) -> None:
+        parameters: dict = utils.read_toml(parameters_file)
+
+        self._enrichment_handlers: dict = {}
+        self._enrichments: dict = {}
+        self._defaults: dict = {}
+        self._disabled: list = []
+        self._handler_basedir: str = os.path.join(*parameters['Module paths']['Enrichers'])
+        
+        for _module_filename in os.listdir(self._handler_basedir):
+            if not _module_filename.endswith('.py'):
+                continue
+            if _module_filename.startswith('__'):
+                continue
+            _filepath: str = os.path.join(self._handler_basedir, _module_filename)
+            _module_name: str = _module_filename.rsplit('.',maxsplit=1)[0]
+            _spec = import_util.spec_from_file_location(
+                'module.name', _filepath)
+            _api_module = import_util.module_from_spec(_spec)
+            _spec.loader.exec_module(_api_module)
+            _handler = _api_module.handler()
+            self._enrichment_handlers[_module_name] = {
+                'handler': _handler,
+                'available': _handler.get_available(),
+                'name': _handler.nice_name,
+                'defaults': _handler.get_default_panel()
+            }
+            for a in self._enrichment_handlers[_module_name]['available']:
+                self._enrichments[a] = _module_name
+            for a in self._enrichment_handlers[_module_name]['defaults']:
+                show = True
+                for ban_str in parameters['file loading']['Do not show in enrichment default']:
+                    if ban_str in a.lower():
+                        show = False
+                if show:
+                    self._defaults[a] = _module_name
+
         self.import_handlers()
+    def get_available(self) -> list:
+        return sorted(list(self._enrichments.keys()))
+    def get_default(self) -> list:
+        return sorted(list(self._defaults.keys()))
+    def get_disabled(self) -> list:
+        return sorted(self._disabled)
     def import_handlers(self) -> dict:
         ret_dict: dict = {}
-        for module_filename in os.listdir(_handler_basedir):
+        for module_filename in os.listdir(self._handler_basedir):
             if module_filename.endswith('.py'):
-                filepath: str = os.path.join(_handler_basedir, module_filename)
+                filepath: str = os.path.join(self._handler_basedir, module_filename)
                 module_name: str = module_filename.rsplit('.',maxsplit=1)[0]
                 spec = import_util.spec_from_file_location('module.name', filepath)
                 api_module = import_util.module_from_spec(spec)
@@ -68,7 +72,7 @@ class EnrichmentAdmin:
         
         enrichments_to_do: dict = {}
         for e_str in enrichment_strings:
-            apiname = _enrichments[e_str]
+            apiname = self._enrichments[e_str]
             if apiname not in enrichments_to_do:
                 enrichments_to_do[apiname] = []
             enrichments_to_do[apiname].append(e_str)

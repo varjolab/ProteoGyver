@@ -21,6 +21,7 @@ from celery import Celery
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
 from components.tools import utils
+from celery.schedules import crontab
 
 celery_app = Celery(
     __name__, broker="redis://localhost:6379/0", backend="redis://localhost:6379/1"
@@ -145,6 +146,13 @@ app.layout = html.Div([
     page_container,
 ],id='proteogyver-layout')
 logger.warning('End app.')
+
+celery_app.conf.beat_schedule = {
+    'cleanup-cache-daily': {
+        'task': 'components.cleanup_tasks.cleanup_cache_folders',
+        'schedule': crontab(hour=0, minute=30),
+    },
+}
 
 if __name__ == '__main__':
     main()

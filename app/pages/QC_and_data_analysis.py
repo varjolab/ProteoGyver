@@ -25,6 +25,7 @@ from components import infra
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
 from components.figures import tic_graph
+from components.tools import utils
 import plotly.io as pio
 import logging
 from element_styles import CONTENT_STYLE
@@ -36,7 +37,8 @@ register_page(__name__, path='/')
 logger = logging.getLogger(__name__)
 logger.warning(f'{__name__} loading')
 
-parameters: Dict[str, Any] = parsing.parse_parameters('parameters.toml')
+parameters_file = 'parameters.toml'
+parameters: Dict[str, Any] = parsing.parse_parameters(parameters_file)
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: List[str] = db_functions.get_contaminants(db_file)
 figure_output_formats: List[str] = ['html', 'png', 'pdf']
@@ -70,8 +72,8 @@ def clear_data_stores(begin_clicks: Optional[int]) -> str:
     Returns:
         str: Empty string to clear notification
     """
-    logger.warning(
-        f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
+    #logger.warning(
+    #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
     return ''
 
 
@@ -1732,7 +1734,8 @@ def interactomics_enrichment(
     return ('',) + interactomics.enrich(
         saint_output, 
         chosen_enrichments, 
-        parameters['Figure defaults']['full-height']
+        parameters['Figure defaults']['full-height'],
+        parameters_file=parameters_file
     )
 
 ########################################
@@ -1886,7 +1889,7 @@ def example_files_download(_: Optional[int]) -> Dict[str, Any]:
     Returns:
         dict: File download configuration for example files
     """
-    return dcc.send_file(os.path.join(*parameters['Data paths']['Example files zip']))
+    return dcc.send_file(utils.zipdir(os.path.join(*parameters['Data paths']['Example files'])))
 
 def get_adiv_by_id(
     divs: List[Any], 
