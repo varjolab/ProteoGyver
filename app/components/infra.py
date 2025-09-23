@@ -140,7 +140,7 @@ def save_data_stores(data_stores, export_dir) -> dict:
         import pickle
         pickle.dump(data_stores, fil)
     prev_time: datetime = datetime.now()
-    logger.warning(f'save data stores - started: {prev_time}')
+    logger.info(f'save data stores - started: {prev_time}')
     fails = {}
     for d in data_stores:
         if not 'data' in d['props']:
@@ -280,14 +280,14 @@ def save_data_stores(data_stores, export_dir) -> dict:
         except: # pylint: disable=bare-except
             fails[d['props']['id']['name']] = d
         
-        logger.warning(
+        logger.info(
             f'save data stores - export {d["props"]["id"]["name"]} done: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
     if len(fails) > 0:
         logger.warning(f'Failed to save data stores: {", ".join(fails.keys())}')
         with open('FAILED_DATA_STORES.json', 'w', encoding = 'utf-8') as fil:
             json.dump(fails, fil, indent = 4)
-    logger.warning(
+    logger.info(
         f'save data stores - Done with export: {datetime.now() - prev_time}')
 
 def get_all_props(elements, marker_key, match_partial=True) -> list:
@@ -360,7 +360,7 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
         commonality_pdf_data: PDF data for commonality figures
         workflow: Name of the current workflow
     """
-    logger.warning(f'saving figures: {datetime.now()}')
+    logger.info(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
     headers_and_figures: list = get_all_types(
         analysis_divs, ['h4', 'h5', 'graph', 'img', 'P'])
@@ -370,9 +370,6 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
     with open(os.path.join(odir, 'analysis_divs.pickle'),'wb') as fil:
         import pickle
         pickle.dump(analysis_divs, fil)
-    with open(os.path.join(odir, 'export_dir.pickle'),'wb') as fil:
-        import pickle
-        pickle.dump(export_dir, fil)
     with open(os.path.join(odir, 'commonality_pdf_data.pickle'),'wb') as fil:
         import pickle
         pickle.dump(commonality_pdf_data, fil)
@@ -427,7 +424,7 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                         'props']['children'], figure_html, figure, 'graph'
                 ])
 
-    logger.warning(
+    logger.info(
         f'saving figures - figures identified: {len(figure_names_and_figures)}: {datetime.now() - prev_time}')
     prev_time: datetime = datetime.now()
 
@@ -478,10 +475,10 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                 with open(fig_path, 'wb') as fil:
                     fil.write(b64decode(fig))
 
-        logger.warning(
+        logger.info(
             f'saving figures - writing: {name}.{output_format}: {datetime.now() - prev_time}')
         prev_time: datetime = datetime.now()
-    logger.warning(f'saving figures - done: {datetime.now() - prev_time}')
+    logger.info(f'saving figures - done: {datetime.now() - prev_time}')
 
 
 def format_nested_list(input_list: list):
@@ -511,7 +508,7 @@ def save_input_information(input_divs, export_dir) -> None:
         input_divs: Div elements containing input components
         export_dir: Directory to save the output file in
     """
-    logger.warning(f'saving input info: {datetime.now()}')
+    logger.info(f'saving input info: {datetime.now()}')
     prev_time: datetime = datetime.now()
     these: list = [
         'Slider',
@@ -560,7 +557,7 @@ def save_input_information(input_divs, export_dir) -> None:
             if len(val_str) == 0:
                 val_str = 'None'
             fil.write(f'{name}\t{val_str}\n')
-    logger.warning(f'saving input info - done: {datetime.now() - prev_time}')
+    logger.info(f'saving input info - done: {datetime.now() - prev_time}')
 
 def upload_data_stores() -> html.Div:
     """Creates data store components for uploaded data.

@@ -208,7 +208,7 @@ def known_plot(filtered_saint_input_json: str,
         sqlite3.Error: If there is an error accessing the database
         json.JSONDecodeError: If the input JSON is invalid
     """
-    logger.warning(f'known_plot - started: {datetime.now()}')
+    logger.info(f'known_plot - started: {datetime.now()}')
     upid_a_col: str = 'uniprot_id_a'
     upid_b_col: str = 'uniprot_id_b'
     if isoform_agnostic:
@@ -232,7 +232,7 @@ def known_plot(filtered_saint_input_json: str,
         how='left'
     )
     saint_output['Known interaction'] = saint_output['update_time'].notna()
-    logger.warning(
+    logger.info(
         f'known_plot - knowns: {saint_output["Known interaction"].value_counts()}')
     col_order.append('Known interaction')
     col_order.extend([c for c in saint_output.columns if c not in col_order])
@@ -940,7 +940,7 @@ def make_saint_dict(spc_table: pd.DataFrame,
         Uses default length of 200 for missing proteins.
     """
     protein_lenghts_and_names = {}
-    logger.warning(
+    logger.info(
         f'make_saint_dict: start: {datetime.now()}')
     for _, row in protein_table.iterrows():
         protein_lenghts_and_names[row['uniprot_id']] = {
@@ -956,9 +956,9 @@ def make_saint_dict(spc_table: pd.DataFrame,
             bait.append([col, rev_sample_groups[col]+'_bait', 'C'])
         else:
             bait.append([col, 'inbuilt_ctrl', 'C'])
-    logger.warning(
+    logger.info(
         f'make_saint_dict: Baits prepared: {datetime.now()}')
-    logger.warning(
+    logger.info(
         f'make_saint_dict: Control table shape: {control_table.shape}')
     control_melt: pd.DataFrame = pd.melt(
         control_table, ignore_index=False).replace(0, np.nan).dropna().reset_index()
@@ -974,16 +974,16 @@ def make_saint_dict(spc_table: pd.DataFrame,
     control_melt['value'] = control_melt['value'].astype(int)
     inter.extend(control_melt.values
                  .astype(str).tolist())
-    logger.warning(
+    logger.info(
         f'make_saint_dict: Control table melted: {control_melt.shape}: {datetime.now()}')
-    logger.warning(
+    logger.info(
         f'make_saint_dict: Control interactions prepared: {datetime.now()}')
     for uniprot, srow in pd.melt(spc_table, ignore_index=False).replace(0, np.nan).dropna().iterrows():
         sgroup: str = 'inbuilt_ctrl'
         if srow['variable'] in rev_sample_groups:
             sgroup = rev_sample_groups[srow['variable']]+'_bait'
         inter.append([srow['variable'], sgroup, uniprot, str(int(srow['value']))])
-    logger.warning(
+    logger.info(
         f'make_saint_dict: SPC table interactions prepared: {datetime.now()}')
     for uniprotid in (set(control_table.index.values) | set(spc_table.index.values)):
         try:
@@ -995,7 +995,7 @@ def make_saint_dict(spc_table: pd.DataFrame,
             plen = '200'
             gname = str(uniprotid)
         prey.append([str(uniprotid), plen, gname])
-    logger.warning(
+    logger.info(
         f'make_saint_dict: Preys prepared: {datetime.now()}')
     return {'bait': bait, 'prey': prey, 'int': inter}
 
@@ -1127,19 +1127,19 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
     """
     if '["No data"]' in input_data_dict['data tables']['spc']:
         return (html.Div(['No spectral count data in input, cannot run SAINT.']),{},'')
-    logger.warning(
+    logger.info(
         f'generate_saint_container: preparations started: {datetime.now()}')
     db_conn = db_functions.create_connection(db_file)
     additional_controls = [
         f'control_{ctrl_name.lower().replace(" ","_")}' for ctrl_name in additional_controls]
     crapomes = [
         f'crapome_{crap_name.lower().replace(" ","_")}' for crap_name in crapomes]
-    logger.warning(f'generate_saint_container: DB connected')
+    logger.info(f'generate_saint_container: DB connected')
     spc_table: pd.DataFrame
     control_table: pd.DataFrame
     spc_table, control_table = prepare_controls(
         input_data_dict, uploaded_controls, additional_controls, db_conn, select_most_similar_only, n_controls)
-    logger.warning(f'generate_saint_container: Controls prepared')
+    logger.info(f'generate_saint_container: Controls prepared')
     protein_list: list = list(
         set(spc_table.index.values) | set(control_table.index))
     protein_table: pd.DataFrame = db_functions.get_from_table(
@@ -1152,7 +1152,7 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
         ],
         as_pandas=True
     )
-    logger.warning(f'generate_saint_container: Protein table retrieved')
+    logger.info(f'generate_saint_container: Protein table retrieved')
     protein_table = protein_table[protein_table['uniprot_id'].isin(
         protein_list)]
     if len(crapomes) > 0:
@@ -1165,7 +1165,7 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
 
     saint_dict: dict = make_saint_dict(
         spc_table, input_data_dict['sample groups']['rev'], control_table, protein_table)
-    logger.warning(
+    logger.info(
         f'generate_saint_container: SAINT dict done: {datetime.now()}')
     return (
         html.Div(
@@ -1200,8 +1200,8 @@ def saint_filtering(saint_output_json: str,
     """
     saint_output: pd.DataFrame = pd.read_json(
         StringIO(saint_output_json), orient='split')
-    logger.warning(f'saint filtering - beginning: {saint_output.shape}')
-    logger.warning(
+    logger.info(f'saint filtering - beginning: {saint_output.shape}')
+    logger.info(
         f'saint filtering - beginning nodupes: {saint_output.drop_duplicates().shape}')
     saint_output = saint_output.drop_duplicates()
     crapome_columns: list = []
@@ -1230,14 +1230,14 @@ def saint_filtering(saint_output_json: str,
             keep_preys.add(row['Prey'])
         keep_col.append(keep)
 
-    logger.warning(
+    logger.info(
         f'saint filtering - Preys pass filter: {len(keep_preys)}')
     saint_output['Passes filter'] = keep_col
-    logger.warning(
+    logger.info(
         f'saint filtering - Saint output pass filter: {saint_output["Passes filter"].value_counts()}')
     saint_output['Passes filter with rescue'] = saint_output['Prey'].isin(
         keep_preys)
-    logger.warning(
+    logger.info(
         f'saint filtering - Saint output pass filter with rescue: {saint_output["Passes filter with rescue"].value_counts()}')
     if do_rescue:
         use_col: str = 'Passes filter with rescue'
@@ -1247,7 +1247,7 @@ def saint_filtering(saint_output_json: str,
         saint_output[use_col]
     ].copy()
 
-    logger.warning(
+    logger.info(
         f'saint filtering - filtered size: {filtered_saint_output.shape}')
     if 'Bait uniprot' in filtered_saint_output.columns:
         filtered_saint_output = filtered_saint_output[
@@ -1258,9 +1258,9 @@ def saint_filtering(saint_output_json: str,
     colorder.extend(
         [c for c in filtered_saint_output.columns if c not in colorder])
     filtered_saint_output = filtered_saint_output[colorder]
-    logger.warning(
+    logger.info(
         f'saint filtering - bait removed filtered size: {filtered_saint_output.shape}')
-    logger.warning(
+    logger.info(
         f'saint filtering - bait removed filtered size nodupes: {filtered_saint_output.drop_duplicates().shape}')
     return filtered_saint_output.reset_index().drop(columns=['index']).to_json(orient='split')
 

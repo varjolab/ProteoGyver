@@ -206,9 +206,9 @@ class handler():
         datasets = [self._datasets[d] for d in datasets]
         results: dict = {}
         legends: dict = {}
-        logger.warning(f'Enrich: {len(datasets)}')
+        logger.info(f'Enrich: {len(datasets)}')
         for bait, preylist in data_lists:
-            logger.warning(f'Enrich for {bait}: {len(preylist)}')
+            logger.info(f'Enrich for {bait}: {len(preylist)}')
             for data_type_key, result in self.run_panther_overrepresentation_analysis(datasets, preylist, bait).items():
                 results_df: pd.DataFrame = result['Results']
                 results_df.insert(1, 'Bait', bait)
@@ -219,7 +219,7 @@ class handler():
                     legends[data_type_key] = []
                 results[data_type_key].append(results_df)
                 legends[data_type_key].append(result['Reference information'])
-            logger.warning(f'Enrich for {bait}: done')
+            logger.info(f'Enrich for {bait}: done')
         result_names: list = []
         result_dataframes: list = []
         result_legends: list = []
@@ -229,7 +229,7 @@ class handler():
                 ('fold_enrichment', 'fdr', 'label', pd.concat(result_dfs)))
             result_legends.append(
                 (annokey, '\n\n'.join(list(set(legends[annokey])))))
-        logger.warning(f'Enrich done')
+        logger.info(f'Enrich done')
         return (result_names, result_dataframes, result_legends)
 
     def run_panther_overrepresentation_analysis(self, datasets: list, protein_list: list, data_set_name: str | None= None,
@@ -280,7 +280,7 @@ class handler():
             final_url = final_url.strip('&')
             reference_string: str = f'PANTHER overrepresentation analysis for {data_set_name} with {name}\n----------\n'
             success: bool = False
-            logger.warning(f'Run enrichment: {data_set_name} {name}')
+            logger.info(f'Run enrichment: {data_set_name} {name}')
             req_json = {}
             for i in range(20, 100, 20):
                 try:
@@ -288,7 +288,7 @@ class handler():
                         final_url, timeout=i)
                     req_json: dict = json.loads(request.text)
                     success = True
-                    logger.warning(f'Run enrichment: success')
+                    logger.info(f'Run enrichment: success')
                     break
                 except requests.exceptions.ReadTimeout as e:
                     logger.warning(f'Run enrichment: fail-ReadTimeOut - {e}')

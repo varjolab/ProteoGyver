@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 from pipeline_batch import run_pipeline
 from pipeline_from_toml import _load_config
 from batch_data_store_builder import build_data_stores_from_batch_output
-from batch_plot_generator import generate_plots_from_batch
+from batch_figure_builder import save_batch_figures_using_infra
 from components.infra import save_data_stores
 
 logger = logging.getLogger(__name__)
@@ -124,24 +124,25 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
             logger.error(f"Data export failed: {e}")
             raise
         
-        # Step 3: Generate plots (optional)
-        plot_summary = {}
+        # Step 3: Generate figures using GUI infrastructure (optional)
+        figure_summary = {}
         if generate_plots:
             try:
-                logger.info("Step 3: Generating plots...")
+                logger.info("Step 3: Generating figures using GUI infrastructure...")
                 figures_export_dir = os.path.join(export_dir, "Figures")
                 
-                plot_summary = generate_plots_from_batch(
+                figure_summary = save_batch_figures_using_infra(
                     batch_output_dir=batch_output_dir,
                     export_dir=figures_export_dir,
-                    session_name=session_name
+                    workflow=workflow,
+                    output_formats=plot_formats
                 )
-                logger.info(f"Plot generation completed: {len(plot_summary)} plots generated")
+                logger.info(f"Figure generation completed using GUI infrastructure")
                 
             except Exception as e:
-                logger.error(f"Plot generation failed: {e}")
-                # Don't raise - plots are optional
-                plot_summary = {"error": str(e)}
+                logger.error(f"Figure generation failed: {e}")
+                # Don't raise - figures are optional
+                figure_summary = {"error": str(e)}
     
     finally:
         # Clean up temporary directory if used
@@ -156,9 +157,9 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
         "workflow": workflow,
         "data_stores_built": len(data_stores),
         "batch_output_directory": batch_output_dir if keep_batch_output else "temporary",
-        "plots_generated": len(plot_summary) if isinstance(plot_summary, dict) and "error" not in plot_summary else 0,
-        "plot_details": plot_summary,
-        "infrastructure_used": "GUI (infra.save_data_stores)"
+        "figures_generated": figure_summary.get("analysis_divs_count", 0) if isinstance(figure_summary, dict) and "error" not in figure_summary else 0,
+        "figure_details": figure_summary,
+        "infrastructure_used": "GUI (infra.save_data_stores + infra.save_figures)"
     }
     
     logger.info(f"Refactored pipeline finished. Export directory: {export_dir}")
@@ -237,14 +238,13 @@ Examples:
         print(f"📊 Data Stores Built: {result['data_stores_built']}")
         print(f"🧬 Workflow: {result['workflow']}")
         
-        if result['plots_generated'] > 0:
-            print(f"📈 Plots Generated: {result['plots_generated']}")
-            print("\\nGenerated Plots:")
-            for plot_name, formats in result['plot_details'].items():
-                if isinstance(formats, dict):
-                    print(f"  • {plot_name}: {', '.join(formats.keys())}")
-        elif "error" in result.get('plot_details', {}):
-            print(f"⚠️  Plot generation failed: {result['plot_details']['error']}")
+        if result['figures_generated'] > 0:
+            print(f"📈 Figures Generated: {result['figures_generated']}")
+            print(f"🎨 Output Formats: {', '.join(result['figure_details'].get('output_formats', []))}")
+            if result['figure_details'].get('commonality_pdf_generated', False):
+                print("📊 Commonality PDF generated")
+        elif "error" in result.get('figure_details', {}):
+            print(f"⚠️  Figure generation failed: {result['figure_details']['error']}")
         
         if args.keep_batch_output:
             print(f"📂 Batch Output Kept: {result['batch_output_directory']}")

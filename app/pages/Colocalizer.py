@@ -32,7 +32,7 @@ from element_styles import UPLOAD_INDICATOR_STYLE, UPLOAD_STYLE,GENERIC_PAGE
 register_page(__name__, path='/colocalizer')
 parameters = parse_parameters('parameters.toml')
 logger = logging.getLogger(__name__)
-logger.warning(f'{__name__} loading')
+logger.info(f'{__name__} loading')
 available_cmaps = 'blackbody blues icefire bugn bupu cividis electric greens hot ylorbr gnbu greens amp thermal ice dense pubugn purd purp algae hot gray greys inferno magma pubu oranges reds purples rdpu tempo teal'.split()
 available_cmaps.extend('Blackbody Bluered Blues Cividis Earth Electric Greens Greys Hot Jet Picnic Portland Rainbow RdBu Reds Viridis YlGnBu YlOrRd'.lower().split())
 available_cmaps = sorted(list(set(available_cmaps)))#[u for u in usable if u.lower() in available_cmaps]

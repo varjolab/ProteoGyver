@@ -8,7 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 dash.register_page(__name__, path=f'/user_guide')
-logger.warning(f'{__name__} loading')
+logger.info(f'{__name__} loading')
 
 def announcements():
     announcements:str = ''

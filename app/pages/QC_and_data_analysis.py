@@ -35,7 +35,7 @@ import plotly.graph_objects as go
 
 register_page(__name__, path='/')
 logger = logging.getLogger(__name__)
-logger.warning(f'{__name__} loading')
+logger.info(f'{__name__} loading')
 
 parameters_file = 'parameters.toml'
 parameters: Dict[str, Any] = parsing.parse_parameters(parameters_file)
@@ -72,7 +72,7 @@ def clear_data_stores(begin_clicks: Optional[int]) -> str:
     Returns:
         str: Empty string to clear notification
     """
-    #logger.warning(
+    #logger.info(
     #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
     return ''
 
@@ -195,7 +195,7 @@ def validate_data(
             - Formatted data dictionary
             - Boolean indicating if download button should be disabled
     """
-    logger.warning(f'Validating data: {datetime.now()}')
+    logger.info(f'Validating data: {datetime.now()}')
     cont: List[str] = []
     repnames: bool = False
     uniq_only: bool = False
@@ -2016,9 +2016,9 @@ def save_input_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[st
         - Uses infrastructure function to save data stores
     """
     start = datetime.now()
-    logger.warning(f'received download request save_input_stores at {start}')
+    logger.info(f'received download request save_input_stores at {start}')
     infra.save_data_stores(stores, export_dir)
-    logger.warning(f'done with download request save_input_stores, took {datetime.now()-start}')
+    logger.info(f'done with download request save_input_stores, took {datetime.now()-start}')
     return 'save_input_stores done', ''
 
 @callback(
@@ -2045,9 +2045,9 @@ def save_workflow_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple
         - Uses infrastructure function to save data stores
     """
     start = datetime.now()
-    logger.warning(f'received download request save_workflow_stores at {start}')
+    logger.info(f'received download request save_workflow_stores at {start}')
     infra.save_data_stores(stores, export_dir)
-    logger.warning(f'done with download request save_workflow_stores, took {datetime.now()-start}')
+    logger.info(f'done with download request save_workflow_stores, took {datetime.now()-start}')
     return 'save_workflow_stores done', ''
 
 @callback(
@@ -2087,7 +2087,7 @@ def save_qc_figures(
         - Uses infrastructure function to save figures
     """
     start = datetime.now()
-    logger.warning(f'received download request save_qc_figures at {start}')
+    logger.info(f'received download request save_qc_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'qc-analysis-area')], 
                           export_dir,
@@ -2095,9 +2095,10 @@ def save_qc_figures(
                           commonality_pdf_data, 
                           workflow)
     except Exception as e:
+        logger.warning(f'save_qc_figures failed: {e}')
         with open(os.path.join(export_dir, 'save_qc_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request save_qc_figures, took {datetime.now()-start}')
+    logger.info(f'done with download request save_qc_figures, took {datetime.now()-start}')
     return 'save_qc_figures done', ''
 
 @callback(
@@ -2124,9 +2125,9 @@ def save_input_information(export_dir: str, input_divs: List[html.Div]) -> Tuple
         - Uses infrastructure function to save input information
     """
     start = datetime.now()
-    logger.warning(f'received download request save_input_information at {start}')
+    logger.info(f'received download request save_input_information at {start}')
     infra.save_input_information(input_divs, export_dir)
-    logger.warning(f'done with download request save_input_information, took {datetime.now()-start}')
+    logger.info(f'done with download request save_input_information, took {datetime.now()-start}')
     return 'save_input_information done',''
 
 @callback(
@@ -2163,14 +2164,15 @@ def save_interactomics_figures(
         - Uses infrastructure function to save figures
     """
     start = datetime.now()
-    logger.warning(f'received download request save_interactomics_figures at {start}')
+    logger.info(f'received download request save_interactomics_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-results-area')], export_dir,
                     figure_output_formats, None, workflow)
     except Exception as e:
+        logger.warning(f'save_interactomics_figures failed: {e}')
         with open(os.path.join(export_dir, 'save_interactomics_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request save_interactomics_figures, took {datetime.now()-start}')
+    logger.info(f'done with download request save_interactomics_figures, took {datetime.now()-start}')
     return 'save_interactomics_figures done', ''
 
 @callback(
@@ -2206,14 +2208,15 @@ def save_interactomics_post_saint_figures(
         - Handles errors by writing to error file
     """
     start = datetime.now()
-    logger.warning(f'received download request save_interactomics_post_saint_figures at {start}')
+    logger.info(f'received download request save_interactomics_post_saint_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-post-saint-area')], 
                           export_dir, figure_output_formats, None, workflow)
     except Exception as e:
+        logger.warning(f'save_interactomics_post_saint_figures failed: {e}')
         with open(os.path.join(export_dir, 'save_interactomics_post_saint_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request save_interactomics_post_saint_figures, took {datetime.now()-start}')
+    logger.info(f'done with download request save_interactomics_post_saint_figures, took {datetime.now()-start}')
     return 'save_interactomics_post_saint_figures done', ''
 
 @callback(
@@ -2249,14 +2252,15 @@ def save_proteomics_figures(
         - Handles errors by writing to error file
     """
     start = datetime.now()
-    logger.warning(f'received download request save_proteomics_figures at {start}')
+    logger.info(f'received download request save_proteomics_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'proteomics-analysis-results-area')], 
                           export_dir, figure_output_formats, None, workflow)
     except Exception as e:
+        logger.warning(f'save_proteomics_figures failed: {e}')
         with open(os.path.join(export_dir, 'save_proteomics_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request save_proteomics_figures, took {datetime.now()-start}')
+    logger.info(f'done with download request save_proteomics_figures, took {datetime.now()-start}')
     return 'save_proteomics_figures done', ''
 
 @callback(
@@ -2292,14 +2296,15 @@ def save_phosphoproteomics_figures(
         - Handles errors by writing to error file
     """
     start = datetime.now()
-    logger.warning(f'received download request save_phosphoproteomics_figures at {start}')
+    logger.info(f'received download request save_phosphoproteomics_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'phosphoproteomics-analysis-area')], 
                           export_dir, figure_output_formats, None, workflow)
     except Exception as e:
+        logger.warning(f'save_phosphoproteomics_figures failed: {e}')
         with open(os.path.join(export_dir, 'save_phosphoproteomics_figures_errors'),'w') as fil:
             fil.write(f'{e}')
-    logger.warning(f'done with download request save_phosphoproteomics_figures, took {datetime.now()-start}')
+    logger.info(f'done with download request save_phosphoproteomics_figures, took {datetime.now()-start}')
     return 'save_phosphoproteomics_figures done', ''
 
     
@@ -2369,7 +2374,7 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
     start = datetime.now()    
     timestamp = start.strftime("%Y-%m-%d %H-%M")
     zip_filename = f"{timestamp} ProteoGyver output.zip"
-    logger.warning(f'Started packing data at {start}')
+    logger.info(f'Started packing data at {start}')
     
     try:
         # Create ZIP archive
@@ -2380,7 +2385,7 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
                         file_path = os.path.join(root, file)
                         arcname = os.path.relpath(file_path, export_dir)
                         zipf.write(file_path, arcname)
-        logger.warning(f'done packing data, took {datetime.now()-start}')
+        logger.info(f'done packing data, took {datetime.now()-start}')
         
         # Read ZIP file and encode for download
         with open(os.path.join(export_dir, zip_filename), 'rb') as f:
@@ -2390,7 +2395,7 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
         shutil.rmtree(export_dir)
     
     except Exception as e:
-        logger.error(f"Error creating download package: {str(e)}")
+        logger.warning(f"Error creating download package: {str(e)}")
         return no_update, no_update
 
     return dcc.send_bytes(zip_data, zip_filename), 'Download all data'

@@ -58,7 +58,7 @@ import uuid
 pio.templates.default = 'plotly_white'
 logger = logging.getLogger(__name__)
 dash.register_page(__name__, path=f'/MS_inspector')
-logger.warning(f'{__name__} loading')
+logger.info(f'{__name__} loading')
 
 def description_card() -> html.Div:
     """Creates the description card component for the dashboard.
@@ -682,7 +682,7 @@ if data.shape[0] > 0:
     d = data['run_date'].min()
     MINTIME = date(d.year,d.month, d.day)
     del data
-    logger.warning(f'{__name__} preliminary data loaded')
+    logger.info(f'{__name__} preliminary data loaded')
     RUN_LIMIT = 100
     use_layout = ms_analytics_layout()
 else:

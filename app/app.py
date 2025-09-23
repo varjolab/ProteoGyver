@@ -33,26 +33,13 @@ app = Dash(__name__, use_pages=True, external_stylesheets=[
 
 app.title = 'ProteoGyver beta version'
 app.enable_dev_tools(debug=True)
-#app.config.from_pyfile('app_config.py')
-# Logging levels:
-#    NOTSET=0.
-#    DEBUG=10.
-#    INFO=20.
-#    WARN=30.
-#    ERROR=40.
-#    CRITICAL=50.
-#log_handler = logging.handlers.RotatingFileHandler(os.path.join(
-    #'logs', f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log'), maxBytes=1000000000, backupCount=1)
-#log_handler.setLevel(logging.WARNING)
-#logger = logging.getLogger(__name__)
-#logger.warning(f'Proteogyver started: {datetime.now()}')
 
 
 def main() -> None:
     """Main entry point for running the application.
 
     """
-    logger.warning(f'Proteogyver started: {datetime.now()}')
+    logger.info(f'Proteogyver started: {datetime.now()}')
     app.run(debug=True)
 
 def create_navbar(parameters: dict) -> dbc.Navbar:
@@ -71,7 +58,7 @@ def create_navbar(parameters: dict) -> dbc.Navbar:
     """
     LOGO = 'assets/images/proteogyver.png'
     for page in page_registry.values():
-        logger.warning(page['name'])
+        logger.info(page['name'])
     pages = {
         page['name'].lower(): dbc.NavItem(
             dbc.NavLink(
@@ -140,12 +127,12 @@ logfilename:str = os.path.join(
     parameters['Config']['LogDir'], f'{datetime.now().strftime("%Y-%m-%d")}_proteogyver.log')
 logging.basicConfig(filename=logfilename, level=parameters['Config']['LogLevel'])
 logger = logging.getLogger(__name__)
-logger.warning('Site pages:')
+logger.info('Site pages:')
 app.layout = html.Div([
     create_navbar(parameters),
     page_container,
 ],id='proteogyver-layout')
-logger.warning('End app.')
+logger.info('End app.')
 
 celery_app.conf.beat_schedule = {
     'cleanup-cache-daily': {

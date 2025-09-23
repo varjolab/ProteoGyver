@@ -72,7 +72,7 @@ def make_graph(
     figure.update_traces(**trace_args)
     figure.update_layout(**layout_args)
     
-    logger.warning(
+    logger.info(
         f'returning graph: {datetime.now()}')
     previous_time = datetime.now()
     return Graph(
