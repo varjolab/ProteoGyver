@@ -1123,7 +1123,7 @@ def proteomics_volcano_plots(
     sgroups: Dict[str, Any] = data_dictionary['sample groups']['norm']
     comparisons: List[Tuple[Any, ...]] = parsing.parse_comparisons(
         control_group, comparison_data, sgroups)
-    return proteomics.differential_abundance(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type, parameters['Data paths']['Database file']) + ('',)
+    return proteomics.differential_abundance(imputed_data, sgroups, comparisons, fc_thr, p_thr, parameters['Figure defaults']['full-height'], test_type, os.path.join(*parameters['Data paths']['Database file'])) + ('',)
 
 # Need to implement:
 # GOBP mapping
@@ -1514,7 +1514,7 @@ def interactomics_initiate_post_saint(_: Optional[int]) -> html.Div:
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_callback=True
 )
-def interactomics_map_intensity(n_clicks: Optional[int], unfiltered_saint_data: Dict[str, Any], data_dictionary: Dict[str, Any]) -> Union[str, Any]:
+def interactomics_map_intensity(n_clicks: Optional[int], filtered_saint_data: Dict[str, Any], data_dictionary: Dict[str, Any]) -> Union[str, Any]:
     """Maps intensity values to filtered SAINT results.
     
     Args:
@@ -1533,7 +1533,7 @@ def interactomics_map_intensity(n_clicks: Optional[int], unfiltered_saint_data: 
         return no_update
     if (n_clicks < 1):
         return no_update
-    return interactomics.map_intensity(unfiltered_saint_data, data_dictionary['data tables']['intensity'], data_dictionary['sample groups']['norm'])
+    return interactomics.map_intensity(filtered_saint_data, data_dictionary['data tables']['intensity'], data_dictionary['sample groups']['norm'])
 
 @callback( 
     Output('interactomics-known-loading', 'children'),

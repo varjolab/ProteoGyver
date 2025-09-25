@@ -154,9 +154,13 @@ def build_qc_data_stores(qc_data: Dict) -> List[Dict]:
     if 'distribution' in qc_data:
         stores.append(create_data_store_component('distribution-data-store', qc_data['distribution']))
     
+    # Common proteins
+    if 'common_proteins' in qc_data:
+        stores.append(create_data_store_component('common-protein-data-store', qc_data['common_proteins']))
+    
     # Commonality data store (for supervenn plots)
-    if 'shared_proteins' in qc_data:
-        stores.append(create_data_store_component('commonality-data-store', qc_data['shared_proteins']))
+    if 'commonality' in qc_data:
+        stores.append(create_data_store_component('commonality-data-store', qc_data['commonality']))
     
     return stores
 
@@ -177,7 +181,7 @@ def build_proteomics_data_stores(batch_output_dir: str) -> List[Dict]:
         na_filtered_path = f"{batch_output_dir}/10_na_filtered.json"
         try:
             with open(na_filtered_path, 'r') as f:
-                na_filtered_data = f.read()
+                na_filtered_data = json.load(f)
             stores.append(create_data_store_component('proteomics-na-filtered-data-store', na_filtered_data))
         except FileNotFoundError:
             logger.warning(f"NA filtered data not found: {na_filtered_path}")
@@ -186,7 +190,7 @@ def build_proteomics_data_stores(batch_output_dir: str) -> List[Dict]:
         normalized_path = f"{batch_output_dir}/11_normalized.json"
         try:
             with open(normalized_path, 'r') as f:
-                normalized_data = f.read()
+                normalized_data = json.load(f)
             stores.append(create_data_store_component('proteomics-normalization-data-store', normalized_data))
         except FileNotFoundError:
             logger.warning(f"Normalized data not found: {normalized_path}")
@@ -195,7 +199,7 @@ def build_proteomics_data_stores(batch_output_dir: str) -> List[Dict]:
         imputed_path = f"{batch_output_dir}/12_imputed.json"
         try:
             with open(imputed_path, 'r') as f:
-                imputed_data = f.read()
+                imputed_data = json.load(f)
             stores.append(create_data_store_component('proteomics-imputation-data-store', imputed_data))
         except FileNotFoundError:
             logger.warning(f"Imputed data not found: {imputed_path}")
@@ -213,10 +217,37 @@ def build_proteomics_data_stores(batch_output_dir: str) -> List[Dict]:
         volcano_path = f"{batch_output_dir}/14_volcano.json"
         try:
             with open(volcano_path, 'r') as f:
-                volcano_data = f.read()
+                volcano_data = json.load(f)
             stores.append(create_data_store_component('proteomics-volcano-data-store', volcano_data))
         except FileNotFoundError:
             logger.warning(f"Volcano data not found: {volcano_path}")
+            
+        # CV data store
+        cv_path = f"{batch_output_dir}/13_cv.json"
+        try:
+            with open(cv_path, 'r') as f:
+                cv_data = json.load(f)
+            stores.append(create_data_store_component('proteomics-cv-data-store', cv_data))
+        except FileNotFoundError:
+            logger.warning(f"CV data not found: {cv_path}")
+            
+        # Clustermap data store
+        clustermap_path = f"{batch_output_dir}/13_clustermap.json"
+        try:
+            with open(clustermap_path, 'r') as f:
+                clustermap_data = json.load(f)
+            stores.append(create_data_store_component('proteomics-clustermap-data-store', clustermap_data))
+        except FileNotFoundError:
+            logger.warning(f"Clustermap data not found: {clustermap_path}")
+            
+        # Perturbation data store (if available)
+        perturbation_path = f"{batch_output_dir}/13_perturbation.json"
+        try:
+            with open(perturbation_path, 'r') as f:
+                perturbation_data = json.load(f)
+            stores.append(create_data_store_component('proteomics-pertubation-data-store', perturbation_data))
+        except FileNotFoundError:
+            logger.debug(f"Perturbation data not found: {perturbation_path}")
             
     except Exception as e:
         logger.error(f"Error building proteomics data stores: {e}")
@@ -276,11 +307,29 @@ def build_interactomics_data_stores(batch_output_dir: str) -> List[Dict]:
         saint_filtered_path = f"{batch_output_dir}/23_saint_filtered.json"
         try:
             with open(saint_filtered_path, 'r') as f:
-                saint_filtered = f.read()  # Keep as string for consistency
+                saint_filtered = json.load(f)
             stores.append(create_data_store_component('interactomics-saint-filtered-output-data-store', saint_filtered))
         except FileNotFoundError:
             logger.warning(f"SAINT filtered not found: {saint_filtered_path}")
+
+        # SAINT filtered and intensity mapped data store
+        saint_filtered_and_intensity_mapped_path = f"{batch_output_dir}/23_saint_filtered_and_intensity_mapped.json"
+        try:
+            with open(saint_filtered_and_intensity_mapped_path, 'r') as f:
+                saint_filtered_and_intensity_mapped = json.load(f)
+            stores.append(create_data_store_component('interactomics-saint-filtered-and-intensity-mapped-output-data-store', saint_filtered_and_intensity_mapped))
+        except FileNotFoundError:
+            logger.warning(f"SAINT filtered and intensity mapped not found: {saint_filtered_and_intensity_mapped_path}")
         
+        # SAINT filtered and intensity mapped with knowns data store
+        saint_filtered_and_intensity_mapped_with_knowns_path = f"{batch_output_dir}/23_saint_filtered_and_intensity_mapped_with_knowns.json"
+        try:
+            with open(saint_filtered_and_intensity_mapped_with_knowns_path, 'r') as f:
+                saint_filtered_and_intensity_mapped_with_knowns = json.load(f)
+            stores.append(create_data_store_component('interactomics-saint-filt-int-known-data-store', saint_filtered_and_intensity_mapped_with_knowns))
+        except FileNotFoundError:
+            logger.warning(f"SAINT filtered and intensity mapped with knowns not found: {saint_filtered_and_intensity_mapped_with_knowns_path}")
+
         # Network interactions data store
         interactions_path = f"{batch_output_dir}/24_interactions.json"
         try:
@@ -369,20 +418,21 @@ def build_data_stores_from_batch_output(batch_output_dir: str, workflow: str) ->
         data_stores.extend(build_qc_data_stores(qc_data))
         
         # Add uploaded data table stores expected by the GUI
-        if 'data tables' in data_dict:
+        if 'input_data_tables' in data_dict:
             # Create upload split format for data tables
             upload_tables = {}
-            for table_name, table_data in data_dict['data tables'].items():
-                if table_name != 'experimental design' and isinstance(table_data, str):
-                    upload_tables[table_name] = table_data
+            #skip_tables = ['experimental design', 'table to use', 'with-contaminants']
+            for table_name, table_data in data_dict['input_data_tables'].items():
+             #   if table_name not in skip_tables and isinstance(table_data, str):
+                upload_tables[table_name] = table_data
             
             if upload_tables:
                 data_stores.append(create_data_store_component('uploaded-data-table-data-store', upload_tables))
             
             # Sample table store
-            if 'experimental design' in data_dict['data tables']:
+            if 'input_sample_table' in data_dict:
                 data_stores.append(create_data_store_component('uploaded-sample-table-data-store', 
-                                                             data_dict['data tables']['experimental design']))
+                                                             data_dict['input_sample_table']))
         
         # Build workflow-specific data stores
         if workflow == 'proteomics':
@@ -390,9 +440,17 @@ def build_data_stores_from_batch_output(batch_output_dir: str, workflow: str) ->
         elif workflow == 'interactomics':
             data_stores.extend(build_interactomics_data_stores(batch_output_dir))
         
-        # Add info data stores (placeholder - can be populated with metadata)
-        data_stores.append(create_data_store_component('uploaded-data-table-info-data-store', {}))
-        data_stores.append(create_data_store_component('uploaded-sample-table-info-data-store', {}))
+        # Add info data stores
+        data_stores.append(create_data_store_component('uploaded-data-table-info-data-store', {
+            'Modified time': data_dict['file info']['Data']['File modified'],
+            'File name': data_dict['file info']['Data']['File name'],
+            'Data type': data_dict['info']['Data type'],
+            'Data source guess': data_dict['info']['Data source guess']
+        }))
+        data_stores.append(create_data_store_component('uploaded-sample-table-info-data-store', {
+            'Modified time': data_dict['file info']['Sample table']['File modified'],
+            'File name': data_dict['file info']['Sample table']['File name']
+        }))
         
         logger.info(f"Built {len(data_stores)} data stores for {workflow} workflow")
         
@@ -428,7 +486,6 @@ def save_batch_data_using_infra(batch_output_dir: str, export_dir: str, workflow
         'workflow': workflow,
         'infra_result': result
     }
-
 
 if __name__ == "__main__":
     import argparse

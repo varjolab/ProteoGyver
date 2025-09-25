@@ -2,13 +2,67 @@
 # Run your Dash analysis headlessly, step-by-step.
 
 import os, json, base64, time
+import pandas as pd
 from io import StringIO
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict, is_dataclass
 from typing import Any, Dict, List, Optional, Tuple
+import pickle
 
 # --- import the same modules used by your callbacks ---
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
+
+from __future__ import annotations
+from collections.abc import Mapping
+
+def dash_to_wire(obj):
+    """Recursively convert Dash/Plotly components to dicts/lists like callbacks see.
+
+    - Leaves primitives (str, int, float, bool, None) untouched.
+    - Converts any object exposing .to_plotly_json() (Dash components, go.Figure).
+    - Recurse through dicts and lists/tuples.
+    - Dataclasses are converted via asdict() then recursed.
+
+    Args:
+        obj: Any Python object (Dash component, go.Figure, dict/list, primitives).
+
+    Returns:
+        JSON-serializable structure where components are replaced by dicts/lists,
+        and non-component primitives are preserved as-is.
+    """
+    # Fast path: primitives / “don’t touch”
+    if obj is None or isinstance(obj, (str, int, float, bool, bytes, bytearray, memoryview)):
+        return obj
+
+    # Numpy scalars -> built-in types (optional but handy)
+    try:
+        import numpy as np  # type: ignore
+        if isinstance(obj, np.generic):
+            return obj.item()
+    except Exception:
+        pass
+
+    # Dash/Plotly components & figures expose this
+    to_json = getattr(obj, "to_plotly_json", None)
+    if callable(to_json):
+        return dash_to_wire(to_json())
+
+    # Dataclasses → dict, then recurse
+    if is_dataclass(obj):
+        return dash_to_wire(asdict(obj))
+
+    # Mappings → dict, then recurse on values
+    if isinstance(obj, Mapping):
+        return {k: dash_to_wire(v) for k, v in obj.items()}
+
+    # Sequences (lists/tuples) → list, recurse per element
+    if isinstance(obj, (list, tuple)):
+        return [dash_to_wire(x) for x in obj]
+
+    # Anything else: leave as-is (you can add more coercions if needed)
+    return obj
+
+
 
 # -------- Config --------
 @dataclass
@@ -42,6 +96,7 @@ class BatchConfig:
     crapome_fc_threshold: int = 2
     rescue_enabled: bool = False
     chosen_enrichments: List[str] = field(default_factory=list)
+    force_supervenn: bool = False
 
 # -------- Helpers that mimic Dash's upload content --------
 def _upload_contents_for_path(path: str) -> Tuple[str, str, int]:
@@ -104,7 +159,9 @@ def run_pipeline(cfg: BatchConfig) -> Dict[str, Any]:
         params["workflow parameters"]["interactomics"]["control indicators"],
         params["file loading"]["Bait ID column names"],
     )
-
+    data_dictionary['info'] = data_info
+    data_dictionary['input_data_tables'] = data_tables
+    data_dictionary['input_sample_table'] = expdes_table
     _dump_json(cfg.outdir, "01_data_dictionary", data_dictionary)
 
     # 4) Assign replicate colors (mirrors assign_replicate_colors)
@@ -116,28 +173,28 @@ def run_pipeline(cfg: BatchConfig) -> Dict[str, Any]:
 
     # 5) QC chain (call the same functions used in callbacks)
     artifacts: Dict[str, Any] = {}
-
+    divs = {}
     # TIC
-    _, tic_data = qc_analysis.parse_tic_data(
+    tic_div, tic_data = qc_analysis.parse_tic_data(
         data_dictionary["data tables"]["experimental design"],
         rep_colors,
         db_file,
         params["Figure defaults"]["full-height"],
     )
     artifacts["tic"] = tic_data
-
+    divs["tic"] = tic_div
     # Counts
     table_to_use = data_dictionary["data tables"]["table to use"]
-    _, count_data = qc_analysis.count_plot(
+    count_div, count_data = qc_analysis.count_plot(
         data_dictionary["data tables"]["with-contaminants"][table_to_use],
         rep_colors_with_cont,
         contaminant_list,
         params["Figure defaults"]["full-height"],
     )
     artifacts["counts"] = count_data
-
+    divs["counts"] = count_div
     # Common proteins
-    _, common_data = qc_analysis.common_proteins(
+    common_div, common_data = qc_analysis.common_proteins(
         data_dictionary["data tables"][table_to_use],
         db_file,
         params["Figure defaults"]["full-height"],
@@ -145,50 +202,50 @@ def run_pipeline(cfg: BatchConfig) -> Dict[str, Any]:
         id_str="qc",
     )
     artifacts["common_proteins"] = common_data
-
+    divs["common_proteins"] = common_div
     # Coverage
-    _, coverage_data = qc_analysis.coverage_plot(
+    coverage_div, coverage_data = qc_analysis.coverage_plot(
         data_dictionary["data tables"][table_to_use],
         params["Figure defaults"]["half-height"],
     )
     artifacts["coverage"] = coverage_data
-
+    divs["coverage"] = coverage_div
     # Reproducibility
-    _, repro_data = qc_analysis.reproducibility_plot(
+    repro_div, repro_data = qc_analysis.reproducibility_plot(
         data_dictionary["data tables"][table_to_use],
         data_dictionary["sample groups"]["norm"],
         table_to_use,
         params["Figure defaults"]["full-height"],
     )
     artifacts["reproducibility"] = repro_data
-
+    divs["reproducibility"] = repro_div
     # Missing
-    _, missing_data = qc_analysis.missing_plot(
+    missing_div, missing_data = qc_analysis.missing_plot(
         data_dictionary["data tables"][table_to_use],
         rep_colors,
         params["Figure defaults"]["half-height"],
     )
     artifacts["missing"] = missing_data
-
+    divs["missing"] = missing_div
     # Sum
-    _, sum_data = qc_analysis.sum_plot(
+    sum_div, sum_data = qc_analysis.sum_plot(
         data_dictionary["data tables"][table_to_use],
         rep_colors,
         params["Figure defaults"]["half-height"],
     )
     artifacts["sum"] = sum_data
-
+    divs["sum"] = sum_div
     # Mean
-    _, mean_data = qc_analysis.mean_plot(
+    mean_div, mean_data = qc_analysis.mean_plot(
         data_dictionary["data tables"][table_to_use],
         rep_colors,
         params["Figure defaults"]["half-height"],
     )
     artifacts["mean"] = mean_data
-
+    divs["mean"] = mean_div
     # Distribution
     title = parsing.get_distribution_title(table_to_use)
-    _, dist_data = qc_analysis.distribution_plot(
+    dist_div, dist_data = qc_analysis.distribution_plot(
         data_dictionary["data tables"][table_to_use],
         rep_colors,
         data_dictionary["sample groups"]["rev"],
@@ -196,14 +253,26 @@ def run_pipeline(cfg: BatchConfig) -> Dict[str, Any]:
         title,
     )
     artifacts["distribution"] = dist_data
+    divs["distribution"] = dist_div
 
+    # Commonality
+    commonality_div, commonality_data, pdf_str = qc_analysis.commonality_plot(
+        data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
+        data_dictionary['sample groups']['rev'],
+        params['Figure defaults']['full-height'],
+        cfg.force_supervenn, 
+    )
+    artifacts["commonality"] = commonality_data
+    artifacts["commonality_pdf"] = pdf_str
+    divs["commonality"] = commonality_div
+    with open(os.path.join(cfg.outdir, "03_qc_divs.pickle"), "wb") as f:
+        pickle.dump(divs, f)
     _dump_json(cfg.outdir, "03_qc_artifacts", artifacts)
-
     # 6) Workflow-specific analysis
     if cfg.workflow.lower() == "proteomics":
         return _run_proteomics_workflow(cfg, data_dictionary, rep_colors, params, artifacts)
     elif cfg.workflow.lower() == "interactomics":
-        return _run_interactomics_workflow(cfg, data_dictionary, rep_colors, params, artifacts)
+        return _run_interactomics_workflow(cfg, data_dictionary, rep_colors, rep_colors_with_cont, params, artifacts)
     else:
         raise ValueError(f"Unknown workflow: {cfg.workflow}")
 
@@ -212,45 +281,113 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
                             rep_colors: Dict[str, Any], params: Dict[str, Any], 
                             artifacts: Dict[str, Any]) -> Dict[str, Any]:
     """Run the proteomics analysis workflow."""
+
+    divs = {}
     # NA filter
-    _, na_filtered = proteomics.na_filter(
+    na_filter_div, na_filtered = proteomics.na_filter(
         data_dictionary,
         cfg.na_filter_percent,
         params["Figure defaults"]["full-height"],
         filter_type=cfg.na_filter_type,
     )
     _dump_json(cfg.outdir, "10_na_filtered", na_filtered)
-
+    divs["na_filter"] = na_filter_div
     # Normalization
-    norm_res = proteomics.normalization(
+    normalization_div, normalized = proteomics.normalization(
         na_filtered, cfg.normalization,
         params["Figure defaults"]["full-height"],
         params["Config"]["R error file"],
     )
-    
-    _, normalized = norm_res
     _dump_json(cfg.outdir, "11_normalized", normalized)
+    divs["normalization"] = normalization_div
     # Imputation
     if normalized is not None:
-        _, imputed = proteomics.imputation(
+        imputation_div, imputed = proteomics.imputation(
             normalized, cfg.imputation,
             params["Figure defaults"]["full-height"],
             params["Config"]["R error file"],
         )
         _dump_json(cfg.outdir, "12_imputed", imputed)
+        divs["imputation"] = imputation_div
     else:
         imputed = None
 
     # PCA (optional)
     if imputed is not None:
-        _, pca_data = proteomics.pca(
+        pca_div, pca_data = proteomics.pca(
             imputed,
             data_dictionary["sample groups"]["rev"],
             params["Figure defaults"]["full-height"],
             rep_colors,
         )
         _dump_json(cfg.outdir, "13_pca", pca_data)
-
+        divs["pca"] = pca_div
+        # CV analysis
+        raw_int_data = data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
+        raw_int_data.drop(index=list(set(raw_int_data.index)-set(na_filtered.index)),inplace=True)
+        cv_div, cv_data = protepmics.perc_cvplot(
+            raw_int_data,
+            data_dictionary["sample groups"]["norm"],
+            rep_colors,
+            params["Figure defaults"]["full-height"],
+        )
+        if False:
+            from components.figures.cvplot import make_graph as cv_make_graph
+            import pandas as pd
+            imputed_df = pd.read_json(StringIO(imputed), orient='split')
+            cv_graph = cv_make_graph(
+                imputed_df,
+                data_dictionary["sample groups"]["norm"],
+                rep_colors,
+                params["Figure defaults"]["full-height"],
+                "proteomics-cv-plot"
+            )
+            # Extract CV data from graph figure
+            cv_data = {
+                'group_means': {},
+                'group_cvs': {},
+                'group_stds': {}
+            }
+            # Calculate CV data (same logic as cvplot.py)
+            for sg, group_cols in data_dictionary["sample groups"]["norm"].items():
+                means = imputed_df[group_cols].mean(axis=1)
+                stds = imputed_df[group_cols].std(axis=1)
+                means = means[stds.notna()]
+                stds = stds[stds.notna()]
+                cv_percent = (stds / means) * 100
+                cv_data['group_cvs'][sg] = cv_percent.to_dict()
+                cv_data['group_means'][sg] = means.to_dict()
+                cv_data['group_stds'][sg] = stds.to_dict()
+        _dump_json(cfg.outdir, "13_cv", cv_data)
+        divs["cv"] = cv_div
+        # Clustermap/correlation clustering
+        clustermap_div, clustermap_data = proteomics.clustermap(
+            imputed,
+            params["Figure defaults"]["full-height"]
+        )
+        _dump_json(cfg.outdir, "13_clustermap", clustermap_data)
+        divs["clustermap"] = clustermap_div
+        # Perturbation analysis (if we have control groups)
+        # Find control groups from comparisons
+        control_groups = set()
+        if cfg.comparison_file:
+            import pandas as pd
+            comp_df = pd.read_csv(cfg.comparison_file, sep='\t')
+            if 'Control' in comp_df.columns:
+                control_groups.update(comp_df['Control'].unique())
+        
+        if control_groups:
+            # Use normalized data for perturbation analysis
+            pertub_div, pertub_data = proteomics.pertubation(
+                normalized,
+                data_dictionary["sample groups"]["norm"],
+                list(control_groups),
+                rep_colors,
+                params["Figure defaults"]["half-height"],
+                params["Figure defaults"]["full-height"]
+            )
+            _dump_json(cfg.outdir, "13_perturbation", pertub_data)
+            divs["pertubation"] = pertub_div
     # Volcano (control vs comparisons)
     volcano = None
     if imputed is not None:
@@ -283,7 +420,10 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
         )
         volcano = volcano_data
         _dump_json(cfg.outdir, "14_volcano", volcano)
-    _dump_json(cfg.outdir, "00_summary", {
+        divs["volcano"] = volcano_div
+    with open(os.path.join(cfg.outdir, "04_proteomics_divs.pickle"), "wb") as f:
+        pickle.dump(divs, f)
+    summary = {
         "workflow": "proteomics",
         "session_name": data_dictionary["other"]["session name"],
         "artifacts": artifacts,
@@ -292,15 +432,17 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
         "imputed": (imputed is not None),
         "volcano": volcano is not None,
         "outdir": cfg.outdir,
-    })
+    }
+    _dump_json(cfg.outdir, "00_summary", summary)
+    return summary
 
 
 def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
-                               rep_colors: Dict[str, Any], params: Dict[str, Any],
+                               rep_colors: Dict[str, Any], rep_colors_with_cont: Dict[str, Any], params: Dict[str, Any],
                                artifacts: Dict[str, Any]) -> Dict[str, Any]:
     """Run the interactomics analysis workflow."""
     db_file = os.path.join(*params["Data paths"]["Database file"])
-    
+    divs = {}
     # Check if we have spectral count data
     if '"No data"' in data_dictionary["data tables"]["spc"]:
         return {
@@ -312,7 +454,7 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
         }
     
     # 1) Generate SAINT container (prepare controls and data)
-    _, saint_dict, crapome_data = interactomics.generate_saint_container(
+    saint_div, saint_dict, crapome_data = interactomics.generate_saint_container(
         data_dictionary,
         cfg.uploaded_controls,
         cfg.additional_controls,
@@ -323,6 +465,7 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
     )
     _dump_json(cfg.outdir, "20_saint_dict", saint_dict)
     _dump_json(cfg.outdir, "20_crapome_data", crapome_data)
+    divs["saint"] = saint_div
     
     # 2) Run SAINT analysis
     if not saint_dict:  # Empty dict means no data
@@ -372,28 +515,33 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
     )
     _dump_json(cfg.outdir, "23_saint_filtered", filtered_saint)
     
+    filtered_saint = interactomics.map_intensity(filtered_saint, data_dictionary['data tables']['intensity'], data_dictionary['sample groups']['norm'])
+    _dump_json(cfg.outdir, "23_saint_filtered_and_intensity_mapped", filtered_saint)
+    known_div, filtered_saint_with_knowns = interactomics.known_plot(filtered_saint, db_file, rep_colors_with_cont, params['Figure defaults']['half-height'])
+    _dump_json(cfg.outdir, "23_saint_filtered_and_intensity_mapped_with_knowns", filtered_saint_with_knowns)
+    divs["known"] = known_div
     # 5) Generate network plot
-    _, network_elements, interactions = interactomics.do_network(
+    network_div, network_elements, interactions = interactomics.do_network(
         filtered_saint,
         params["Figure defaults"]["full-height"]["height"]
     )
     _dump_json(cfg.outdir, "24_network_elements", network_elements)
     _dump_json(cfg.outdir, "24_interactions", interactions)
-    
+    divs["network"] = network_div
     # 6) PCA analysis
-    _, pca_data = interactomics.pca(
+    pca_div, pca_data = interactomics.pca(
         filtered_saint,
         params["Figure defaults"]["full-height"],
         rep_colors
     )
     _dump_json(cfg.outdir, "25_pca", pca_data)
-    
+    divs["pca"] = pca_div
     # 7) Enrichment analysis (if requested)
     enrichment_results = None
     enrichment_data = None
     enrichment_info = None
     if cfg.chosen_enrichments:
-        _, enrichment_data, enrichment_info = interactomics.enrich(
+        enrichment_div, enrichment_data, enrichment_info = interactomics.enrich(
             filtered_saint,
             cfg.chosen_enrichments,
             params["Figure defaults"]["full-height"],
@@ -401,16 +549,19 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
         )
         _dump_json(cfg.outdir, "26_enrichment_data", enrichment_data)
         _dump_json(cfg.outdir, "26_enrichment_info", enrichment_info)
-    
+        divs["enrichment"] = enrichment_div
     # 8) MS-microscopy analysis
-    _, msmic_data = interactomics.do_ms_microscopy(
+    msmic_div, msmic_data = interactomics.do_ms_microscopy(
         filtered_saint,
         db_file,
         params["Figure defaults"]["full-height"]
     )
     _dump_json(cfg.outdir, "27_msmic_data", msmic_data)
-    _dump_json(cfg.outdir, "00_summary", {
-        "workflow": "interactomics",
+    divs["msmic"] = msmic_div
+    with open(os.path.join(cfg.outdir, "05_interactomics_divs.pickle"), "wb") as f:
+        pickle.dump(divs, f)
+    summary = {
+        "workflow": "interactomics", 
         "session_name": session_name,
         "artifacts": artifacts,
         "saint_output": saint_output,
@@ -421,7 +572,9 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
         "enrichment_analysis": enrichment_data is not None,
         "msmic_analysis": msmic_data is not None,
         "outdir": cfg.outdir,
-    })
+    }
+    _dump_json(cfg.outdir, "00_summary", summary)
+    return summary
 
 # -------- CLI runner --------
 if __name__ == "__main__":
@@ -462,6 +615,8 @@ if __name__ == "__main__":
                     help="Enable rescue filtering")
     ap.add_argument("--enrichments", nargs="*", default=[], 
                     help="List of enrichment analyses to perform")
+    ap.add_argument("--force-supervenn", action="store_true", 
+                    help="Force the use of supervenn for commonality plot")
     args = ap.parse_args()
 
     cfg = BatchConfig(
@@ -488,5 +643,6 @@ if __name__ == "__main__":
         crapome_fc_threshold=args.crapome_fc,
         rescue_enabled=args.rescue,
         chosen_enrichments=args.enrichments,
+        force_supervenn=args.force_supervenn
     )
     run_pipeline(cfg)

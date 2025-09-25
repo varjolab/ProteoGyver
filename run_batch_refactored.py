@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
 from pipeline_batch import run_pipeline
 from pipeline_from_toml import _load_config
-from batch_data_store_builder import build_data_stores_from_batch_output
+from batch_data_store_builder import build_data_stores_from_batch_output, create_data_store_component
 from batch_figure_builder import save_batch_figures_using_infra
 from components.infra import save_data_stores
 
@@ -35,7 +35,9 @@ logger = logging.getLogger(__name__)
 def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None, 
                                 generate_plots: bool = True,
                                 plot_formats: list = None,
-                                keep_batch_output: bool = False) -> dict:
+                                keep_batch_output: bool = False,
+                                batch_output_dir: str = None,
+                                rerun: bool = False) -> dict:
     """Run the complete refactored batch pipeline using GUI infrastructure.
     
     Args:
@@ -44,7 +46,8 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
         generate_plots: Whether to generate plots (default True)
         plot_formats: List of plot formats ['html', 'pdf', 'png'] (default all)
         keep_batch_output: Whether to keep intermediate batch JSON files
-        
+        batch_output_dir: Directory for intermediate batch JSON files
+        rerun: Whether to rerun the pipeline. If the batch_output_dir is provided and exists, the pipeline will rerun only, if it's empty.
     Returns:
         dict: Summary of pipeline execution, export, and plot generation
     """
@@ -60,8 +63,14 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
     # Determine whether to use temporary directory or keep output
     if keep_batch_output:
         # Use permanent directory in project
-        batch_output_dir = f"batch_output_{session_name}"
+        if batch_output_dir is None:
+            if export_dir is not None:
+                batch_output_dir = os.path.join(export_dir, "batch_output")
+            else:
+                batch_output_dir = f"batch_output_{session_name}"
         os.makedirs(batch_output_dir, exist_ok=True)
+        # Convert to absolute path to avoid issues when changing directories
+        batch_output_dir = os.path.abspath(batch_output_dir)
         temp_context = None
     else:
         # Use temporary directory
@@ -76,6 +85,7 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
             logger.info(f"Running batch pipeline with permanent output: {batch_output_dir}")
         
         # Step 1: Run the batch pipeline
+        summary = {}
         try:
             logger.info("Step 1: Running batch pipeline...")
             
@@ -104,8 +114,8 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
         except Exception as e:
             logger.error(f"Batch pipeline failed: {e}")
             raise
-        
-        # Step 2: Build data stores and export using GUI infrastructure
+            
+            # Step 2: Build data stores and export using GUI infrastructure
         try:
             logger.info("Step 2: Building data stores and exporting using GUI infrastructure...")
             
@@ -129,14 +139,16 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
         if generate_plots:
             try:
                 logger.info("Step 3: Generating figures using GUI infrastructure...")
-                figures_export_dir = os.path.join(export_dir, "Figures")
+                figures_export_dir = export_dir
                 
-                figure_summary = save_batch_figures_using_infra(
+                figure_summary, shared_data = save_batch_figures_using_infra(
                     batch_output_dir=batch_output_dir,
                     export_dir=figures_export_dir,
                     workflow=workflow,
-                    output_formats=plot_formats
+                    output_formats=plot_formats,
+                    svenn=config.force_supervenn
                 )
+                save_data_stores([create_data_store_component('commonality-data-store', shared_data)], export_dir)
                 logger.info(f"Figure generation completed using GUI infrastructure")
                 
             except Exception as e:
@@ -220,7 +232,8 @@ Examples:
     if not os.path.exists(args.toml_file):
         logger.error(f"TOML file not found: {args.toml_file}")
         sys.exit(1)
-    
+    if args.keep_batch_output:
+        batch_output_dir = f"{args.export_dir}/batch_output"
     try:
         # Run the refactored pipeline
         result = run_refactored_batch_pipeline(

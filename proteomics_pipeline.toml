@@ -9,8 +9,9 @@ samples = "app/data/PG example files/Proteomics sample table.tsv"
 # Output directory
 outdir = "proteomics_batch_out_4"
 
-# Figure template
+# Figure options
 figure_template = "plotly_white"
+force_supervenn = true
 
 # Data processing options
 remove_common_contaminants = true
@@ -19,7 +20,7 @@ unique_only = false
 
 [proteomics]
 # NA filtering
-na_filter_percent = 70
+na_filter_percent = 60
 na_filter_type = "sample-group"  # "sample-group" or "sample-set"
 
 # Normalization method
@@ -32,8 +33,8 @@ imputation = "QRILC"  # "knn", "mean", "QRILC", etc.
 comparison_file = "app/data/PG example files/Proteomics comparisons file.tsv"
 
 # Statistical thresholds
-fc_threshold = 1.5
-p_threshold = 0.05
+fc_threshold = 1
+p_threshold = 0.01
 test_type = "independent"
 
 # Alternative: specify control group directly instead of comparison file

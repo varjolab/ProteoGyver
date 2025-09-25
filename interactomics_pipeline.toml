@@ -9,8 +9,9 @@ samples = "app/data/PG example files/Interactomics sample table.tsv"
 # Output directory
 outdir = "interactomics_batch_out_4"
 
-# Figure template
+# Figure options
 figure_template = "plotly_white"
+force_supervenn = true
 
 # Data processing options
 remove_common_contaminants = true
@@ -35,8 +36,8 @@ additional_controls = ["VL GFP MAC3 10min AP", "VL GFP MAC2 18h AP"]
 crapome_sets = ["Nesvilab"]
 
 # SAINT analysis settings
-proximity_filtering = false  # Use most similar controls only
-n_controls = 3  # Number of controls to keep if proximity_filtering is true
+proximity_filtering = false  # Do not use most similar controls only # Deprecated, TODO: remove
+n_controls = 3  # Number of controls to keep if proximity_filtering is true # TODO: remove
 saint_bfdr_threshold = 0.05  # SAINT BFDR threshold for significance
 
 # CRAPome filtering settings
@@ -46,4 +47,5 @@ rescue_enabled = false  # Enable rescue filtering for borderline hits
 
 # Enrichment analysis (optional)
 # Using correct PantherDB enrichment names from the available options
-chosen_enrichments = ["Panther GOBP slim", "Panther GOMF slim", "Panther Reactome pathways"]
+chosen_enrichments = []
+#"Panther GOBP slim", "Panther GOMF slim", "Panther Reactome pathways"]

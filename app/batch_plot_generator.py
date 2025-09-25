@@ -51,6 +51,7 @@ import base64
 # Configure logging
 logger = logging.getLogger(__name__)
 
+#TODO from parameters.toml
 # Default figure settings (matching GUI defaults)
 DEFAULT_FIGURE_SETTINGS = {
     'height': 600,
@@ -61,7 +62,6 @@ DEFAULT_FIGURE_SETTINGS = {
         'modeBarButtonsToRemove': ['lasso2d', 'select2d']
     }
 }
-
 # Export formats for different plot types
 EXPORT_FORMATS = {
     'plotly': ['html', 'pdf', 'png'],  # Standard plotly figures
@@ -233,6 +233,13 @@ class BatchPlotGenerator:
             return plots
             
         try:
+            # 0. TIC plot
+            if 'tic' in qc_data:
+                for datatype in qc_data['tic'].keys():
+                    fig = tic_graph.tic_figure(defaults=self.figure_settings, traces=qc_data['tic'], datatype=datatype)
+                    plots[f'TIC plot - {datatype}'] = self._save_figure(
+                        fig, f'TIC plot - {datatype}', "QC figures"
+                    )
             # 1. Missing values per sample
             if 'missing_values_per_sample' in qc_data:
                 mv_data = pd.DataFrame(qc_data['missing_values_per_sample'])
@@ -291,8 +298,8 @@ class BatchPlotGenerator:
                         )
                         
             # 5. Shared identifications (supervenn plot)
-            if 'shared_proteins' in qc_data:
-                shared_data = qc_data['shared_proteins']
+            if 'commonality' in qc_data:
+                shared_data = qc_data['commonality']
                 if shared_data and isinstance(shared_data, dict):
                     # Convert to format expected by supervenn
                     group_sets = {}

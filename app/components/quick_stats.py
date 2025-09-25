@@ -61,7 +61,7 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
             result['Identifier'] = data_table.index
         else:
             result['Name'] = data_table.index.values
-        result['Gene']  = map_protein_info(result.index, db_file_path)
+        result['Gene']  = map_protein_info(result.index, db_file_path=db_file_path)
         result['Sample'] = sample
         result['Control'] = control
         result['Significant'] = ((result['p_value_adj']<adj_p_thr) & (result['fold_change'].abs() > fc_thr))

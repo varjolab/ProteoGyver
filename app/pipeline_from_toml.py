@@ -66,6 +66,7 @@ def _load_config(toml_path: str) -> BatchConfig:
         remove_common_contaminants=bool(gen.get("remove_common_contaminants", True)),
         rename_replicates=bool(gen.get("rename_replicates", False)),
         unique_only=bool(gen.get("unique_only", False)),
+        force_supervenn=bool(gen.get("force_supervenn", False)),
 
         # --- proteomics ---
         na_filter_percent=int(prot.get("na_filter_percent", 70)),
