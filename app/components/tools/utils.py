@@ -4,11 +4,57 @@ import tomlkit
 import os
 import tempfile
 from pathlib import Path
+from typing import Any, Dict, List, Union
 from zipfile import ZipFile, ZIP_DEFLATED, ZipInfo
 
-def read_toml(toml_file):
+def prefix_relative_paths(
+    data: Dict[str, Any],
+    basepath: Union[str, os.PathLike, None] = None,
+) -> Dict[str, Any]:
+    """Recursively prefix relative paths in a nested dict.
+
+    Values are strings, lists, or dicts.
+    - If value is dict → recurse.
+    - If value is str → if not absolute, prepend basepath.
+    - If value is list[str] → look at first element; if it's relative,
+      prepend basepath to every relative string in the list.
+
+    Args:
+        data: Input dictionary.
+        basepath: Base path to prepend. If None, uses global BASEPATH.
+
+    Returns:
+        A new dictionary with paths adjusted.
+    """
+    if basepath is None:
+        basepath = BASEPATH
+
+    def _absify(v: Any) -> Any:
+        if isinstance(v, dict):
+            return {k: _absify(val) for k, val in v.items()}
+        if isinstance(v, str):
+            return v if os.path.isabs(v) else os.path.join(str(basepath), v)
+        if isinstance(v, list):
+            if not v:
+                return []
+            first = v[0]
+            # Only treat as a list of paths if first element is a string
+            if isinstance(first, str) and not os.path.isabs(first):
+                out: List[Any] = [os.path.join(str(basepath), first)] + v[1:]
+                return out
+            else:
+                return v[:]  # leave as-is
+        # Any other type is left untouched
+        return v
+
+    return _absify(data)
+
+def read_toml(toml_file, baseify = ['Data paths']):
+    basepath = os.path.dirname(os.path.realpath(toml_file))
     with open(toml_file, 'r') as tf:
         data = tomlkit.load(tf)
+    for key in baseify:
+        data[key] = prefix_relative_paths(data[key], basepath)
     return data
 
 def normalize_key(s: str) -> str:

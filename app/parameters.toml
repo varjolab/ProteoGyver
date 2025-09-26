@@ -21,16 +21,17 @@ randomize = true
 "Archive dir" = "" # If not empty, instead of deleting old cahce dirs, they will be moved here instead
 
 ["Data paths"]
-"Cache dir" = ["/proteogyver", "cache"]
+"Cache dir" = ["cache"]
 "Database file" = ["data", "db", "proteogyver.sqlite3"]
 "Schema file" = ["resources", "proteogyver_schema.sql"]
 "Minimal database file" = ["data", "minimal_pg_test_db.sqlite3"]
 "Example files" = ["data", "PG example files"]
 "Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
+"Enrichers" = ["components", "enrichment"]
 
 ["Data paths"."Data import and export"]
-"Data import dir" = ["/proteogyver", "data", "Server_input"]
-"Data export dir" = ["/proteogyver", "data", "Server_output"]
+"Data import dir" = ["data", "Server_input"]
+"Data export dir" = ["data", "Server_output"]
 
 ["Database creation"]
 "Contaminants table" = "contaminant_list.tsv"
@@ -191,9 +192,6 @@ format = "png"
 "Bait ID column names" = ["bait uniprot", "bait id", "bait identifier", "baitid", "bait up"]
 "Do not show in enrichment default" = []
 "Maximum psm ever theoretically encountered" = 5000
-
-["Module paths"]
-Enrichers = ["components", "enrichment"]
 
 ["Possible values"]
 "Figure templates" = ["plotly_white", "simple_white", "plotly_dark"]

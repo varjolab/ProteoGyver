@@ -14,7 +14,6 @@ from io import StringIO
 import os
 import shutil
 import zipfile
-import markdown
 import pandas as pd
 from uuid import uuid4
 from datetime import datetime
@@ -966,11 +965,7 @@ def proteomics_cv_plot(uploaded_data: Dict[str, Any], na_filtered_data: Dict[str
             - html.Div: CV plot components showing variation across samples
             - dict: CV analysis data for storage
     """
-    raw_int_data: pd.DataFrame = pd.read_json(StringIO(uploaded_data['data tables']['raw intensity']), orient='split')
-    na_filtered_table: pd.DataFrame = pd.read_json(StringIO(na_filtered_data), orient='split')
-    # Drop rows that are no longer present in filtered data
-    raw_int_data.drop(index=list(set(raw_int_data.index)-set(na_filtered_table.index)),inplace=True)
-    return proteomics.perc_cvplot(raw_int_data, upload_dict['sample groups']['norm'], replicate_colors, parameters['Figure defaults']['full-height'])
+    return proteomics.perc_cvplot(uploaded_data['data tables']['raw intensity'], na_filtered_data, upload_dict['sample groups']['norm'], replicate_colors, parameters['Figure defaults']['full-height'])
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-pca-plot-div'}, 'children'),
@@ -1961,35 +1956,7 @@ def prepare_for_download(
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
-    with open(os.path.join('data','output_guide.md')) as fil:
-        text: str = fil.read()
-        html_content: str = markdown.markdown(text, extensions=['markdown.extensions.nl2br', 'markdown.extensions.sane_lists'])
-    with open(os.path.join(export_dir, 'README.html'),'w',encoding='utf-8') as fil:
-        html_template = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    line-height: 1.6;
-                    margin: 40px;
-                }}
-                ul, ol {{
-                    padding-left: 20px;
-                    margin-bottom: 20px;
-                }}
-                li {{
-                    margin-bottom: 8px;
-                }}
-            </style>
-        </head>
-        <body>
-        {html_content}
-        </body>
-        </html>
-        """
-        fil.write(html_template)
+    infra.write_README(export_dir, os.path.join('data','output_guide.md'))
     return export_dir, infra.temporary_download_button_loading_divs()
 
 @callback(

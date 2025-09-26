@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # Run your Dash analysis headlessly, step-by-step.
 
+from __future__ import annotations
+
 import os, json, base64, time
 import pandas as pd
 from io import StringIO
 from dataclasses import dataclass, field, asdict, is_dataclass
 from typing import Any, Dict, List, Optional, Tuple
 import pickle
+from collections.abc import Mapping
 
 # --- import the same modules used by your callbacks ---
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
 from components.figures.color_tools import get_assigned_colors
-
-from __future__ import annotations
-from collections.abc import Mapping
 
 def dash_to_wire(obj):
     """Recursively convert Dash/Plotly components to dicts/lists like callbacks see.
@@ -302,6 +302,12 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
     divs["normalization"] = normalization_div
     # Imputation
     if normalized is not None:
+        missing_values_in_other_samples_div = proteomics.missing_values_in_other_samples(
+            normalized,
+            params["Figure defaults"]["full-height"],
+        )
+        divs["missing_values_in_other_samples"] = missing_values_in_other_samples_div
+        
         imputation_div, imputed = proteomics.imputation(
             normalized, cfg.imputation,
             params["Figure defaults"]["full-height"],
@@ -322,44 +328,18 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
         )
         _dump_json(cfg.outdir, "13_pca", pca_data)
         divs["pca"] = pca_div
+
         # CV analysis
-        raw_int_data = data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
-        raw_int_data.drop(index=list(set(raw_int_data.index)-set(na_filtered.index)),inplace=True)
-        cv_div, cv_data = protepmics.perc_cvplot(
-            raw_int_data,
-            data_dictionary["sample groups"]["norm"],
-            rep_colors,
-            params["Figure defaults"]["full-height"],
-        )
-        if False:
-            from components.figures.cvplot import make_graph as cv_make_graph
-            import pandas as pd
-            imputed_df = pd.read_json(StringIO(imputed), orient='split')
-            cv_graph = cv_make_graph(
-                imputed_df,
+        if True:
+            cv_div, cv_data = proteomics.perc_cvplot(
+                data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
+                na_filtered,
                 data_dictionary["sample groups"]["norm"],
                 rep_colors,
                 params["Figure defaults"]["full-height"],
-                "proteomics-cv-plot"
             )
-            # Extract CV data from graph figure
-            cv_data = {
-                'group_means': {},
-                'group_cvs': {},
-                'group_stds': {}
-            }
-            # Calculate CV data (same logic as cvplot.py)
-            for sg, group_cols in data_dictionary["sample groups"]["norm"].items():
-                means = imputed_df[group_cols].mean(axis=1)
-                stds = imputed_df[group_cols].std(axis=1)
-                means = means[stds.notna()]
-                stds = stds[stds.notna()]
-                cv_percent = (stds / means) * 100
-                cv_data['group_cvs'][sg] = cv_percent.to_dict()
-                cv_data['group_means'][sg] = means.to_dict()
-                cv_data['group_stds'][sg] = stds.to_dict()
-        _dump_json(cfg.outdir, "13_cv", cv_data)
-        divs["cv"] = cv_div
+            _dump_json(cfg.outdir, "13_cv", cv_data)
+            divs["cv"] = cv_div
         # Clustermap/correlation clustering
         clustermap_div, clustermap_data = proteomics.clustermap(
             imputed,

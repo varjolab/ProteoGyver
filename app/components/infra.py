@@ -32,6 +32,7 @@ from plotly import io as pio
 from plotly import graph_objects as go
 from io import StringIO
 import re
+import markdown
 import json
 import pandas as pd
 from base64 import b64decode
@@ -102,6 +103,8 @@ figure_export_directories: dict = {
     'Filtered Prey counts per bait': 'Interactomics figures',
     'Identified known interactions': 'Interactomics figures',
     'Sample run TICs': 'QC figures',
+    'Sample run BPCs': 'QC figures',
+    'Sample run MSns': 'QC figures',
     'Missing values per sample': 'QC figures',
     'SPC PCA': 'Interactomics figures',
     'Protein identification coverage': 'QC figures',
@@ -134,11 +137,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
         export_dir: Directory path where files should be saved
         
     """
-    odir = 'debug/datastores'
-    os.makedirs(odir, exist_ok=True)
-    with open(os.path.join(odir, 'data_stores.pickle'),'wb') as fil:
-        import pickle
-        pickle.dump(data_stores, fil)
     prev_time: datetime = datetime.now()
     logger.info(f'save data stores - started: {prev_time}')
     fails = {}
@@ -149,8 +147,6 @@ def save_data_stores(data_stores, export_dir) -> dict:
         if isinstance(d['props']['data'], str):
             if d['props']['data'].strip() == '':
                 continue
-        with open(os.path.join(odir, f'{d["props"]["id"]["name"]}.json'),'w') as fil:
-            json.dump(d, fil, indent=2)
         export_format: str
         export_subdir: str
         file_name: str
@@ -353,6 +349,43 @@ def get_all_types(elements, get_types) -> list:
             ret.extend(get_all_types(e, get_types))
     return ret
 
+def write_README(save_dir, guide_file) -> None:
+    """Writes a README file to the export directory.
+    
+    Args:
+        save_dir: Directory to save the README file in
+        guide_file: Path to the readme contents markdown file.
+    """
+
+    with open(guide_file) as fil:
+        text: str = fil.read()
+        html_content: str = markdown.markdown(text, extensions=['markdown.extensions.nl2br', 'markdown.extensions.sane_lists'])
+    html_template = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                margin: 40px;
+            }}
+            ul, ol {{
+                padding-left: 20px;
+                margin-bottom: 20px;
+            }}
+            li {{
+                margin-bottom: 8px;
+            }}
+        </style>
+    </head>
+    <body>
+    {html_content}
+    </body>
+    </html>
+    """
+    with open(os.path.join(save_dir, 'README.html'),'w',encoding='utf-8') as fil:
+        fil.write(html_template)
 
 def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, workflow) -> None:
     """Saves figures from the analysis to files in various formats.
@@ -369,14 +402,6 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
     headers_and_figures: list = get_all_types(
         analysis_divs, ['h4', 'h5', 'graph', 'img', 'P'])
     figure_names_and_figures: list = []
-    odir = 'debug/figures'
-    os.makedirs(odir, exist_ok=True)
-    with open(os.path.join(odir, 'analysis_divs.pickle'),'wb') as fil:
-        import pickle
-        pickle.dump(analysis_divs, fil)
-    with open(os.path.join(odir, 'commonality_pdf_data.pickle'),'wb') as fil:
-        import pickle
-        pickle.dump(commonality_pdf_data, fil)
     prev_time: datetime = datetime.now()
     # if there is pdf data, it means that matplotlib engine was used to generate this particular figure, and we need to add it to the queue in this form:
     if (commonality_pdf_data is not None) and (len(commonality_pdf_data) > 0):
@@ -524,9 +549,6 @@ def save_input_information(input_divs, export_dir) -> None:
     ]
     input_options: list = []
     labels_and_inputs: list = get_all_types(input_divs, these)
-    with open('labs.pickle','wb') as fil:
-        import pickle
-        pickle.dump(labels_and_inputs, fil)
     for i, label in enumerate(labels_and_inputs):
         if label['type'] != 'Label':
             continue

@@ -26,8 +26,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 from pipeline_batch import run_pipeline
 from pipeline_from_toml import _load_config
 from batch_data_store_builder import build_data_stores_from_batch_output, create_data_store_component
-from batch_figure_builder import save_batch_figures_using_infra
-from components.infra import save_data_stores
+from batch_figure_builder_from_divs import save_batch_figures_using_saved_divs
+from components.infra import save_data_stores, write_README
+from components import parsing
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,8 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
     """
     if plot_formats is None:
         plot_formats = ['html', 'pdf', 'png']
-        
+    parameters_file = 'app/parameters.toml'
+    parameters = parsing.parse_parameters(parameters_file)
     # Generate session name from timestamp
     session_name = f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}--refactored-batch"
     
@@ -141,14 +143,13 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
                 logger.info("Step 3: Generating figures using GUI infrastructure...")
                 figures_export_dir = export_dir
                 
-                figure_summary, shared_data = save_batch_figures_using_infra(
+                figure_summary = save_batch_figures_using_saved_divs(
                     batch_output_dir=batch_output_dir,
                     export_dir=figures_export_dir,
                     workflow=workflow,
-                    output_formats=plot_formats,
-                    svenn=config.force_supervenn
+                    parameters=parameters,
+                    output_formats=plot_formats
                 )
-                save_data_stores([create_data_store_component('commonality-data-store', shared_data)], export_dir)
                 logger.info(f"Figure generation completed using GUI infrastructure")
                 
             except Exception as e:
@@ -156,6 +157,7 @@ def run_refactored_batch_pipeline(toml_path: str, export_dir: str = None,
                 # Don't raise - figures are optional
                 figure_summary = {"error": str(e)}
     
+        write_README(export_dir, os.path.join('app', 'data','output_guide.md'))
     finally:
         # Clean up temporary directory if used
         if temp_context:

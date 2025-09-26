@@ -293,8 +293,13 @@ def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
         ]
     )
 
-def perc_cvplot(raw_int_data: pd.DataFrame, sample_groups: dict, replicate_colors: dict, defaults: dict) -> Graph:
-    graph, data = cvplot.make_graph(raw_int_data,sample_groups, replicate_colors, defaults, 'proteomics-cv-plot')
+def perc_cvplot(raw_int_data: str, na_filtered_data: str, sample_groups: dict, replicate_colors: dict, defaults: dict) -> tuple:
+    raw_int_df: pd.DataFrame = pd.read_json(StringIO(raw_int_data), orient='split')
+    na_filtered_df: pd.DataFrame = pd.read_json(StringIO(na_filtered_data), orient='split')
+    # Drop rows that are no longer present in filtered data
+    raw_int_df.drop(index=list(set(raw_int_df.index)-set(na_filtered_df.index)),inplace=True)
+
+    graph, data = cvplot.make_graph(raw_int_df,sample_groups, replicate_colors, defaults, 'proteomics-cv-plot')
     return (
         html.Div(
             id = 'proteomics-cv-div',

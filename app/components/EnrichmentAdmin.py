@@ -13,7 +13,7 @@ class EnrichmentAdmin:
         self._enrichments: dict = {}
         self._defaults: dict = {}
         self._disabled: list = []
-        self._handler_basedir: str = os.path.join(*parameters['Module paths']['Enrichers'])
+        self._handler_basedir: str = os.path.join(*parameters['Data paths']['Enrichers'])
         
         for _module_filename in os.listdir(self._handler_basedir):
             if not _module_filename.endswith('.py'):
