@@ -5,11 +5,13 @@ Server_output/
 Server_input/
 app/data/db/db build files/
 app/pages/proteomics_fi.py
+debug/
 
 __pycache__/
 .ipynb_checkpoints/
 tmp/
 logs/
+.vscode/
 
 # Virtual environments
 env/
@@ -28,3 +30,4 @@ ENV/
 
 # Database files
 *.db
+*.sqlite3
