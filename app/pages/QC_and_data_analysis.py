@@ -17,6 +17,7 @@ import zipfile
 import pandas as pd
 from uuid import uuid4
 from datetime import datetime
+from pathlib import Path
 from dash import html, callback, no_update, ALL, dcc, register_page
 from dash.dependencies import Input, Output, State
 from components import ui_components as ui
@@ -37,7 +38,7 @@ logger = logging.getLogger(__name__)
 logger.info(f'{__name__} loading')
 
 parameters_file = 'parameters.toml'
-parameters: Dict[str, Any] = parsing.parse_parameters(parameters_file)
+parameters: Dict[str, Any] = parsing.parse_parameters(Path(parameters_file))
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: List[str] = db_functions.get_contaminants(db_file)
 figure_output_formats: List[str] = ['html', 'png', 'pdf']

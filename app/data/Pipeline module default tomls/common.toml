@@ -1,0 +1,17 @@
+[pipeline]
+keep_batch_output = false # true or false. True only for debugging purposes
+plot_formats = ["png", "html", "pdf"] # allowed: "png", "svg", "jpeg", "webp", 'html', 'pdf'
+
+[general]
+workflow = "interactomics" # Workflow type: "proteomics" or "interactomics"
+
+# Figure options
+figure_template = "plotly_white" # allowed: "plotly_white", "simple_white", "plotly_dark"
+force_supervenn = true # true or false
+
+# Data processing options
+remove_common_contaminants = true # true or false
+rename_replicates = false # true or false
+unique_only = false # true or false
+[interactomics]
+[proteomics]

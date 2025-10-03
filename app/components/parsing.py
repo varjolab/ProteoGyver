@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from collections.abc import Mapping
 import os
+from pathlib import Path
 from components import db_functions, text_handling
 from components import EnrichmentAdmin
 from components.tools import utils
@@ -124,11 +125,11 @@ def unmix_dtypes(df: pd.DataFrame) -> None:
             raise TypeError(f"Unable to convert {col} to a non-mixed dtype. Its previous dtype was {orig_dtype} and new dtype is {new_dtype}.")
 
 
-def parse_parameters(parameters_file: str) -> Dict[str, Any]:
-    """Parses and enriches parameters from a JSON configuration file.
+def parse_parameters(parameters_file: Union[str, Path]) -> Dict[str, Any]:
+    """Parses and enriches parameters from a TOML configuration file.
     
     Args:
-        parameters_file (str): Path to parameters JSON file
+        parameters_file (Union[str, Path]): Path to parameters TOML file
         
     Returns:
         dict: Enriched parameters dictionary containing:
@@ -143,7 +144,7 @@ def parse_parameters(parameters_file: str) -> Dict[str, Any]:
         - Adds enrichment analysis options
         - Updates SAINT temporary directory path
     """
-    parameters = utils.read_toml(parameters_file)
+    parameters = utils.read_toml(Path(parameters_file))
     
     if not os.path.exists(os.path.join(*parameters['Data paths']['Database file'])):
         parameters['Data paths']['Database file'] = parameters['Data paths']['Minimal database file']
@@ -183,8 +184,7 @@ def parse_parameters(parameters_file: str) -> Dict[str, Any]:
         1
     )
     db_conn.close()
-    parameters['External tools']['SAINT tempdir'] = [
-        os.getcwd()]+parameters['External tools']['SAINT tempdir']
+    
     if not 'interactomics' in parameters['workflow parameters'].keys():
         parameters['workflow parameters']['interactomics'] = {}
     parameters['workflow parameters']['interactomics']['crapome'] = {

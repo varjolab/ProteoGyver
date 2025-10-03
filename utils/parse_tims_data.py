@@ -6,6 +6,7 @@ import os
 import pandas as pd
 from datetime import datetime
 import traceback
+from pathlib import Path
 from plotly import io as pio
 from plotly import graph_objects as go
 import json
@@ -13,7 +14,8 @@ from scipy.ndimage import gaussian_filter1d
 import tomlkit
 
 def read_toml(toml_file):
-    with open(toml_file, 'r') as tf:
+    toml_path = Path(toml_file)
+    with toml_path.open('r', encoding='utf-8') as tf:
         data = tomlkit.load(tf)
     return data
 
@@ -161,7 +163,7 @@ if len(sys.argv) != 5:
 indir, outdir, errorfile, parameters_file = sys.argv[1:]
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-parameters = read_toml(parameters_file)['Database creation']['MS runs information']
+parameters = read_toml(Path(parameters_file))['Database creation']['MS runs information']
 run_id_regex = parameters['MS run ID regex']
 for root, dirs, files in os.walk(indir):
     for d in dirs:

@@ -643,7 +643,6 @@ def saint_cmd(saint_input: Dict[str, List[List[str]]],
         baitfile.flush()
         preyfile.flush()
         intfile.flush()
-        print(f'running saint in {temp_dir}, {intfile.name} {preyfile.name} {baitfile.name}: {datetime.now()}')
         try:
             sh.SAINTexpressSpc(intfile.name, preyfile.name, baitfile.name, _cwd=temp_dir)
         except sh.CommandNotFound:

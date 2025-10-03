@@ -4,6 +4,8 @@
 "Local debug" = false
 LogDir = "logs"
 LogLevel = 20
+"Log compress days" = 3
+"Log keep days" = 365
 "R error file" = "R_errors.log"
 "Time format" = "%Y-%m-%d %H:%M:%S"
 # Either integer or "ncpus"
@@ -16,9 +18,13 @@ padding = 10
 randomize = true
 
 ["Maintenance"."Cleanup"."Cache dir"]
-"Path" = "Data paths" # Either a list (e.g. ["/proteogyver", "cache"]), or if a string, the path must be found in "Data paths" below.
+"Path" = "Data paths" # Either a list (e.g. ["/proteogyver", "cache"]), or if a string, the path must be found in "Data paths" below. e.g. in this case, "Cache dir" is a key both here and in "Data paths"
 "Clean unusedinterval days" = 4 # either integer or "NO CLEANUP"
-"Archive dir" = "" # If not empty, instead of deleting old cahce dirs, they will be moved here instead
+"Archive dir" = "" # If not empty, instead of deleting old cache dirs, they will be moved here instead
+["Maintenance"."MS run parsing"]
+"Input files" = ["params:Data paths.Data import and export.Data import dir", "MS runs jsons"]
+"Move done jsons into subdir" = "parsed_jsons" # If this is set to an empty string, the json files will be deleted after parsing.
+"Compress done when filecount over" = 1000
 
 ["Data paths"]
 "Cache dir" = ["cache"]
@@ -28,16 +34,24 @@ randomize = true
 "Example files" = ["data", "PG example files"]
 "Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
 "Enrichers" = ["components", "enrichment"]
+"DB build files" = ["data", "db build files"]
+"External" = ["external"]
+"Api data" = ["components", "api_tools", "data"]
+"Data dir" = ["data"]
 
 ["Data paths"."Data import and export"]
 "Data import dir" = ["data", "Server_input"]
 "Data export dir" = ["data", "Server_output"]
 
+["Pipeline module"]
+"Input watch directory" = ["params:Data paths.Data import and export.Data import dir", "Pipeline_input"]
+"Default toml files directory" = ["params:Data paths.Data dir", "Pipeline module default tomls"]
+
 ["Database creation"]
+"Database build files directory" = ["params:Data paths.DB build files"]
 "Contaminants table" = "contaminant_list.tsv"
 "Control table" = "control table.tsv"
 "Crapome table" = "crapome table.tsv"
-"Database build files directory" = ["data", "db build files"]
 "Organisms to include in database" = [9606]
 "Sets not included in controls" = ["Nesvilab"]
 "Control and crapome db detailed columns" = [
@@ -61,21 +75,6 @@ randomize = true
     "REAL NOT NULL"
 ]
 "Default control disabled regex list" = [".*[Mm][Aa][Cc]2.*"]
-
-["Database creation"."MS runs information"]
-#These directories should be ignored when loading run data into the database. 
-"Ignore runs from dirs" = ["BRE_20_xxxxx_Helsinki", "TrapTrouble_3"]
-#Directory containing parsed run jsons from parse_tims_data.py (or equivalent)
-"MS run data dir" = ["/media","kmsaloka","Expansion","20241118_parse","MS run data"]
-"handled MS run data dir" = ["data", "Server_input", "MS run data handled"]
-# This regex should capture the run ID from the MS run folder name. As currently only timstof data is supported, each run corresponds to a folder with .d in the name. In our case, it is in the form of either "1234_RUN_NAME_HERE.d" or "1234_Tomppa_RUN_NAME_HERE.d"
-# However, we don't care about the run name or the .d part, only the ID, and "_Tomppa", if present. 
-"MS run ID regex" = "^(\\d+)(?:(_Tomppa))?"
-# This excel should contain columns defined by Additional info excel columns.
-# Column name changes requires changes to database_generator.py, and also anywhere where such columns are referenced.
-"Additional info excel" = ["data", "db build files", "combined runlist for PG.xlsx"]
-"Additional info excel columns" = ["Sample name","Who","Sample type","Bait name","Bait / other uniprot or ID","Bait mutation","Cell line / material","Project","Notes","tag"]
-
 
 ["Database creation"."Control and crapome sets"]
 "VL GFP MAC3 10min AP" = ["VL GFP MAC3-N AP-MS"]
@@ -109,8 +108,8 @@ randomize = true
 "Nesvilab" = ["nesvilab"]
 
 ["Database creation"."Control and crapome column mapping"]
-"crapome" = ["data", "db build files", "crapome sets.json"]
-"control" = ["data", "db build files", "control sets.json"]
+"crapome" = ["params:Data paths.DB build files", "crapome sets.json"]
+"control" = ["params:Data paths.DB build files", "control sets.json"]
 
 ["Database updater"]
 "Allowed missing columns" = 3
@@ -118,8 +117,7 @@ randomize = true
 "Log table" = "update_log"
 "Update interval minutes" = 15
 "External data update interval days" = 30
-"MS runs update interval minutes" = 15
-"Tsv templates directory" = ["data", "Server_output", "db update tsv templates"]
+"Tsv templates directory" = ["params:Data paths.Data import and export.Data export dir", "db update tsv templates"]
 "Database clean interval days" = 60
 # These specify whether we should delete data from the database that is no longer in uniprot or known databases during database update.
 # Uniprot especially should probably be left to false, as custom added proteins do exist in the database, e.g. tags and old crapome entries.
@@ -127,8 +125,6 @@ randomize = true
 "Delete old interactions" = true
 # These columns are not compared when checking for differences between existing database and new incoming data from update tables.
 "Ignore diffs" = [ "biological_role_interactor_a", "annotation_interactor_a", "annotation_interactor_b", "biological_role_interactor_b", "is_latest", "contamination_source", "entry_source", "version_update_time", "prev_version", "update_time", "modification", "ontology_term_categories",    "intact_creation_date",    "intact_update_date",    "experimental_role_interactor_a",    "experimental_role_interactor_b",    "ontology_term_ids",    "ontology_term_names",    "ontology_term_qualifier_ids",    "ontology_term_qualifier_names",    "ontology_term_types",    "qualifications",    "tags",    "publication_count",    "throughput"]
-"MS run json directory" = ["data", "Server_input", "MS runs","MS_run_jsons"]
-"Move MS run jsons to directory" = ["data", "Server_input", "MS runs", "Done jsons"]
 
 ["Database updater"."Database table primary keys"]
 common_proteins = "uniprot_id"
@@ -142,33 +138,33 @@ msmicroscopy = "Interaction"
 proteins = "uniprot_id"
 
 ["Database updater"."Update files"]
-common_proteins = ["data", "Server_input", "db_updates", "common_proteins"]
-contaminants = ["data", "Server_input", "db_updates", "contaminants"]
-control_sets = ["data", "Server_input", "db_updates", "control_sets"]
-crapome_sets = ["data", "Server_input", "db_updates", "crapome_sets"]
-known_interactions = ["data", "Server_input", "db_updates", "known_interactions"]
-ms_runs = ["data", "Server_input", "db_updates", "ms_runs"]
-ms_plots = ["data", "Server_input", "db_updates", "ms_plots"]
-msmicroscopy = ["data", "Server_input", "db_updates", "msmicroscopy"]
-proteins = ["data", "Server_input", "db_updates", "proteins"]
-add_or_replace = ["data", "Server_input", "db_updates", "add_or_replace"]
-remove_data = ["data", "Server_input", "db_updates", "remove_data"]
+common_proteins = ["params:Data paths.Data import and export.Data import dir", "db_updates", "common_proteins"]
+contaminants = ["params:Data paths.Data import and export.Data import dir", "db_updates", "contaminants"]
+control_sets = ["params:Data paths.Data import and export.Data import dir", "db_updates", "control_sets"]
+crapome_sets = ["params:Data paths.Data import and export.Data import dir", "db_updates", "crapome_sets"]
+known_interactions = ["params:Data paths.Data import and export.Data import dir", "db_updates", "known_interactions"]
+ms_runs = ["params:Data paths.Data import and export.Data import dir", "db_updates", "ms_runs"]
+ms_plots = ["params:Data paths.Data import and export.Data import dir", "db_updates", "ms_plots"]
+msmicroscopy = ["params:Data paths.Data import and export.Data import dir", "db_updates", "msmicroscopy"]
+proteins = ["params:Data paths.Data import and export.Data import dir", "db_updates", "proteins"]
+add_or_replace = ["params:Data paths.Data import and export.Data import dir", "db_updates", "add_or_replace"]
+remove_data = ["params:Data paths.Data import and export.Data import dir", "db_updates", "remove_data"]
 
 ["Database updater"."Database snapshot settings"]
+"Snapshot dir" = ["params:Data paths.Data import and export.Data export dir", "db snapshots"]
 "Snapshot interval days" = 30
-"Snapshot dir" = ["data", "Server_output", "db snapshots"]
 "Snapshots to keep" = 3
 
 ["Database updater"."Versions to keep"]
+biogrid_path = ["params:Data paths.Api data", "BioGRID"]
+intact_path = ["params:Data paths.Api data", "IntAct"]
 biogrid = 3
 intact = 3
-biogrid_path = "components/api_tools/data/BioGRID/"
-intact_path = "components/api_tools/data/IntAct/"
 biogrid_regex = "BIOGRID-ALL-(\\d+\\.\\d+\\.\\d+)"
 intact_regex = "^(\\d{4}-\\d{2}-\\d{2})_intact"
 
 ["External tools"]
-"SAINT tempdir" = ["external", "SAINTexpress"]
+"SAINT tempdir" = ["params:Data paths.External", "SAINTexpress"]
 
 ["Figure defaults".full-height]
 width = 1000
@@ -219,4 +215,3 @@ Median = "Median"
 Quantile = "Quantile"
 Vsn = "Vsn"
 "No normalization" = "no_normalization"
-

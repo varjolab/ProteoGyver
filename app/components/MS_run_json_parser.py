@@ -1,0 +1,151 @@
+import os
+import json
+import pandas as pd
+import re
+import shutil
+import time
+import logging
+import zipfile
+from celery import shared_task
+from datetime import datetime
+from pathlib import Path
+from components.tools.utils import read_toml, normalize_key, dig_dict
+from components import db_functions
+from app import celery_app
+from celery_once import QueueOnce
+
+logger = logging.getLogger("MS_run_json_parser")
+
+@shared_task(base=QueueOnce, once={'graceful': True})
+def parse_json_files():
+    """
+    Parse json files from the MS run data directory. The files are created by MSParser.py, and output will be written to the MS run data input directory for db_updater.
+    """
+    logger.info("Starting parsing of json files")
+    parameters = read_toml(Path('parameters.toml'))
+    input_path = os.path.join(*parameters['Maintenance']['MS run parsing']['Input files'])
+    os.makedirs(input_path, exist_ok=True)
+    jsons_to_do = os.listdir(input_path)
+    if len(jsons_to_do) == 0:
+        return ('No json files to parse')
+    move_done_dir = os.path.join(input_path, parameters['Maintenance']['MS run parsing']['Move done jsons into subdir'])
+    if move_done_dir == input_path:
+        move_done_dir = None
+    compress_done_when_filecount_over = parameters['Maintenance']['MS run parsing']['Compress done when filecount over']
+    trace_keys = ['internal_run_id']
+    for tt in ['BPC','MSn','TIC']:
+        trace_keys.extend([
+            f'{tt}_auc',
+            f'{tt}_maxtime',
+            f'{tt}_max_intensity',
+            f'{tt}_mean_intensity',
+            f'{tt}_trace',
+        ])
+    run_index = max([int(i.rsplit('_',maxsplit=1)[-1]) for i in db_functions.get_from_table(conn, 'ms_runs', select_col = 'internal_run_id')]) + 1
+    base_id = 'PG_runID_'
+
+    base_keys = [
+        'data_type',
+        'file_name',
+        'file_size',
+        'parsed_date',
+        'sample_id'
+    ]
+    instrument_to_main = [
+        'inst_model',
+        'inst_serial_no',
+        'inst_name',
+        'extras'
+    ]
+    run_to_main = [
+        'processing_method',
+        'method_name',
+        'ms_method',
+        'run_date',
+        'start_time',
+        'end_time',
+        'last_scan_number'
+    ]    
+    sample_to_main = [
+        'sample_name',
+    ]
+    headers = [ 'internal_run_id' ] + base_keys + [ 'file_name_clean' ]
+    headers.extend(['sample_' + c for c in sample_to_main])
+    headers.extend(['run_' + c for c in run_to_main])
+    headers.extend(['inst_' + c for c in instrument_to_main])
+    for rep in ['sample','run','inst']:
+        headers = [h.replace(f'{rep}_{rep}_', f'{rep}_') for h in headers]
+    MS_rows = []
+    trace_rows = []
+
+    print_i = 0
+    done_jsons = []
+    for file in jsons_to_do:
+        print_i +=1
+        if not os.path.isfile(os.path.join(input_path,file)):
+            continue
+        with open(os.path.join(input_path, file)) as fil:
+            dic = json.load(fil)
+        internal_run_ID = f'{base_id}{run_index}'
+        run_index += 1
+            
+        new_row = [ internal_run_ID]
+        for bk in base_keys:
+            if bk in dic:
+                new_row.append(dic[bk])
+            else:
+                new_row.append('')
+        new_row.append(normalize_key(dic['file_name']))
+        for bk in sample_to_main:
+            if bk in dic['sample']:
+                new_row.append(dic['sample'][bk])
+            else:
+                new_row.append('')
+        for bk in run_to_main:
+            if bk in dic['run']:
+                new_row.append(dic['run'][bk])
+            else:
+                new_row.append('')
+        for bk in instrument_to_main:
+            if bk in dic['instrument']:
+                new_row.append(dic['instrument'][bk])
+            else:
+                new_row.append('')
+        trace_row = [ internal_run_ID ]
+        if trace_keys is None:
+            trace_keys = sorted(list(dic['traces']))
+        for tk in trace_keys:
+            if tk == 'internal_run_id': continue
+            if tk not in dic['traces']:
+                trace_row.append('placeholder')
+            else:
+                trace_row.append(dic['traces'][tk])
+        MS_rows.append(new_row)
+        trace_rows.append(trace_row)
+        if print_i % 1000 == 0: 
+            logger.info(f'{print_i} files done')
+        done_jsons.append(file)
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+    msrows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_runs'], f'{timestamp}_jsonParser_MSruns.tsv')
+    tracerows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_plots'], f'{timestamp}_jsonParser_MStraces.tsv')
+
+    pd.DataFrame(data = MS_rows, columns=headers).to_csv(msrows_filename,sep='\t',index=False)
+    pd.DataFrame(data = trace_rows, columns=trace_keys).to_csv(tracerows_filename,sep='\t',index=False)
+
+    if move_done_dir:
+        os.makedirs(move_done_dir, exist_ok=True)
+        for file in done_jsons:
+            shutil.move(os.path.join(input_path, file), os.path.join(move_done_dir, file))
+        jsons_in_dir = [j for j in os.listdir(input_path) if j.endswith('.json')]
+        if len(jsons_in_dir) > compress_done_when_filecount_over:
+            with zipfile.ZipFile(os.path.join(input_path, f'{timestamp}_done_jsons.zip'), 'w') as zipf:
+                for file in jsons_in_dir:
+                    zipf.write(os.path.join(input_path, file), file)
+            for file in jsons_in_dir:
+                os.remove(os.path.join(input_path, file))
+    else:
+        for file in done_jsons:
+            os.remove(os.path.join(input_path, file))
+    logger.info('Parsing of json files complete')
+    return f"Parsing of json files complete. Moved: {len(done_jsons)} files to {move_done_dir}. Compressed: {len(jsons_in_dir)} files to {os.path.join(input_path, f'{timestamp}_done_jsons.zip')}"

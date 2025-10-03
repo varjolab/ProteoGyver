@@ -3,6 +3,7 @@ import shutil
 import time
 import logging
 import zipfile
+from pathlib import Path
 from celery import shared_task
 from datetime import datetime, timedelta
 from components.tools.utils import read_toml
@@ -16,7 +17,8 @@ def cleanup_cache_folders():
     Remove cache folders not touched in recently enough, as per parameter Maintenance->Clean unused cache interval days.
     If Maintenance->Archive cache dir is set, zip non-empty folders and move to archive, only delete empty folders.
     """
-    parameters = read_toml('parameters.toml')
+    logger.info("Starting cleanup of cache folders")
+    parameters = read_toml(Path('parameters.toml'))
     cleanup_settings = parameters.get('Maintenance', {}).get('Cleanup', {})
     if not cleanup_settings:
         return
@@ -80,3 +82,101 @@ def cleanup_cache_folders():
                             logger.warning(f"During cleanup of {dirname}, failed to remove {path}: {e}")
 
         logger.info(f"Cleanup for {dirname} complete. Removed: {removed}. Archived: {archived}")
+
+
+@shared_task
+def rotate_logs():
+    """
+    Rotate and clean up log files according to parameters in parameters.toml:
+    - Config.LogDir: directory containing logs
+    - Config."Log compress days": files older than this (by filename date prefix) are compressed per calendar month
+    - Config."Log keep days": files (logs or weekly zips) older than this are deleted
+
+    Log naming convention: all files are prefixed with "%Y-%m-%d_".
+    Monthly ZIP naming: "%Y-%m_logs.zip" (calendar year-month).
+    """
+    parameters = read_toml(Path('parameters.toml'))
+    config = parameters.get('Config', {})
+    log_dir = Path(config.get('LogDir', 'logs'))
+    compress_days = int(config.get('Log compress days', 7))
+    keep_days = int(config.get('Log keep days', 365))
+
+    if not log_dir.exists() or not log_dir.is_dir():
+        logger.warning(f"Log directory does not exist or is not a directory: {log_dir}")
+        return
+
+    now = datetime.now()
+
+    # Helpers to parse dates from filenames
+    def parse_log_date(name: str):
+        # Expect prefix YYYY-MM-DD_
+        try:
+            return datetime.strptime(name[:10], "%Y-%m-%d")
+        except Exception:
+            return None
+
+    def parse_zip_month(name: str):
+        # Expect prefix YYYY-MM_ or YYYY-MM (we use YYYY-MM_logs.zip)
+        try:
+            return datetime.strptime(name[:7], "%Y-%m")
+        except Exception:
+            return None
+
+    # Group log files by calendar year-month for compression
+    month_to_files = {}
+    for entry in log_dir.iterdir():
+        if not entry.is_file():
+            continue
+        if entry.suffix.lower() == '.zip':
+            continue
+        file_dt = parse_log_date(entry.name)
+        if not file_dt:
+            continue
+        age_days = (now - file_dt).days
+        if age_days < compress_days:
+            continue
+        ym_key = (file_dt.year, file_dt.month)
+        month_to_files.setdefault(ym_key, []).append(entry)
+
+    # Compress per month with max compression and then remove originals
+    for (yy, mm), files in sorted(month_to_files.items()):
+        zip_name = f"{yy}-{mm:02d}_logs.zip"
+        zip_path = log_dir / zip_name
+        try:
+            # Append-safe: avoid duplicate arcnames
+            existing = set()
+            if zip_path.exists():
+                with zipfile.ZipFile(zip_path, 'r') as zf:
+                    existing = set(zf.namelist())
+            with zipfile.ZipFile(zip_path, 'a', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+                for f in files:
+                    arc = f.name
+                    if arc in existing:
+                        continue
+                    zf.write(str(f), arc)
+            # Remove originals after successful compression
+            for f in files:
+                try:
+                    f.unlink()
+                except Exception as e:
+                    logger.warning(f"Failed to delete original log after compression: {f}: {e}")
+        except Exception as e:
+            logger.error(f"Failed to compress logs for month {yy}-{mm:02d}: {e}")
+
+    # Deletion phase: remove logs or zips older than keep_days based on their timestamp
+    for entry in log_dir.iterdir():
+        if not entry.is_file():
+            continue
+        cutoff_dt = None
+        if entry.suffix.lower() == '.zip':
+            mo_dt = parse_zip_month(entry.name)
+            cutoff_dt = mo_dt
+        else:
+            cutoff_dt = parse_log_date(entry.name)
+        if not cutoff_dt:
+            continue
+        if (now - cutoff_dt).days > keep_days:
+            try:
+                entry.unlink()
+            except Exception as e:
+                logger.warning(f"Failed to delete old log artifact: {entry}: {e}")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Run your Dash analysis headlessly, step-by-step.
+# Run Dash analysis headlessly, step-by-step.
 
 from __future__ import annotations
 
@@ -10,10 +10,10 @@ from dataclasses import dataclass, field, asdict, is_dataclass
 from typing import Any, Dict, List, Optional, Tuple
 import pickle
 from collections.abc import Mapping
+from pathlib import Path
 
-# --- import the same modules used by your callbacks ---
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
-from components.figures.color_tools import get_assigned_colors
+from components.figures import color_tools 
 
 def dash_to_wire(obj):
     """Recursively convert Dash/Plotly components to dicts/lists like callbacks see.
@@ -67,6 +67,8 @@ def dash_to_wire(obj):
 # -------- Config --------
 @dataclass
 class BatchConfig:
+
+    # --- data ---
     data_table_path: str                 # e.g. "data/your_maxquant_proteingroups.tsv"
     sample_table_path: str               # e.g. "data/experimental_design.tsv"
     outdir: str = "batch_out"            # where to write JSON artifacts
@@ -75,7 +77,11 @@ class BatchConfig:
     rename_replicates: bool = False
     unique_only: bool = False
     workflow: str = "proteomics"
-    # Proteomics knobs
+
+    # --- pipeline ---
+    plot_formats: List[str] = field(default_factory=lambda: ["png", "html", "pdf"])
+    keep_batch_output: bool = False
+        # Proteomics knobs
     na_filter_percent: int = 70
     na_filter_type: str = "sample-group"        # "sample-group" | "sample-set"
     normalization: str = "no_normalization"        # "Median" | "Quantile" | "Vsn" | "no_normalization"
@@ -118,9 +124,8 @@ def _dump_json(outdir: str, name: str, obj: Any):
         json.dump(obj, f, indent=2)
 
 # -------- Pipeline --------
-def run_pipeline(cfg: BatchConfig) -> Dict[str, Any]:
+def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
     # 1) Load parameters & db/contaminants (mirrors QC_and_data_analysis.py)
-    params = parsing.parse_parameters("parameters.toml")  # same as app
     db_file = os.path.join(*params["Data paths"]["Database file"])
     contaminant_list = db_functions.get_contaminants(db_file)
 
@@ -165,7 +170,7 @@ def run_pipeline(cfg: BatchConfig) -> Dict[str, Any]:
     _dump_json(cfg.outdir, "01_data_dictionary", data_dictionary)
 
     # 4) Assign replicate colors (mirrors assign_replicate_colors)
-    rep_colors, rep_colors_with_cont = get_assigned_colors(
+    rep_colors, rep_colors_with_cont = color_tools.get_assigned_colors(
         data_dictionary["sample groups"]["norm"]
     )
     _dump_json(cfg.outdir, "02_replicate_colors", rep_colors)
@@ -368,39 +373,54 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
             )
             _dump_json(cfg.outdir, "13_perturbation", pertub_data)
             divs["pertubation"] = pertub_div
-    # Volcano (control vs comparisons)
+    # Volcano (control vs comparisons) — optional when controls/comparisons provided
     volcano = None
     if imputed is not None:
         sgroups = data_dictionary["sample groups"]["norm"]
 
-        # If a comparisons file is provided, validate like the UI does
+        # If a comparisons file is provided and valid, validate like the UI does
         comp_data = None
         comp_style = {"background-color": "green"}
-        if cfg.comparison_file:
-            comp_contents, comp_name, _ = _upload_contents_for_path(cfg.comparison_file)
+        comparisons_file_path = None
+        try:
+            if cfg.comparison_file and isinstance(cfg.comparison_file, str) and len(cfg.comparison_file.strip()) > 0 and os.path.isfile(cfg.comparison_file):
+                comparisons_file_path = cfg.comparison_file
+        except Exception:
+            comparisons_file_path = None
+
+        if comparisons_file_path:
+            comp_contents, comp_name, _ = _upload_contents_for_path(comparisons_file_path)
             comp_style, comp_data = parsing.check_comparison_file(
                 comp_contents, comp_name, sgroups, comp_style
             )
 
-        # Build comparisons
-        comparisons = parsing.parse_comparisons(
-            cfg.control_group, comp_data, sgroups
-        )
+        # Normalize control group (treat empty string as None)
+        control_group_clean = cfg.control_group if (cfg.control_group and str(cfg.control_group).strip() != "") else None
 
-        # Run DA (same as callback)
-        volcano_div, volcano_data = proteomics.differential_abundance(
-            imputed,
-            sgroups,
-            comparisons,
-            cfg.fc_threshold,
-            cfg.p_threshold,
-            params["Figure defaults"]["full-height"],
-            cfg.test_type,
-            os.path.join(*params["Data paths"]["Database file"]),
-        )
-        volcano = volcano_data
-        _dump_json(cfg.outdir, "14_volcano", volcano)
-        divs["volcano"] = volcano_div
+        # Only run DA if we have either a control group or valid comparisons
+        has_controls_or_comparisons = bool(control_group_clean) or (comp_data is not None and len(comp_data) > 0)
+
+        if has_controls_or_comparisons:
+            comparisons = parsing.parse_comparisons(
+                control_group_clean, comp_data, sgroups
+            )
+
+            volcano_div, volcano_data = proteomics.differential_abundance(
+                imputed,
+                sgroups,
+                comparisons,
+                cfg.fc_threshold,
+                cfg.p_threshold,
+                params["Figure defaults"]["full-height"],
+                cfg.test_type,
+                os.path.join(*params["Data paths"]["Database file"]),
+            )
+            volcano = volcano_data
+            _dump_json(cfg.outdir, "14_volcano", volcano)
+            divs["volcano"] = volcano_div
+        else:
+            # No control information; skip DA gracefully
+            volcano = None
     with open(os.path.join(cfg.outdir, "04_proteomics_divs.pickle"), "wb") as f:
         pickle.dump(divs, f)
     summary = {
@@ -555,74 +575,3 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
     }
     _dump_json(cfg.outdir, "00_summary", summary)
     return summary
-
-# -------- CLI runner --------
-if __name__ == "__main__":
-    import argparse
-    ap = argparse.ArgumentParser(description="Run ProteoGyver pipeline headlessly.")
-    ap.add_argument("--data", required=True, help="Path to data table (e.g., proteinGroups.tsv)")
-    ap.add_argument("--samples", required=True, help="Path to sample/experimental design table")
-    ap.add_argument("--outdir", default="batch_out")
-    ap.add_argument("--control", default=None, help="Control group (else provide --comparisons)")
-    ap.add_argument("--comparisons", default=None, help="Path to comparisons file (optional)")
-    ap.add_argument("--na", type=int, default=70, help="NA filter percent (default 70)")
-    ap.add_argument("--na-type", default="sample-group", help="NA filter type (sample-group/sample-set)")
-    ap.add_argument("--norm", default="no_normalization")
-    ap.add_argument("--imp", default="QRILC")
-    ap.add_argument("--fc", type=float, default=1.5)
-    ap.add_argument("--p", type=float, default=0.05)
-    ap.add_argument("--test", default="independent")
-    ap.add_argument("--workflow", default="proteomics", choices=["proteomics", "interactomics"], 
-                    help="Analysis workflow (default: proteomics)")
-    # Interactomics arguments
-    ap.add_argument("--uploaded-controls", nargs="*", default=[], 
-                    help="List of uploaded control sample names")
-    ap.add_argument("--additional-controls", nargs="*", default=[], 
-                    help="List of additional control sets to use")
-    ap.add_argument("--crapome-sets", nargs="*", default=[], 
-                    help="List of CRAPome datasets to use")
-    ap.add_argument("--proximity-filtering", action="store_true", 
-                    help="Enable proximity filtering for controls")
-    ap.add_argument("--n-controls", type=int, default=3, 
-                    help="Number of controls to keep (default: 3)")
-    ap.add_argument("--saint-bfdr", type=float, default=0.05, 
-                    help="SAINT BFDR threshold (default: 0.05)")
-    ap.add_argument("--crapome-pct", type=int, default=20, 
-                    help="CRAPome percentage threshold (default: 20)")
-    ap.add_argument("--crapome-fc", type=int, default=2, 
-                    help="CRAPome fold change threshold (default: 2)")
-    ap.add_argument("--rescue", action="store_true", 
-                    help="Enable rescue filtering")
-    ap.add_argument("--enrichments", nargs="*", default=[], 
-                    help="List of enrichment analyses to perform")
-    ap.add_argument("--force-supervenn", action="store_true", 
-                    help="Force the use of supervenn for commonality plot")
-    args = ap.parse_args()
-
-    cfg = BatchConfig(
-        data_table_path=args.data,
-        sample_table_path=args.samples,
-        outdir=args.outdir,
-        workflow=args.workflow,
-        control_group=args.control,
-        comparison_file=args.comparisons,
-        na_filter_percent=args.na,
-        na_filter_type=args.na_type,
-        normalization=args.norm,
-        imputation=args.imp,
-        fc_threshold=args.fc,
-        p_threshold=args.p,
-        test_type=args.test,
-        uploaded_controls=args.uploaded_controls,
-        additional_controls=args.additional_controls,
-        crapome_sets=args.crapome_sets,
-        proximity_filtering=args.proximity_filtering,
-        n_controls=args.n_controls,
-        saint_bfdr_threshold=args.saint_bfdr,
-        crapome_percentage_threshold=args.crapome_pct,
-        crapome_fc_threshold=args.crapome_fc,
-        rescue_enabled=args.rescue,
-        chosen_enrichments=args.enrichments,
-        force_supervenn=args.force_supervenn
-    )
-    run_pipeline(cfg)

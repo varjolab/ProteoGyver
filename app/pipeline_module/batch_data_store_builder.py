@@ -16,6 +16,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 from io import StringIO
 import logging
+from components import infra
 
 logger = logging.getLogger(__name__)
 
@@ -364,7 +365,7 @@ def build_interactomics_data_stores(batch_output_dir: str) -> List[Dict]:
                 enrichment_data = json.load(f)
             stores.append(create_data_store_component('interactomics-enrichment-data-store', enrichment_data))
         except FileNotFoundError:
-            logger.warning(f"Enrichment data not found: {enrichment_path}")
+            logger.info(f"Enrichment data not found: {enrichment_path}")
         
         # Enrichment information data store
         enrichment_info_path = f"{batch_output_dir}/26_enrichment_info.json"
@@ -373,7 +374,7 @@ def build_interactomics_data_stores(batch_output_dir: str) -> List[Dict]:
                 enrichment_info = json.load(f)
             stores.append(create_data_store_component('interactomics-enrichment-information-data-store', enrichment_info))
         except FileNotFoundError:
-            logger.warning(f"Enrichment info not found: {enrichment_info_path}")
+            logger.info(f"Enrichment info not found: {enrichment_info_path}")
         
         # MS microscopy data store (if available)
         msmic_path = f"{batch_output_dir}/27_msmic_data.json"
@@ -472,13 +473,12 @@ def save_batch_data_using_infra(batch_output_dir: str, export_dir: str, workflow
     Returns:
         Dict: Summary of export operation
     """
-    from components.infra import save_data_stores
     
     # Build data stores from batch output
     data_stores = build_data_stores_from_batch_output(batch_output_dir, workflow)
     
     # Use GUI's save function
-    result = save_data_stores(data_stores, export_dir)
+    result = infra.save_data_stores(data_stores, export_dir)
     
     return {
         'data_stores_count': len(data_stores),

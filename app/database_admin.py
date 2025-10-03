@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import sqlite3
 import shutil
+from pathlib import Path
 from components import db_functions
 from components.tools import utils
 import database_updater
@@ -30,7 +31,7 @@ def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_forma
     return last_update
 
 if __name__ == "__main__":
-    parameters = utils.read_toml('parameters.toml')
+    parameters = utils.read_toml(Path('parameters.toml'))
     time_format = parameters['Config']['Time format']
     timestamp = datetime.now().strftime(time_format)
     if parameters['Config']['CPU count limit'] == 'ncpus':
@@ -57,12 +58,10 @@ if __name__ == "__main__":
         # Export a snapshot, if required:
         cc_cols = parameters['Database creation']['Control and crapome db detailed columns']
         cc_types = parameters['Database creation']['Control and crapome db detailed types']
-        ms_runs_parameters = parameters['Database creation']['MS runs information']
         
         parameters = parameters['Database updater']
         update_interval = int(parameters['Update interval minutes'])*60
         snapshot_interval = int(parameters['Database snapshot settings']['Snapshot interval days'])*24*60*60
-        ms_runs_interval = int(parameters['MS runs update interval minutes'])*60
         api_update_interval = int(parameters['External data update interval days'])*24*60*60
         clean_interval = int(parameters['Database clean interval days'])*24*60*60
         conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
@@ -73,7 +72,6 @@ if __name__ == "__main__":
         do_external_update = last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval))
         do_main_db_update = last_update(conn, 'main_db_update', update_interval, time_format) < (datetime.now() - relativedelta(seconds=update_interval))
         do_clean_update = last_update(conn, 'clean', clean_interval, time_format) < (datetime.now() - relativedelta(seconds=clean_interval))
-        do_ms_runs_update = last_update(conn, 'ms_runs', ms_runs_interval, time_format) < (datetime.now() - relativedelta(seconds=ms_runs_interval))
         updates_to_do = [update for update in [
             'External' if do_external_update else '',
             'Main db' if do_main_db_update else '',
@@ -94,11 +92,7 @@ if __name__ == "__main__":
             print('Updating external data')
             database_updater.update_external_data(conn, parameters, timestamp, organisms, last_external_update_date, ncpu)
             database_updater.update_log_table(conn, ['external update'], [1], timestamp, 'external')
-        if False:#do_ms_runs_update:
-            print('Updating MS runs')
-            database_updater.update_ms_runs(conn, parameters['MS run json directory'], timestamp, time_format, os.path.join(*parameters['Update files']['ms_runs']),os.path.join(*parameters['Update files']['ms_plots']))
-            database_updater.update_log_table(conn, ['ms_runs update'], [1], timestamp, 'ms_runs')
-        if True:#do_main_db_update:
+       if True:#do_main_db_update:
             print('Updating database')
             inmod_names, inmod_vals = database_updater.update_database(conn, parameters, cc_cols, cc_types, timestamp)
             database_updater.update_log_table(conn, inmod_names, inmod_vals, timestamp, 'main_db_update')

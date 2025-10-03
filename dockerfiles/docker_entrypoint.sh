@@ -2,7 +2,8 @@
 set -e
 
 # --- Early required path checks (two-pass) ---
-CHECKS_FILE="/proteogyver/app/resources/path_checks.tsv"
+CHECKS_FILE="/proteogyver/resources/path_checks.tsv"
+python /proteogyver/app/resources/generate_path_checks.py /proteogyver/parameters.toml $CHECKS_FILE
 
 # Only run if checklist file exists
 if [ -f "$CHECKS_FILE" ]; then
@@ -60,17 +61,21 @@ killall celery || true
 # --- Run the embedded page updater before app starts---
 echo "[INIT] Running embedded page updater..."
 python embedded_page_updater.py
-
+CPU_COUNT=$(python /proteogyver/resources/get_cpu_count.py /proteogyver/parameters.toml)
 echo "[INIT] Starting Redis server..."
 redis-server --daemonize yes
 sleep 5  # Give Redis time to start
 
 # --- Start Celery worker in background ---
 echo "[INIT] Starting Celery worker in background..."
-celery -A app.celery_app worker --loglevel=DEBUG --concurrency=6 & # For app
-celery -A app.celery_app beat --loglevel=INFO --concurrency=1 & # For cleanup
+# ensure schedule dir exists and reset schedule file (added)
+SCHEDULE_FILE="/proteogyver/data/celerybeat-schedule.db"
+mkdir -p "$(dirname "$SCHEDULE_FILE")"
+rm -f "$SCHEDULE_FILE"
+celery -A app.celery_app worker --loglevel=DEBUG --concurrency=$CPU_COUNT & # For app
+celery -A app.celery_app beat --loglevel=DEBUG --concurrency=1 --schedule "$SCHEDULE_FILE" & # For scheduled tasks
 sleep 5  # Give Celery time to start
 
 # --- Start Dash app with Gunicorn ---
 echo "[INIT] Starting Dash app..."
-exec gunicorn -b 0.0.0.0:8050 app:server --log-level debug --timeout 1200 --workers 4 --threads 4
+exec gunicorn -b 0.0.0.0:8050 app:server --log-level debug --timeout 1200 --workers $CPU_COUNT --threads $CPU_COUNT

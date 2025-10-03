@@ -17,6 +17,7 @@ from dash_bootstrap_components.themes import FLATLY
 from dash.dependencies import Input, Output, State
 import logging
 import os
+from pathlib import Path
 from celery import Celery
 from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
@@ -24,14 +25,21 @@ from components.tools import utils
 from celery.schedules import crontab
 
 celery_app = Celery(
-    __name__, broker="redis://localhost:6379/0", backend="redis://localhost:6379/1"
+    __name__,
+    broker="redis://localhost:6379/0",
+    backend="redis://localhost:6379/1",
+    include=[
+        'components.MS_run_json_parser',
+        'components.cleanup_tasks',
+        'pipeline_module.pipeline_input_watcher'
+    ]
 )
 long_callback_manager = CeleryLongCallbackManager(celery_app, expire=300)
 
 app = Dash(__name__, use_pages=True, external_stylesheets=[
            FLATLY], suppress_callback_exceptions=True, long_callback_manager=long_callback_manager)
 
-app.title = 'ProteoGyver beta version'
+app.title = 'ProteoGyver'
 app.enable_dev_tools(debug=True)
 
 
@@ -118,7 +126,7 @@ def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
         return not is_open
     return is_open
 
-parameters = utils.read_toml('parameters.toml')
+parameters = utils.read_toml(Path('parameters.toml'))
 server = app.server
 if not os.path.isdir('logs'):
     os.makedirs('logs')
@@ -134,11 +142,31 @@ app.layout = html.Div([
 ],id='proteogyver-layout')
 logger.info('End app.')
 
+celery_app.conf.ONCE = {
+    "backend": "celery_once.backends.Redis",
+    "settings": {
+        "url": "redis://localhost:6379/2",  # a separate DB is nice, but not required
+        "default_timeout": 60 * 60 * 24,         # lock expiry (seconds) – tune to your longest run
+    },
+}
 celery_app.conf.beat_schedule = {
     'cleanup-cache-daily': {
         'task': 'components.cleanup_tasks.cleanup_cache_folders',
         'schedule': crontab(hour=0, minute=30),
     },
+    'rotate-logs-daily': {
+        'task': 'components.cleanup_tasks.rotate_logs',
+        'schedule': crontab(hour=15, minute=45),
+    },
+    'parse-MS-runs': {
+        'task': 'components.MS_run_json_parser.parse_json_files',
+        'schedule': crontab(minute='*/5'),
+    },
+    'watch-pipeline-input': {
+        'task': 'pipeline_module.pipeline_input_watcher.watch_pipeline_input',
+        'schedule': crontab(minute='*'),
+        'args': (parameters['Pipeline module']['Input watch directory'],),
+    }
 }
 
 if __name__ == '__main__':

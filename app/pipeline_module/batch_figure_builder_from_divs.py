@@ -15,13 +15,14 @@ import json
 import logging
 import copy
 from typing import Dict, List, Any, Optional, Tuple
+from pathlib import Path
 
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(__file__))
 
-from pipeline_batch import dash_to_wire
-from components.infra import save_figures
-from components.figures.tic_graph import tic_figure
+from pipeline_module.pipeline_batch import dash_to_wire
+from components import infra
+from components.figures import tic_graph
 from components import parsing
 
 logger = logging.getLogger(__name__)
@@ -91,12 +92,11 @@ def build_analysis_divs_from_saved_divs(batch_output_dir: str, workflow: str, pa
         for datatype in qc_data['tic'].keys():
             tic_div = copy.deepcopy(qc_divs['tic']) # Janky, but we want all chromatograms here.
             tic_div.children[0].children = tic_div.children[0].children.replace('TIC', datatype)
-            tic_div.children[1].figure = tic_figure(defaults=params["Figure defaults"]["full-height"], traces=qc_data['tic'], datatype=datatype)
+            tic_div.children[1].figure = tic_graph.tic_figure(defaults=params["Figure defaults"]["full-height"], traces=qc_data['tic'], datatype=datatype)
             analysis_divs.append(dash_to_wire(tic_div))
             logger.info(f"Added TIC div: {datatype}")
     else:
         logger.warning(f"TIC div not found: {datatype}")
-            #fig = tic_figure(defaults=params["Figure defaults"]["full-height"], traces=qc_data['tic'], datatype=datatype)
             
     
     # Load workflow-specific divs
@@ -118,7 +118,7 @@ def build_analysis_divs_from_saved_divs(batch_output_dir: str, workflow: str, pa
                 analysis_divs.append(wire_div)
                 logger.info(f"Added proteomics div: {div_key}")
             else:
-                logger.warning(f"Proteomics div not found: {div_key}")
+                logger.info(f"Proteomics div not found: {div_key}")
                 
     elif workflow.lower() == "interactomics":
         interactomics_pickle_path = os.path.join(batch_output_dir, "05_interactomics_divs.pickle")
@@ -137,7 +137,7 @@ def build_analysis_divs_from_saved_divs(batch_output_dir: str, workflow: str, pa
                 analysis_divs.append(wire_div)
                 logger.info(f"Added interactomics div: {div_key}")
             else:
-                logger.warning(f"Interactomics div not found: {div_key}")
+                logger.info(f"Interactomics div not found: {div_key}")
     
     logger.info(f"Built {len(analysis_divs)} analysis divs for {workflow} workflow")
     return analysis_divs
@@ -216,7 +216,7 @@ def save_batch_figures_using_saved_divs(batch_output_dir: str, export_dir: str,
     
     try:
         # Use GUI's save_figures function
-        figures_result = save_figures(
+        figures_result = infra.save_figures(
             analysis_divs=analysis_divs,
             export_dir=export_dir,
             output_formats=output_formats,
@@ -261,7 +261,7 @@ def main():
     
     # Setup logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    parameters = parsing.parse_parameters(args.parameters)
+    parameters = parsing.parse_parameters(Path(args.parameters))
     # Save figures
     result = save_batch_figures_using_saved_divs(
         args.batch_output_dir, 

@@ -1,0 +1,24 @@
+[interactomics]
+# Controls uploaded with your data (sample names from your experimental design)
+# Based on the sample table, these are the control groups
+uploaded_controls = ["Control_Group_1", "Control_Group_7"]
+
+# Built-in control sets from the database (see parameters.toml for available sets)
+# Using available GFP control sets
+additional_controls = ["VL GFP MAC3 10min AP", "VL GFP MAC2 18h AP"]
+
+# CRAPome datasets for filtering (see parameters.toml for available sets)
+# Common CRAPome sets available in most installations
+crapome_sets = ["Nesvilab"]
+
+# SAINT analysis settings
+saint_bfdr_threshold = 0.05  # SAINT BFDR threshold for significance, 0.01 or 0.05 recommended
+
+# CRAPome filtering settings
+crapome_percentage_threshold = 20  # Percentage threshold for CRAPome filtering
+crapome_fc_threshold = 2  # Fold change threshold for CRAPome filtering
+rescue_enabled = false  # Enable rescue filtering for borderline hits
+
+# Enrichment analysis (optional)
+# Using correct PantherDB enrichment names from the available options
+chosen_enrichments = [] # e.g. "Panther GOBP slim", "Panther GOMF slim", "Panther Reactome pathways"

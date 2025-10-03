@@ -1,13 +1,14 @@
+[pipeline]
+keep_batch_output = false
+plot_formats = ["png", "html", "pdf"]
+
 [general]
 # Workflow type: "proteomics" or "interactomics"
 workflow = "proteomics"
 
 # Input data files (paths relative to this TOML file)
-data = "app/data/PG example files/Proteomics data file.tsv"
-samples = "app/data/PG example files/Proteomics sample table.tsv"
-
-# Output directory
-outdir = "proteomics_batch_out_4"
+data = "datafiles/Proteomics data file.tsv"
+sample table = "datafiles/Proteomics sample table.tsv"
 
 # Figure options
 figure_template = "plotly_white"
@@ -30,7 +31,8 @@ normalization = "no_normalization"  # "Median", "Quantile", "Vsn", or "no_normal
 imputation = "QRILC"  # "knn", "mean", "QRILC", etc.
 
 # Comparisons file (contains sample vs control comparisons)
-comparison_file = "app/data/PG example files/Proteomics comparisons file.tsv"
+comparison_file = ""
+control_group = ""
 
 # Statistical thresholds
 fc_threshold = 1

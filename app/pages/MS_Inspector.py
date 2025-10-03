@@ -43,6 +43,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from dash import callback, dcc, html, Input, Output, State, ctx, no_update
 from datetime import datetime, date
+from pathlib import Path
 from components import parsing
 import re
 from plotly import io as pio
@@ -622,7 +623,7 @@ def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
         logger.error(f"Error creating download package: {str(e)}")
         return no_update
     
-parameters = parsing.parse_parameters('parameters.toml')
+parameters = parsing.parse_parameters(Path('parameters.toml'))
 database_file = os.path.join(*parameters['Data paths']['Database file'])    
 
 num_of_traces_visible = 7

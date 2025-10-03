@@ -62,7 +62,7 @@ def create_sqlite_from_schema(schema_file: str | Path,
 
 
 if __name__ == '__main__':
-    parameters = utils.read_toml('parameters.toml')
+    parameters = utils.read_toml(Path('parameters.toml'))
     dbfile = os.path.join(*parameters['Data paths']['Database file'])
     schema_file = os.path.join(*parameters['Data paths']['Schema file'])
     create_sqlite_from_schema(schema_file, dbfile) 

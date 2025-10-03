@@ -1,13 +1,14 @@
+[pipeline]
+keep_batch_output = true
+plot_formats = ["png", "html", "pdf"]
+
 [general]
 # Workflow type: "proteomics" or "interactomics"
 workflow = "interactomics"
 
 # Input data files (paths relative to this TOML file)
-data = "app/data/PG example files/Interactomics data file.tsv"
-samples = "app/data/PG example files/Interactomics sample table.tsv"
-
-# Output directory
-outdir = "interactomics_batch_out_4"
+data = "datafiles/Interactomics data file.tsv"
+sample table = "datafiles/Interactomics sample table.tsv"
 
 # Figure options
 figure_template = "plotly_white"
@@ -36,8 +37,6 @@ additional_controls = ["VL GFP MAC3 10min AP", "VL GFP MAC2 18h AP"]
 crapome_sets = ["Nesvilab"]
 
 # SAINT analysis settings
-proximity_filtering = false  # Do not use most similar controls only # Deprecated, TODO: remove
-n_controls = 3  # Number of controls to keep if proximity_filtering is true # TODO: remove
 saint_bfdr_threshold = 0.05  # SAINT BFDR threshold for significance
 
 # CRAPome filtering settings

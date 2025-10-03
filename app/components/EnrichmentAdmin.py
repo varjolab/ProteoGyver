@@ -1,13 +1,14 @@
 from importlib import util as import_util
 import os
 import pandas as pd
+from pathlib import Path
 from components import parsing
 from components.tools import utils
 
 
 class EnrichmentAdmin:
     def __init__(self, parameters_file: str) -> None:
-        parameters: dict = utils.read_toml(parameters_file)
+        parameters: dict = utils.read_toml(Path(parameters_file))
 
         self._enrichment_handlers: dict = {}
         self._enrichments: dict = {}

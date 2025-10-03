@@ -1,0 +1,19 @@
+[proteomics]
+# NA filtering
+na_filter_percent = 60 # 0-100
+na_filter_type = "sample-group"  # "sample-group" or "sample-set"
+
+# Normalization method
+normalization = "no_normalization"  # "Median", "Quantile", "Vsn", or "no_normalization"
+
+# Imputation method
+imputation = "QRILC"  # "knn", "mean", "QRILC", etc.
+
+# Comparisons file (contains sample vs control comparisons)
+comparison_file = "" # path to comparison file relative to this toml file
+control_group = "" # name of control group from sample table
+
+# Statistical thresholds
+fc_threshold = 1 # 0.26, 0.58, 1, 1.58, 2.0, 2.32
+p_threshold = 0.01 # 0.001, 0.01, 0.05
+test_type = "independent" # independent, paired
