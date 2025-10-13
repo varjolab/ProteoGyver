@@ -5,6 +5,8 @@ from math import ceil
 from components.tools import R_tools
 from scipy.stats import median_abs_deviation
 from sklearn.decomposition import PCA
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.spatial.distance import pdist
 
@@ -170,14 +172,16 @@ def normalize(data_table, normalization_method, errorfile: str, random_seed: int
 def impute(data_table: DataFrame, errorfile: str, method: str = 'QRILC', random_seed: int = 13) -> DataFrame:
     """Imputes missing values in the dataframe with the specified method"""
     ret: DataFrame = data_table
-    if method == 'minProb':
+    if method.lower() == 'minprob':
         ret = impute_minprob_df(data_table, random_seed)
-    elif method == 'minValue':
+    elif method.lower() == 'minvalue':
         ret = impute_minval(data_table)
-    elif method == 'gaussian':
+    elif method.lower() == 'gaussian':
         ret = impute_gaussian(data_table, random_seed)
-    elif method == 'QRILC':
+    elif method.lower() == 'qrilc':
         ret = R_tools.impute_qrilc(data_table, random_seed, errorfile)
+    elif method.lower() in ('random forest', 'random_forest', 'random-forest', 'randomforest'):
+        ret = impute_random_forest(data_table, random_seed)
     return ret
 
 
@@ -230,6 +234,104 @@ def impute_gaussian(data_table: DataFrame, random_seed: int, dist_width: float =
         newcol = newcol.fillna(replace_values)
         newdf.loc[:, column] = newcol
     return newdf
+
+
+def impute_random_forest(
+    data_table: DataFrame,
+    random_seed: int = 13,
+    n_estimators: int = 200,
+    max_depth: int | None = None,
+) -> DataFrame:
+    """Impute missing values using RandomForestRegressor column-by-column.
+
+    For each column with missing values, we learn a model to predict that column
+    from all the other columns using rows where the target column is present.
+    Feature NaNs are imputed with column medians (computed on the available
+    rows for that target) within each fit. Predictions fill only the target's
+    missing entries. Columns that do not have enough observed values fall back
+    to a per-column median fill.
+
+    Parameters:
+    - data_table: numeric DataFrame (rows = proteins/features, columns = samples)
+    - random_seed: controls RandomForest randomness for reproducibility
+    - n_estimators: number of trees
+    - max_depth: optional tree depth limit
+
+    Returns:
+    - DataFrame with missing values imputed
+    """
+    if data_table.empty:
+        return data_table.copy()
+
+    imputed: DataFrame = data_table.copy()
+
+    # Precompute a global median per column for robust fallback
+    global_medians: Series = imputed.median(axis=0, skipna=True)
+
+    for target_col in imputed.columns:
+        col_series: Series = imputed[target_col]
+        mask_missing = col_series.isna()
+        if not mask_missing.any():
+            continue  # nothing to impute in this column
+
+        # Build training set: rows where target is observed
+        train_mask = ~mask_missing
+        # Need at least a few observations to train a model
+        if train_mask.sum() < 5:
+            # Fallback: median fill for this column
+            fill_val = col_series.median(skipna=True)
+            if np.isnan(fill_val):
+                fill_val = global_medians.get(target_col, np.nan)
+            imputed.loc[mask_missing, target_col] = fill_val
+            continue
+
+        X_train: DataFrame = imputed.loc[train_mask, imputed.columns != target_col]
+        y_train: Series = col_series.loc[train_mask]
+
+        # If all features are NaN in train rows, fallback to median
+        if X_train.isna().all(axis=None):
+            fill_val = col_series.median(skipna=True)
+            if np.isnan(fill_val):
+                fill_val = global_medians.get(target_col, np.nan)
+            imputed.loc[mask_missing, target_col] = fill_val
+            continue
+
+        # Feature imputer (median) fitted on X_train only
+        feat_imputer = SimpleImputer(strategy='median')
+        X_train_imp = feat_imputer.fit_transform(X_train)
+
+        # Train RF regressor
+        rf = RandomForestRegressor(
+            n_estimators=n_estimators,
+            random_state=random_seed,
+            max_depth=max_depth,
+            n_jobs=-1,
+        )
+        try:
+            rf.fit(X_train_imp, y_train.values)
+        except Exception:
+            # Model couldn't fit; fallback to median
+            fill_val = col_series.median(skipna=True)
+            if np.isnan(fill_val):
+                fill_val = global_medians.get(target_col, np.nan)
+            imputed.loc[mask_missing, target_col] = fill_val
+            continue
+
+        # Predict for rows where target is missing
+        if mask_missing.sum() > 0:
+            X_pred: DataFrame = imputed.loc[mask_missing, imputed.columns != target_col]
+            X_pred_imp = feat_imputer.transform(X_pred)
+            try:
+                preds = rf.predict(X_pred_imp)
+                imputed.loc[mask_missing, target_col] = preds
+            except Exception:
+                # Fallback on any prediction error
+                fill_val = col_series.median(skipna=True)
+                if np.isnan(fill_val):
+                    fill_val = global_medians.get(target_col, np.nan)
+                imputed.loc[mask_missing, target_col] = fill_val
+
+    return imputed
 
 
 def impute_minprob(series_to_impute: Series, random_seed: int, scale: float = 1.0,

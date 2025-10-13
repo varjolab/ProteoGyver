@@ -6,6 +6,7 @@ import traceback
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any, List
+import logging
 
 from celery import shared_task
 from celery_once import QueueOnce
@@ -24,6 +25,8 @@ except Exception:  # pragma: no cover
 
 LOCK_FILENAME = ".pg_analyzing.lock"
 ERRORS_FILENAME = "ERRORS.txt"
+WATCHER_LOG_FILENAME = "watcher.log"
+RUN_SUMMARY_FILENAME = "run_summary.json"
 PG_OUTPUT_DIRNAME = "PG output"
 
 
@@ -97,12 +100,12 @@ def _validate_pipeline_toml(toml_path: Path) -> Optional[str]:
 
     # Required top-level keys
     for key in ("workflow", "data", "sample table"):
-        if key not in data:
-            return f"Required key missing in TOML: {key}"
+        if key not in data["general"]:
+            return f"Required key missing in TOML: {key}. existing keys: {data["general"].keys()}. keys in data: {data.keys()}"
 
     # Validate data path
-    data_path_value = data["data"]
-    sample_table_value = data["sample table"]
+    data_path_value = data["general"]["data"]
+    sample_table_value = data["general"]["sample table"]
 
     def _resolve_path(value: Any) -> Optional[Path]:
         if isinstance(value, str):
@@ -201,15 +204,58 @@ def _safe_write_error(dir_path: Path, filename: str, message: str) -> None:
         _write_text(dir_path / f"{filename}.{ts}", message)
 
 
-def _launch_pipeline(dir_path: Path, toml_file: Path) -> Optional[str]:
-    if run_batch_pipeline is None:
-        return "run_batch_pipeline is unavailable in this environment"
+def _append_watcher_log(dir_path: Path, message: str) -> None:
     try:
-        run_batch_pipeline(str(toml_file))
-        return None
+        log_file = dir_path / WATCHER_LOG_FILENAME
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with log_file.open("a", encoding="utf-8") as fh:
+            fh.write(f"[{ts}] {message}\n")
+    except Exception:
+        # Best effort only
+        pass
+
+
+def _write_run_summary(dir_path: Path, summary: Dict[str, Any]) -> None:
+    try:
+        out_file = dir_path / RUN_SUMMARY_FILENAME
+        import json
+        out_file.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    except Exception:
+        # Best effort only
+        pass
+
+
+def _debug_enabled() -> bool:
+    try:
+        return os.environ.get("PG_WATCHER_DEBUG", "0") == "1"
+    except Exception:
+        return False
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+def _debug(dir_path: Path, message: str) -> None:
+    if _debug_enabled():
+        _append_watcher_log(dir_path, f"DEBUG: {message}")
+        try:
+            LOGGER.debug("[watcher %s] %s", dir_path.name, message)
+        except Exception:
+            pass
+
+
+def _launch_pipeline(dir_path: Path, toml_file: Path) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
+    if run_batch_pipeline is None:
+        return "run_batch_pipeline is unavailable in this environment", None
+    try:
+        _append_watcher_log(dir_path, f"Launching pipeline with TOML: {toml_file.name}")
+        result = run_batch_pipeline(str(toml_file))
+        _append_watcher_log(dir_path, "Pipeline finished successfully")
+        return None, result
     except Exception as e:
         tb = traceback.format_exc()
-        return f"Pipeline execution failed: {e}\n\n{tb}"
+        _append_watcher_log(dir_path, f"Pipeline failed: {e}")
+        return f"Pipeline execution failed: {e}\n\n{tb}", None
 
 
 @shared_task(base=QueueOnce, once={"graceful": True})
@@ -223,8 +269,11 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
         if not entry.is_dir():
             continue
 
+        _debug(entry, "Considering directory")
+
         # Skip if currently analyzing
         if _is_currently_analyzing(entry):
+            _debug(entry, "Currently analyzing; skipping")
             continue
 
         # Determine whether to process (new or re-analyze conditions)
@@ -234,41 +283,65 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
             should_process = _should_reanalyze(entry)
         else:
             should_process = True
+        _debug(entry, f"should_process={should_process}")
 
         if not should_process:
+            _debug(entry, "No processing needed; skipping")
             continue
 
         # If there is an error marker, skip per policy
         if _has_error_file(entry):
+            _debug(entry, "Found error marker; skipping")
             continue
 
         # Ensure directory tree is stable (not being copied to)
         if not _tree_is_stable(entry, stable_seconds=60):
+            _debug(entry, "Directory not stable; skipping for now")
             continue
+        else:
+            _debug(entry, "Directory stable; proceeding")
 
         # Resolve TOML selection
         toml_file, selection_error = _select_pipeline_toml(entry)
         if selection_error is not None or toml_file is None:
+            _debug(entry, f"TOML selection error: {selection_error}")
             _safe_write_error(entry, ERRORS_FILENAME, selection_error or "Unknown TOML selection error")
             continue
+        else:
+            _debug(entry, f"Selected TOML: {toml_file.name}")
 
         # Validate TOML keys and paths
         validation_error = _validate_pipeline_toml(toml_file)
         if validation_error is not None:
+            _debug(entry, f"Validation failed: {validation_error}")
             _safe_write_error(entry, ERRORS_FILENAME, validation_error)
             continue
+        else:
+            _debug(entry, "Validation passed")
 
         # Mark as analyzing to prevent duplicate runs
         _mark_analyzing(entry)
+        _debug(entry, "Marked as analyzing")
         try:
             # Double-check stability right before launch
             if not _tree_is_stable(entry, stable_seconds=60):
                 _clear_analyzing(entry)
+                _debug(entry, "Unstable just before launch; cleared analyzing and skipping")
                 continue
 
             # Launch the pipeline
-            error_message = _launch_pipeline(entry, toml_file)
+            error_message, result = _launch_pipeline(entry, toml_file)
             if error_message:
                 _safe_write_error(entry, ERRORS_FILENAME, error_message)
+                _debug(entry, "Execution error written to ERRORS.txt")
+            else:
+                # Persist a lightweight run summary next to input folder
+                output_dir = _pg_output_dir(entry)
+                output_dir.mkdir(exist_ok=True)
+                if isinstance(result, dict):
+                    # Write into PG output directory for easier discovery
+                    _write_run_summary(output_dir, result)
+                    _debug(entry, "run_summary.json written")
         finally:
             _clear_analyzing(entry)
+            _debug(entry, "Cleared analyzing lock")

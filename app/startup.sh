@@ -5,6 +5,7 @@ for pid in $(ps -aux | grep python | grep celery | awk -F ' ' '{print $2}'); do 
 redis-cli shutdown
 killall celery
 python embedded_page_updater.py
+export PG_WATCHER_DEBUG=1
 redis-server --daemonize yes
 CPU_COUNT=$(python resources/get_cpu_count.py parameters.toml)
 SCHEDULE_FILE="./data/celerybeat-schedule.db"

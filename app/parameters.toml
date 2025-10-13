@@ -209,6 +209,7 @@ QRILC = "QRILC"
 minProb = "minProb"
 gaussian = "gaussian"
 minValue = "minValue"
+random_forest = "Random forest"
 
 ["workflow parameters".proteomics."normalization methods"]
 Median = "Median"
