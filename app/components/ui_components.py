@@ -368,6 +368,9 @@ def main_content_div() -> html.Div:
     return html.Div(
         id='main-content-div',
         children=[
+            html.Div(id='upload-warnings-div', style={'color': 'red', 'font-weight': 'bold', 'margin-bottom': '10px'}, hidden=True),
+            html.Div(id='input-warnings-data-table-div', style={'color': 'red', 'font-weight': 'bold', 'margin-bottom': '10px'}, hidden=True),
+            html.Div(id='input-warnings-sample-table-div', style={'color': 'red', 'font-weight': 'bold', 'margin-bottom': '10px'}, hidden=True),
             html.Div(id='workflow-specific-input-div'),
             html.Div(
                 id={'type': 'analysis-div', 'id': 'qc-analysis-area'},
@@ -1042,7 +1045,11 @@ def saint_filtering_container(
                        id='interactomics-crapome-rescue-threshold'),
             html.Div(
                 [dbc.Button('Done filtering', id='interactomics-button-done-filtering')])
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
 
 

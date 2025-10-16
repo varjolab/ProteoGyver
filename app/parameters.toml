@@ -168,7 +168,9 @@ intact_regex = "^(\\d{4}-\\d{2}-\\d{2})_intact"
 
 ["Figure defaults".full-height]
 width = 1000
-height = 700
+min_width_per = 20
+side_width = 50
+height = 800
 ["Figure defaults".full-height.config]
 staticPlot = false
 editable = false
@@ -177,7 +179,9 @@ format = "png"
 
 ["Figure defaults".half-height]
 width = 1000
-height = 350
+min_width_per = 20
+side_width = 50
+height = 400
 ["Figure defaults".half-height.config]
 staticPlot = false
 editable = false
@@ -209,7 +213,7 @@ QRILC = "QRILC"
 minProb = "minProb"
 gaussian = "gaussian"
 minValue = "minValue"
-random_forest = "Random forest"
+"Random forest" = "random_forest"
 
 ["workflow parameters".proteomics."normalization methods"]
 Median = "Median"

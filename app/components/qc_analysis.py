@@ -50,7 +50,11 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
                 hide_legend=False
             ),
             legends['count-plot']
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     logger.info(
         f'count_plot - graph drawn: {datetime.now() }')
@@ -115,7 +119,11 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
                     '', color_col='Protein class',y_name='ValueSum', x_name='Sample name'
                 ),
                 legends['common-protein-plot'],
-            ]
+            ],
+            style={
+                'overflowX': 'auto',
+                'whiteSpace': 'nowrap'
+            }
         ),
         plot_frame.to_json(orient='split')
     )
@@ -188,7 +196,11 @@ def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
             bar_graph.make_graph('qc-coverage-plot', defaults,
                                  coverage_data, title, color=False, sort_x=False, x_label='Protein identified in N samples'),
             legends['coverage-plot']
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     logger.info(
         f'coverage - graph drawn: {datetime.now() }')
@@ -214,7 +226,11 @@ def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str,
             reproducibility_graph.make_graph(
                 'qc-reproducibility-plot', defaults, repro_data, title, table_type),
             legends['reproducibility-plot']
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     logger.info(
         f'reproducibility_plot - graph drawn: {datetime.now() }')
@@ -244,7 +260,11 @@ def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title
                 title, color_discrete_map=True
             ),
             legends['missing_values-plot']
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     logger.info(
         f'missing_plot - graph drawn: {datetime.now() }')
@@ -274,7 +294,11 @@ def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: st
                 title, color_discrete_map=True
             ),
             legends['value_sum-plot']
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     logger.info(
         f'sum_plot - graph drawn: {datetime.now() }')
@@ -305,7 +329,11 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
                 title, color_discrete_map=True
             ),
             legends['value_mean-plot']
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     logger.info(
         f'mean_plot - graph drawn: {datetime.now() }')
@@ -339,7 +367,11 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
                 plot_type='box'
             ),
             legends['value_dist-plot']
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     logger.info(
         f'distribution_plot - graph drawn: {datetime.now() }')
@@ -369,7 +401,11 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
                     children='Shared identifications'),
             graph,
             legend,
-        ]
+        ],
+        style={
+            'overflowX': 'auto',
+            'whiteSpace': 'nowrap'
+        }
     )
     common_data = {gk: list(gs) for gk, gs in common_data.items()}
     logger.info(

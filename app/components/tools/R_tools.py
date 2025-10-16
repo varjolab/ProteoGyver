@@ -68,7 +68,7 @@ def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_nam
     return script_output_df
 
 def impute_qrilc(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> pd.DataFrame:
-    tempname: uuid.UUID = str(uuid.uuid4())
+    tempname: str = str(uuid.uuid4())
     script: list = [
         'library("imputeLCMD")',
         f'set.seed({random_seed})',
@@ -76,3 +76,52 @@ def impute_qrilc(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> p
         f'write.table(data.frame(impute.QRILC(df,tune.sigma=1)[1]),file="{tempname}",sep="\\t")'
     ]
     return run_rscript(script, dataframe, tempname, errorfile)
+
+def impute_random_forest(dataframe: pd.DataFrame, random_seed: int, rev_sample_groups: dict, errorfile: str) -> pd.DataFrame:
+    tempname: str = str(uuid.uuid4())
+    with tempfile.NamedTemporaryFile() as groupsfile:
+        groupsfile.write('sample\tgroup\n'.encode('utf-8'))
+        groupsfile.write('\n'.join([f'{k}\t{v}' for k,v in rev_sample_groups.items()]).encode('utf-8'))
+        groupsfile.flush()
+        script: list = [
+            'suppressPackageStartupMessages({',
+            '  library(readr)',
+            '  library(randomForest)',
+            '})',
+
+            f'INPUT_TSV  <- "{tempname}"   # col1 = protein IDs, rest = numeric samples',
+            f'GROUPS_TSV <- "{groupsfile.name}"     # sample, group',
+            f'OUTPUT_TSV <- "{tempname}"',
+
+            f'SEED  <- {random_seed}',
+            'NTREE <- 300',
+            'ITER  <- 5',
+            'set.seed(SEED)',
+            'dat <- read_tsv(INPUT_TSV, col_types = cols(.default = col_guess()))',
+            'id_colname  <- names(dat)[1]',
+            'protein_ids <- as.character(dat[[1]])',
+            'expr_df     <- dat[, -1, drop = FALSE]',
+            'X           <- as.matrix(expr_df)',
+            'rownames(X) <- protein_ids',
+            'groups <- read_tsv(GROUPS_TSV,',
+            '                   col_types = cols(sample = col_character(), group = col_character()))',
+            'groups <- groups[match(colnames(X), groups$sample), , drop = FALSE]',
+            'y <- factor(groups$group)',
+            'if (!any(is.na(X))) {',
+            '  out_df <- data.frame(protein_ids, X, check.names = FALSE)',
+            '  names(out_df)[1] <- id_colname',
+            '  write_tsv(out_df, OUTPUT_TSV)',
+            '  cat("No NAs detected. Wrote input as final output.\n")',
+            '  quit(save = "no", status = 0)',
+            '}',
+            'X_df <- as.data.frame(t(X))',
+            'tmp <- tempfile()',
+            'invisible(capture.output({',
+            '  imp <- rfImpute(x = X_df, y = y, iter = ITER, ntree = NTREE)',
+            '}, file = tmp))',
+            'X_final <- t(as.matrix(imp[, -1, drop = FALSE]))',
+            'out_df <- data.frame(protein_ids, X_final, check.names = FALSE)',
+            'names(out_df)[1] <- id_colname',
+            'write_tsv(out_df, OUTPUT_TSV)',
+        ]
+        return run_rscript(script, dataframe, tempname, errorfile)

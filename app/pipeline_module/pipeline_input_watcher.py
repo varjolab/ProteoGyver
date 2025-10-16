@@ -29,7 +29,6 @@ WATCHER_LOG_FILENAME = "watcher.log"
 RUN_SUMMARY_FILENAME = "run_summary.json"
 PG_OUTPUT_DIRNAME = "PG output"
 
-
 def _now() -> float:
     return time.time()
 
@@ -42,6 +41,8 @@ def _iter_all_files(root: Path) -> List[Path]:
     files: List[Path] = []
     for dirpath, _, filenames in os.walk(root):
         for name in filenames:
+            if name in [WATCHER_LOG_FILENAME, LOCK_FILENAME]:
+                continue
             files.append(Path(dirpath) / name)
     return files
 
@@ -61,8 +62,10 @@ def _latest_mtime_in_tree(root: Path) -> float:
 
 def _tree_is_stable(root: Path, stable_seconds: int = 60) -> bool:
     if not root.exists():
+        _debug(root, "Tree does not exist")
         return False
     latest_mtime = _latest_mtime_in_tree(root)
+    _debug(root, f"latest_mtime: {latest_mtime}")
     return (_now() - latest_mtime) >= stable_seconds
 
 
@@ -269,7 +272,7 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
         if not entry.is_dir():
             continue
 
-        _debug(entry, "Considering directory")
+        _debug(entry, f"Considering directory: {entry.name}")
 
         # Skip if currently analyzing
         if _is_currently_analyzing(entry):

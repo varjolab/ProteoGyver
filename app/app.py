@@ -23,6 +23,7 @@ from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
 from components.tools import utils
 from celery.schedules import crontab
+from _version import __version__
 
 celery_app = Celery(
     __name__,
@@ -39,15 +40,14 @@ long_callback_manager = CeleryLongCallbackManager(celery_app, expire=300)
 app = Dash(__name__, use_pages=True, external_stylesheets=[
            FLATLY], suppress_callback_exceptions=True, long_callback_manager=long_callback_manager)
 
-app.title = 'ProteoGyver'
+app.title = f'ProteoGyver {__version__}'
 app.enable_dev_tools(debug=True)
-
 
 def main() -> None:
     """Main entry point for running the application.
 
     """
-    logger.info(f'Proteogyver started: {datetime.now()}')
+    logger.info(f'Proteogyver {__version__} started: {datetime.now()}')
     app.run(debug=True)
 
 def create_navbar(parameters: dict) -> dbc.Navbar:

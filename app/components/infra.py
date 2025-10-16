@@ -38,6 +38,7 @@ import pandas as pd
 from base64 import b64decode
 from datetime import datetime
 import logging
+from _version import __version__
 logger = logging.getLogger(__name__)
 
 data_store_export_configuration: dict = {
@@ -547,11 +548,13 @@ def save_input_information(input_divs, export_dir) -> None:
         'RadioItems',
         'Input'
     ]
-    input_options: list = []
+    input_options: list = [['Proteogyver version', __version__]]
     labels_and_inputs: list = get_all_types(input_divs, these)
     for i, label in enumerate(labels_and_inputs):
         if label['type'] != 'Label':
             continue
+        if label['props']['children'] == 'of:':
+            label['props']['children'] = 'NA filtering based on'
         if len(label['props']['children']) < 4:
             continue
         try:

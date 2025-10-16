@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import plotly.io as pio
+import plotly.colors as pc
 
 def rgba_to_hex(rgba: str) -> str:
     """Converts an rgba color to a hex color.
@@ -7,6 +9,29 @@ def rgba_to_hex(rgba: str) -> str:
     :returns: new color string in the  "rgb(123,321,123)" format.
     """
     return f'#{rgba.split("(")[1].split(")")[0].split(",")[0:3]}'
+
+def remove_unwanted_colors(figure_template: str) -> str:
+
+    # grab the current template
+    tmpl = pio.templates[figure_template]
+
+    # take its colorway or fallback to default
+    colorway = list(tmpl.layout.colorway or pio.templates["plotly"].layout.colorway)
+
+    def too_light(rgb):
+        r, g, b = pc.hex_to_rgb(rgb)
+        # compute perceived brightness 0–255
+        luminance = 0.299*r + 0.587*g + 0.114*b
+        return luminance > 210   # tweak threshold (230 ≈ very pale)
+
+    # replace any light color with a darker variant
+    safe_colors = [
+        rgb if not too_light(rgb) else pc.label_rgb(tuple(max(0, c-60) for c in pc.hex_to_rgb(rgb)))
+        for rgb in colorway
+    ]
+
+    tmpl.layout.colorway = safe_colors
+    return tmpl
 
 def get_assigned_colors(sample_group_dict: dict) -> dict:
     """Returns a dictionary with each sample name from the sample group dict assigned a color\

@@ -48,6 +48,7 @@ def replace_special_characters(
     remove_duplicates: bool = False,
     make_lowercase: bool = True,
     allow_numbers: bool = True,
+    allow_space: bool = False,
     mask_first_digit: str|None = None
 ) -> str:
     """Replaces special characters in a string with specified replacements.
@@ -67,6 +68,8 @@ def replace_special_characters(
             Defaults to True
         allow_numbers (bool, optional): Whether to allow numbers in the result. 
             Defaults to True
+        allow_space (bool, optional): Whether to allow spaces in the result. 
+            Defaults to False
         mask_first_digit (str|None, optional): Character to mask the first digit with. 
             Defaults to None
 
@@ -82,8 +85,10 @@ def replace_special_characters(
     """
     ret: str
     regex_pat = r'[^a-zA-Z0-9]'
+    if allow_space:
+        regex_pat = r'[^a-zA-Z0-9 ]'
     if not allow_numbers:
-        regex_pat = r'[^a-zA-Z]'
+        regex_pat = regex_pat.replace('0-9', '')
     if not replacement_dict:
         ret = re.sub(regex_pat, replacewith, text)
     else:
@@ -117,22 +122,18 @@ def replace_special_characters(
         ret = ret.lower()
     if mask_first_digit:
         if ret[0].isdigit():
-            ret = mask_first_digit + ret[1:]
+            ret = mask_first_digit + ret
     return ret
 
 def replace_accent_and_special_characters(
     text: str,
-    replacewith: str = '.',
-    replacement_dict: Optional[Dict[str, str]] = None
+    **kwargs
 ) -> str:
     """Replaces both accented and special characters in a string.
     
     Args:
         text (str): Input string containing accented and special characters
-        replacewith (str, optional): Character to replace special characters with. 
-            Defaults to '.'
-        replacement_dict (dict, optional): Dictionary mapping specific special characters 
-            to their replacements. Defaults to None
+        **kwargs: Additional keyword arguments passed to replace_special_characters()
             
     Returns:
         str: String with both accented and special characters replaced
@@ -140,9 +141,10 @@ def replace_accent_and_special_characters(
     Example:
         >>> replace_accent_and_special_characters("café, étude!")
         "cafe.etude"
+        >>> replace_accent_and_special_characters("café, étude!", make_lowercase=True)
+        "cafe.etude"
     """
-    return replace_special_characters(remove_accent_characters(text), replacewith=replacewith, 
-                                         replacement_dict=replacement_dict)
+    return replace_special_characters(remove_accent_characters(text), **kwargs)
 
 def clean_text(text: str) -> str:
     """Simplified alias for replace_accent_and_special_characters.

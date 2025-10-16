@@ -6,6 +6,7 @@ Server_input/
 app/data/db/db build files/
 app/pages/proteomics_fi.py
 debug/
+celerybeat-schedule.db*
 
 __pycache__/
 .ipynb_checkpoints/

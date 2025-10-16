@@ -360,19 +360,6 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
             comp_df = pd.read_csv(cfg.comparison_file, sep='\t')
             if 'Control' in comp_df.columns:
                 control_groups.update(comp_df['Control'].unique())
-        
-        if control_groups:
-            # Use normalized data for perturbation analysis
-            pertub_div, pertub_data = proteomics.pertubation(
-                normalized,
-                data_dictionary["sample groups"]["norm"],
-                list(control_groups),
-                rep_colors,
-                params["Figure defaults"]["half-height"],
-                params["Figure defaults"]["full-height"]
-            )
-            _dump_json(cfg.outdir, "13_perturbation", pertub_data)
-            divs["pertubation"] = pertub_div
     # Volcano (control vs comparisons) — optional when controls/comparisons provided
     volcano = None
     if imputed is not None:

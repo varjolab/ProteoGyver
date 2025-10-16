@@ -23,7 +23,7 @@ from dash.dependencies import Input, Output, State
 from components import ui_components as ui
 from components import infra
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
-from components.figures.color_tools import get_assigned_colors
+from components.figures.color_tools import get_assigned_colors, remove_unwanted_colors
 from components.figures import tic_graph
 from components.tools import utils
 import plotly.io as pio
@@ -76,13 +76,14 @@ def clear_data_stores(begin_clicks: Optional[int]) -> str:
     #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
     return ''
 
-
 @callback(
     Output('upload-data-file-success', 'style'),
     Output({'type': 'uploaded-data-store',
            'name': 'uploaded-data-table-info-data-store'}, 'data'),
     Output({'type': 'uploaded-data-store',
            'name': 'uploaded-data-table-data-store'}, 'data'),
+    Output('input-warnings-data-table-div', 'children'),
+    Output('input-warnings-data-table-div', 'hidden'),
     Input('upload-data-file', 'contents'),
     State('upload-data-file', 'filename'),
     State('upload-data-file', 'last_modified'),
@@ -93,14 +94,14 @@ def handle_uploaded_data_table(
     file_contents: Optional[str], 
     file_name: str, 
     mod_date: int, 
-    current_upload_style: Dict[str, Any]
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    current_upload_style: Dict[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], list, bool]:
     """Parses uploaded data table and sends data to data stores.
     
     Args:
         file_contents: Contents of the uploaded file
         file_name (str): Name of the uploaded file
-        mod_date: Last modified date of the file
+        mod_date: Last modified timestamp of the file
         current_upload_style (dict): Current style of the upload success indicator
         
     Returns:
@@ -108,12 +109,21 @@ def handle_uploaded_data_table(
             - Updated upload success style
             - Data table info for storage
             - Data table contents for storage
+            - List of warnings
+            - Boolean indicating if warnings div should be hidden
     """
     if file_contents is not None:
-        return parsing.parse_data_file(
+        upload_style, info, tables, warning_list = parsing.parse_data_file(
             file_contents, file_name, mod_date, current_upload_style, parameters['file loading']
         )
-    return no_update, no_update, no_update
+        warnings: list = [
+            html.P(w) for w in warning_list
+        ]
+        if len(warnings) > 0:
+            warnings.insert(0, html.H3('Data table warnings'))
+            warnings.append(html.P('This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)'))
+        return upload_style, info, tables, warnings, len(warnings)==0
+    return no_update, no_update, no_update, no_update, no_update
 
 
 @callback(
@@ -122,6 +132,8 @@ def handle_uploaded_data_table(
            'name': 'uploaded-sample-table-info-data-store'}, 'data'),
     Output({'type': 'uploaded-data-store',
            'name': 'uploaded-sample-table-data-store'}, 'data'),
+    Output('input-warnings-sample-table-div', 'children'),
+    Output('input-warnings-sample-table-div', 'hidden'),
     Input('upload-sample_table-file', 'contents'),
     State('upload-sample_table-file', 'filename'),
     State('upload-sample_table-file', 'last_modified'),
@@ -132,25 +144,39 @@ def handle_uploaded_sample_table(
     file_contents: Optional[str],
     file_name: str,
     mod_date: int,
-    current_upload_style: Dict[str, Any]
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    current_upload_style: Dict[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], list, bool]:
     """Parses uploaded sample table and sends data to data stores.
     
     Args:
         file_contents: Contents of the uploaded file
         file_name (str): Name of the uploaded file
-        mod_date: Last modified date of the file
+        mod_date: Last modified timestamp of the file
         current_upload_style (dict): Current style of the upload success indicator
-        
     Returns:
         tuple: Contains:
             - Updated upload success style
             - Sample table info for storage
             - Sample table contents for storage
+            - List of warnings
+            - Boolean indicating if warnings div should be hidden
     """
     if file_contents is not None:
-        return parsing.parse_sample_table(file_contents, file_name, mod_date, current_upload_style)
-    return no_update, no_update, no_update
+        upload_style, info, table_data = parsing.parse_sample_table(file_contents, file_name, mod_date, current_upload_style)
+        exp_cols_found: list[str] = info['required columns found']
+        warnings = []
+        if len(exp_cols_found) < 2:
+            req_cols: list[str] = ['sample name', 'sample group']
+            fcols = ', '.join([info[col] for col in req_cols if col in info])
+            warnings = [
+                html.H3('Sample table warnings'),
+                html.P(
+                    f'- Experimental design table is missing required columns. Found columns: {fcols}, required columns: {", ".join(req_cols)}'
+                ),
+                html.P('This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)')
+            ]
+        return upload_style, info, table_data, warnings, len(warnings)==0
+    return no_update, no_update, no_update, no_update, no_update
 
 
 @callback(
@@ -178,7 +204,7 @@ def validate_data(
     expdes_info: Dict[str, Any],
     figure_template: str,
     additional_options: Optional[List[str]]
-) -> Tuple[Dict[str, Any], bool]:
+) -> Tuple[Dict[str, Any], bool, list[html.Div], bool]:
     """Validates and formats uploaded data for analysis.
     
     Args:
@@ -194,6 +220,8 @@ def validate_data(
         tuple: Contains:
             - Formatted data dictionary
             - Boolean indicating if download button should be disabled
+            - List of warnings for warnings div
+            - Boolean indicating if warnings div should be hidden
     """
     logger.info(f'Validating data: {datetime.now()}')
     cont: List[str] = []
@@ -206,21 +234,24 @@ def validate_data(
             repnames = True
         if 'Use unique proteins only (remove protein groups)' in additional_options:
             uniq_only = True
-    pio.templates.default = figure_template
+    pio.templates.default = remove_unwanted_colors(figure_template)
+    data_dict: dict = parsing.format_data(
+        f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
+        data_tables,
+        data_info,
+        expdes_table,
+        expdes_info,
+        cont,
+        repnames,
+        uniq_only,
+        parameters['workflow parameters']['interactomics']['control indicators'],
+        parameters['file loading']['Bait ID column names']
+    )
+
     return (
-        parsing.format_data(
-            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}--{uuid4()}',
-            data_tables,
-            data_info,
-            expdes_table,
-            expdes_info,
-            cont,
-            repnames,
-            uniq_only,
-            parameters['workflow parameters']['interactomics']['control indicators'],
-            parameters['file loading']['Bait ID column names']
-        ), 
-        False)
+        data_dict,
+        False
+    )
 
 @callback(
     Output({'type': 'data-store', 'name': 'upload-data-store'},
@@ -297,7 +328,7 @@ def assign_replicate_colors(data_dictionary: Dict[str, Any]) -> Tuple[Dict[str, 
     Input('workflow-dropdown', 'value'), 
     Input('figure-theme-dropdown', 'value'),
     Input('upload-data-file-success', 'style'), 
-    Input('upload-data-file-success', 'style'),
+    Input('upload-sample_table-file-success', 'style'),
     prevent_initial_call=True
 )
 def check_inputs(*args: Any) -> bool:
@@ -857,9 +888,10 @@ def proteomics_missing_in_other_samples(normalized_data: Dict[str, Any]) -> html
     Output({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
     Input({'type': 'data-store', 'name': 'proteomics-normalization-data-store'}, 'data'),
     Input('proteomics-imputation-radio-option', 'value'),
+    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputation_option: str) -> Union[Tuple[html.Div, Dict[str, Any]], Any]:
+def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputation_option: str, data_dictionary: Dict[str, Any]) -> Union[Tuple[html.Div, Dict[str, Any]], Any]:
     """Creates plot showing results of missing value imputation in proteomics workflow.
     
     Args:
@@ -880,64 +912,14 @@ def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputa
     """
     if normalized_data is None:
         return no_update
-    return proteomics.imputation(normalized_data, imputation_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
+    return proteomics.imputation(
+        normalized_data,
+        imputation_option,
+        parameters['Figure defaults']['full-height'],
+        parameters['Config']['R error file'],
+        sample_groups_rev=data_dictionary['sample groups']['rev'])
 
 
-# TODO: Either implement or get rid of. need to decide, which.
-@callback(
-    Output({'type': 'workflow-plot',
-           'id': 'proteomics-pertubation-plot-div'}, 'children'),
-    Output({'type': 'data-store', 'name': 'proteomics-pertubation-data-store'}, 'data'),
-    Input({'type': 'data-store', 'name': 'proteomics-imputation-data-store'}, 'data'),
-    State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
-    State('proteomics-control-dropdown', 'value'),
-    State({'type': 'data-store',
-           'name': 'proteomics-comparison-table-data-store'}, 'data'),
-    State('proteomics-comparison-table-upload-success', 'style'),
-    State({'type': 'data-store', 'name': 'replicate-colors-data-store'}, 'data'),
-    prevent_initial_call=True
-)
-def proteomics_pertubation(imputed_data: Optional[Dict[str, Any]], data_dictionary: Dict[str, Any], control_group: Optional[str], comparison_data: Optional[Dict[str, Any]], comparison_upload_success_style: Dict[str, str], replicate_colors: Dict[str, Any]) -> Union[Tuple[html.Div, str], Any]:
-    """Creates perturbation analysis plots for proteomics data.
-    
-    Args:
-        imputed_data (dict): Imputed proteomics data
-        data_dictionary (dict): Main data dictionary containing sample information
-        control_group (str): Selected control group name
-        comparison_data (dict): Comparison table data
-        comparison_upload_success_style (dict): Style indicating comparison upload status
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - Perturbation plot components
-            - Perturbation data for storage
-    """
-    return (html.Div(), '')
-    if control_group is None:
-        if (comparison_data is None):
-            logger.warning(f'Proteomics volcano: no comparison data: {datetime.now()}')
-            return no_update
-        if (len(comparison_data) == 0):
-            logger.warning(f'Proteomics volcano: Comparison data len 0: {datetime.now()}')
-            return no_update
-        if comparison_upload_success_style['background-color'] in ('red', 'grey'):
-            logger.warning(f'Proteomics volcano: comparison data failed validation: {datetime.now()}')
-            return no_update
-    if imputed_data is None:
-        return no_update
-    sgroups: Dict[str, Any] = data_dictionary['sample groups']['norm']
-    comparisons: List[Tuple[Any, ...]] = parsing.parse_comparisons(
-        control_group, comparison_data, sgroups)
-    
-    return proteomics.pertubation(
-        imputed_data,
-        sgroups,
-        [c[1] for c in comparisons],
-        replicate_colors,
-        parameters['Figure defaults']['half-height'],
-        parameters['Figure defaults']['full-height']
-    )
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-cv-plot-div'}, 'children'),

@@ -20,8 +20,8 @@ def bar_plot(
         hide_legend=False,
         color_discrete_map=False,
         color_discrete_map_dict: dict = None,
-        width: int = None,
-        height: int = None) -> px.bar:
+        width: int|None = None,
+        height: int|None = None) -> px.bar:
     """Draws a bar plot from the given input.
 
     Parameters:
@@ -65,6 +65,10 @@ def bar_plot(
         height: int = defaults['height']
     if width is None:
         width: int = defaults['width']
+        if 'min_width_per' in defaults and defaults['min_width_per'] > 0:
+            target_width = defaults['side_width'] + (defaults['min_width_per']*len(value_df[x_name].unique()))
+            if width < target_width:
+                width = target_width
     cat_ord: dict = {}
     if sort_x is not None:
         cat_ord[x_name] = sorted(

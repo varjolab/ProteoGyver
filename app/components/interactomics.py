@@ -280,7 +280,11 @@ def known_plot(filtered_saint_input_json: str,
                 legends['known'],
                 html.P(known_str),
                 html.P(more_known)
-            ]
+            ],
+            style={
+                'overflowX': 'auto',
+                'whiteSpace': 'nowrap'
+            }
         ),
         saint_output.to_json(orient='split')
     )
@@ -381,6 +385,7 @@ def enrich(saint_output_json: str,
     div_contents:list = []
     enrichment_data: dict = {}
     enrichment_information: list = []
+    chosen_enrichments = [e for e in chosen_enrichments if len(e.strip()) > 0]
     if len(chosen_enrichments) == 0:
         return (
             div_contents,

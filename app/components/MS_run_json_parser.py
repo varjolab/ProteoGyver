@@ -1,9 +1,7 @@
 import os
 import json
 import pandas as pd
-import re
 import shutil
-import time
 import logging
 import zipfile
 from celery import shared_task
@@ -11,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from components.tools.utils import read_toml, normalize_key, dig_dict
 from components import db_functions
-from app import celery_app
 from celery_once import QueueOnce
 
 logger = logging.getLogger("MS_run_json_parser")
@@ -26,6 +23,7 @@ def parse_json_files():
     input_path = os.path.join(*parameters['Maintenance']['MS run parsing']['Input files'])
     os.makedirs(input_path, exist_ok=True)
     jsons_to_do = os.listdir(input_path)
+    jsons_to_do = [j for j in jsons_to_do if j.endswith('.json')]
     if len(jsons_to_do) == 0:
         return ('No json files to parse')
     move_done_dir = os.path.join(input_path, parameters['Maintenance']['MS run parsing']['Move done jsons into subdir'])
@@ -41,7 +39,8 @@ def parse_json_files():
             f'{tt}_mean_intensity',
             f'{tt}_trace',
         ])
-    run_index = max([int(i.rsplit('_',maxsplit=1)[-1]) for i in db_functions.get_from_table(conn, 'ms_runs', select_col = 'internal_run_id')]) + 1
+    with db_functions.create_connection(os.path.join(*parameters['Data paths']['Database file']), mode='ro') as conn:
+        run_index = max([int(i.rsplit('_',maxsplit=1)[-1]) for i in db_functions.get_from_table(conn, 'ms_runs', select_col = 'internal_run_id')]) + 1
     base_id = 'PG_runID_'
 
     base_keys = [
@@ -129,6 +128,11 @@ def parse_json_files():
 
     msrows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_runs'], f'{timestamp}_jsonParser_MSruns.tsv')
     tracerows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_plots'], f'{timestamp}_jsonParser_MStraces.tsv')
+    i = 0
+    while os.path.exists(msrows_filename):
+        i+=1
+        msrows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_runs'], f'{timestamp}_jsonParser_MSruns_{i}.tsv')
+        tracerows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_plots'], f'{timestamp}_jsonParser_MStraces_{i}.tsv')
 
     pd.DataFrame(data = MS_rows, columns=headers).to_csv(msrows_filename,sep='\t',index=False)
     pd.DataFrame(data = trace_rows, columns=trace_keys).to_csv(tracerows_filename,sep='\t',index=False)

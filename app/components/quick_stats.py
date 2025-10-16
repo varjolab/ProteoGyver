@@ -68,6 +68,8 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
         result.sort_values(by='Significant',ascending=True,inplace=True)
         #result['p_value_adj_neg_log10'] = -np.log10(result['p_value_adj'])
         sig_data.append(result)
+    if len(sig_data) == 0:
+        return None
     return pd.concat(sig_data,ignore_index=True)[
         ['Sample',
          'Control',

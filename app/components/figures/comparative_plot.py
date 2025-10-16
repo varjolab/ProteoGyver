@@ -40,10 +40,15 @@ def make_graph(
             'Name': plot_legend[0]
         }
     )
+    width: int = defaults['width']
+    if 'min_width_per' in defaults and defaults['min_width_per'] > 0:
+        target_width = defaults['side_width'] + defaults['min_width_per']*len(plot_df['Column'].unique())
+        if width < target_width:
+            width = target_width
     trace_args: dict = dict()
     layout_args: dict = {
         'height': defaults['height'],
-        'width': defaults['width']
+        'width': width
     }
     if title is not None:
         layout_args['title'] = title
@@ -74,7 +79,6 @@ def make_graph(
     
     logger.info(
         f'returning graph: {datetime.now()}')
-    previous_time = datetime.now()
     return Graph(
         id=id_name,
         config=defaults['config'],

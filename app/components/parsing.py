@@ -481,7 +481,26 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
         - Returns tables in JSON split format for serialization
     """
     table: pd.DataFrame = read_df_from_content(file_contents, filename)
-    table.columns = table.columns.astype(str)
+    table.columns = [text_handling.replace_accent_and_special_characters(str(x), allow_space=True, make_lowercase=False) for x in table.columns]
+    # Validation: initialize containers
+    warnings: list[str] = []
+    validation: dict[str, Any] = {}
+    # Pre-parse sanity metrics on initial table
+    try:
+        validation.update({
+            'rows_initial': int(table.shape[0]),
+            'cols_initial': int(table.shape[1]),
+            'numeric_cols_initial': int(table.select_dtypes(include=[np.number]).shape[1]),
+        })
+        if validation['rows_initial'] == 0:
+            warnings.append('Empty file: 0 rows')
+        if validation['cols_initial'] < 2:
+            warnings.append('Suspiciously few columns (<2)')
+        if validation['numeric_cols_initial'] == 0:
+            warnings.append('No numeric columns detected')
+    except Exception:
+        # Be conservative: do not fail parsing due to validation
+        pass
 
     read_funcs: dict[tuple[str, str]] = {
         ('DIA', 'DIA-NN'): read_dia_nn,
@@ -506,11 +525,48 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
         table, **keyword_args)
     intensity_table = remove_duplicate_protein_groups(intensity_table)
     spc_table = remove_duplicate_protein_groups(spc_table)
+    # Post-reader validation metrics for intensity and spc tables
+    try:
+        for name, df in [('intensity', intensity_table), ('spc', spc_table)]:
+            is_placeholder: bool = (list(df.columns) == ['No data']) and (df.shape == (1, 1))
+            nrows: int = int(df.shape[0])
+            ncols: int = int(df.shape[1])
+            num_df: pd.DataFrame = df.select_dtypes(include=[np.number])
+            nnum: int = int(num_df.shape[1])
+            non_nan: int = int(num_df.count().sum()) if nnum else 0
+            all_zero: bool = bool(nnum and (num_df.sum().sum() == 0))
+            all_nan: bool = bool(nnum and num_df.isna().all().all())
+            validation.update({
+                f'{name}_rows': nrows,
+                f'{name}_cols': ncols,
+                f'{name}_numeric_cols': nnum,
+                f'{name}_non_nan_values': non_nan,
+            })
+            if is_placeholder:
+                warnings.append(f'{name} table missing or placeholder')
+            if (nrows <= 1) or (ncols <= 1):
+                warnings.append(f'{name} table very small (rows<=1 or cols<=1)')
+            if nnum == 0:
+                warnings.append(f'{name} has no numeric columns')
+            if all_nan:
+                warnings.append(f'{name} numeric data all NA')
+            if all_zero:
+                warnings.append(f'{name} numeric data sums to 0')
+        # Combined checks
+        if (validation.get('intensity_rows', 0) <= 1) and (validation.get('spc_rows', 0) <= 1):
+            warnings.append('Both intensity and SPC tables are missing or tiny')
+        if (validation.get('intensity_numeric_cols', 0) == 0) and (validation.get('spc_numeric_cols', 0) == 0):
+            warnings.append('No numeric data available in intensity nor SPC')
+    except Exception:
+        # Do not interrupt main flow due to validation
+        pass
 
     info_dict: dict = {
         'protein lengths': protein_length_dict,
         'Data type': data_type[0],
-        'Data source guess': data_type[1]
+        'Data source guess': data_type[1],
+        'validation': validation,
+        'warnings': warnings,
     }
     table_dict: dict = {
         'spc': spc_table.to_json(orient='split'),
@@ -593,6 +649,10 @@ def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
         - Groups by index values (protein groups)
         - Preserves column order and names
     """
+    # If no columns remain (e.g., non-numeric columns were dropped earlier),
+    # there is nothing to aggregate. Return as-is to avoid pandas concat error.
+    if data_table.shape[1] == 0:
+        return data_table
     aggfuncs: dict = {}
     numerical_columns: set = set(
         data_table.select_dtypes(include=np.number).columns)
@@ -605,8 +665,8 @@ def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
 
 
 def parse_data_file(data_file_contents: str, data_file_name: str, 
-                   data_file_modified_data: str, new_upload_style: Dict[str, str], 
-                   parameters: Dict[str, Any]) -> Tuple[Dict[str, str], Dict[str, Any], Dict[str, str]]:
+                   data_file_modified_data: int, new_upload_style: Dict[str, str], 
+                   parameters: Dict[str, Any]) -> Tuple[Dict[str, str], Dict[str, Any], Dict[str, str], list[str]]:
     """Parses a data file and validates its contents.
 
     Args:
@@ -621,7 +681,7 @@ def parse_data_file(data_file_contents: str, data_file_name: str,
             - dict: Updated upload style with background color indicating status
             - dict: File info including metadata and data type
             - dict: Tables dictionary with intensity and spectral count data in split JSON format
-
+            - list: List of warnings
     Notes:
         - Validates file has sufficient numeric columns (>=3)
         - Sets background-color to 'green' if valid, 'red' if invalid
@@ -641,19 +701,28 @@ def parse_data_file(data_file_contents: str, data_file_name: str,
     for key, value in more_info.items():
         info[key] = value
     has_data: bool = False
-    for _, table_data in tables.items():
+
+
+    warnings: list[str] = []
+    dt_info = more_info['validation']
+    if dt_info['spc_numeric_cols'] == 0 and dt_info['intensity_numeric_cols'] == 0:
+        warnings.append(f'- Data table: Neither intensity nor spectral count columns were able to be identified in input.')
+    if dt_info['spc_rows'] <= 1 and dt_info['intensity_rows'] <= 1:
+        warnings.append(f'- Data table: Neither intensity nor spectral count data was able to be identified in input.')
+
+    for key, table_data in tables.items():
         if isinstance(table_data, str):
             if table_data.count('No data') != 2:
                 data_table: pd.DataFrame = pd.read_json(
                     io.StringIO(table_data), orient='split')
                 numeric_columns: set = set(
                     data_table.select_dtypes(include=np.number).columns)
-                if len(numeric_columns) >= 3:
+                if len(numeric_columns) >= 1:
                     has_data = True
     new_upload_style['background-color'] = 'green'
     if not has_data:
         new_upload_style['background-color'] = 'red'
-    return (new_upload_style, info, tables)
+    return (new_upload_style, info, tables, warnings)
 
 
 def check_sample_table_column(column: str, accepted_values: List[str]) -> Optional[str]:
@@ -709,7 +778,7 @@ def check_required_columns(columns: List[str]) -> Tuple[Dict[str, str], Set[str]
 
 
 def parse_sample_table(data_file_contents: str, data_file_name: str,
-                      data_file_modified_data: str, 
+                      data_file_modified_data: int, 
                       new_upload_style: Dict[str, str]) -> Tuple[Dict[str, str], Dict[str, Any], str]:
     """Parses and validates a sample metadata table.
 
@@ -745,6 +814,7 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
     reqs_found: set
     additional_info: dict
     additional_info, reqs_found = check_required_columns(decoded_table.columns)
+    info['required columns found'] = sorted(list(reqs_found))
     for k, v in additional_info.items():
         info[k] = v
     if len(reqs_found) < 2:
@@ -752,6 +822,9 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
     elif 'bait uniprot' in info:
         indicator_color = 'blue'
     new_upload_style['background-color'] = indicator_color
+    if indicator_color != 'red':
+        for c in decoded_table.columns:
+            decoded_table[c] = [text_handling.replace_accent_and_special_characters(str(x), allow_space=True, make_lowercase=False) for x in decoded_table[c]]
     return (new_upload_style, info, decoded_table.to_json(orient='split'))
 
 
@@ -895,6 +968,8 @@ def format_data(session_uid: str, data_tables: Dict[str, str],
         'other': {
             'session name': session_uid,
             'protein lengths': data_info['protein lengths'],
+            'experimental design all info': expdes_info,
+            'data table all info': data_info,
         }
     }
     return_dict['other']['bait uniprots'] = {}
@@ -1038,6 +1113,13 @@ def clean_sample_names(expdesign: pd.DataFrame,
     """
     # Remove rows with missing required values
     expd_columns = ['Sample name','Sample group']
+    init_rename = {}
+    for c in expd_columns:
+        for col in expdesign.columns:
+            if c.lower().strip().replace(' ','') == col.lower().strip().replace(' ',''):
+                init_rename[col] = c
+    expdesign = expdesign.rename(columns=init_rename)
+
     expdesign = expdesign[~(expdesign[expd_columns].isna().sum(axis=1)>0)].copy()
     expd_columns.extend([c for c in expdesign.columns if c not in expd_columns])
     # Convert all values to strings
@@ -1045,6 +1127,12 @@ def clean_sample_names(expdesign: pd.DataFrame,
         expdesign[col] = expdesign[col].apply(_to_str)
     # Remove file paths from sample names (handles both Windows and Unix paths)
     expdesign.loc[:, 'Sample name'] = expdesign['Sample name'].apply(
+        lambda x: text_handling.replace_special_characters(
+            clean_column_name(x),
+            replacewith='_',make_lowercase=False
+        )
+    )
+    expdesign.loc[:, 'Sample group'] = expdesign['Sample group'].apply(
         lambda x: text_handling.replace_special_characters(
             clean_column_name(x),
             replacewith='_',make_lowercase=False
@@ -1167,7 +1255,7 @@ def rename_columns_and_update_expdesign(expdesign: pd.DataFrame,
         tuple: Contains:
             - dict: Sample groups mapping with 'norm' (group->samples) and 'rev' (sample->group)
             - list: Columns that were discarded during processing
-            - list: List of dicts mapping new column names to original names for each table
+            - list: Used columns
             - pd.DataFrame: Updated experimental design table with only used samples
             
     Notes:
@@ -1298,6 +1386,8 @@ def check_comparison_file(file_contents: str, file_name: str,
         ccol: str = 'control'
         if ('sample' not in dataframe.columns) or ('control' not in dataframe.columns):
             scol, ccol = dataframe.columns[:2]
+        for col in [scol,ccol]:
+            dataframe[col] = [text_handling.replace_accent_and_special_characters(str(x), allow_space=True, make_lowercase=False) for x in dataframe[col]]
         for _, row in dataframe.iterrows():
             samplename: str = row[scol]
             controlname: str = row[ccol]

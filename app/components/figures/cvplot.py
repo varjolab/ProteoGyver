@@ -56,11 +56,15 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
             font=dict(color='black')
         ))
 
-
+    width: int = defaults['width']
+    if 'min_width_per' in defaults and defaults['min_width_per'] > 0:
+        target_width = defaults['side_width'] + defaults['min_width_per']*4*len(sample_groups.keys())
+        if width < target_width:
+            width = target_width
     fig.update_layout(
         autosize=False,
         height=defaults['height'],
-        width=defaults['width'],
+        width=width,
         yaxis=dict(
             title='%CV',
             tickmode='linear',

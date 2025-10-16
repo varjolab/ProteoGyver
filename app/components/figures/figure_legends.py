@@ -35,12 +35,13 @@ leg_dict: dict = {
         'ms-microscopy-all': 'MS microscopy results for all baits. Values are not "real", but instead 100 = best match per bait, and the rest are scaled appropriately based on how much of shared signal originates from Preys specific to each localization.',
     }
 }
-
-QC_LEGENDS: dict = {key: P(id=f'qc-legend-{key}', children=val)
+#LEG_WIDTH: str = '800px'
+LEG_WIDTH: str = '75%'
+QC_LEGENDS: dict = {key: P(id=f'qc-legend-{key}', children=val, style = {'max-width': LEG_WIDTH})
                     for key, val in leg_dict['qc'].items()}
-PROTEOMICS_LEGENDS: dict = {key: P(id=f'proteomics-legend-{key}', children=val)
+PROTEOMICS_LEGENDS: dict = {key: P(id=f'proteomics-legend-{key}', children=val, style = {'max-width': LEG_WIDTH})
                             for key, val in leg_dict['proteomics'].items()}
-INTERACTOMICS_LEGENDS: dict = {key: P(id=f'interactomics-legend-{key}', children=val)
+INTERACTOMICS_LEGENDS: dict = {key: P(id=f'interactomics-legend-{key}', children=val, style = {'max-width': LEG_WIDTH})
                                for key, val in leg_dict['interactomics'].items()}
 
 def leg_rep(legend, replace, rep_with) -> P:
