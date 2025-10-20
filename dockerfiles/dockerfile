@@ -75,7 +75,7 @@ RUN mkdir -p /proteogyver/resources
 COPY app /proteogyver
 
 WORKDIR /proteogyver
-COPY app/requirements/renv.lock /proteogyver/renv.lock
+COPY requirements/renv.lock /proteogyver/renv.lock
 # Prevent any system/user libs from leaking in
 ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
     R_LIBS_SITE="" \
@@ -113,7 +113,7 @@ RUN mkdir -p ${MAMBA_ROOT_PREFIX} && \
     curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
     micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX}
 WORKDIR /proteogyver
-COPY app/requirements/environment.yml environment.yml
+COPY requirements/environment.yml environment.yml
 RUN micromamba create -y -n PG -f environment.yml && \
     micromamba clean -a -y
 
