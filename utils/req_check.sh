@@ -91,6 +91,7 @@ while IFS=$'\t' read -r required_path warn_msg final_msg || [[ -n "${required_pa
   else
     full_path="${REPO_ROOT}/${required_path}"
   fi
+  echo "[CHECK] ${full_path}"
   if [[ ! -e "${full_path}" ]]; then
     ERRORS+=("[ERROR] ${warn_msg}")
     ERRORS+=("[ERROR] Missing required path: ${full_path} (from: ${required_path})")
