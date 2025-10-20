@@ -3,7 +3,7 @@ set -e
 
 # --- Early required path checks (two-pass) ---
 CHECKS_FILE="/proteogyver/resources/path_checks.tsv"
-python /proteogyver/app/resources/generate_path_checks.py /proteogyver/parameters.toml $CHECKS_FILE
+python /proteogyver/resources/generate_path_checks.py /proteogyver/parameters.toml $CHECKS_FILE
 
 # Only run if checklist file exists
 if [ -f "$CHECKS_FILE" ]; then
