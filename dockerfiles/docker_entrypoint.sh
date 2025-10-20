@@ -4,41 +4,32 @@ set -e
 # --- Early required path checks (two-pass) ---
 CHECKS_FILE="/proteogyver/resources/path_checks.tsv"
 python /proteogyver/resources/generate_path_checks.py /proteogyver/parameters.toml $CHECKS_FILE
-
 # Only run if checklist file exists
 if [ -f "$CHECKS_FILE" ]; then
-    # Pass 1: For each missing path, display warning and block until resolved
-    echo "[CHECK] Running preflight path checks (pass 1)..."
+    echo "[CHECK] Running preflight path checks..."
+    errors=()
+    # Check each required path and collect errors
     while IFS=$'\t' read -r required_path warn_msg final_msg || [ -n "$required_path" ]; do
         # Skip comments and empty lines
         if [[ -z "$required_path" ]] || [[ "$required_path" =~ ^# ]]; then
             continue
         fi
         if [ ! -e "$required_path" ]; then
-            echo "[WARN] $warn_msg"
-            while [ ! -e "$required_path" ]; do
-                read -rp "[ACTION] Fix the issue for: $required_path, then press Enter to re-check... " _
-                if [ -e "$required_path" ]; then
-                    echo "[OK] Found: $required_path"
-                else
-                    echo "[RECHECK] Still missing: $required_path"
-                fi
-            done
+            errors+=("[ERROR] $warn_msg")
+            errors+=("[ERROR] Missing required path: $required_path") 
+            errors+=("[ERROR] $final_msg")
         fi
     done < "$CHECKS_FILE"
 
-    # Pass 2: Re-check and display final messages for anything still missing
-    echo "[CHECK] Verifying paths (pass 2)..."
-    while IFS=$'\t' read -r required_path warn_msg final_msg || [ -n "$required_path" ]; do
-        if [[ -z "$required_path" ]] || [[ "$required_path" =~ ^# ]]; then
-            continue
-        fi
-        if [ ! -e "$required_path" ]; then
-            echo "[NOTICE] $final_msg"
-        fi
-    done < "$CHECKS_FILE"
+    # If any errors were found, print them all and exit
+    if [ ${#errors[@]} -gt 0 ]; then
+        printf '%s\n' "${errors[@]}"
+        exit 1
+    fi
+    
+    echo "[CHECK] All required paths verified."
 else
-	echo "[CHECK] No checklist found at $CHECKS_FILE. Skipping preflight checks."
+    echo "[CHECK] No checklist found at $CHECKS_FILE. Skipping preflight checks."
 fi
 
 # --- Optional Resource monitoring ---

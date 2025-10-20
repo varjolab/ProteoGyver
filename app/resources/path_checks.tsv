@@ -1,5 +1,5 @@
-# path	warning_message	final_message
+# path	warning_message
 # Example rows below. Replace or extend as needed. Lines starting with # are ignored.
-/proteogyver/external/SAINTexpress-int	SAINTexpress-int executable is missing. Copy binaries into /proteogyver/app/external/SAINTexpress directory	SAINTexpress-int still missing; SAINT will be unavailable and produced data will be randomized.
-/proteogyver/external/SAINTexpress-spc	SAINTexpress-spc executable is missing. Copy binaries into /proteogyver/app/external/SAINTexpress directory	SAINTexpress-spc still missing; SAINT will be unavailable and produced data will be randomized.
+/proteogyver/external/SAINTexpress-int	SAINTexpress-int executable is missing. Copy binaries into /proteogyver/app/external/SAINTexpress directory before building the container
+/proteogyver/external/SAINTexpress-spc	SAINTexpress-spc executable is missing. Copy binaries into /proteogyver/app/external/SAINTexpress directory before building the container
 
