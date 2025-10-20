@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: e2e (conda environment)
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.12
+          channels: conda-forge,defaults
+          channel-priority: strict
+
+      - name: Cache conda packages
+        uses: actions/cache@v4
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-conda-${{ hashFiles('app/resources/environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-conda-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            software-properties-common \
+            dirmngr \
+            wget \
+            xz-utils \
+            cron \
+            apt-utils \
+            ca-certificates \
+            nano \
+            postgresql \
+            littler \
+            gnupg \
+            libcurl4-openssl-dev \
+            libxml2-dev \
+            libfontconfig1-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            libfreetype6-dev \
+            libpng-dev \
+            libtiff5-dev \
+            libjpeg-dev \
+            libssl-dev \
+            libgit2-dev \
+            libicu-dev
+
+      - name: Set up R repositories
+        run: |
+          wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+          sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+          wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | sudo tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc
+          echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/cranapt.list
+          sudo apt-get update
+          sudo apt-get install -y \
+            r-cran-littler \
+            r-base \
+            r-base-dev \
+            r-recommended
+
+      - name: Create conda environment
+        run: |
+          conda env create -f app/resources/environment.yml
+          conda activate PG
+
+      - name: Install R dependencies
+        run: |
+          conda activate PG
+          Rscript app/resources/R_requirements.R
+
+      - name: Set up test environment
+        run: |
+          conda activate PG
+          mkdir -p /tmp/proteogyver/data/Server_output
+          mkdir -p /tmp/proteogyver/data/Server_input
+          mkdir -p /tmp/proteogyver/data/Server_output/logs
+          export PROTEOGYVER_DATA_DIR=/tmp/proteogyver/data
+
+      - name: Run e2e tests
+        run: |
+          conda activate PG
+          mkdir -p reports
+          pytest -q tests/e2e/test_pipeline.py -m e2e --maxfail=1 --disable-warnings --junitxml=reports/junit.xml
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: reports/junit.xml

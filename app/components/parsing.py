@@ -443,6 +443,13 @@ def read_df_from_content(content: str, filename: str, lowercase_columns: bool = 
         data: pd.DataFrame = pd.read_csv(io.StringIO(
             decoded_content.decode('utf-8')), index_col=False)
     elif f_end in ['tsv', 'tab', 'txt']:
+        ifile = 'incoming_dataframe.txt'
+        i = 0
+        while os.path.exists(ifile):
+            ifile = f'incoming_dataframe_{i}.txt'
+            i += 1
+        with open(ifile,'w') as fil:
+            fil.write(decoded_content.decode('utf-8'))
         data: pd.DataFrame = pd.read_csv(io.StringIO(
             decoded_content.decode('utf-8')), sep='\t', index_col=False)
     elif f_end == 'xlsx':
@@ -455,6 +462,12 @@ def read_df_from_content(content: str, filename: str, lowercase_columns: bool = 
         data.columns = [c.lower() for c in data.columns]
     return data
 
+def remove_all_na(data_table: pd.DataFrame, subset: list[str]|None = None, inplace: bool = False) -> pd.DataFrame:
+    """Removes rows with all missing values from a data table ."""
+    if not inplace:
+        return data_table.dropna(how='all', axis=0, subset=subset, inplace=inplace)
+    else:
+        data_table.dropna(how='all', axis=0, subset=subset, inplace=inplace)
 
 def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tuple[Dict[str, str], Dict[str, Any]]:
     """Determines and applies the appropriate read function for the given data file.
@@ -719,6 +732,7 @@ def parse_data_file(data_file_contents: str, data_file_name: str,
                     data_table.select_dtypes(include=np.number).columns)
                 if len(numeric_columns) >= 1:
                     has_data = True
+                    remove_all_na(data_table, subset=numeric_columns, inplace=True)
     new_upload_style['background-color'] = 'green'
     if not has_data:
         new_upload_style['background-color'] = 'red'

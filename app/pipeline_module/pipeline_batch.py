@@ -139,13 +139,35 @@ def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
 
     # Same functions the callbacks use:
     # parsing.parse_data_file -> returns (upload_style, data_info, data_tables)
-    _, data_info, data_tables = parsing.parse_data_file(
+    _, data_info, data_tables, warnings = parsing.parse_data_file(
         data_contents, data_name, data_mtime, dummy_style, file_loading_cfg
     )
+    if len(warnings) > 0:
+        warnings.insert(0, 'Data table warnings')
+        warnings.append('- This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)')
+    
     _, expdes_info, expdes_table = parsing.parse_sample_table(
         sample_contents, sample_name, sample_mtime, dummy_style
     )
-
+    exp_cols_found: list[str] = expdes_info['required columns found']
+    if len(exp_cols_found) < 2:
+        req_cols: list[str] = ['sample name', 'sample group']
+        fcols = ', '.join([expdes_info[col] for col in req_cols if col in expdes_info])
+        warnings = [
+            'Sample table warnings',
+            f'- Experimental design table is missing required columns. Found columns: {fcols}, required columns: {", ".join(req_cols)}.',
+            '- This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)'
+        ]
+    if len(warnings) > 0:
+        # Return error information to be handled by pipeline_input_watcher
+        return {
+            "workflow": cfg.workflow,
+            "session_name": f'{time.strftime("%Y-%m-%d-%H-%M-%S")}--batch',
+            "error": "Pipeline terminated due to warnings in input files",
+            "warnings": warnings,
+            "outdir": cfg.outdir,
+        }
+        
     # 3) Format the data (mirrors `validate_data` callback)
     # also set your figure template
     import plotly.io as pio
@@ -312,11 +334,11 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
             params["Figure defaults"]["full-height"],
         )
         divs["missing_values_in_other_samples"] = missing_values_in_other_samples_div
-        
         imputation_div, imputed = proteomics.imputation(
             normalized, cfg.imputation,
             params["Figure defaults"]["full-height"],
             params["Config"]["R error file"],
+            sample_groups_rev=data_dictionary["sample groups"]["rev"]
         )
         _dump_json(cfg.outdir, "12_imputed", imputed)
         divs["imputation"] = imputation_div

@@ -171,7 +171,7 @@ def handle_uploaded_sample_table(
             warnings = [
                 html.H3('Sample table warnings'),
                 html.P(
-                    f'- Experimental design table is missing required columns. Found columns: {fcols}, required columns: {", ".join(req_cols)}'
+                    f'- Experimental design table is missing required columns. Found columns: {fcols}, required columns: {", ".join(req_cols)}.'
                 ),
                 html.P('This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)')
             ]
@@ -917,7 +917,8 @@ def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputa
         imputation_option,
         parameters['Figure defaults']['full-height'],
         parameters['Config']['R error file'],
-        sample_groups_rev=data_dictionary['sample groups']['rev'])
+        sample_groups_rev=data_dictionary['sample groups']['rev']
+        )
 
 
 

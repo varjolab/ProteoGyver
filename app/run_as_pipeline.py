@@ -71,6 +71,26 @@ def run_batch_pipeline(toml_path: str) -> dict:
             logger.info("Step 1: Running batch pipeline...")
             
             summary = pipeline_batch.run_pipeline(config, parameters)
+            
+            # Check if pipeline returned error due to warnings
+            if "error" in summary and "warnings" in summary:
+                error_msg = f"{summary['error']}"
+                logger.error(error_msg)
+                logger.error(f"Warnings: {summary['warnings']}")
+                
+                # Write error file to input directory
+                input_dir = os.path.dirname(os.path.realpath(toml_path))
+                error_file = os.path.join(input_dir, "ERRORS.txt")
+                from datetime import datetime as _dt
+                ts = _dt.now().strftime("%Y-%m-%d %H:%M:%S")
+                with open(error_file, "a", encoding="utf-8") as f:
+                    f.write(f"[{ts}] Errors:\n")
+                    for warning in summary['warnings']:
+                        f.write(f"[{ts}] - {warning}\n")
+                logger.info(f"Warnings written to {error_file}")
+                
+                raise ValueError(error_msg)
+            
             logger.info(f"Batch pipeline completed successfully")
             
         except Exception as e:

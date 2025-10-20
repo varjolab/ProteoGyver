@@ -186,13 +186,13 @@ def perc_cvplot(raw_int_data: str, na_filtered_data: str, sample_groups: dict, r
         data
     )
 
-def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, title: str = None, sample_groups_rev: dict = None) -> tuple:
+def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, sample_groups_rev: dict, title: str = None) -> tuple:
 
     logger.info(f'imputation - start: {datetime.now()}')
 
     data_table: pd.DataFrame = pd.read_json(StringIO(filtered_data_json),orient='split')
     imputed_table: pd.DataFrame = matrix_functions.impute(
-        data_table, errorfile, imputation_option, rev_sample_groups=sample_groups_rev)
+        data_table, errorfile, imputation_option, random_seed=13, rev_sample_groups=sample_groups_rev)
     logger.info(
         f'imputation - imputed, only plot left: {datetime.now()}')
     return (

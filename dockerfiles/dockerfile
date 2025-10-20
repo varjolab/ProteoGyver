@@ -33,12 +33,14 @@ RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_r
 RUN wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc
 RUN echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" > /etc/apt/sources.list.d/cranapt.list
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git  \
+    curl \
     python3 \
     python3-pip \
     nodejs \
     npm  \
+    build-essential \
     dos2unix \
     ca-certificates \
     nano \
@@ -52,11 +54,15 @@ RUN apt-get update && apt-get install -y \
     redis psmisc \
     libcurl4-openssl-dev \
     libxml2-dev \
+    libblas-dev \
     libfontconfig1-dev \
     libharfbuzz-dev \
     libfribidi-dev \
+    gfortran \
     libfreetype6-dev \
     libpng-dev \
+    liblapack-dev \
+    libfftw3-dev \
     libtiff5-dev \
     libjpeg-dev \
     libssl-dev \
@@ -65,13 +71,20 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g configurable-http-proxy
-
-WORKDIR /
 RUN mkdir -p /proteogyver/resources
-COPY app/resources/R_requirements.R /proteogyver/resources/R_requirements.R
-RUN Rscript /proteogyver/resources/R_requirements.R
-
 COPY app /proteogyver
+
+WORKDIR /proteogyver
+COPY app/requirements/renv.lock /proteogyver/renv.lock
+# Prevent any system/user libs from leaking in
+ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
+    R_LIBS_SITE="" \
+    R_LIBS_USER="" \
+    RENV_PATHS_CACHE=/opt/renv/cache
+RUN mkdir -p /opt/renv/cache
+RUN R --vanilla -q -e "install.packages('renv', repos='https://cloud.r-project.org')" && \
+    R --vanilla -q -e "renv::restore(prompt = FALSE, clean = TRUE)"
+
 COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
 RUN chmod +x /docker_entrypoint.sh
 

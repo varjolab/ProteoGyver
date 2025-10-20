@@ -5,20 +5,6 @@ import tempfile
 import sh
 import numpy as np
 
-def diann_maxlfq(report_df: pd.DataFrame, errorfile: str, modifications:list = None) -> pd.DataFrame:
-    tempname: uuid.UUID = str(uuid.uuid4())
-    mod_list = '|'.join(modifications)
-    script: list = [
-        'library(diann)',
-        f'df <- diann_load("{tempname}")',
-        f'df$modified <- grepl({mod_list}, df$Modified.Sequence, fixed=TRUE)',
-        'df <- df[df$modified==TRUE,]',
-        'mod_pgs <- diann_maxlfq(df, group.header="Protein.Group", id.header = "Precursor.Id", quantity.header = "Precursor.Normalised")'
-        f'write.table(phospho_pgs, "{tempname}", sep="\t",quote=FALSE)'
-    ]
-
-    return run_rscript(script, report_df, tempname, errorfile)
-
 def vsn(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> pd.DataFrame:
     """Does vsn transformation on a dataframe using justvsn from vsn package."""
     tempname: str = str(uuid.uuid4())

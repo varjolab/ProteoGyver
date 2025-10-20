@@ -156,22 +156,22 @@ def reverse_log2(value):
 
 def normalize(data_table, normalization_method, errorfile: str, random_seed: int = 13) -> DataFrame:
     """Normalizes a given dataframe with the wanted method."""
-    return_table: DataFrame = data_table
-    if not normalization_method:
-        normalization_method = 'no_normalization'
-    if normalization_method == 'Median':
+    if normalization_method.lower() == 'no_normalization':
+        return_table = data_table
+    elif normalization_method.lower() == 'median':
         return_table = median_normalize(data_table)
-    elif normalization_method == 'Quantile':
+    elif normalization_method.lower() == 'quantile':
         return_table = quantile_normalize(data_table)
-    elif normalization_method == 'Vsn':
+    elif normalization_method.lower() == 'vsn':
         data_table = data_table.map(reverse_log2)
         return_table = R_tools.vsn(data_table, random_seed, errorfile)
+    else:
+        raise ValueError(f"Invalid normalization method: {normalization_method}")
     return return_table
 
 
-def impute(data_table: DataFrame, errorfile: str, method: str = 'QRILC', random_seed: int = 13, rev_sample_groups: dict = None) -> DataFrame:
+def impute(data_table: DataFrame, errorfile: str, method: str, random_seed: int, rev_sample_groups: dict) -> DataFrame:
     """Imputes missing values in the dataframe with the specified method"""
-    ret: DataFrame = data_table
     if method.lower() == 'minprob':
         ret = impute_minprob_df(data_table, random_seed)
     elif method.lower() == 'minvalue':
@@ -180,8 +180,10 @@ def impute(data_table: DataFrame, errorfile: str, method: str = 'QRILC', random_
         ret = impute_gaussian(data_table, random_seed)
     elif method.lower() == 'qrilc':
         ret = R_tools.impute_qrilc(data_table, random_seed, errorfile)
-    elif method.lower() == 'random_forest':
+    elif method.lower() in ['random_forest', 'random forest']:
         ret = R_tools.impute_random_forest(data_table, random_seed, rev_sample_groups, errorfile)
+    else:
+        raise ValueError(f"Invalid imputation method: {method}")
     return ret
 
 

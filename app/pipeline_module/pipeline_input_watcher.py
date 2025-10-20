@@ -200,11 +200,15 @@ def _clear_analyzing(dir_path: Path) -> None:
 
 def _safe_write_error(dir_path: Path, filename: str, message: str) -> None:
     try:
-        _write_text(dir_path / filename, message)
+        target = dir_path / filename
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with target.open("a", encoding="utf-8") as fh:
+            fh.write(f"[{ts}] {message}\n")
     except Exception:
-        # Last resort: attempt to write to a timestamped error file
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        _write_text(dir_path / f"{filename}.{ts}", message)
+        # Last resort: attempt to write to a timestamped error file (append semantics)
+        ts_file = datetime.now().strftime("%Y%m%d_%H%M%S")
+        with (dir_path / f"{filename}.{ts_file}").open("a", encoding="utf-8") as fh:
+            fh.write(message + "\n")
 
 
 def _append_watcher_log(dir_path: Path, message: str) -> None:
@@ -258,6 +262,12 @@ def _launch_pipeline(dir_path: Path, toml_file: Path) -> Tuple[Optional[str], Op
     except Exception as e:
         tb = traceback.format_exc()
         _append_watcher_log(dir_path, f"Pipeline failed: {e}")
+        
+        # Check if this is a warning-related error and append a concise banner
+        if "input warnings" in str(e):
+            _safe_write_error(dir_path, ERRORS_FILENAME, f"{e}")
+            _append_watcher_log(dir_path, f"Warnings written to {ERRORS_FILENAME}")
+        
         return f"Pipeline execution failed: {e}\n\n{tb}", None
 
 
