@@ -1,7 +1,7 @@
 services:
-  pgyver_production:
-    image: pgyver:1.5
-    container_name: pgprod15
+  pgyver_testing:
+    image: proteogyver:1.1a
+    container_name: pg-revtest
     ports:
       - 8050:8050
     environment:
