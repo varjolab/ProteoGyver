@@ -26,7 +26,7 @@ if [[ ! -f "${PY_GEN}" ]]; then
 fi
 
 echo "[INFO] Generating path checklist from: ${PARAMS_TOML}"
-python "${PY_GEN}" "${PARAMS_TOML}" "${CHECKS_FILE}"
+python3 "${PY_GEN}" "${PARAMS_TOML}" "${CHECKS_FILE}"
 
 if [[ ! -f "${CHECKS_FILE}" ]]; then
   echo "[ERROR] Checklist file was not created: ${CHECKS_FILE}" >&2
