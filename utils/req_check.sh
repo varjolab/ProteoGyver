@@ -19,9 +19,12 @@ if [[ ! -f "${PARAMS_TOML}" ]]; then
   exit 1
 fi
 
-echo "[INFO] Generating path checklist from: ${PARAMS_TOML} (bash parser)"
-# Build checklist by parsing [Data paths] from parameters.toml
-{
+# If checklist already has non-comment content, respect it and do not overwrite
+if [[ -f "${CHECKS_FILE}" ]] && grep -qvE '^\s*#' "${CHECKS_FILE}"; then
+  echo "[INFO] Existing checklist with entries detected at: ${CHECKS_FILE} (leaving as-is)"
+else
+  echo "[INFO] Generating path checklist from: ${PARAMS_TOML} (bash parser)"
+  tmp_gen="$(mktemp)"
   awk -v OFS='\t' '
     function trim(s){ sub(/^\s+/, "", s); sub(/\s+$/, "", s); return s }
     function unquote(s){ gsub(/^"|"$/, "", s); return s }
@@ -54,12 +57,25 @@ echo "[INFO] Generating path checklist from: ${PARAMS_TOML} (bash parser)"
       final = key " still not found; functionalities depending on it will fail."
       if(length(path)) print path, warn, final
     }
-  ' "${PARAMS_TOML}"
-} > "${CHECKS_FILE}"
+  ' "${PARAMS_TOML}" > "${tmp_gen}"
 
-if [[ ! -s "${CHECKS_FILE}" ]]; then
-  echo "[ERROR] No entries generated for checklist (empty): ${CHECKS_FILE}" >&2
-  exit 1
+  if [[ ! -s "${tmp_gen}" ]]; then
+    echo "[ERROR] No entries generated for checklist (empty)." >&2
+    rm -f "${tmp_gen}"
+    exit 1
+  fi
+
+  # If an existing checklist with only comments exists, append after comments; else create new file
+  if [[ -f "${CHECKS_FILE}" ]]; then
+    tmp_out="$(mktemp)"
+    # Preserve existing content
+    cat "${CHECKS_FILE}" > "${tmp_out}"
+    # Append generated entries
+    cat "${tmp_gen}" >> "${tmp_out}"
+    mv "${tmp_out}" "${CHECKS_FILE}"
+  else
+    mv "${tmp_gen}" "${CHECKS_FILE}"
+  fi
 fi
 
 echo "[INFO] Verifying required paths listed in: ${CHECKS_FILE}"
