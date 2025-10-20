@@ -19,17 +19,46 @@ if [[ ! -f "${PARAMS_TOML}" ]]; then
   exit 1
 fi
 
-PY_GEN="${REPO_ROOT}/app/resources/generate_path_checks.py"
-if [[ ! -f "${PY_GEN}" ]]; then
-  echo "[ERROR] generate_path_checks.py not found at: ${PY_GEN}" >&2
-  exit 1
-fi
+echo "[INFO] Generating path checklist from: ${PARAMS_TOML} (bash parser)"
+# Build checklist by parsing [Data paths] from parameters.toml
+{
+  awk -v OFS='\t' '
+    function trim(s){ sub(/^\s+/, "", s); sub(/\s+$/, "", s); return s }
+    function unquote(s){ gsub(/^"|"$/, "", s); return s }
+    function join_with_slash(arr, n,   i, out){ out=""; for(i=1;i<=n;i++){ if(length(out)) out=out "/"; out = out arr[i] } return out }
 
-echo "[INFO] Generating path checklist from: ${PARAMS_TOML}"
-python3 "${PY_GEN}" "${PARAMS_TOML}" "${CHECKS_FILE}"
+    BEGIN { in_section=0 }
+    {
+      # strip comments starting with # (not inside quotes)
+      line=$0
+      gsub(/#.*$/, "", line)
+    }
+    match(line, /^\s*\[(.+)\]\s*$/, m) {
+      in_section = (m[1] == "Data paths")
+      next
+    }
+    in_section && match(line, /^\s*([^=]+)=\s*(.+)$/, kv) {
+      key = trim(kv[1])
+      val = trim(kv[2])
+      # handle array of segments: ["a", "b", "c"]
+      if(val ~ /^\[/){
+        gsub(/^\[|\]$/, "", val)
+        n=split(val, parts, /,/) 
+        for(i=1;i<=n;i++){ parts[i]=trim(unquote(parts[i])) }
+        path = join_with_slash(parts, n)
+      } else {
+        path = unquote(val)
+      }
+      # Emit: path, warning, final
+      warn = key " is missing. Ensure it is present/mounted at the specified path."
+      final = key " still not found; functionalities depending on it will fail."
+      if(length(path)) print path, warn, final
+    }
+  ' "${PARAMS_TOML}"
+} > "${CHECKS_FILE}"
 
-if [[ ! -f "${CHECKS_FILE}" ]]; then
-  echo "[ERROR] Checklist file was not created: ${CHECKS_FILE}" >&2
+if [[ ! -s "${CHECKS_FILE}" ]]; then
+  echo "[ERROR] No entries generated for checklist (empty): ${CHECKS_FILE}" >&2
   exit 1
 fi
 
