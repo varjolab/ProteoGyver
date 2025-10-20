@@ -75,7 +75,7 @@ RUN mkdir -p /proteogyver/resources
 COPY app /proteogyver
 
 WORKDIR /proteogyver
-COPY app/requirements/renv.lock /proteogyver/renv.lock
+COPY app/resources/renv.lock /proteogyver/renv.lock
 # Prevent any system/user libs from leaking in
 ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
     R_LIBS_SITE="" \
