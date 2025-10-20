@@ -1,37 +1,6 @@
 #!/bin/bash
 set -e
 
-# --- Early required path checks (two-pass) ---
-CHECKS_FILE="/proteogyver/resources/path_checks.tsv"
-python /proteogyver/resources/generate_path_checks.py /proteogyver/parameters.toml $CHECKS_FILE
-# Only run if checklist file exists
-if [ -f "$CHECKS_FILE" ]; then
-    echo "[CHECK] Running preflight path checks..."
-    errors=()
-    # Check each required path and collect errors
-    while IFS=$'\t' read -r required_path warn_msg final_msg || [ -n "$required_path" ]; do
-        # Skip comments and empty lines
-        if [[ -z "$required_path" ]] || [[ "$required_path" =~ ^# ]]; then
-            continue
-        fi
-        if [ ! -e "$required_path" ]; then
-            errors+=("[ERROR] $warn_msg")
-            errors+=("[ERROR] Missing required path: $required_path") 
-            errors+=("[ERROR] $final_msg")
-        fi
-    done < "$CHECKS_FILE"
-
-    # If any errors were found, print them all and exit
-    if [ ${#errors[@]} -gt 0 ]; then
-        printf '%s\n' "${errors[@]}"
-        exit 1
-    fi
-    
-    echo "[CHECK] All required paths verified."
-else
-    echo "[CHECK] No checklist found at $CHECKS_FILE. Skipping preflight checks."
-fi
-
 # --- Optional Resource monitoring ---
 if [ "$MONITOR_RESOURCES" = "true" ]; then
     echo "[INIT] Starting Resource monitor in background..."
