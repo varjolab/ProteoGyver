@@ -111,7 +111,7 @@ RUN mkdir -p /etc/supervisor/conf.d
 ENV MAMBA_ROOT_PREFIX=/opt/conda
 RUN mkdir -p ${MAMBA_ROOT_PREFIX} && \
     curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
-    micromamba shell init -s bash -p ${MAMBA_ROOT_PREFIX}
+    micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX}
 WORKDIR /proteogyver
 COPY app/requirements/environment.yml environment.yml
 RUN micromamba create -y -n PG -f environment.yml && \
