@@ -742,7 +742,7 @@ def run_saint(saint_input: Dict[str, List[List[str]]],
     Notes:
         Cannot use logging due to Celery integration - uses print for logging.
     """
-    # Can not use logging in this function, since it's called from a long_callback using celery, and logging will lead to a hang.
+    # Can not use logging in this function, since it's called from a background_callback_manager using celery, and logging will lead to a hang.
     # Instead, we can use print statements, and they will show up as WARNINGS in celery log.
     temp_dir: str = ''
     if ('bait' in saint_input) and ('prey' in saint_input):

@@ -1,0 +1,64 @@
+name: PG
+channels:
+  - conda-forge
+dependencies:
+  # Core
+  - python=3.12
+  - pip
+  - blas=*=openblas
+
+  # Numerics / data
+  - numpy
+  - scipy
+  - pandas
+  - numba
+  - statsmodels
+  - scikit-learn
+  - qnorm
+
+  # Plotting / viz
+  - matplotlib
+  - plotly
+  - dash
+  - dash-bio
+  - dash-bootstrap-components
+  - dash_cytoscape
+  - dash-core-components
+  - dash-html-components
+  - dash-table
+
+  # Web / app
+  - flask
+  - flask-compress
+  - gunicorn
+  - redis-py
+  - celery
+  - kombu
+  - amqp
+
+  # I/O / files
+  - openpyxl
+  - xlrd
+  - requests
+  - xmltodict
+  - unidecode
+  - tomlkit
+
+  # Testing
+  - pytest
+  - pytest-cov
+  - coverage
+
+  # Misc
+  - biopython
+  - readlif
+  - colour
+  - dateutils
+
+  - pip:
+      - alphatims==1.0.8
+      - dash-uploader==0.6.1
+      - kaleido==0.2.1
+      - nbib==0.3.2
+      - supervenn==0.5.0
+      - celery_once==3.0.1

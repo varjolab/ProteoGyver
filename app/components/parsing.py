@@ -443,13 +443,6 @@ def read_df_from_content(content: str, filename: str, lowercase_columns: bool = 
         data: pd.DataFrame = pd.read_csv(io.StringIO(
             decoded_content.decode('utf-8')), index_col=False)
     elif f_end in ['tsv', 'tab', 'txt']:
-        ifile = 'incoming_dataframe.txt'
-        i = 0
-        while os.path.exists(ifile):
-            ifile = f'incoming_dataframe_{i}.txt'
-            i += 1
-        with open(ifile,'w') as fil:
-            fil.write(decoded_content.decode('utf-8'))
         data: pd.DataFrame = pd.read_csv(io.StringIO(
             decoded_content.decode('utf-8')), sep='\t', index_col=False)
     elif f_end == 'xlsx':

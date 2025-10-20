@@ -1940,7 +1940,6 @@ def prepare_for_download(
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
-    infra.write_README(export_dir, os.path.join('data','output_guide.md'))
     return export_dir, infra.temporary_download_button_loading_divs()
 
 @callback(
@@ -1968,6 +1967,7 @@ def save_input_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[st
     """
     start = datetime.now()
     logger.info(f'received download request save_input_stores at {start}')
+    infra.write_README(export_dir, os.path.join('data','output_guide.md'))
     infra.save_data_stores(stores, export_dir)
     logger.info(f'done with download request save_input_stores, took {datetime.now()-start}')
     return 'save_input_stores done', ''

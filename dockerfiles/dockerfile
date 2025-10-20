@@ -108,20 +108,20 @@ RUN mkdir -p /etc/supervisor/conf.d
 #RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
 # dash_uploader no longer used, keeping this in case it's needed in the future.
 
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
-    mkdir -p /root/.conda && \
-    bash miniconda.sh -b -p /root/miniconda3 && \
-    rm -f miniconda.sh
+ENV MAMBA_ROOT_PREFIX=/opt/conda
+RUN mkdir -p ${MAMBA_ROOT_PREFIX} && \
+    curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
+    micromamba shell init -s bash -p ${MAMBA_ROOT_PREFIX}
 WORKDIR /proteogyver
 COPY app/requirements/environment.yml environment.yml
-RUN conda env create -f environment.yml
-RUN conda clean -afy
+RUN micromamba create -y -n PG -f environment.yml && \
+    micromamba clean -a -y
 
 EXPOSE 8090 8050
 
 EXPOSE 8090 8050
 
-ENV PATH="/opt/conda/envs/proteogyver/bin:${PATH}"
+ENV PATH="/opt/conda/envs/PG/bin:${PATH}"
 
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
 

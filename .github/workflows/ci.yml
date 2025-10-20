@@ -2,9 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -34,21 +33,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup micromamba
+        uses: mamba-org/setup-micromamba@v2
         with:
-          auto-update-conda: true
-          python-version: 3.12
-          channels: conda-forge,defaults
-          channel-priority: strict
+          micromamba-version: 'latest'
+          environment-file: app/requirements/environment.yml
+          create-args: >-
+            -n PG
+          cache-environment: true
+          cache-downloads: true
 
-      - name: Cache conda packages
-        uses: actions/cache@v4
-        with:
-          path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-conda-${{ hashFiles('app/resources/environment.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-conda-
+      - name: Show environment
+        run: |
+          micromamba info
+          micromamba list
 
       - name: Install system dependencies
         run: |
@@ -91,29 +89,25 @@ jobs:
             r-base-dev \
             r-recommended
 
-      - name: Create conda environment
+      - name: Verify Python
         run: |
-          conda env create -f app/resources/environment.yml
-          conda activate PG
+          micromamba run -n PG python -V
 
       - name: Install R dependencies
         run: |
-          conda activate PG
-          Rscript app/resources/R_requirements.R
+          micromamba run -n PG Rscript app/resources/R_requirements.R
 
       - name: Set up test environment
         run: |
-          conda activate PG
           mkdir -p /tmp/proteogyver/data/Server_output
           mkdir -p /tmp/proteogyver/data/Server_input
           mkdir -p /tmp/proteogyver/data/Server_output/logs
-          export PROTEOGYVER_DATA_DIR=/tmp/proteogyver/data
+          echo "PROTEOGYVER_DATA_DIR=/tmp/proteogyver/data" >> $GITHUB_ENV
 
       - name: Run e2e tests
         run: |
-          conda activate PG
           mkdir -p reports
-          pytest -q tests/e2e/test_pipeline.py -m e2e --maxfail=1 --disable-warnings --junitxml=reports/junit.xml
+          micromamba run -n PG pytest -q tests/e2e/test_pipeline.py -m e2e --maxfail=1 --disable-warnings --junitxml=reports/junit.xml
 
       - name: Upload JUnit report
         if: always()

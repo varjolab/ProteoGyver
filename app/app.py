@@ -5,13 +5,12 @@ sets up logging, creates the navigation bar, and defines the main layout structu
 
 Attributes:
     celery_app (Celery): Celery application instance for handling long callbacks
-    long_callback_manager (CeleryLongCallbackManager): Manager for Celery long callbacks
     app (Dash): Main Dash application instance
     server (Flask): Flask server instance from Dash app
     logger (Logger): Application logger instance
 """
 
-from dash import Dash, html, page_registry, page_container
+from dash import Dash, html, page_registry, page_container, CeleryManager
 import dash_bootstrap_components as dbc
 from dash_bootstrap_components.themes import FLATLY
 from dash.dependencies import Input, Output, State
@@ -19,7 +18,6 @@ import logging
 import os
 from pathlib import Path
 from celery import Celery
-from dash.long_callback import CeleryLongCallbackManager
 from datetime import datetime
 from components.tools import utils
 from celery.schedules import crontab
@@ -35,10 +33,10 @@ celery_app = Celery(
         'pipeline_module.pipeline_input_watcher'
     ]
 )
-long_callback_manager = CeleryLongCallbackManager(celery_app, expire=300)
+background_callback_manager = CeleryManager(celery_app, expire=300)
 
 app = Dash(__name__, use_pages=True, external_stylesheets=[
-           FLATLY], suppress_callback_exceptions=True, long_callback_manager=long_callback_manager)
+           FLATLY], suppress_callback_exceptions=True, background_callback_manager=background_callback_manager)
 
 app.title = f'ProteoGyver {__version__}'
 app.enable_dev_tools(debug=True)

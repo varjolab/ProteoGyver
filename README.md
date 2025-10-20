@@ -200,7 +200,7 @@ Running PG locally is possible, especially for testing and development use. Howe
 On a windows computer, it is recommended to use WSL. These instructions apply only to linux systems.
 
 #### Requirements and setup:
-- conda
+- micromamba (or conda)
 - Python 3.10+
 - redis-cli
 - celery
@@ -212,16 +212,14 @@ First step is to adjust the parameters.toml file:
 - Optional: Change "Config"."Local debug" to true, if you encounter problems or are doing development and want to see error messages.
 
 ```
-# Create the PG conda environment and install dependencies
-conda env create -f resources/environment.yml
+# Create the PG environment and install dependencies (micromamba recommended)
+micromamba create -y -n PG -f app/requirements/environment.yml
 # Generate a database. This can take a while.
-conda activate PG
-python database_admin.py
+micromamba run -n PG python database_admin.py
 ```
 #### Run PG:
 ```
-conda activate PG
-bash startup.sh
+micromamba run -n PG bash startup.sh
 ```
 
 
