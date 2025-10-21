@@ -50,7 +50,7 @@ if __name__ == "__main__":
         dbfile = os.path.join(*parameters['Data paths']['Database file'])
         schema_file = os.path.join(*parameters['Data paths']['Schema file'])
         database_generator.create_sqlite_from_schema(schema_file, dbfile) # type: ignore
-        conn: sqlite3.Connection = db_functions.create_connection(db_path) # type: ignore
+        conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
         database_updater.update_log_table(conn, ['db creation'], [1], timestamp, 'created')
         db_functions.generate_database_table_templates_as_tsvs(conn, output_dir, parameters['Database updater']['Database table primary keys'])
         conn.close()
