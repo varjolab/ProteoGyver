@@ -1,6 +1,6 @@
 services:
-  pgyver_testing:
-    image: proteogyver:1.1a
+  pg_revtest:
+    image: proteogyver:1.6a
     container_name: pg-revtest
     ports:
       - "8050:8050"
