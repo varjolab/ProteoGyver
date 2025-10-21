@@ -1,5 +1,4 @@
-# Stage 1: Build dependencies
-FROM ubuntu:24.04 AS builder
+FROM ubuntu:24.04
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 USER root
 
@@ -73,22 +72,6 @@ RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc |
 
 # Install Node.js packages
 RUN npm install -g configurable-http-proxy
-
-# Stage 2: Runtime
-FROM ubuntu:24.04
-LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
-USER root
-
-# Copy installed packages from builder stage
-COPY --from=builder /usr/local /usr/local
-COPY --from=builder /usr/bin /usr/bin
-COPY --from=builder /usr/lib /usr/lib
-COPY --from=builder /usr/share /usr/share
-COPY --from=builder /etc/apt /etc/apt
-COPY --from=builder /etc/alternatives /etc/alternatives
-COPY --from=builder /var/lib/dpkg /var/lib/dpkg
-COPY --from=builder /var/lib/apt /var/lib/apt
-COPY --from=builder /var/cache /var/cache
 RUN mkdir -p /proteogyver/resources
 COPY requirements/renv.lock /proteogyver/renv.lock
 COPY requirements/environment.yml /proteogyver/environment.yml
@@ -106,14 +89,15 @@ ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
 # Create directories
 RUN mkdir -p /opt/renv/cache ${MAMBA_ROOT_PREFIX}
 
-# Install R packages and Python environment in parallel
+# Install R packages first
 RUN R --vanilla -q -e "install.packages('renv', repos='https://cloud.r-project.org')" && \
-    R --vanilla -q -e "renv::restore(prompt = FALSE, clean = TRUE)" & \
-    curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
+    R --vanilla -q -e "renv::restore(prompt = FALSE, clean = TRUE)"
+
+# Install micromamba and Python environment
+RUN curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
     micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX} && \
     micromamba create -y -n PG -f /proteogyver/environment.yml && \
-    micromamba clean -a -y && \
-    wait
+    micromamba clean -a -y
 
 ##### --------------------------- #####
 ##### File copies and SAINT setup #####
