@@ -43,8 +43,8 @@ RUN mkdir -p /proteogyver/resources /opt/renv/cache ${MAMBA_ROOT_PREFIX} /proteo
 WORKDIR /proteogyver
 
 # Copy dependency files early for better caching
-COPY app/requirements/renv.lock /proteogyver/renv.lock
-COPY app/requirements/environment.yml /proteogyver/environment.yml
+COPY requirements/renv.lock /proteogyver/renv.lock
+COPY requirements/environment.yml /proteogyver/environment.yml
 
 ##### --------------- #####
 ##### R installs #####
