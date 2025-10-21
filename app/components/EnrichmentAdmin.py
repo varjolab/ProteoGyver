@@ -23,17 +23,22 @@ class EnrichmentAdmin:
                 continue
             _filepath: str = os.path.join(self._handler_basedir, _module_filename)
             _module_name: str = _module_filename.rsplit('.',maxsplit=1)[0]
-            _spec = import_util.spec_from_file_location(
-                'module.name', _filepath)
-            _api_module = import_util.module_from_spec(_spec)
-            _spec.loader.exec_module(_api_module)
-            _handler = _api_module.handler()
-            self._enrichment_handlers[_module_name] = {
-                'handler': _handler,
-                'available': _handler.get_available(),
-                'name': _handler.nice_name,
-                'defaults': _handler.get_default_panel()
-            }
+            try:
+                _spec = import_util.spec_from_file_location(
+                    'module.name', _filepath)
+                _api_module = import_util.module_from_spec(_spec)
+                _spec.loader.exec_module(_api_module)
+                _handler = _api_module.handler()
+                self._enrichment_handlers[_module_name] = {
+                    'handler': _handler,
+                    'available': _handler.get_available(),
+                    'name': _handler.nice_name,
+                    'defaults': _handler.get_default_panel()
+                }
+            except Exception as e:
+                print(f"Warning: Failed to load enrichment module {_module_name}: {e}")
+                # Continue with other modules even if one fails
+                continue
             for a in self._enrichment_handlers[_module_name]['available']:
                 self._enrichments[a] = _module_name
             for a in self._enrichment_handlers[_module_name]['defaults']:
@@ -57,10 +62,15 @@ class EnrichmentAdmin:
             if module_filename.endswith('.py'):
                 filepath: str = os.path.join(self._handler_basedir, module_filename)
                 module_name: str = module_filename.rsplit('.',maxsplit=1)[0]
-                spec = import_util.spec_from_file_location('module.name', filepath)
-                api_module = import_util.module_from_spec(spec)
-                spec.loader.exec_module(api_module)
-                ret_dict[module_name] = api_module.handler()
+                try:
+                    spec = import_util.spec_from_file_location('module.name', filepath)
+                    api_module = import_util.module_from_spec(spec)
+                    spec.loader.exec_module(api_module)
+                    ret_dict[module_name] = api_module.handler()
+                except Exception as e:
+                    print(f"Warning: Failed to load enrichment handler {module_name}: {e}")
+                    # Continue with other modules even if one fails
+                    continue
         self._imported_handlers: dict = ret_dict
 
     def enrich_all(self, data_table: pd.DataFrame,enrichment_strings: list, id_column: str = None, id_list: list = None, split_by_column: str = None, split_name: str = None) -> list:

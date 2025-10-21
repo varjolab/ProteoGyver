@@ -19,6 +19,10 @@ echo "[INIT] Clearing Python cache files..."
 find /proteogyver -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 find /proteogyver -name "*.pyc" -delete 2>/dev/null || true
 find /proteogyver -name "*.pyo" -delete 2>/dev/null || true
+# Specifically clear enrichment module cache
+rm -rf /proteogyver/components/enrichment/__pycache__ 2>/dev/null || true
+# Clear any remaining Python cache in the environment
+python -Bc "import compileall; compileall.compile_dir('/proteogyver', force=True, quiet=1)" 2>/dev/null || true
 
 # --- Ensure clean Redis and Celery state ---
 redis-cli shutdown || true
