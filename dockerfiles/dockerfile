@@ -1,5 +1,5 @@
 # Stage 1: Build dependencies
-FROM ubuntu:24.04 as builder
+FROM ubuntu:24.04 AS builder
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 USER root
 
@@ -90,8 +90,8 @@ COPY --from=builder /var/lib/dpkg /var/lib/dpkg
 COPY --from=builder /var/lib/apt /var/lib/apt
 COPY --from=builder /var/cache /var/cache
 RUN mkdir -p /proteogyver/resources
-COPY app/requirements/renv.lock /proteogyver/renv.lock
-COPY app/requirements/environment.yml /proteogyver/environment.yml
+COPY requirements/renv.lock /proteogyver/renv.lock
+COPY requirements/environment.yml /proteogyver/environment.yml
 
 WORKDIR /proteogyver
 
