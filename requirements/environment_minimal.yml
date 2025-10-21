@@ -43,6 +43,7 @@ dependencies:
   - xmltodict
   - unidecode
   - tomlkit
+  - markdown
 
   # Testing
   - pytest
@@ -54,6 +55,12 @@ dependencies:
   - readlif
   - colour
   - dateutils
+
+  # Dev
+  - ipykernel
+  - ipython
+  - jupyter_core
+  - jupyter_client
 
   - pip:
       - alphatims==1.0.8
