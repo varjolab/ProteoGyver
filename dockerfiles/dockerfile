@@ -72,10 +72,14 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 RUN npm install -g configurable-http-proxy
 RUN mkdir -p /proteogyver/resources
-COPY app /proteogyver
+COPY app/requirements/renv.lock /proteogyver/renv.lock
+COPY app/requirements/environment.yml /proteogyver/environment.yml
 
 WORKDIR /proteogyver
-COPY requirements/renv.lock /proteogyver/renv.lock
+
+##### --------------- #####
+##### R installs #####
+##### --------------- #####
 # Prevent any system/user libs from leaking in
 ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
     R_LIBS_SITE="" \
@@ -85,6 +89,20 @@ RUN mkdir -p /opt/renv/cache
 RUN R --vanilla -q -e "install.packages('renv', repos='https://cloud.r-project.org')" && \
     R --vanilla -q -e "renv::restore(prompt = FALSE, clean = TRUE)"
 
+##### ------------------------- #####
+##### Micromamba and python installs #####
+##### ------------------------- #####
+ENV MAMBA_ROOT_PREFIX=/opt/conda
+RUN mkdir -p ${MAMBA_ROOT_PREFIX} && \
+    curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
+    micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX}
+RUN micromamba create -y -n PG -f /proteogyver/environment.yml && \
+    micromamba clean -a -y
+
+##### --------------------------- #####
+##### File copies and SAINT setup #####
+##### --------------------------- #####
+COPY app /proteogyver
 COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
 RUN chmod +x /docker_entrypoint.sh
 
@@ -99,6 +117,9 @@ RUN if [ -f SAINTexpress-int ]; then \
         ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt; \
     fi
 
+##### --------------------------- #####
+##### Create required directories #####
+##### --------------------------- #####
 RUN mkdir -p /proteogyver/data/Server_output
 RUN mkdir -p /proteogyver/data/Server_input
 RUN mkdir -p /proteogyver/data/Server_output/logs
@@ -108,15 +129,7 @@ RUN mkdir -p /etc/supervisor/conf.d
 #RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
 # dash_uploader no longer used, keeping this in case it's needed in the future.
 
-ENV MAMBA_ROOT_PREFIX=/opt/conda
-RUN mkdir -p ${MAMBA_ROOT_PREFIX} && \
-    curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
-    micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX}
 WORKDIR /proteogyver
-COPY requirements/environment.yml environment.yml
-RUN micromamba create -y -n PG -f environment.yml && \
-    micromamba clean -a -y
-
 
 COPY VERSION /VERSION
 COPY LICENSE /LICENSE
