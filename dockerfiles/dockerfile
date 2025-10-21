@@ -117,6 +117,10 @@ COPY requirements/environment.yml environment.yml
 RUN micromamba create -y -n PG -f environment.yml && \
     micromamba clean -a -y
 
+
+COPY VERSION /VERSION
+COPY LICENSE /LICENSE
+
 EXPOSE 8090 8050
 
 EXPOSE 8090 8050
