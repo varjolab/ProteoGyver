@@ -14,6 +14,12 @@ export MAMBA_ROOT_PREFIX=/opt/conda
 eval "$(micromamba shell hook -s bash)"
 micromamba activate PG
 
+# --- Clear Python cache to prevent unmarshallable object errors ---
+echo "[INIT] Clearing Python cache files..."
+find /proteogyver -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find /proteogyver -name "*.pyc" -delete 2>/dev/null || true
+find /proteogyver -name "*.pyo" -delete 2>/dev/null || true
+
 # --- Ensure clean Redis and Celery state ---
 redis-cli shutdown || true
 killall celery || true
