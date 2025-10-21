@@ -9,5 +9,6 @@ services:
       - /data/PG_containers/db/PG_prod:/proteogyver/data/db
       - /data/PG_containers/input:/proteogyver/data/Server_input
       - /data/PG_containers/output:/proteogyver/data/Server_output
+      - /data/PG_containers/api_data:/proteogyver/components/api_tools/data
       # This is required for the updater to share one parameter file with the server.
       - /data/PG_containers/conf/PG_prod/parameters.toml:/proteogyver/parameters.toml

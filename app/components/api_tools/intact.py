@@ -251,7 +251,8 @@ def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set|None, or
     
     #temp_dir = os.path.join(folder_path,'parser_tmp')
     # Handle in chunks to conserver RAM
-    for chunk in pd.read_csv(unzipped_path,sep='\t', chunksize=10000):
+    for i, chunk in enumerate(pd.read_csv(unzipped_path,sep='\t', chunksize=10000)):
+        print(f'Processing IntAct chunk: {i}')
         chunk.rename(columns=renames,inplace=True)
         chunk = filter_chunk(chunk, uniprots_to_get, organisms)
         chunk.drop(columns=dropcols, inplace=True)
@@ -269,6 +270,7 @@ def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set|None, or
     os.remove(unzipped_path.replace('.txt','_negative.txt'))
 
 def download_intact_ftp(save_file: str, max_retries: int = 10, retry_delay: int = 30) -> Optional[str]:
+    print('Downloading IntAct')
     ftpurl = 'ftp.ebi.ac.uk'
     ftpdir = '/pub/databases/intact/current/psimitab'
     ftpfilename = 'intact.zip'
@@ -329,6 +331,7 @@ def update(uniprots_to_get: set|None = None, organisms: set|None = None) -> None
     else:
         should_update = True
     if should_update:
+        print('Updating IntAct')
         do_update(os.path.join(apitools.get_save_location('IntAct'),f'{apitools.get_timestamp()}_intact.zip'), uniprots_to_get, organisms)
 
 def read_file_chunks(filepath: str, organisms: set|None = None, subset_letter: str|None = None, since_date: datetime|None = None) -> pd.DataFrame:

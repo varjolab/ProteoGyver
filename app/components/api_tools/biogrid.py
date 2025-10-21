@@ -227,7 +227,8 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
     folder_path: str = file_path.replace('.txt','')
     if not current_version:
         current_version = ''
-    for chunk in pd.read_csv(file_path,sep='\t', chunksize=10000):
+    for i, chunk in enumerate(pd.read_csv(file_path,sep='\t', chunksize=10000)):
+        print(f'Processing BioGRID chunk: {i}')
         chunk, normcols, swcols = filter_chunk(chunk, uniprots_to_get, organisms)
         if chunk.shape[0] > 0:
             #handle_and_split_save(chunk, temp_dir)
@@ -252,6 +253,7 @@ def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_
     :param uniprots_to_get: a set of which uniprots should be retained. If None, all uniprots will be retained.
     :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
     """
+    print('Downloading BioGRID')
     urlretrieve(latest_zip_url,os.path.join(save_dir, save_zipname))
     datafile_path = os.path.join(save_dir, save_zipname.replace('.zip','.txt'))
     if not os.path.exists(datafile_path):
@@ -325,6 +327,7 @@ def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
     else:
         should_update = True
     if should_update:
+        print('Updating BioGRID')
         do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms, current_file)
         
 def get_version_info() -> str:

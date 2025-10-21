@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 def clean_database(versions_to_keep_dict) -> None:
     names = [k for k in versions_to_keep_dict.keys() if not '_' in k]
     for name in names:
-        path = versions_to_keep_dict[name + '_path']
+        path = os.path.join(*versions_to_keep_dict[name + '_path'])
         regex = versions_to_keep_dict[name + '_regex']
         folders = os.listdir(path)
         folders = [(re.match(regex, file).group(1), file) for file in folders]

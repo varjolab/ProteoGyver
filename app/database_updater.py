@@ -538,7 +538,9 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
         last_update_date (datetime): Last update date, to not heck anything older than this
         ncpu (int): Number of CPUs to use
     """ 
+    print('Updating uniprot')
     uniprots = update_uniprot(conn, parameters, timestamp, organisms)
+    print('Updating known interactions')
     update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date, ncpu)
 
 def update_log_table(conn, inmod_names, inmod_vals, timestamp, uptype: str) -> None:
