@@ -66,6 +66,8 @@ def prefix_relative_paths(
         if isinstance(v, list):
             if not v:
                 return []
+            # Convert to regular Python list to avoid tomlkit object issues
+            v = list(v)
             first = v[0]
             # Only treat as a list of paths if first element is a string
             if isinstance(first, str) and not os.path.isabs(first):

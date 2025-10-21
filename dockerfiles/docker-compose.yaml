@@ -3,14 +3,13 @@ services:
     image: proteogyver:1.1a
     container_name: pg-revtest
     ports:
-      - 8050:8050
+      - "8050:8050"
     environment:
-      - TZ=Europe/Helsinki
-      - MONITOR_RESOURCES=true
-      - RESOURCE_LOG_DIR=/proteogyver/data/Server_output/logs/resources
-      - RESOURCE_LOG_INTERVAL_SECONDS=5
-      - RESOURCE_LOG_KEEP_DAYS=30
-
+      TZ: Europe/Helsinki
+      MONITOR_RESOURCES: "true"
+      RESOURCE_LOG_DIR: /proteogyver/data/Server_output/logs/resources
+      RESOURCE_LOG_INTERVAL_SECONDS: 5
+      RESOURCE_LOG_KEEP_DAYS: 30
     volumes:
       - /data/PG_containers/cache/PG_prod:/proteogyver/cache
       - /data/PG_containers/db/PG_prod:/proteogyver/data/db
