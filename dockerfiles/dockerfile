@@ -2,14 +2,7 @@ FROM ubuntu:24.04
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 USER root
 
-# Combine system setup and locale configuration
-RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
-    apt-get install -yq locales && \
-    locale-gen en_US.UTF-8 && \
-    update-locale LANG=en_US.UTF-8 && \
-    rm -rf /var/lib/apt/lists/*
-
+# Set environment variables
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
 ENV LC_CTYPE="en_US.UTF-8"
@@ -18,96 +11,65 @@ ENV LANG="en_US.UTF-8"
 ENV LANGUAGE="en_US:en"
 ENV R_BASE_VERSION="3.6.1"
 ENV DEBIAN_FRONTEND="noninteractive"
-
-# Install system packages first (most stable)
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    dirmngr \
-    wget \
-    xz-utils \
-    cron \
-    apt-utils \
-    git \
-    curl \
-    python3 \
-    python3-pip \
-    nodejs \
-    npm \
-    build-essential \
-    dos2unix \
-    ca-certificates \
-    nano \
-    postgresql \
-    littler \
-    gnupg \
-    r-cran-littler \
-    r-base \
-    r-base-dev \
-    r-recommended \
-    redis \
-    psmisc \
-    libcurl4-openssl-dev \
-    libxml2-dev \
-    libblas-dev \
-    libfontconfig1-dev \
-    libharfbuzz-dev \
-    libfribidi-dev \
-    gfortran \
-    libfreetype6-dev \
-    libpng-dev \
-    liblapack-dev \
-    libfftw3-dev \
-    libtiff5-dev \
-    libjpeg-dev \
-    libssl-dev \
-    libgit2-dev \
-    libicu-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Configure R repositories
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
-    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
-    wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc && \
-    echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" > /etc/apt/sources.list.d/cranapt.list
-
-# Install Node.js packages
-RUN npm install -g configurable-http-proxy
-RUN mkdir -p /proteogyver/resources
-COPY requirements/renv.lock /proteogyver/renv.lock
-COPY requirements/environment.yml /proteogyver/environment.yml
-
-WORKDIR /proteogyver
-
-# Set up environment variables
+ENV MAMBA_ROOT_PREFIX=/opt/conda
 ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
     R_LIBS_SITE="" \
     R_LIBS_USER="" \
-    RENV_PATHS_CACHE=/opt/renv/cache \
-    MAMBA_ROOT_PREFIX=/opt/conda \
-    PATH="/opt/conda/envs/PG/bin:${PATH}"
+    RENV_PATHS_CACHE=/opt/renv/cache
 
-# Create directories
-RUN mkdir -p /opt/renv/cache ${MAMBA_ROOT_PREFIX}
+# System updates, locale setup, and package installation
+RUN apt-get update && \
+    apt-get -yq dist-upgrade && \
+    apt-get install -yq locales && \
+    locale-gen en_US.UTF-8 && \
+    update-locale LANG=en_US.UTF-8 && \
+    apt-get install -y software-properties-common dirmngr wget xz-utils cron apt-utils && \
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
+    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
+    wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc && \
+    echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" > /etc/apt/sources.list.d/cranapt.list && \
+    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        git curl python3 python3-pip nodejs npm build-essential dos2unix ca-certificates nano postgresql \
+        littler gnupg r-cran-littler r-base r-base-dev r-recommended redis psmisc \
+        libcurl4-openssl-dev libxml2-dev libblas-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
+        gfortran libfreetype6-dev libpng-dev liblapack-dev libfftw3-dev libtiff5-dev libjpeg-dev \
+        libssl-dev libgit2-dev libicu-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    npm install -g configurable-http-proxy
 
-# Install R packages first
+# Create directories and copy dependency files
+RUN mkdir -p /proteogyver/resources /opt/renv/cache ${MAMBA_ROOT_PREFIX} /proteogyver/data/Server_output /proteogyver/data/Server_input /proteogyver/data/Server_output/logs /etc/supervisor/conf.d
+
+WORKDIR /proteogyver
+
+# Copy dependency files early for better caching
+COPY app/requirements/renv.lock /proteogyver/renv.lock
+COPY app/requirements/environment.yml /proteogyver/environment.yml
+
+##### --------------- #####
+##### R installs #####
+##### --------------- #####
 RUN R --vanilla -q -e "install.packages('renv', repos='https://cloud.r-project.org')" && \
     R --vanilla -q -e "renv::restore(prompt = FALSE, clean = TRUE)"
 
-# Install micromamba and Python environment
+##### ------------------------- #####
+##### Micromamba and python installs #####
+##### ------------------------- #####
 RUN curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
     micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX} && \
     micromamba create -y -n PG -f /proteogyver/environment.yml && \
     micromamba clean -a -y
 
-##### --------------------------- #####
-##### File copies and SAINT setup #####
-##### --------------------------- #####
+# Copy application code and setup (this happens last for better caching)
+COPY app /proteogyver
 COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
-RUN chmod +x /docker_entrypoint.sh
+COPY VERSION /VERSION
+COPY LICENSE /LICENSE
 
-# Optimize SAINT setup - combine into single RUN command
-WORKDIR /proteogyver/external/SAINTexpress
-RUN if [ -f SAINTexpress-spc ]; then \
+# Make SAINT executable and final setup
+RUN chmod +x /docker_entrypoint.sh && \
+    cd /proteogyver/external/SAINTexpress && \
+    if [ -f SAINTexpress-spc ]; then \
         chmod 777 SAINTexpress-spc && \
         ln -s /proteogyver/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc; \
     fi && \
@@ -116,23 +78,11 @@ RUN if [ -f SAINTexpress-spc ]; then \
         ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt; \
     fi
 
-##### --------------------------- #####
-##### Create required directories #####
-##### --------------------------- #####
-COPY app /proteogyver
-RUN mkdir -p /proteogyver/data/Server_output \
-    /proteogyver/data/Server_input \
-    /proteogyver/data/Server_output/logs \
-    /etc/supervisor/conf.d
+WORKDIR /proteogyver
 
-# This will fix a bug in the 0.6 version of dash_uploader. It's a very crude method, but it works for this application.
-#RUN sed -i 's/isinstance/False:#/g' /usr/local/lib/python3.10/dist-packages/dash_uploader/callbacks.py
-# dash_uploader no longer used, keeping this in case it's needed in the future.
+EXPOSE 8090 8050
 
-COPY VERSION /VERSION
-COPY LICENSE /LICENSE
+ENV PATH="/opt/conda/envs/PG/bin:${PATH}"
 
-EXPOSE 8050
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
-
 
