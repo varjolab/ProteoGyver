@@ -5,7 +5,15 @@ FROM python:3.12
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Set the working directory in the container
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && pip install --upgrade pip \
+    && pip install -r requirements.txt \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+    # Set the working directory in the container
 WORKDIR /proteogyver
 
 RUN mkdir -p /proteogyver/data/Server_output
@@ -14,6 +22,7 @@ RUN mkdir -p /proteogyver/data/Server_output/logs
 # Requirement and config
 COPY requirements/updater_requirements.txt requirements.txt
 COPY app/parameters.toml parameters.toml
+COPY app/resources /proteogyver/resources
 
 # Main scripts
 COPY app/database_updater.py database_updater.py
@@ -29,14 +38,6 @@ COPY app/components/db_functions.py components/db_functions.py
 COPY app/components/api_tools components/api_tools
 COPY app/components/tools/utils.py components/tools/utils.py
 
-
-# Install system dependencies (if needed) and Python packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && pip install --upgrade pip \
-    && pip install -r requirements.txt \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy the updater script and any additional files into the container
 #COPY database_updater.py /app/
