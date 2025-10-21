@@ -1,0 +1,13 @@
+services:
+  pg_update:
+    image: pg_updater:1.2
+    container_name: pg_updater
+    environment:
+      TZ: Europe/Helsinki
+    volumes:
+      - /data/PG_containers/cache/PG_prod:/proteogyver/cache
+      - /data/PG_containers/db/PG_prod:/proteogyver/data/db
+      - /data/PG_containers/input:/proteogyver/data/Server_input
+      - /data/PG_containers/output:/proteogyver/data/Server_output
+      # This is required for the updater to share one parameter file with the server.
+      - /data/PG_containers/conf/PG_prod/parameters.toml:/proteogyver/parameters.toml
