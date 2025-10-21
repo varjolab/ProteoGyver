@@ -82,22 +82,22 @@ if __name__ == "__main__":
             print('Going to do updates:', ', '.join(updates_to_do))
         else:
             print('No updates to do')
-        if False:#do_snapshot:
+        if do_snapshot:
             snapshot_dir = os.path.join(*parameters['Database snapshot settings']['Snapshot dir'])
             snapshots_to_keep = parameters['Database snapshot settings']['Snapshots to keep']
             print('Exporting snapshot')
             #db_functions.export_snapshot(db_path, snapshot_dir, snapshots_to_keep)
             #database_updater.update_log_table(conn, ['snapshot snapshot'], [1], timestamp, 'snapshot')
-        if False:#do_external_update:
+        if do_external_update:
             print('Updating external data')
             database_updater.update_external_data(conn, parameters, timestamp, organisms, last_external_update_date, ncpu)
             database_updater.update_log_table(conn, ['external update'], [1], timestamp, 'external')
-       if True:#do_main_db_update:
+        if do_main_db_update:
             print('Updating database')
             inmod_names, inmod_vals = database_updater.update_database(conn, parameters, cc_cols, cc_types, timestamp)
             database_updater.update_log_table(conn, inmod_names, inmod_vals, timestamp, 'main_db_update')
             db_functions.generate_database_table_templates_as_tsvs(conn, output_dir, parameters['Database table primary keys'])
-        if False:#do_clean_update:
+        if do_clean_update:
             print('Cleaning database')
             clean_database(parameters['Versions to keep'])
             database_updater.update_log_table(conn, ['clean update'], [1], timestamp, 'clean')
