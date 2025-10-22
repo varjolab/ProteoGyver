@@ -160,7 +160,7 @@ dependencies:
   - ncurses=6.5=h2d0b736_3
   - nest-asyncio=1.6.0=pyhd8ed1ab_1
   - numba=0.62.1=py312h907b442_0
-  - numpy=1.26.4
+  - numpy=2.3.3=py312h33ff503_0
   - openblas=0.3.30=pthreads_h6ec200e_2
   - openjpeg=2.5.4=h55fea9a_0
   - openldap=2.6.10=he970967_0
@@ -213,8 +213,8 @@ dependencies:
   - retrying=1.4.2=pyhe01879c_0
   - rpds-py=0.27.1=py312h868fb18_1
   - s3transfer=0.14.0=pyhd8ed1ab_0
-  - scikit-learn=1.5.2
-  - scipy=1.11.4
+  - scikit-learn=1.7.2=py312h4f0b9e3_0
+  - scipy=1.16.2=py312h7a1785b_0
   - setuptools=80.9.0=pyhff2d567_0
   - six=1.17.0=pyhe01879c_1
   - soupsieve=2.8=pyhd8ed1ab_0

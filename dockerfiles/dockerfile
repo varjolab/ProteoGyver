@@ -84,5 +84,7 @@ EXPOSE 8090 8050
 
 ENV PATH="/opt/conda/envs/PG/bin:${PATH}"
 
+COPY utils/resource_monitoring.sh /proteogyver/utils/resource_monitoring.sh
+
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
 

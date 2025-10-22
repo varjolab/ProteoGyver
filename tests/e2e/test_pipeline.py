@@ -42,7 +42,6 @@ def _persist_dir(tmp_path: Path, name: str) -> Path:
         from datetime import datetime as _dt
         target = PERSIST_ROOT / f"{name}__{_dt.now().strftime('%Y%m%d-%H%M%S')}"
         target.mkdir(parents=True, exist_ok=True)
-        print('replacing dir')
         return target
     return tmp_path
 
