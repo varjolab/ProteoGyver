@@ -39,14 +39,20 @@ app = Dash(__name__, use_pages=True, external_stylesheets=[
            FLATLY], suppress_callback_exceptions=True, background_callback_manager=background_callback_manager)
 
 app.title = f'ProteoGyver {__version__}'
-app.enable_dev_tools(debug=True)
+# Only enable dev tools when not running in Docker
+if not os.path.exists('/.dockerenv'):
+    app.enable_dev_tools(debug=True)
+    
 
 def main() -> None:
     """Main entry point for running the application.
 
     """
     logger.info(f'Proteogyver {__version__} started: {datetime.now()}')
-    app.run(debug=True)
+    # Only run in debug mode when not in Docker
+    debug_mode = not os.path.exists('/.dockerenv')
+    logger.info(f'Debug mode: {debug_mode}')
+    app.run(debug=debug_mode)
 
 def create_navbar(parameters: dict) -> dbc.Navbar:
     """Creates the application navigation bar.
