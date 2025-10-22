@@ -1,7 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 import os
-import shutil
 from typing import Iterator
 import pandas as pd
 import numpy as np
@@ -556,8 +555,34 @@ def update_log_table(conn, inmod_names, inmod_vals, timestamp, uptype: str) -> N
     Each entry includes a timestamp and the counts of insertions and modifications for each table.
     """
     hasmods = sum(inmod_vals) > 0
-    table_columns = ['timestamp TEXT', 'update_type TEXT', 'modification_type TEXT', 'tablename TEXT', 'count INTEGER']
+    table_columns = ['update_id TEXT', 'timestamp TEXT', 'update_type TEXT', 'modification_type TEXT', 'tablename TEXT', 'count INTEGER']
     new_rows = []
+    
+    # Get the next update ID by finding the highest existing one
+    cursor = conn.cursor()
+    try:
+        # Check if update_log table exists and has data
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='update_log'")
+        if cursor.fetchone():
+            # Get the highest update_id that matches our pattern
+            cursor.execute("SELECT update_id FROM update_log WHERE update_id LIKE 'upd_%' ORDER BY CAST(SUBSTR(update_id, 5) AS INTEGER) DESC LIMIT 1")
+            result = cursor.fetchone()
+            if result:
+                # Extract the number from the last update_id and increment
+                last_id = result[0]
+                last_num = int(last_id.split('_')[1])
+                next_num = last_num + 1
+            else:
+                # No existing upd_ IDs found, start from 1
+                next_num = 1
+        else:
+            # Table doesn't exist yet, start from 1
+            next_num = 1
+    except Exception:
+        # If any error occurs, start from 1
+        next_num = 1
+    
+    update_id = f'upd_{next_num}'
     if hasmods:
         modifications = {}
         for i, name in enumerate(inmod_names):
@@ -565,9 +590,9 @@ def update_log_table(conn, inmod_names, inmod_vals, timestamp, uptype: str) -> N
             modifications.setdefault(mtype, {}).setdefault(table, inmod_vals[i])
         for mtype, tables in modifications.items():
             for table, count in tables.items():
-                new_rows.append((timestamp, uptype, mtype, table, count))
+                new_rows.append((update_id,timestamp, uptype, mtype, table, count))
     else:
-        new_rows.append((timestamp, uptype, 'no modifications','',0))
+        new_rows.append((update_id,timestamp, uptype, 'no modifications','',0))
     sep = ',\n    '
     create_strs = f"CREATE TABLE IF NOT EXISTS update_log (\n    {sep.join(table_columns)}\n)"
     # Create update_log table if it doesn't exist
