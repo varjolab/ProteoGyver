@@ -276,7 +276,7 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
                     id='proteomics-clustermap-plot',
                     config=defaults['config'],
                     figure=heatmaps.draw_clustergram(
-                        corrdata, defaults, center_values=False
+                        corrdata, defaults
                     )
                 ),
                 legends['clustermap']

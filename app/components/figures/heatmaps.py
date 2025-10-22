@@ -1,36 +1,145 @@
-from dash_bio import Clustergram
 from dash.dcc import Graph
 from plotly import graph_objects as go
 from plotly import express as px
 from components import matrix_functions
 from math import ceil
+import numpy as np
+import plotly.figure_factory as ff
+from plotly.subplots import make_subplots
+from scipy.spatial.distance import squareform
+from scipy.cluster.hierarchy import linkage, leaves_list
 
-def draw_clustergram(plot_data, defaults, color_map:list = None, **kwargs) -> Clustergram:
-    """Draws a clustergram figure from the given plot_data data table.
 
-    Parameters:
-    plot_data: Clustergram data
-    color-map: list of values and corresponding colors for the color map. default:  [[0.0, "#FFFFFF"], [1.0, "#EF553B"]]
-    **kwargs: keyword arguments to pass on to dash_bio.Clustergram
-    
-    Returns: 
-    dash_bio.Clustergram drawn with the input data.
-    """
+
+def draw_clustergram(plot_data, defaults, color_map:list|None = None, **kwargs) -> go.Figure:
+    method: str = "average"
     if color_map is None:
-        color_map: list = [
+        color_map = [
             [0.0, '#FFFFFF'],
             [1.0, '#EF553B']
         ]
-    return Clustergram(
-        data=plot_data,
-        column_labels=list(plot_data.columns.values),
-        row_labels=list(plot_data.index),
-        color_map=color_map,
-        link_method='average',
+    zmin: float = 0
+    zmax: float = 1.0
+    if 'zmin' in kwargs:
+        zmin = kwargs['zmin']
+    if 'zmax' in kwargs:
+        zmax = kwargs['zmax']
+    if plot_data.shape[0] != plot_data.shape[1]:
+        raise ValueError("plot_data must be square (n x n) correlation matrix.")
+    if not plot_data.index.equals(plot_data.columns):
+        plot_data = plot_data.copy()
+        plot_data.index = plot_data.columns
+
+    labels = plot_data.columns.to_list()
+
+    C = plot_data.copy().astype(float)
+    np.fill_diagonal(C.values, 1.0)
+    C = C.fillna(0.0)
+    C = (C + C.T) / 2.0
+
+    D = 1.0 - C
+    np.fill_diagonal(D.values, 0.0)
+    condensed = squareform(D.values, checks=False)
+
+    col_link = linkage(condensed, method=method)
+    row_link = linkage(condensed, method=method)
+    col_order = leaves_list(col_link)
+    row_order = leaves_list(row_link)
+
+    corr_reordered = C.iloc[row_order, :].iloc[:, col_order]
+    row_labels = [labels[i] for i in row_order]
+    col_labels = [labels[i] for i in col_order]
+
+    dendro_top = ff.create_dendrogram(
+        corr_reordered.values, orientation="bottom", labels=col_labels,
+        linkagefun=lambda _: col_link
+    )
+    for t in dendro_top['data']:
+        t['yaxis'] = 'y2'
+
+    dendro_left = ff.create_dendrogram(
+        corr_reordered.values.T, orientation="right", labels=row_labels,
+        linkagefun=lambda _: row_link
+    )
+    for t in dendro_left['data']:
+        t['xaxis'] = 'x2'
+
+    fig = make_subplots(
+        rows=2, cols=2,
+        row_heights=[0.18, 0.82],
+        column_widths=[0.20, 0.80],   # left dendro column, heatmap column
+        specs=[[{"type": "xy"}, {"type": "xy"}],
+               [{"type": "xy"}, {"type": "heatmap"}]],
+        horizontal_spacing=0.05,
+        vertical_spacing=0.004,
+        shared_xaxes=True
+    )
+
+    for trace in dendro_top['data']:
+        fig.add_trace(trace, row=1, col=2)
+    for trace in dendro_left['data']:
+        fig.add_trace(trace, row=2, col=1)
+
+    top_tickvals = dendro_top['layout']['xaxis']['tickvals']
+    top_ticktext = dendro_top['layout']['xaxis']['ticktext']
+    left_tickvals = dendro_left['layout']['yaxis']['tickvals']
+    left_ticktext = dendro_left['layout']['yaxis']['ticktext']
+
+    color_map: list = [
+        [0.0, '#FFFFFF'],
+        [1.0, '#EF553B']
+    ]
+    heatmap = go.Heatmap(
+        z=corr_reordered.values,
+        x=top_tickvals,
+        y=left_tickvals,
+        colorscale=color_map,
+        zmin=zmin,
+        zmax=zmax,
+        xgap=0, ygap=0,                   # ← must be here
+        colorbar=None,
+        hovertemplate="row: %{customdata[0]}<br>col: %{customdata[1]}<br>r: %{z:.3f}<extra></extra>",
+        customdata=np.dstack(np.meshgrid(left_ticktext, top_ticktext, indexing="ij"))
+    )
+    fig.add_trace(heatmap, row=2, col=2)
+
+    # Axes for the heatmap
+    fig.update_xaxes(
+        row=2, col=2,
+        tickmode="array",
+        tickvals=top_tickvals,
+        ticktext=top_ticktext,
+        side="bottom",
+        tickangle=90
+    )
+    fig.update_yaxes(
+        row=2, col=2,
+        tickmode="array",
+        tickvals=left_tickvals,
+        ticktext=left_ticktext,
+        autorange="reversed",
+        side="right",        # ← labels on the RIGHT
+        automargin=True,     # ← allocate margin for long labels on the right
+    )
+
+    # Hide tick labels on dendrogram axes
+    fig.update_xaxes(visible=False, row=1, col=2)
+    fig.update_yaxes(visible=False, row=1, col=2)
+    fig.update_xaxes(visible=False, row=2, col=1)
+    fig.update_yaxes(visible=False, row=2, col=1)
+
+    fig.update_layout(
         height=defaults['height'],
         width=defaults['width'],
-        **kwargs
+        showlegend=False,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=10, r=70, t=50, b=100),
     )
+    fig.update_xaxes(showgrid=False, zeroline=False, showline=False, ticks="")
+    fig.update_yaxes(showgrid=False, zeroline=False, showline=False, ticks="")
+
+    return fig
 
 def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict, cmap: str, autorange: bool = False, symmetrical: bool = True, cluster: str = None) -> Graph:
     zmi: int = 0
