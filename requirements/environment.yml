@@ -10,7 +10,6 @@ dependencies:
   - amqp=5.2.0=pyhd8ed1ab_2
   - asttokens=3.0.0=pyhd8ed1ab_1
   - async-timeout=5.0.1=pyhd8ed1ab_1
-  - attrs=25.4.0=pyh71513ae_0
   - beautifulsoup4=4.14.2=pyha770c72_0
   - billiard=4.2.2=py312h4c3975b_1
   - biopython=1.85=py312h4c3975b_2
@@ -42,7 +41,6 @@ dependencies:
   - cycler=0.12.1=pyhd8ed1ab_1
   - cyrus-sasl=2.1.28=hd9c7081_0
   - dash=3.2.0=pyhd8ed1ab_0
-  - dash-bio=1.0.2=pyhd8ed1ab_0
   - dash-bootstrap-components=2.0.4=pyhcf101f3_0
   - dash-core-components=2.0.0=pyhd8ed1ab_1
   - dash-html-components=2.0.0=pyhd8ed1ab_2
@@ -67,7 +65,6 @@ dependencies:
   - fonts-conda-forge=1=0
   - fonttools=4.60.1=py312h8a5da7c_0
   - freetype=2.14.1=ha770c72_0
-  - geoparse=2.0.4=pyhd8ed1ab_1
   - graphite2=1.3.14=hecca717_2
   - gunicorn=23.0.0=py312h7900ff3_2
   - h2=4.3.0=pyhcf101f3_0
@@ -86,8 +83,6 @@ dependencies:
   - jinja2=3.1.6=pyhd8ed1ab_0
   - jmespath=1.0.1=pyhd8ed1ab_1
   - joblib=1.5.2=pyhd8ed1ab_0
-  - jsonschema=4.25.1=pyhe01879c_0
-  - jsonschema-specifications=2025.9.1=pyhcf101f3_0
   - jupyter_client=8.6.3=pyhd8ed1ab_1
   - jupyter_core=5.9.1=pyhc90fa1f_0
   - keyutils=1.6.3=hb9d3cd8_0
@@ -169,11 +164,9 @@ dependencies:
   - openssl=3.5.4=h26f9b46_0
   - packaging=25.0=pyh29332c3_1
   - pandas=2.3.3=py312hf79963d_1
-  - parmed=4.3.0=py312ha9124a0_1
   - parso=0.8.5=pyhcf101f3_0
   - patsy=1.0.2=pyhcf101f3_0
   - pcre2=10.46=h1321c63_0
-  - periodictable=1.7.1=pyhd8ed1ab_0
   - pexpect=4.9.0=pyhd8ed1ab_1
   - pickleshare=0.7.5=pyhd8ed1ab_1004
   - pillow=11.3.0=py312h7b42cdd_3
@@ -210,10 +203,8 @@ dependencies:
   - readline=8.2=h8c095d6_2
   - redis=5.0.3=h7b6447c_0
   - redis-py=6.4.0=pyhd8ed1ab_0
-  - referencing=0.37.0=pyhcf101f3_0
   - requests=2.32.5=pyhd8ed1ab_0
   - retrying=1.4.2=pyhe01879c_0
-  - rpds-py=0.27.1=py312h868fb18_1
   - s3transfer=0.14.0=pyhd8ed1ab_0
   - scikit-learn=1.7.2=py312h4f0b9e3_0
   - scipy=1.16.2=py312h7a1785b_0
@@ -228,7 +219,6 @@ dependencies:
   - tomli=2.3.0=pyhcf101f3_0
   - tomlkit=0.13.3=pyha770c72_0
   - tornado=6.5.2=py312h4c3975b_1
-  - tqdm=4.67.1=pyhd8ed1ab_1
   - traitlets=5.14.3=pyhd8ed1ab_1
   - typing-extensions=4.15.0=h396c80c_0
   - typing_extensions=4.15.0=pyhcf101f3_0
