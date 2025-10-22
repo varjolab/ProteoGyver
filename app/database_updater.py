@@ -205,8 +205,8 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                         insertions += len(df)
                         print(f"Created new table {new_table_name} with {insertions} rows")
                         delete_files.append(file_path)
-                        if os.path.isfile(os.path.join(folder_path, file_name.replace('.tsv','txt'))):
-                            delete_files.append(os.path.join(folder_path, file_name.replace('.tsv','txt')))
+                        if os.path.isfile(file_path.replace('.tsv','txt')):
+                            delete_files.append(file_path.replace('.tsv','txt'))
             else:
                 dirfiles = os.listdir(folder_path)
                 for i, file_name in enumerate(dirfiles):
