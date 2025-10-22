@@ -43,7 +43,7 @@ SCHEDULE_FILE="/proteogyver/data/celerybeat-schedule.db"
 mkdir -p "$(dirname "$SCHEDULE_FILE")"
 rm -f "$SCHEDULE_FILE"
 celery -A app.celery_app worker --loglevel=DEBUG --concurrency=$CPU_COUNT & # For app
-celery -A app.celery_app beat --loglevel=DEBUG --concurrency=1 --schedule "$SCHEDULE_FILE" & # For scheduled tasks
+celery -A app.celery_app beat --loglevel=DEBUG --schedule "$SCHEDULE_FILE" & # For scheduled tasks
 sleep 5  # Give Celery time to start
 
 # --- Start Dash app with Gunicorn ---

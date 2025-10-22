@@ -260,7 +260,7 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
     id_name: name for the plot. will be used for the id of the returned dcc.Graph object.
 
     Returns: 
-    dcc.Graph containing a dash_bio.Clustergram describing correlation between samples.
+    dcc.Graph containing a go.Figure object of a Clustergram describing correlation between samples.
     """
     corrdata: pd.DataFrame = pd.read_json(
         StringIO(imputed_data_json), orient='split').corr()
