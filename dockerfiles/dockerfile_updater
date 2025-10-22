@@ -27,10 +27,14 @@ COPY app/data /proteogyver/data
 # Installs
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    xz-utils \
     && pip install --upgrade pip \
     && pip install -r requirements.txt \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Decompress the minimal database
+RUN unxz /proteogyver/data/minimal_pg_db.sqlite3.xz 
 
 # Needed extras
 COPY app/components/text_handling.py components/text_handling.py

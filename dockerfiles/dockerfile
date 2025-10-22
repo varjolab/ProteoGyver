@@ -62,6 +62,8 @@ RUN curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C 
 
 # Copy application code and setup (this happens last for better caching)
 COPY app /proteogyver
+# Decompress the minimal database
+RUN unxz /proteogyver/data/minimal_pg_db.sqlite3.xz
 COPY dockerfiles/docker_entrypoint.sh /docker_entrypoint.sh
 COPY VERSION /VERSION
 COPY LICENSE /LICENSE
