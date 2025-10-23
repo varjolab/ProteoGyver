@@ -8,7 +8,7 @@ LogLevel = 20
 "Log keep days" = 365
 "R error file" = "R_errors.log"
 "Time format" = "%Y-%m-%d %H:%M:%S"
-# Either integer or "ncpus"
+# Either integer or "ncpus". if ncpus, all CPUs will be used if possible. 
 "CPU count limit" = "ncpus"
 
 ["Cytoscape layout parameters"]

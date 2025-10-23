@@ -40,7 +40,10 @@ def parse_json_files():
             f'{tt}_trace',
         ])
     with db_functions.create_connection(os.path.join(*parameters['Data paths']['Database file']), mode='ro') as conn:
-        run_index = max(0, *[int(i.rsplit('_',maxsplit=1)[-1]) for i in db_functions.get_from_table(conn, 'ms_runs', select_col = 'internal_run_id')]) + 1
+        vals = [0]
+        for v in db_functions.get_from_table(conn, 'ms_runs', select_col = 'internal_run_id'):
+            vals.append(int(v.rsplit('_',maxsplit=1)[-1]))
+        run_index = max(vals) + 1
     base_id = 'PG_runID_'
 
     base_keys = [
