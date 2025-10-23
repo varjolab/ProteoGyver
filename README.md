@@ -171,7 +171,7 @@ utils/check_volume_paths.sh -v --create
 For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater script as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn't yet exist. If you want to see what docker command the updater would run, run with --test flag (>utils/run_updater.sh --test)
 
 In order to have run annotations that are not parsed from the raw MS data files (see [MS run pre-analysis](#ms-run-data-pre-analysis) ), an excel file CAN be supplied. The file name is specified in parameters.toml under "Database creation"."MS runs information"."Additional nfo excel". Minimal example is supplied in this repo.
-Running the updater can take a long time, especially on the first run.
+Building the updater container should take around a minute. Running the updater can take a long time, especially on the first run.
 ```
 docker build -t pg_updater:1.0 -f dockerfiles/dockerfile_updater .
 utils/run_updater.sh
