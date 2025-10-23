@@ -1,6 +1,6 @@
 services:
   pg_revtest:
-    image: pg:1.6a
+    image: pg:1.3b
     container_name: pg-revtest
     ports:
       - "8050:8050"
