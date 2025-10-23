@@ -45,10 +45,12 @@ if __name__ == "__main__":
     os.makedirs(output_dir,exist_ok=True)
     for table_name, path in parameters['Database updater']['Update files'].items():
         os.makedirs(os.path.join(*path), exist_ok = True)
+    need_full_update = False
     if not os.path.exists(db_path):
         print('Database file does not exist, generating database')
         dbfile = os.path.join(*parameters['Data paths']['Database file'])
         need_to_create = True
+        need_full_update = True
         if 'Minimal database file' in parameters['Data paths']:
             print('Checking for minimal database file')
             minimal_db_path = os.path.join(*parameters['Data paths']['Minimal database file'])
@@ -85,10 +87,10 @@ if __name__ == "__main__":
         f'last main db: {last_update(conn, "main_db_update", update_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=update_interval))}',
         f'last clean: {last_update(conn, 'clean', clean_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=clean_interval))}',
     ]))
-    do_snapshot = last_update(conn, 'snapshot', snapshot_interval, time_format) < (datetime.now() - relativedelta(seconds=snapshot_interval))
-    do_external_update = last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval))
-    do_main_db_update = last_update(conn, 'main_db_update', update_interval, time_format) < (datetime.now() - relativedelta(seconds=update_interval))
-    do_clean_update = last_update(conn, 'clean', clean_interval, time_format) < (datetime.now() - relativedelta(seconds=clean_interval))
+    do_snapshot = need_full_update or (last_update(conn, 'snapshot', snapshot_interval, time_format) < (datetime.now() - relativedelta(seconds=snapshot_interval)))
+    do_external_update = need_full_update or (last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval)))
+    do_main_db_update = need_full_update or (last_update(conn, 'main_db_update', update_interval, time_format) < (datetime.now() - relativedelta(seconds=update_interval)))
+    do_clean_update = need_full_update or (last_update(conn, 'clean', clean_interval, time_format) < (datetime.now() - relativedelta(seconds=clean_interval)))
     updates_to_do = [update for update in [
         'External' if do_external_update else '',
         'Main db' if do_main_db_update else '',
