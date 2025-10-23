@@ -34,7 +34,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Decompress the minimal database
-RUN unxz /proteogyver/data/minimal_pg_db.sqlite3.xz 
+COPY app/data/minimal_pg_db.sqlite3.xz /proteogyver/data/minimal_pg_db.sqlite3.xz
+RUN unxz /proteogyver/data/minimal_pg_db.sqlite3.xz
 
 # Needed extras
 COPY app/components/text_handling.py components/text_handling.py
