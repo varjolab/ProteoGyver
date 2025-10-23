@@ -26,6 +26,7 @@ def clean_database(versions_to_keep_dict) -> None:
 def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_format: str) -> datetime:
     try:
         last_update = datetime.strptime(db_functions.get_last_update(conn, uptype), time_format)
+        print(uptype, 'last update:', last_update)
     except Exception as e:
         last_update = datetime.now() - relativedelta(seconds=interval+1)
     return last_update
@@ -78,8 +79,17 @@ if __name__ == "__main__":
     conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
 
     last_external_update_date = last_update(conn, 'external', api_update_interval, time_format)
-
-    do_snapshot = last_update(db_path, 'snapshot', snapshot_interval, time_format) < (datetime.now() - relativedelta(seconds=snapshot_interval))
+    print('\n'.join([
+        f'last snapshot: {last_update(conn, 'snapshot', snapshot_interval, time_format)}',
+        f'last external: {last_external_update_date}',
+        f'last main db: {last_update(conn, 'main_db_update', update_interval, time_format)}',
+        f'last clean: {last_update(conn, 'clean', clean_interval, time_format)}',
+        f'since snapshot: {(datetime.now() - relativedelta(seconds=snapshot_interval))}',
+        f'since external: {(datetime.now() - relativedelta(seconds=api_update_interval))}',
+        f'since main db: {(datetime.now() - relativedelta(seconds=update_interval))}',
+        f'since clean: {(datetime.now() - relativedelta(seconds=clean_interval))}',
+    ]))
+    do_snapshot = last_update(conn, 'snapshot', snapshot_interval, time_format) < (datetime.now() - relativedelta(seconds=snapshot_interval))
     do_external_update = last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval))
     do_main_db_update = last_update(conn, 'main_db_update', update_interval, time_format) < (datetime.now() - relativedelta(seconds=update_interval))
     do_clean_update = last_update(conn, 'clean', clean_interval, time_format) < (datetime.now() - relativedelta(seconds=clean_interval))
