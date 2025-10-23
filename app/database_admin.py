@@ -80,14 +80,10 @@ if __name__ == "__main__":
 
     last_external_update_date = last_update(conn, 'external', api_update_interval, time_format)
     print('\n'.join([
-        f'last snapshot: {last_update(conn, 'snapshot', snapshot_interval, time_format)}',
-        f'last external: {last_external_update_date}',
-        f'last main db: {last_update(conn, 'main_db_update', update_interval, time_format)}',
-        f'last clean: {last_update(conn, 'clean', clean_interval, time_format)}',
-        f'since snapshot: {(datetime.now() - relativedelta(seconds=snapshot_interval))}',
-        f'since external: {(datetime.now() - relativedelta(seconds=api_update_interval))}',
-        f'since main db: {(datetime.now() - relativedelta(seconds=update_interval))}',
-        f'since clean: {(datetime.now() - relativedelta(seconds=clean_interval))}',
+        f'last snapshot: {last_update(conn, 'snapshot', snapshot_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=snapshot_interval))}',
+        f'last external: {last_external_update_date} since: {(datetime.now() - relativedelta(seconds=api_update_interval))}',
+        f'last main db: {last_update(conn, "main_db_update", update_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=update_interval))}',
+        f'last clean: {last_update(conn, 'clean', clean_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=clean_interval))}',
     ]))
     do_snapshot = last_update(conn, 'snapshot', snapshot_interval, time_format) < (datetime.now() - relativedelta(seconds=snapshot_interval))
     do_external_update = last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval))
