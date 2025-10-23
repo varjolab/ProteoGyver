@@ -16,7 +16,7 @@ try:
     cpu_limit = config.get('Config', {}).get('CPU count limit', 'ncpus')
     
     if cpu_limit == 'ncpus':
-        cpu_count = multiprocessing.cpu_count() - 1
+        cpu_count = multiprocessing.cpu_count()
     else:
         try:
             cpu_count = int(cpu_limit)

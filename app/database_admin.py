@@ -49,11 +49,16 @@ if __name__ == "__main__":
         dbfile = os.path.join(*parameters['Data paths']['Database file'])
         need_to_create = True
         if 'Minimal database file' in parameters['Data paths']:
+            print('Checking for minimal database file')
             minimal_db_path = os.path.join(*parameters['Data paths']['Minimal database file'])
-            if not os.path.exists(minimal_db_path):
+            if os.path.exists(minimal_db_path):
+                print('Minimal database file found, using it')
                 shutil.copy(minimal_db_path, db_path)
                 need_to_create = False
+            else:
+                print('Minimal database file not found, creating database')
         if need_to_create:
+            print('Creating database')
             schema_file = os.path.join(*parameters['Data paths']['Schema file'])
             database_generator.create_sqlite_from_schema(schema_file, dbfile) # type: ignore
             conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
@@ -107,5 +112,6 @@ if __name__ == "__main__":
         print('Cleaning database')
         clean_database(parameters['Versions to keep'])
         database_updater.update_log_table(conn, ['clean update'], [1], timestamp, 'clean')
+    
     conn.close() # type: ignore
     print('Database update done.')
