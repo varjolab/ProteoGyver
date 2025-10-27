@@ -94,7 +94,7 @@ def create_navbar(parameters: dict) -> dbc.Navbar:
         dbc.Container(
             [
                 html.Img(src=LOGO, height='100px',id='proteogyver-logo'),
-                dbc.NavbarBrand('ProteoGyver', className='ms-2', style = {'paddingRight': '50px','font-size': '30px'} ),
+                dbc.NavbarBrand(f'Proteogyver {__version__} ', className='ms-2', style = {'paddingRight': '50px','font-size': '30px'} ),
                 dbc.NavbarToggler(id="proteogyver-navbar-toggler", n_clicks=0),
                 dbc.Collapse(
                     navbar_items,
