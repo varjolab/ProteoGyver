@@ -95,8 +95,11 @@ jobs:
 
       - name: Install R packages via renv lockfile
         run: |
-          micromamba run -n PG R -q -e "install.packages('renv', repos='https://cloud.r-project.org')"
-          micromamba run -n PG R -q -e "renv::restore(lockfile = 'requirements/renv.lock', prompt = FALSE, clean = TRUE)"
+          # Use a user-writable library for R packages
+          echo "R_LIBS_USER=$HOME/R/renv" >> $GITHUB_ENV
+          mkdir -p "$HOME/R/renv"
+          micromamba run -n PG R -q -e "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE, showWarnings=FALSE); install.packages('renv', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
+          micromamba run -n PG R -q -e ".libPaths(c(Sys.getenv('R_LIBS_USER'), .libPaths())); renv::restore(lockfile = 'requirements/renv.lock', prompt = FALSE, clean = TRUE)"
 
       - name: Set up test environment
         run: |
