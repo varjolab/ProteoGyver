@@ -17,8 +17,6 @@ jobs:
   e2e:
     name: e2e (conda environment)
     runs-on: ubuntu-latest
-    env:
-      R_LIBS_USER: ${{ runner.temp }}/R/renv
 
     services:
       redis:
@@ -52,6 +50,7 @@ jobs:
 
       - name: Prepare R user library
         run: |
+          R_LIBS_USER="${RUNNER_TEMP}/R/renv"
           echo "R_LIBS_USER=${R_LIBS_USER}" >> $GITHUB_ENV
           mkdir -p "${R_LIBS_USER}"
 
