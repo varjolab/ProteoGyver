@@ -262,10 +262,15 @@ dependencies:
   - pip:
     - alphatims==1.0.8
     - celery_once==3.0.1
+    - choreographer==1.2.0
     - dash_uploader==0.6.1
     - h5py==3.15.1
-    - kaleido==0.2.1
+    - kaleido==1.1.0
+    - logistro==2.0.0
     - nbib==0.3.2
+    - orjson==3.11.4
+    - pytest-timeout==2.4.0
+    - simplejson==3.20.2
     - supervenn==0.5.0
 
 prefix: "/home/kmsaloka/.micromamba/envs/PG"

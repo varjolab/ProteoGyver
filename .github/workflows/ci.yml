@@ -108,6 +108,13 @@ jobs:
           mkdir -p /tmp/proteogyver/data/Server_output/logs
           echo "PROTEOGYVER_DATA_DIR=/tmp/proteogyver/data" >> $GITHUB_ENV
 
+      - name: Unpack minimal database
+        run: |
+          if [ -f app/data/minimal_pg_db.sqlite3.xz ]; then \
+            echo "Found compressed DB. Unpacking..."; \
+            xz -d -f app/data/minimal_pg_db.sqlite3.xz; \
+          fi
+
       - name: Run e2e tests
         run: |
           mkdir -p reports
