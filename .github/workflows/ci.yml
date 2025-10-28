@@ -98,8 +98,8 @@ jobs:
           # Use a user-writable library for R packages
           echo "R_LIBS_USER=$HOME/R/renv" >> $GITHUB_ENV
           mkdir -p "$HOME/R/renv"
-          micromamba run -n PG R -q -e "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE, showWarnings=FALSE); install.packages('renv', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
-          micromamba run -n PG R -q -e ".libPaths(c(Sys.getenv('R_LIBS_USER'), .libPaths())); Sys.setenv(RENV_PATHS_LIBRARY=Sys.getenv('R_LIBS_USER')); renv::restore(lockfile = 'requirements/renv.lock', prompt = FALSE, clean = TRUE); if (!requireNamespace('imputeLCMD', quietly=TRUE)) install.packages('imputeLCMD', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
+          R -q -e "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE, showWarnings=FALSE); install.packages('renv', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
+          R -q -e ".libPaths(c(Sys.getenv('R_LIBS_USER'), .libPaths())); Sys.setenv(RENV_PATHS_LIBRARY=Sys.getenv('R_LIBS_USER')); renv::restore(lockfile = 'requirements/renv.lock', prompt = FALSE, clean = TRUE); if (!requireNamespace('imputeLCMD', quietly=TRUE)) install.packages('imputeLCMD', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
 
       - name: Set up test environment
         run: |
@@ -116,6 +116,8 @@ jobs:
           fi
 
       - name: Run e2e tests
+        env:
+          R_LIBS_USER: ${{ env.R_LIBS_USER }}
         run: |
           mkdir -p reports
           micromamba run -n PG pytest -q tests/e2e/test_pipeline.py -m e2e --maxfail=1 --disable-warnings --junitxml=reports/junit.xml
