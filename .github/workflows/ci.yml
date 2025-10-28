@@ -63,6 +63,10 @@ jobs:
             postgresql \
             littler \
             gnupg \
+            build-essential \
+            gfortran \
+            libblas-dev \
+            liblapack-dev \
             libcurl4-openssl-dev \
             libxml2-dev \
             libfontconfig1-dev \
@@ -89,6 +93,16 @@ jobs:
             r-base-dev \
             r-recommended
 
+      - name: Install key R packages via r2u binaries
+        run: |
+          # Install common R dependencies as binaries to avoid compilation issues
+          sudo apt-get update
+          sudo apt-get install -y \
+            r-cran-imputelcmd \
+            r-cran-vsn \
+            r-cran-randomforest \
+            r-cran-readr || true
+
       - name: Verify Python
         run: |
           micromamba run -n PG python -V
@@ -100,6 +114,10 @@ jobs:
           mkdir -p "$HOME/R/renv"
           R -q -e "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE, showWarnings=FALSE); install.packages('renv', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
           R -q -e ".libPaths(c(Sys.getenv('R_LIBS_USER'), .libPaths())); Sys.setenv(RENV_PATHS_LIBRARY=Sys.getenv('R_LIBS_USER')); renv::restore(lockfile = 'requirements/renv.lock', prompt = FALSE, clean = TRUE); if (!requireNamespace('imputeLCMD', quietly=TRUE)) install.packages('imputeLCMD', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
+
+      - name: R diagnostics (libraries and libPaths)
+        run: |
+          R -q -e ".libPaths(); ip <- as.data.frame(installed.packages()[,c('Package','LibPath')]); ip[ip$Package %in% c('imputeLCMD','vsn','randomForest','readr'), ]"
 
       - name: Set up test environment
         run: |
