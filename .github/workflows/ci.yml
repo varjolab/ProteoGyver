@@ -37,7 +37,7 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           micromamba-version: 'latest'
-          environment-file: app/requirements/environment.yml
+          environment-file: requirements/environment.yml
           create-args: >-
             -n PG
           cache-environment: true
@@ -95,7 +95,11 @@ jobs:
 
       - name: Install R dependencies
         run: |
-          micromamba run -n PG Rscript app/resources/R_requirements.R
+          if [ -f app/resources/R_requirements.R ]; then \
+            micromamba run -n PG Rscript app/resources/R_requirements.R; \
+          else \
+            echo "No R requirements script found at app/resources/R_requirements.R; skipping."; \
+          fi
 
       - name: Set up test environment
         run: |

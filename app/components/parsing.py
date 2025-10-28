@@ -350,6 +350,10 @@ def read_fragpipe(data_table: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame,
             columns={ic: ic.replace(f'{replace_str}Intensity', '').replace('MaxLFQ', '').strip()
                      for ic in intensity_cols},
             inplace=True)
+    intensity_table.dropna(how='all',inplace=True,axis=1)
+    intensity_table.dropna(how='all',inplace=True,axis=0)
+    spc_table.dropna(how='all',inplace=True,axis=1)
+    spc_table.dropna(how='all',inplace=True,axis=0)
     return (intensity_table, spc_table, protein_lengths)
 
 
