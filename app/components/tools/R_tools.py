@@ -30,6 +30,12 @@ def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_nam
         with tempfile.NamedTemporaryFile() as datafile:
             repwith = datafile.name
             r_script_contents = [line.replace(replace_name,repwith) for line in r_script_contents]
+            # Ensure R finds packages installed into the CI user library
+            lib_setup = [
+                'lib_user <- Sys.getenv("R_LIBS_USER")',
+                'if (nzchar(lib_user)) .libPaths(c(lib_user, .libPaths()))'
+            ]
+            r_script_contents = lib_setup + r_script_contents
             if replace_dir:
                 r_script_contents = [line.replace(replace_dir,tmpdir) for line in r_script_contents]
             r_script_data.to_csv(datafile, sep='\t', index=input_df_has_index)
