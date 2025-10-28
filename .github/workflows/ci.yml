@@ -17,6 +17,8 @@ jobs:
   e2e:
     name: e2e (conda environment)
     runs-on: ubuntu-latest
+    env:
+      R_LIBS_USER: ${{ runner.temp }}/R/renv
 
     services:
       redis:
@@ -47,6 +49,11 @@ jobs:
         run: |
           micromamba info
           micromamba list
+
+      - name: Prepare R user library
+        run: |
+          echo "R_LIBS_USER=${R_LIBS_USER}" >> $GITHUB_ENV
+          mkdir -p "${R_LIBS_USER}"
 
       - name: Install system dependencies
         run: |
@@ -93,15 +100,15 @@ jobs:
             r-base-dev \
             r-recommended
 
-      - name: Install key R packages via r2u binaries
+      - name: Install CRAN packages into user library (littler)
         run: |
-          # Install common R dependencies as binaries to avoid compilation issues
-          sudo apt-get update
-          sudo apt-get install -y \
-            r-cran-imputelcmd \
-            r-cran-vsn \
-            r-cran-randomforest \
-            r-cran-readr || true
+          # Install CRAN packages directly into the job user library path
+          install2.r -l "${R_LIBS_USER}" -s imputeLCMD randomForest readr || true
+
+      - name: Install Bioconductor packages into user library (littler)
+        run: |
+          # vsn is a Bioconductor package
+          installBioc.r -l "${R_LIBS_USER}" vsn || true
 
       - name: Verify Python
         run: |
@@ -110,14 +117,14 @@ jobs:
       - name: Install R packages via renv lockfile
         run: |
           # Use a user-writable library for R packages
-          echo "R_LIBS_USER=$HOME/R/renv" >> $GITHUB_ENV
-          mkdir -p "$HOME/R/renv"
           R -q -e "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE, showWarnings=FALSE); install.packages('renv', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
-          R -q -e ".libPaths(c(Sys.getenv('R_LIBS_USER'), .libPaths())); Sys.setenv(RENV_PATHS_LIBRARY=Sys.getenv('R_LIBS_USER')); renv::restore(lockfile = 'requirements/renv.lock', prompt = FALSE, clean = TRUE); if (!requireNamespace('imputeLCMD', quietly=TRUE)) install.packages('imputeLCMD', repos='https://cloud.r-project.org', lib=Sys.getenv('R_LIBS_USER'))"
+          R -q -e ".libPaths(c(Sys.getenv('R_LIBS_USER'), .libPaths())); Sys.setenv(RENV_PATHS_LIBRARY=Sys.getenv('R_LIBS_USER'), RENV_CONFIG_REPOS_OVERRIDE='https://cloud.r-project.org'); renv::restore(lockfile = 'requirements/renv.lock', prompt = FALSE, clean = TRUE)"
 
-      - name: R diagnostics (libraries and libPaths)
+      - name: R diagnostics (libraries, versions, load tests)
         run: |
-          R -q -e ".libPaths(); ip <- as.data.frame(installed.packages()[,c('Package','LibPath')]); ip[ip$Package %in% c('imputeLCMD','vsn','randomForest','readr'), ]"
+          R -q -e ".libPaths(); cat('R_LIBS_USER=', Sys.getenv('R_LIBS_USER'), '\n')"
+          R -q -e "ip <- as.data.frame(installed.packages()[,c('Package','LibPath','Version')]); print(ip[ip$Package %in% c('imputeLCMD','vsn','randomForest','readr'), ])"
+          R -q -e "for (p in c('imputeLCMD','vsn','randomForest','readr')) { cat('Loading ', p, ' ... '); tryCatch({ library(p, character.only=TRUE); cat('ok\n'); print(packageVersion(p)) }, error=function(e) { cat('FAILED: ', conditionMessage(e), '\n') }) }"
 
       - name: Set up test environment
         run: |
