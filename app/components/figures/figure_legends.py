@@ -53,7 +53,7 @@ def volcano_plot_legend(sample, control, id_prefix) -> P:
 def saint_legend(rescued: bool) -> P:
     return leg_rep(INTERACTOMICS_LEGENDS['filtered-saint-counts'], '$RESCUE', 'rescued' if rescued else 'not rescued')
 
-def enrichment_legend(clean_enrichment_name, enrichment_name, fc_threshold, fc_col, p_value_name, p_threshold):
+def enrichment_legend(clean_enrichment_name, enrichment_name, fc_col, fc_threshold, p_value_name, p_threshold):
     return P(id=f'{clean_enrichment_name}-enrichment-legend', children=f'{enrichment_name} enrichment using {fc_col} filter of {fc_threshold} and {p_value_name} filter of {p_threshold}.')
 
 def volcano_heatmap_legend(control, id_prefix) -> P:

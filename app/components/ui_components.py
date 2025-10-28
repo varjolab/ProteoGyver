@@ -882,7 +882,10 @@ def interactomics_input_card(
     """
     all_sample_groups: List[str] = []
     sample_groups: Dict[str, Any] = data_dictionary['sample groups']['norm']
-    guessed_controls: List[str] = data_dictionary['sample groups']['guessed control samples'][0]
+    if 'guessed control samples' in data_dictionary['sample groups']:
+        guessed_controls: List[str] = data_dictionary['sample groups']['guessed control samples'][0]
+    else:
+        guessed_controls: List[str] = []
     for k in sample_groups.keys():
         if k not in guessed_controls:
             all_sample_groups.append(k)

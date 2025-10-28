@@ -1061,6 +1061,7 @@ def do_ms_microscopy(saint_output_json: str,
         )
     ]
 
+    i = 0
     for bait, polar_graph in polar_plots:
         tablist.append(
             Tab(
@@ -1083,7 +1084,7 @@ def do_ms_microscopy(saint_output_json: str,
                 #style={'width': '98%'}
             )
         )
-    return(
+    return (
         html.Div(
             id='interactomics-msmicroscopy-plot-div',
             children=[

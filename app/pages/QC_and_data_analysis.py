@@ -1639,6 +1639,7 @@ def interactomics_ms_microscopy_plots(
     res = interactomics.do_ms_microscopy(saint_output, db_file, 
                                        parameters['Figure defaults']['full-height'], 
                                        version='v1.0')
+
     return res
 
 @callback(

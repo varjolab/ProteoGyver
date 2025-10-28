@@ -62,7 +62,7 @@ def tweak_fig_size_hw(height: int, width: int, desired_ratio: float, method='red
         height = height * (desired_ratio/current_ratio)
     elif method == 'inflate':
         width = width * (current_ratio/desired_ratio)    
-    return (height, width)
+    return (int(height), int(width))
 
 def draw_localization_plot(defaults: dict, datarow: pd.Series, cmap: list = [[255,255,255], [0,0,255]], nsteps: int = 10, plot_min: int = 0, plot_max: int = 100):
     r = list(datarow.values)
