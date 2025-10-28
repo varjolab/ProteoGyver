@@ -19,8 +19,8 @@ from components import parsing  # type: ignore
 from run_as_pipeline import run_batch_pipeline  # type: ignore
 
 
-REPO_ROOT = Path('/home/kmsaloka/Data/2025_ProteoGyver')
-APP_DIR = REPO_ROOT / 'app'
+REPO_ROOT = _REPO_ROOT
+APP_DIR = _APP_DIR
 EX_DATA = APP_DIR / 'data' / 'PG example files'
 
 # Toggle-able test output persistence. Set to False to revert to ephemeral tmp dirs.

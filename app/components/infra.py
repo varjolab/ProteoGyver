@@ -482,14 +482,13 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
             new_html.extend(split_html[-2:])
             with open(os.path.join(target_dir, f'{name}.html'), 'w', encoding='utf-8') as fil:
                 fil.write('\n'.join(new_html))
-        plotly_engine: str = 'kaleido'
         for output_format in output_formats:
             fig_path:str = os.path.join(target_dir, f'{name}.{output_format}')
             if output_format == 'html':
                 continue
             if figtype == 'graph':
                 try:
-                    go.Figure(fig).write_image(fig_path,engine = plotly_engine)
+                    go.Figure(fig).write_image(fig_path)
                 except Exception as e:
                     with open(fig_path.replace(f'.{output_format}', ' ERROR.txt'),'w',encoding='utf-8') as fil:
                         fil.write(f'Error Message:\n{e}')
