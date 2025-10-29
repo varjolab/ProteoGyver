@@ -272,10 +272,10 @@ def main():
     )
     
     if result["success"]:
-        print(f"✅ Successfully generated {result['figures_generated']} figures")
-        print(f"📁 Export directory: {result['export_directory']}")
+        print(f"Successfully generated {result['figures_generated']} figures")
+        print(f"Export directory: {result['export_directory']}")
     else:
-        print(f"❌ Figure generation failed: {result['error']}")
+        print(f"Figure generation failed: {result['error']}")
 
 
 if __name__ == "__main__":

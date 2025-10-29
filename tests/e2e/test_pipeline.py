@@ -252,6 +252,107 @@ def test_interactomics_wrong_input_no_spc_returns_error(tmp_path: Path):
 
 
 @pytest.mark.e2e
+@pytest.mark.parametrize('relpaths', [
+    [
+        'PG output/Data/Input data tables/int.tsv',
+        'PG output/Data/Input data tables/Uploaded expdesign.tsv',
+        'PG output/Data/Proteomics data tables/NA-Norm-Imputed data.tsv',
+        'PG output/Data/Reproducibility data.json',
+        'PG output/Data/Shared proteins.txt',
+        'PG output/Data/Summary data/Common proteins.tsv',
+        'PG output/Data/Summary data/Missing counts.tsv',
+        'PG output/Data/Summary data/Protein coverage.tsv',
+        'PG output/Data/Summary data/Value distribution.tsv',
+        'PG output/Data/Summary data/Value sums.tsv',
+        'PG output/Input data info/Data table.txt',
+        'PG output/Input data info/Sample table.txt',
+        'PG output/Proteomics figures/Missing value filtering.png',
+        'PG output/Proteomics figures/Normalization.html',
+        'PG output/Proteomics figures/PCA.pdf',
+        'PG output/Proteomics figures/Sample correlation clustering.png',
+        'PG output/QC figures/Proteins per sample.html',
+        'PG output/QC figures/Value mean.pdf'
+    ]
+])
+def test_proteomics_paths_exist_relative_to_toml(tmp_path: Path, relpaths: list[str]):
+    """Build a TOML and verify a list of relative paths exist next to it.
+
+    The provided relpaths are interpreted relative to the directory
+    containing the generated test TOML.
+    """
+    params = _load_params()
+    base = _persist_dir(tmp_path, 'proteomics_paths_exist_relative_to_toml')
+    toml_path = _build_toml(
+        'proteomics',
+        EX_DATA / 'Proteomics data file minimal.tsv',
+        EX_DATA / 'Proteomics sample table minimal.tsv',
+        overrides=None,
+        out_dir=base,
+    )
+    # Run pipeline to materialize outputs
+    result = run_batch_pipeline(str(toml_path))
+
+    # Resolve and assert each relative path exists
+    toml_dir = toml_path.parent
+    for rel in relpaths:
+        target = toml_dir / rel
+        assert target.exists(), f"Expected path does not exist: {target}"
+
+@pytest.mark.e2e
+@pytest.mark.parametrize('relpaths', [
+    [
+        'PG output/Data/Filtered interactomics results with intensity and knowns.tsv',
+        'PG output/Data/Input data tables/int.tsv',
+        'PG output/Data/Input data tables/spc.tsv',
+        'PG output/Data/Input data tables/Uploaded expdesign.tsv',
+        'PG output/Data/Interactomics data tables/Filtered saint output.tsv',
+        'PG output/Data/Interactomics data tables/Saint output with crapome.tsv',
+        'PG output/Data/MS microscopy results.tsv',
+        'PG output/Data/SAINT input bait.tsv',
+        'PG output/Data/SAINT input int.tsv',
+        'PG output/Data/SAINT input prey.tsv',
+        'PG output/Input data info/Data table.txt',
+        'PG output/Input data info/Sample table.txt',
+        'PG output/Interactomics figures/High-confidence interactions and identified known interactions.html',
+        'PG output/Interactomics figures/SPC PCA.html',
+        'PG output/MS-microscopy/MS-microscopy heatmap.pdf',
+        'PG output/QC figures/Common proteins in data (qc).html',
+        'PG output/QC figures/Missing values per sample.html',
+        'PG output/QC figures/Protein identification coverage.html',
+        'PG output/QC figures/Proteins per sample.html',
+        'PG output/QC figures/Sample reproducibility.png',
+        'PG output/QC figures/Shared identifications.png',
+        'PG output/QC figures/Sum of values per sample.html',
+        'PG output/QC figures/Value distribution per sample.pdf',
+        'PG output/QC figures/Value mean.png',
+        'PG output/README.html'
+    ]
+])
+def test_interactomics_paths_exist_relative_to_toml(tmp_path: Path, relpaths: list[str]):
+    """Build a TOML and verify a list of relative paths exist next to it.
+
+    The provided relpaths are interpreted relative to the directory
+    containing the generated test TOML.
+    """
+    params = _load_params()
+    base = _persist_dir(tmp_path, 'interactomics_paths_exist_relative_to_toml')
+    toml_path = _build_toml(
+        'interactomics',
+        EX_DATA / 'Interactomics data file.tsv',
+        EX_DATA / 'Interactomics sample table.tsv',
+        overrides=None,
+        out_dir=base,
+    )
+    # Run pipeline to materialize outputs
+    result = run_batch_pipeline(str(toml_path))
+
+    # Resolve and assert each relative path exists
+    toml_dir = toml_path.parent
+    for rel in relpaths:
+        target = toml_dir / rel
+        assert target.exists(), f"Expected path does not exist: {target}"
+        
+@pytest.mark.e2e
 @pytest.mark.filterwarnings(
     "ignore:.*Length of header or names does not match length of data.*:pandas.errors.ParserWarning"
 )

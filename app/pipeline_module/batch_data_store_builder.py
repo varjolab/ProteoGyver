@@ -509,8 +509,8 @@ if __name__ == "__main__":
     
     try:
         result = save_batch_data_using_infra(args.batch_dir, args.export_dir, args.workflow)
-        print(f"✅ Successfully exported {result['data_stores_count']} data stores")
-        print(f"📁 Export directory: {result['export_directory']}")
+        print(f"Successfully exported {result['data_stores_count']} data stores")
+        print(f"Export directory: {result['export_directory']}")
         
     except Exception as e:
         logger.error(f"Export failed: {e}")

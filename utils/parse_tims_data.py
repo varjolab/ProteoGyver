@@ -61,7 +61,6 @@ def handle_timsfile(root, run_name, run_id_regex):
         data['DataType'] = 'DIAPASEF'
     basedf2 = alphatims_file.frames.query('MsMsType == 0')  # MS1
     i = -10
-    print(timsfile)
     data['Frames'] = alphatims_file.frames[['Id','SummedIntensities','NumPeaks']].to_dict(orient='split')
     try:
         data['NumPrecursors'] = alphatims_file.precursors.shape[0]

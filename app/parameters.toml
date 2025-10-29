@@ -19,7 +19,7 @@ randomize = true
 
 ["Maintenance"."Cleanup"."Cache dir"]
 "Path" = "Data paths" # Either a list (e.g. ["/proteogyver", "cache"]), or if a string, the path must be found in "Data paths" below. e.g. in this case, "Cache dir" is a key both here and in "Data paths"
-"Clean unusedinterval days" = 4 # either integer or "NO CLEANUP"
+"Clean unused interval days" = 4 # either integer or "NO CLEANUP"
 "Archive dir" = "" # If not empty, instead of deleting old cache dirs, they will be moved here instead
 ["Maintenance"."MS run parsing"]
 "Input files" = ["params:Data paths.Data import and export.Data import dir", "MS runs jsons"]

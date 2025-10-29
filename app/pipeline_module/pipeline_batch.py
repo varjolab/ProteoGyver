@@ -546,7 +546,6 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
     _dump_json(cfg.outdir, "25_pca", pca_data)
     divs["pca"] = pca_div
     # 7) Enrichment analysis (if requested)
-    enrichment_results = None
     enrichment_data = None
     enrichment_info = None
     if cfg.chosen_enrichments:
