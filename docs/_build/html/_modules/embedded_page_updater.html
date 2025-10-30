@@ -1,0 +1,201 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>embedded_page_updater &mdash; ProteoGyver 1.05 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8214e1ae"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">embedded_page_updater</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for embedded_page_updater</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module for creating embedded page files from a list of websites.</span>
+
+<span class="sd">This module reads a text file containing website names and URLs, then generates</span>
+<span class="sd">Dash pages that embed these websites using html.Embed.</span>
+
+<span class="sd">Limitations:</span>
+<span class="sd">- Not all sites can be embedded due to content security policies (CSP)</span>
+<span class="sd">- HTTPS support is untested but may help with embedding restrictions</span>
+<span class="sd">- Successfully tested only with:</span>
+<span class="sd">  - Sites served from the same server</span>
+<span class="sd">  - www.proteomics.fi</span>
+<span class="sd">- All testing has been done without HTTPS</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
+
+<div class="viewcode-block" id="parse_embed_file">
+<a class="viewcode-back" href="../api/embedded_page_updater.html#embedded_page_updater.parse_embed_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_embed_file</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse the embed configuration file containing website names and URLs.</span>
+
+<span class="sd">    :param filename: Path to the text file containing site information.</span>
+<span class="sd">    :returns: List of (site_name, url) tuples.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="c1"># Skip empty lines and comments</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+                <span class="n">name</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">url</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">sites</span></div>
+
+
+<div class="viewcode-block" id="create_page_file">
+<a class="viewcode-back" href="../api/embedded_page_updater.html#embedded_page_updater.create_page_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_page_file</span><span class="p">(</span><span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">site_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new Dash page file for embedding a website.</span>
+
+<span class="sd">    :param output_dir: Directory where the page file should be created.</span>
+<span class="sd">    :param site_name: Name of the website (used for the page title and route).</span>
+<span class="sd">    :param url: URL of the website to embed.</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create sanitized filename from site name</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">site_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">.py&quot;</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating page file:&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+    <span class="c1"># Page template</span>
+    <span class="n">page_content</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&#39;&#39;&quot;&quot;&quot;Embedded page for </span><span class="si">{</span><span class="n">site_name</span><span class="si">}</span><span class="s1">.&quot;&quot;&quot;</span>
+
+<span class="s1">import dash</span>
+<span class="s1">from dash import html</span>
+
+<span class="s1">dash.register_page(__name__, path=&#39;/</span><span class="si">{</span><span class="n">site_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;)</span>
+
+<span class="s1">layout = html.Div([</span>
+<span class="s1">    html.Embed(</span>
+<span class="s1">        src=&quot;</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1">&quot;,</span>
+<span class="s1">        style=</span><span class="se">{{</span>
+<span class="s1">            &#39;position&#39;: &#39;fixed&#39;,</span>
+<span class="s1">            &#39;top&#39;: &#39;85px&#39;,  # Matches navbar height</span>
+<span class="s1">            &#39;left&#39;: &#39;0&#39;,</span>
+<span class="s1">            &#39;bottom&#39;: &#39;0&#39;,</span>
+<span class="s1">            &#39;right&#39;: &#39;0&#39;,</span>
+<span class="s1">            &#39;width&#39;: &#39;100%&#39;,</span>
+<span class="s1">            &#39;height&#39;: &#39;calc(100% - 85px)&#39;,  # Subtract navbar height</span>
+<span class="s1">            &#39;border&#39;: &#39;none&#39;,</span>
+<span class="s1">            &#39;margin&#39;: &#39;0&#39;,</span>
+<span class="s1">            &#39;padding&#39;: &#39;0&#39;,</span>
+<span class="s1">            &#39;overflow&#39;: &#39;hidden&#39;,</span>
+<span class="s1">            &#39;z-index&#39;: &#39;999999&#39;</span>
+<span class="s1">        </span><span class="se">}}</span>
+<span class="s1">    )</span>
+<span class="s1">])</span>
+<span class="s1">&#39;&#39;&#39;</span>
+    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">page_content</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_pages">
+<a class="viewcode-back" href="../api/embedded_page_updater.html#embedded_page_updater.update_pages">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_pages</span><span class="p">(</span><span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">embed_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update embedded pages based on the configuration file.</span>
+
+<span class="sd">    :param output_dir: Directory where page files should be created.</span>
+<span class="sd">    :param embed_file: Path to the text file containing site information.</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create output directory if it doesn&#39;t exist</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+        
+    <span class="c1"># Parse embed file and create pages</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="n">parse_embed_file</span><span class="p">(</span><span class="n">embed_file</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">site_name</span><span class="p">,</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">:</span>
+        <span class="n">create_page_file</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">site_name</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span> </div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">update_pages</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;pages&#39;</span><span class="p">),</span> <span class="s1">&#39;embed_pages.tsv&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
