@@ -32,8 +32,12 @@ def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_forma
     return last_update
 
 if __name__ == "__main__":
+    force_full_update = False
     parameters = utils.read_toml(Path('parameters.toml'))
     time_format = parameters['Config']['Time format']
+    if '--force-full-update' in sys.argv:
+        force_full_update = True
+        print('Forcing full database update')
     timestamp = datetime.now().strftime(time_format)
     if parameters['Config']['CPU count limit'] == 'ncpus':
         ncpu: int = multiprocessing.cpu_count()
@@ -101,22 +105,22 @@ if __name__ == "__main__":
         print('Going to do updates:', ', '.join(updates_to_do))
     else:
         print('No updates to do')
-    if do_snapshot:
+    if force_full_update or do_snapshot:
         snapshot_dir = os.path.join(*parameters['Database snapshot settings']['Snapshot dir'])
         snapshots_to_keep = parameters['Database snapshot settings']['Snapshots to keep']
         print('Exporting snapshot')
         db_functions.export_snapshot(db_path, snapshot_dir, snapshots_to_keep)
         database_updater.update_log_table(conn, ['snapshot snapshot'], [1], timestamp, 'snapshot')
-    if do_external_update:
+    if force_full_update or do_external_update:
         print('Updating external data')
         database_updater.update_external_data(conn, parameters, timestamp, organisms, last_external_update_date, ncpu)
         database_updater.update_log_table(conn, ['external update'], [1], timestamp, 'external')
-    if do_main_db_update:
+    if force_full_update or do_main_db_update:
         print('Updating database')
         inmod_names, inmod_vals = database_updater.update_database(conn, parameters, cc_cols, cc_types, timestamp)
         database_updater.update_log_table(conn, inmod_names, inmod_vals, timestamp, 'main_db_update')
         db_functions.generate_database_table_templates_as_tsvs(conn, output_dir, parameters['Database table primary keys'])
-    if do_clean_update:
+    if force_full_update or do_clean_update:
         print('Cleaning database')
         clean_database(parameters['Versions to keep'])
         database_updater.update_log_table(conn, ['clean update'], [1], timestamp, 'clean')

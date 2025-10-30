@@ -48,4 +48,4 @@ COPY app/components/tools/utils.py components/tools/utils.py
 #COPY database_updater.py /app/
 #COPY parameters.toml /app/
 # Specify the default entry point to run the updater script
-ENTRYPOINT ["python", "/proteogyver/database_admin.py"]
+ENTRYPOINT python /proteogyver/database_admin.py $( [ "$FORCE_PG_DB_UPDATE" = "1" ] && echo "--force-full-update" )
