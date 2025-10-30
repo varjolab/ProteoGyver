@@ -1,14 +1,15 @@
 services:
   pg_update:
-    image: pgu:1.3b
+    image: pgu:1.3c
     container_name: pg_updater
     environment:
       TZ: Europe/Helsinki
     volumes:
-      - /data/PG_containers/PG_rev/cache:/proteogyver/cache
-      - /data/PG_containers/PG_rev/db:/proteogyver/data/db
-      - /data/PG_containers/PG_rev/input:/proteogyver/data/Server_input
-      - /data/PG_containers/PG_rev/output:/proteogyver/data/Server_output
-      - /data/PG_containers/PG_rev/api_data:/proteogyver/components/api_tools/data
+      - /data/PG_containers/PG_revc/cache:/proteogyver/cache
+      - /data/PG_containers/PG_revc/db:/proteogyver/data/db
+      - /data/PG_containers/PG_revc/input:/proteogyver/data/Server_input
+      - /data/PG_containers/PG_revc/output:/proteogyver/data/Server_output
       # This is required for the updater to share one parameter file with the server.
-      - /data/PG_containers/PG_rev/conf/parameters.toml:/proteogyver/parameters.toml
+      - /data/PG_containers/PG_revc/conf/parameters.toml:/proteogyver/parameters.toml
+      - /data/PG_containers/PG_revc/api_data:/proteogyver/components/api_tools/data
+    restart: unless-stopped
