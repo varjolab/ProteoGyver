@@ -1,7 +1,8 @@
-"""File parsing functions for Proteogyver.
+"""File parsing functions for ProteoGyver.
 
-This module contains functions for parsing and processing various data file formats,
-handling data type conversions, and managing parameter configurations.
+Functions for parsing and processing various data formats, handling data
+type conversions, and managing parameter configurations used throughout
+the application.
 """
 
 from typing import Any, Dict, List, Tuple, Union, Optional, Set
@@ -17,18 +18,11 @@ from components import EnrichmentAdmin
 from components.tools import utils
 
 def update_nested_dict(base_dict: Dict[str, Any], update_dict: Dict[str, Any]) -> Dict[str, Any]:
-    """Updates a nested dictionary with values from another dictionary.
-    
-    Args:
-        base_dict (dict): Base dictionary to update
-        update_dict (dict): Dictionary containing update values
-        
-    Returns:
-        dict: Updated base dictionary
-        
-    Notes:
-        - Recursively handles nested dictionary structures
-        - Creates new nested dictionaries if they don't exist in base_dict
+    """Update a nested dictionary with values from another.
+
+    :param base_dict: Base dictionary to update.
+    :param update_dict: Dictionary containing update values.
+    :returns: Updated base dictionary.
     """
     for key, value in update_dict.items():
         if isinstance(value, Mapping):
@@ -38,21 +32,12 @@ def update_nested_dict(base_dict: Dict[str, Any], update_dict: Dict[str, Any]) -
     return base_dict
 
 def _to_str(val: Any, nan_str: str = '', float_precision: int = 2) -> str:
-    """Returns a string representation of numeric or string values.
-    
-    Args:
-        val: Value to convert to string
-        nan_str (str, optional): String to use for NaN values. Defaults to ''
-        float_precision (int, optional): Decimal places for float values. Defaults to 2
-        
-    Returns:
-        str: String representation of the value
-        
-    Notes:
-        - Handles NaN values
-        - Converts integers without decimal places
-        - Formats floats with specified precision
-        - Validates string type for non-numeric values
+    """Return a string representation of numeric or string values.
+
+    :param val: Value to convert to string.
+    :param nan_str: Replacement for NaN values.
+    :param float_precision: Decimal places for float formatting.
+    :returns: String representation of the value.
     """
     if pd.isna(val):
         return nan_str
@@ -67,20 +52,10 @@ def _to_str(val: Any, nan_str: str = '', float_precision: int = 2) -> str:
     return val
 
 def check_numeric(st: Union[str, np.number]) -> Dict[str, Union[bool, Union[int, float, str]]]:
-    """Checks if a string can be converted to a numeric value.
-    
-    Args:
-        st (str): String to check for numeric conversion
-        
-    Returns:
-        dict: Contains:
-            - success (bool): Whether conversion was successful
-            - value: Converted numeric value or original string
-            
-    Notes:
-        - Attempts integer conversion first
-        - Falls back to float conversion
-        - Handles special case of integers with .0 suffix
+    """Check if a string can be converted to a numeric value.
+
+    :param st: String or numpy number to check for numeric conversion.
+    :returns: Dict with keys ``success`` and ``value`` (converted value or original string).
     """
     if isinstance(st, np.number):
         return {'success': True, 'value': st}
@@ -100,21 +75,10 @@ def check_numeric(st: Union[str, np.number]) -> Dict[str, Union[bool, Union[int,
     return {'success': True, 'value': val}
 
 def unmix_dtypes(df: pd.DataFrame) -> None:
-    """Converts mixed dtype columns in a dataframe to strings.
-    
-    Args:
-        df (pd.DataFrame): DataFrame to process
-        
-    Returns:
-        None: Modifies DataFrame in place
-        
-    Notes:
-        - Identifies columns with mixed data types
-        - Converts mixed columns to consistent string format
-        - Raises TypeError if conversion fails
-        
-    Reference:
-        https://stackoverflow.com/a/61826020/
+    """Convert mixed dtype columns in a dataframe to strings in place.
+
+    :param df: DataFrame to process.
+    :raises TypeError: If conversion still results in mixed dtype.
     """
     for col in df.columns:
         if not (orig_dtype := pd.api.types.infer_dtype(df[col])).startswith("mixed"):
@@ -126,23 +90,10 @@ def unmix_dtypes(df: pd.DataFrame) -> None:
 
 
 def parse_parameters(parameters_file: Union[str, Path]) -> Dict[str, Any]:
-    """Parses and enriches parameters from a TOML configuration file.
-    
-    Args:
-        parameters_file (Union[str, Path]): Path to parameters TOML file
-        
-    Returns:
-        dict: Enriched parameters dictionary containing:
-            - Original parameters
-            - Control set configurations
-            - CRAPome set configurations
-            - Enrichment configurations
-            
-    Notes:
-        - Loads database configurations
-        - Retrieves control and CRAPome set information
-        - Adds enrichment analysis options
-        - Updates SAINT temporary directory path
+    """Parse and enrich parameters from a TOML configuration file.
+
+    :param parameters_file: Path to parameters TOML file.
+    :returns: Enriched parameters dictionary (controls, CRAPome, enrichment).
     """
     parameters = utils.read_toml(Path(parameters_file))
     
@@ -421,21 +372,12 @@ def read_matrix(data_table: pd.DataFrame, is_spc_table: bool = False,
 
 
 def read_df_from_content(content: str, filename: str, lowercase_columns: bool = False) -> pd.DataFrame:
-    """Reads a dataframe from uploaded file content.
-    
-    Args:
-        content: Base64 encoded file content
-        filename (str): Original filename with extension
-        lowercase_columns (bool, optional): Whether to convert column names to 
-            lowercase. Defaults to False
-            
-    Returns:
-        pd.DataFrame: Parsed data frame
-        
-    Notes:
-        - Supports CSV, TSV, TXT, XLS, and XLSX formats
-        - Handles UTF-8 encoded text files
-        - Uses appropriate pandas reader based on file extension
+    """Read a dataframe from uploaded file content.
+
+    :param content: Base64 encoded file content.
+    :param filename: Original filename with extension.
+    :param lowercase_columns: Whether to convert column names to lowercase.
+    :returns: Parsed DataFrame.
     """
     _: str
     content_string: str
@@ -467,28 +409,12 @@ def remove_all_na(data_table: pd.DataFrame, subset: list[str]|None = None, inpla
         data_table.dropna(how='all', axis=0, subset=subset, inplace=inplace)
 
 def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tuple[Dict[str, str], Dict[str, Any]]:
-    """Determines and applies the appropriate read function for the given data file.
-    
-    Args:
-        file_contents: The contents of the uploaded file
-        filename (str): Name of the uploaded file
-        maxpsm (int): Maximum theoretical PSM value for spectral counting
-        
-    Returns:
-        tuple: Contains:
-            - dict: Table dictionary with:
-                - spc (str): Spectral count table in JSON split format
-                - int (str): Intensity table in JSON split format
-            - dict: Info dictionary with:
-                - protein lengths (dict): Protein length information
-                - Data type (str): DDA or DIA
-                - Data source guess (str): Software source of the data
-                
-    Notes:
-        - Automatically detects file format based on column headers
-        - Supports DIA-NN, FragPipe and generic matrix formats
-        - Removes duplicate protein groups
-        - Returns tables in JSON split format for serialization
+    """Determine and apply the appropriate read function for a data file.
+
+    :param file_contents: Contents of the uploaded file.
+    :param filename: Name of the uploaded file.
+    :param maxpsm: Maximum theoretical PSM value for spectral counting.
+    :returns: Tuple of (tables dict in JSON split, info dict).
     """
     table: pd.DataFrame = read_df_from_content(file_contents, filename)
     table.columns = [text_handling.replace_accent_and_special_characters(str(x), allow_space=True, make_lowercase=False) for x in table.columns]
@@ -644,20 +570,10 @@ def parse_comparisons(control_group: Optional[str], comparison_data: Optional[Li
 
 
 def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
-    """Removes duplicate protein groups by aggregating their values.
-    
-    Args:
-        data_table (pd.DataFrame): Input data table with protein groups as index
-        
-    Returns:
-        pd.DataFrame: Table with unique protein groups and aggregated values
-            
-    Notes:
-        - Numeric columns are summed
-        - Non-numeric columns take first value
-        - Zero values are replaced with NaN
-        - Groups by index values (protein groups)
-        - Preserves column order and names
+    """Remove duplicate protein groups by aggregating their values.
+
+    :param data_table: Input data table with protein groups as index.
+    :returns: Table with unique protein groups and aggregated values.
     """
     # If no columns remain (e.g., non-numeric columns were dropped earlier),
     # there is nothing to aggregate. Return as-is to avoid pandas concat error.
@@ -791,27 +707,13 @@ def check_required_columns(columns: List[str]) -> Tuple[Dict[str, str], Set[str]
 def parse_sample_table(data_file_contents: str, data_file_name: str,
                       data_file_modified_data: int, 
                       new_upload_style: Dict[str, str]) -> Tuple[Dict[str, str], Dict[str, Any], str]:
-    """Parses and validates a sample metadata table.
+    """Parse and validate a sample metadata table.
 
-    Args:
-        data_file_contents: Contents of the uploaded sample table file
-        data_file_name (str): Name of the uploaded file
-        data_file_modified_data: Last modified timestamp of the file
-        new_upload_style (dict): Style dictionary for UI feedback
-
-    Returns:
-        tuple: Contains:
-            - dict: Updated upload style with background color indicating status
-            - dict: File info including metadata and column mappings
-            - str: Table data in JSON split format
-
-    Notes:
-        - Validates table dimensions and required columns
-        - Sets background-color to:
-            - 'green': Valid table with required columns
-            - 'blue': Valid table with bait information
-            - 'red': Invalid table or missing required columns
-        - Required columns: sample name, sample group
+    :param data_file_contents: Contents of the uploaded sample table file.
+    :param data_file_name: Name of the uploaded file.
+    :param data_file_modified_data: Last modified timestamp of the file.
+    :param new_upload_style: Style dictionary for UI feedback.
+    :returns: Tuple of (new style, info dict, table JSON split).
     """
     info: dict = {
         'Modified time': data_file_modified_data,
@@ -1206,17 +1108,20 @@ def generate_replicate_name(group_name: str, sample_name: str,
                           existing_names: Set[str], replace_names: bool) -> str:
     """Generate unique replicate names for samples within groups.
     
-    Args:
-        group_name (str): Name of the sample group
-        sample_name (str): Original name of the sample
-        existing_names (set): Set of already assigned replicate names
-        replace_names (bool): If True, generates names like "Group_Rep_1". 
-            If False, preserves original sample names with numeric suffixes if needed.
-            
-    Returns:
-        str: A unique replicate name that doesn't exist in existing_names.
+    :param group_name: Name of the sample group.
+    :type group_name: str
+    :param sample_name: Original name of the sample.
+    :type sample_name: str
+    :param existing_names: Set of already assigned replicate names.
+    :type existing_names: Set[str]
+    :param replace_names: If True, generates names like "Group_Rep_1". 
+        If False, preserves original sample names with numeric suffixes if needed.
+    :type replace_names: bool
         
-    Notes:
+    :returns: A unique replicate name that doesn't exist in existing_names.
+    :rtype: str
+        
+    .. note::
         When replace_names is True:
             - Names follow pattern: "{group_name}_Rep_{i}"
             - i increments until a unique name is found
@@ -1226,11 +1131,12 @@ def generate_replicate_name(group_name: str, sample_name: str,
             - Adds "_i" suffix only if needed for uniqueness
             - i starts at 0 and increments until unique
             
-    Examples:
-        >>> generate_replicate_name("Control", "sample1", {"Control_Rep_1"}, True)
-        'Control_Rep_2'
-        >>> generate_replicate_name("Control", "sample1", {"sample1"}, False)
-        'sample1_0'
+    .. rubric:: Examples
+    
+    >>> generate_replicate_name("Control", "sample1", {"Control_Rep_1"}, True)
+    'Control_Rep_2'
+    >>> generate_replicate_name("Control", "sample1", {"sample1"}, False)
+    'sample1_0'
     """
     if replace_names:
         i = 1
@@ -1251,38 +1157,13 @@ def rename_columns_and_update_expdesign(expdesign: pd.DataFrame,
                                                                         List[str], 
                                                                         List[Dict[str, str]], 
                                                                         pd.DataFrame]:
-    """Rename columns and update experimental design table to standardize sample names.
-    
-    Args:
-        expdesign (pd.DataFrame): Experimental design DataFrame containing at minimum
-            'Sample group' and 'Sample name' columns
-        tables (list): List of pandas DataFrames containing the data tables to process
-        bait_id_column_names (list): List of possible column names that could contain
-            bait identifiers
-        replace_names (bool, optional): Whether to replace sample names with standardized
-            replicate names. Defaults to True.
-            
-    Returns:
-        tuple: Contains:
-            - dict: Sample groups mapping with 'norm' (group->samples) and 'rev' (sample->group)
-            - list: Columns that were discarded during processing
-            - list: Used columns
-            - pd.DataFrame: Updated experimental design table with only used samples
-            
-    Notes:
-        The function performs several steps:
-        1. Cleans sample names in experimental design table
-        2. Maps original column names to cleaned names and group assignments
-        3. Generates unique replicate names for samples
-        4. Updates table column names and builds sample group mappings
-        5. Removes unused samples from experimental design table
-        
-    The process handles:
-        - Multiple input tables
-        - Special characters in sample names
-        - Numeric sample group names
-        - Duplicate sample names
-        - Bait information for interactomics experiments
+    """Standardize sample names and update experimental design.
+
+    :param expdesign: Experimental design DataFrame with 'Sample group' and 'Sample name'.
+    :param tables: DataFrames to rename columns in.
+    :param bait_id_column_names: Possible column names containing bait identifiers.
+    :param replace_names: Whether to generate standardized replicate names.
+    :returns: Tuple of (sample groups mapping, discarded columns, used columns, updated expdesign).
     """
     # Initial cleanup
     expdesign = clean_sample_names(expdesign, bait_id_column_names)
@@ -1365,28 +1246,13 @@ def rename_columns_and_update_expdesign(expdesign: pd.DataFrame,
 def check_comparison_file(file_contents: str, file_name: str,
                          sgroups: Dict[str, List[str]],
                          new_upload_style: Dict[str, str]) -> Tuple[Dict[str, str], List[List[str]]]:
-    """Validates and parses a comparison file containing sample-control pairs.
-    
-    Args:
-        file_contents: Base64 encoded contents of the uploaded comparison file
-        file_name (str): Name of the uploaded file
-        sgroups (dict): Dictionary of valid sample groups
-        new_upload_style (dict): Style dictionary for UI feedback
-        
-    Returns:
-        tuple: Contains:
-            - dict: Updated upload style with background color indicating status:
-                - 'green': All comparisons valid
-                - 'yellow': Some comparisons invalid
-                - 'red': No valid comparisons
-                - 'grey': File content error
-            - list: Valid comparison pairs as [sample, control]
-            
-    Notes:
-        - Expects a table with 'sample' and 'control' columns (or first two columns)
-        - Handles numeric group names by converting to 'SampleGroup_X' format
-        - Skips comparisons where sample or control group not found in sgroups
-        - Attempts to standardize group names to match sgroups format
+    """Validate and parse a comparison file with sample-control pairs.
+
+    :param file_contents: Base64 encoded contents of the uploaded comparison file.
+    :param file_name: Name of the uploaded file.
+    :param sgroups: Dictionary of valid sample groups.
+    :param new_upload_style: Style dict updated with status color.
+    :returns: Tuple of (updated style dict, list of valid [sample, control] pairs).
     """
     indicator: str = 'green'
     try:
@@ -1432,23 +1298,11 @@ def check_comparison_file(file_contents: str, file_name: str,
 
 
 def validate_basic_inputs(*args: Any, fail_on_None: bool = True) -> bool:
-    """Validates basic inputs for Proteogyver analysis.
-    
-    Args:
-        *args: Variable number of input arguments to validate. The last two arguments
-            should be style dictionaries containing 'background-color' keys.
-        fail_on_None (bool, optional): Whether to fail validation if any input is None.
-            Defaults to True.
-            
-    Returns:
-        bool: True if validation fails (inputs invalid), False if validation passes
-            
-    Notes:
-        - Checks for None values in all arguments if fail_on_None is True
-        - Checks background-color of last two arguments (style dictionaries)
-        - Validation fails if:
-            - Any input is None (when fail_on_None=True)
-            - Either style dictionary has background-color='red'
+    """Validate basic inputs for ProteoGyver analysis.
+
+    :param args: Arbitrary inputs; last two are style dicts with 'background-color'.
+    :param fail_on_None: If ``True``, treat any ``None`` as invalid.
+    :returns: ``True`` if validation fails, ``False`` otherwise.
     """
     not_valid: bool = False
     if fail_on_None:

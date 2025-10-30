@@ -1,3 +1,10 @@
+"""
+QC analysis figure builders and containers.
+
+Generates standard QC visualizations (counts, coverage, missing values,
+distribution, reproducibility, commonality, TIC) and their wrappers for
+use in the UI.
+"""
 import json
 from pandas import DataFrame, Series
 from pandas import read_json as pd_read_json
@@ -16,7 +23,15 @@ logger = logging.getLogger(__name__)
 
 
 def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list, defaults: dict, title: str = None) -> tuple:
-    """Generates a bar plot of given data"""
+    """Generate protein count bar plot per sample.
+
+    :param pandas_json: Data table in JSON split format.
+    :param replicate_colors: Color mappings for samples and contaminants.
+    :param contaminant_list: Optional list of contaminants to exclude.
+    :param defaults: Figure defaults and component config.
+    :param title: Optional plot title.
+    :returns: Tuple of (graph div, count data as JSON split).
+    """
     start_time: datetime = datetime.now()
     logger.info(f'count_plot - started: {start_time}')
     count_data: DataFrame = quick_stats.get_count_data(
@@ -61,6 +76,15 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
     return (graph_div, count_data.to_json(orient='split'))
 
 def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additional_groups: dict = None, id_str: str = 'qc') -> tuple:
+    """Summarize common proteins by class and sample.
+
+    :param data_table: Input matrix in JSON split format.
+    :param db_file: Path to SQLite database file.
+    :param figure_defaults: Figure defaults and component config.
+    :param additional_groups: Optional mapping of group name to protein list to include.
+    :param id_str: ID prefix for generated components.
+    :returns: Tuple of (graph div, plot data as JSON split).
+    """
     table: DataFrame = pd_read_json(StringIO(data_table),orient='split')
     db_conn = db_functions.create_connection(db_file)
     common_proteins: DataFrame = db_functions.get_from_table_by_list_criteria(db_conn, 'common_proteins','uniprot_id',list(table.index))
@@ -130,6 +154,14 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
 
 
 def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,defaults: dict) -> tuple:
+    """Prepare TIC/BPC/MSn trace bundles for plotting.
+
+    :param expdesign_json: Experimental design table in JSON split format.
+    :param replicate_colors: Mapping of sample names to colors.
+    :param db_file: Path to SQLite database file.
+    :param defaults: Figure defaults and component config.
+    :returns: Tuple of (graph div scaffold, trace dictionary).
+    """
     expdesign = pd_read_json(StringIO(expdesign_json),orient='split')
     expdesign['color'] = [replicate_colors['samples'][rep_name] for rep_name in expdesign['Sample name']]
     expdesign['Sample name nopath'] = [sn.split('/')[-1].split('\\')[-1] for sn in expdesign['Sample name'].values]
@@ -184,6 +216,13 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
     return (graph_div, tic_dic)
 
 def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
+    """Create coverage bar plot (proteins identified in N samples).
+
+    :param pandas_json: Data table in JSON split format.
+    :param defaults: Figure defaults and component config.
+    :param title: Optional plot title.
+    :returns: Tuple of (graph div, coverage data as JSON split).
+    """
     logger.info(f'coverage - started: {datetime.now()}')
     coverage_data: DataFrame = quick_stats.get_coverage_data(pd_read_json(StringIO(pandas_json),orient='split'))
     logger.info(
@@ -209,6 +248,15 @@ def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
 
 
 def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str, defaults: dict, title: str = None) -> tuple:
+    """Plot per-replicate deviations from group mean.
+
+    :param pandas_json: Data table in JSON split format.
+    :param sample_groups: Mapping group -> list of columns.
+    :param table_type: Label for axis title.
+    :param defaults: Figure defaults and component config.
+    :param title: Optional title.
+    :returns: Tuple of (graph div, reproducibility data JSON).
+    """
     start_time: datetime = datetime.now()
     logger.info(f'reproducibility_plot - started: {start_time}')
     data_table: DataFrame = pd_read_json(StringIO(pandas_json),orient='split')
@@ -238,6 +286,14 @@ def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str,
 
 
 def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
+    """Plot missing value percentage per sample.
+
+    :param pandas_json: Data table in JSON split format.
+    :param replicate_colors: Mapping for sample colors.
+    :param defaults: Figure defaults and component config.
+    :param title: Optional title.
+    :returns: Tuple of (graph div, NA data JSON).
+    """
     start_time: datetime = datetime.now()
     logger.info(f'missing_plot - started: {start_time}')
     na_data: DataFrame = quick_stats.get_na_data(
@@ -272,6 +328,14 @@ def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title
 
 
 def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
+    """Plot sum of values per sample.
+
+    :param pandas_json: Data table in JSON split format.
+    :param replicate_colors: Mapping for sample colors.
+    :param defaults: Figure defaults and component config.
+    :param title: Optional title.
+    :returns: Tuple of (graph div, sum data JSON).
+    """
     start_time: datetime = datetime.now()
     logger.info(f'sum_plot - started: {start_time}')
     sum_data: DataFrame = quick_stats.get_sum_data(
@@ -306,6 +370,14 @@ def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: st
 
 
 def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: str = None) -> tuple:
+    """Plot mean of values per sample.
+
+    :param pandas_json: Data table in JSON split format.
+    :param replicate_colors: Mapping for sample colors.
+    :param defaults: Figure defaults and component config.
+    :param title: Optional title.
+    :returns: Tuple of (graph div, mean data JSON).
+    """
     start_time: datetime = datetime.now()
     logger.info(f'mean_plot - started: {start_time}')
     if title is None:
@@ -341,6 +413,15 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
 
 
 def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: dict, defaults: dict, title: str = None) -> tuple:
+    """Plot value distributions per group as box plots.
+
+    :param pandas_json: Data table in JSON split format.
+    :param replicate_colors: Mapping for group colors.
+    :param sample_groups: Mapping sample -> group.
+    :param defaults: Figure defaults and component config.
+    :param title: Optional title.
+    :returns: Tuple of (graph div, original JSON string).
+    """
     start_time: datetime = datetime.now()
     logger.info(f'distribution_plot - started: {start_time}')
     names: list
@@ -379,6 +460,15 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
 
 
 def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, force_svenn: bool, only_groups: list = None) -> tuple:
+    """Plot commonality across groups using heatmap or Supervenn.
+
+    :param pandas_json: Data table in JSON split format.
+    :param rev_sample_groups: Mapping sample -> group.
+    :param defaults: Figure defaults and component config.
+    :param force_svenn: If ``True``, forces Supervenn.
+    :param only_groups: Optional subset of group names to include.
+    :returns: Tuple of (graph div, common proteins string, optional base64 PDF string).
+    """
     start_time: datetime = datetime.now()
     logger.info(f'commonality_plot - started: {start_time}')
     common_data: dict = quick_stats.get_common_data(
@@ -428,6 +518,11 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
     return (graph_area, common_str, image_str)
 
 def generate_commonality_container(sample_groups):
+    """Build the selection controls and display container for commonality.
+
+    :param sample_groups: List of group names.
+    :returns: Bootstrap ``Row`` with controls and graph area.
+    """
     def_for_force: list = []
     if len(sample_groups) <= 6:
         def_for_force.append('Use supervenn')

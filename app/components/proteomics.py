@@ -1,3 +1,10 @@
+"""
+Proteomics analysis figure builders.
+
+Implements plots and computations for missing value filtering,
+normalization, distributions, imputation, PCA, clustermap, CV plots, and
+volcano analyses used by the proteomics workflow.
+"""
 import pandas as pd
 from io import StringIO
 from dash import html
@@ -12,6 +19,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str = None, filter_type: str = 'sample-group') -> tuple:
+    """Apply NA filtering and visualize before/after counts.
+
+    :param input_data_dict: Data dictionary containing intensity tables and sample groups.
+    :param filtering_percentage: Threshold percentage for presence filtering.
+    :param figure_defaults: Figure defaults and component config.
+    :param title: Optional plot title.
+    :param filter_type: ``'sample-group'`` or ``'sample-set'``.
+    :returns: Tuple of (graph div, filtered data JSON).
+    """
 
     logger.info(f'nafilter - start: {datetime.now()}')
     data_table: pd.DataFrame = pd.read_json(
@@ -58,6 +74,15 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
     )
 
 def normalization(filtered_data_json: str, normalization_option: str, defaults: dict, errorfile: str, title: str = None) -> tuple:
+    """Normalize filtered data and show distributions before/after.
+
+    :param filtered_data_json: Filtered data in JSON split format.
+    :param normalization_option: Normalization method name.
+    :param defaults: Figure defaults and component config.
+    :param errorfile: Path for logging/diagnostics from normalization.
+    :param title: Optional plot title.
+    :returns: Tuple of (graph div, normalized table JSON).
+    """
 
     logger.info(f'normalization - start: {datetime.now()}')
 
@@ -124,6 +149,12 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
     )
 
 def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
+    """Histogram comparing intensities of proteins with/without missing values.
+
+    :param filtered_data_json: Filtered data in JSON split format.
+    :param defaults: Figure defaults and component config.
+    :returns: Div containing the histogram and legend.
+    """
     data_table: pd.DataFrame = pd.read_json(StringIO(filtered_data_json),orient='split')
     missing_series: pd.Series = pd.Series(data_table.loc[data_table.isna().sum(axis=1)>0].values.flatten())
     valid_series: pd.Series = pd.Series(data_table.loc[data_table.isna().sum(axis=1)==0].values.flatten())
@@ -164,6 +195,15 @@ def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
     )
 
 def perc_cvplot(raw_int_data: str, na_filtered_data: str, sample_groups: dict, replicate_colors: dict, defaults: dict) -> tuple:
+    """Compute and plot coefficient of variation per group.
+
+    :param raw_int_data: Raw intensity data in JSON split format.
+    :param na_filtered_data: NA-filtered intensity data in JSON split format.
+    :param sample_groups: Mapping group -> list of columns.
+    :param replicate_colors: Mapping for group colors.
+    :param defaults: Figure defaults and component config.
+    :returns: Tuple of (graph div, stats JSON).
+    """
     raw_int_df: pd.DataFrame = pd.read_json(StringIO(raw_int_data), orient='split')
     na_filtered_df: pd.DataFrame = pd.read_json(StringIO(na_filtered_data), orient='split')
     # Drop rows that are no longer present in filtered data
@@ -187,6 +227,16 @@ def perc_cvplot(raw_int_data: str, na_filtered_data: str, sample_groups: dict, r
     )
 
 def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, sample_groups_rev: dict, title: str = None) -> tuple:
+    """Impute missing values and render distribution comparison.
+
+    :param filtered_data_json: Filtered data in JSON split format.
+    :param imputation_option: Imputation method name.
+    :param defaults: Figure defaults and component config.
+    :param errorfile: Path for logging/diagnostics from imputation.
+    :param sample_groups_rev: Mapping sample -> group (used by imputation).
+    :param title: Optional plot title.
+    :returns: Tuple of (graph div, imputed table JSON).
+    """
 
     logger.info(f'imputation - start: {datetime.now()}')
 
@@ -217,6 +267,14 @@ def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, s
 
 
 def pca(imputed_data_json: str, sample_groups_rev: dict, defaults: dict, replicate_colors: dict) -> tuple:
+    """Compute PCA and plot the first two components.
+
+    :param imputed_data_json: Imputed data in JSON split format.
+    :param sample_groups_rev: Mapping sample -> group.
+    :param defaults: Figure defaults and component config.
+    :param replicate_colors: Mapping for group colors.
+    :returns: Tuple of (graph div, PCA result JSON).
+    """
 
     logger.info(f'PCA - start: {datetime.now()}')
     data_table: pd.DataFrame = pd.read_json(StringIO(imputed_data_json),orient='split')
@@ -255,12 +313,9 @@ def pca(imputed_data_json: str, sample_groups_rev: dict, defaults: dict, replica
 def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
     """Draws a correltion clustergram figure from the given data_table.
 
-    Parameters:
-    data_table: table of samples (columns) and measurements(rows)
-    id_name: name for the plot. will be used for the id of the returned dcc.Graph object.
-
-    Returns: 
-    dcc.Graph containing a go.Figure object of a Clustergram describing correlation between samples.
+    :param imputed_data_json: Imputed data in JSON split format.
+    :param defaults: Figure defaults and component config.
+    :returns: Tuple of (graph div, correlation matrix JSON).
     """
     corrdata: pd.DataFrame = pd.read_json(
         StringIO(imputed_data_json), orient='split').corr()
@@ -287,6 +342,18 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
 
 
 def differential_abundance(imputed_data_json: str, sample_groups: dict, comparisons: list, fc_thr: float, p_thr: float, defaults: dict, test_type:str = 'independent', db_file_path: str = None) -> tuple:
+    """Run differential analysis and generate volcano plots.
+
+    :param imputed_data_json: Imputed data in JSON split format.
+    :param sample_groups: Mapping group -> list of columns.
+    :param comparisons: List of ``(sample, control)`` group pairs.
+    :param fc_thr: Absolute log2 fold change threshold.
+    :param p_thr: Adjusted p-value threshold.
+    :param defaults: Figure defaults and component config.
+    :param test_type: ``'independent'`` or ``'paired'``.
+    :param db_file_path: Optional DB path for gene mapping.
+    :returns: Tuple of (components, significant data JSON).
+    """
 
     logger.info(f'volcano - start: {datetime.now()}')
     data: pd.DataFrame = pd.read_json(StringIO(imputed_data_json),orient='split')

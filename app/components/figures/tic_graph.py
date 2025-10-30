@@ -1,9 +1,24 @@
+"""
+Total ion chromatogram (TIC) and base peak figure utilities.
+
+Builds a Plotly figure from precomputed JSON traces with automatic sizing
+and hover behavior.
+"""
 from plotly import graph_objects as go
 from dash.dcc import Graph
 import json
 from plotly import io as pio
 
 def tic_figure(defaults:dict, traces: dict, datatype: str = 'TIC', height: int = None, width: int = None):
+    """Create a TIC/trace figure from serialized Plotly traces.
+
+    :param defaults: Dict with ``height`` and ``width`` fallbacks.
+    :param traces: Dict with keys for datatypes; each contains ``max_x``, ``max_y``, and a list of ``traces`` as Plotly JSON.
+    :param datatype: Which trace set to render (e.g., ``'TIC'``).
+    :param height: Optional explicit height.
+    :param width: Optional explicit width.
+    :returns: Plotly ``Figure`` with added traces and layout.
+    """
     if height is None:
         use_height: int = defaults['height']
     else:

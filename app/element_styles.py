@@ -1,4 +1,8 @@
-"""Styles for interface elements"""
+"""Styles for Dash interface elements.
+
+Defines style dictionaries used throughout the UI, including sidebar, content
+area, upload components, and status indicators.
+"""
 
 
 _upload_height: int = 50

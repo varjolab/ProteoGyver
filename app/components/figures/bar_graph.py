@@ -1,4 +1,8 @@
+"""
+Bar graph utilities using Plotly Express and Dash.
 
+Provides a configurable bar plot builder and a Dash ``Graph`` factory.
+"""
 from plotly import express as px
 import pandas as pd
 from dash.dcc import Graph
@@ -22,23 +26,26 @@ def bar_plot(
         color_discrete_map_dict: dict = None,
         width: int|None = None,
         height: int|None = None) -> px.bar:
-    """Draws a bar plot from the given input.
+    """Draw a bar plot from the given input.
 
-    Parameters:
-    :param: defaults: dictionary of default values for the figure.
-    :param: value_df: dataframe containing the plot data
-    :param: title: title for the figure
-    :param: x_name: name of the column to use for x-axis values. If none, index will be used
-    :param: x_label: label to use for X axis regardless of what x_name is
-    :param: sort_x: Sort values by x-axis name. If True, sort ascending, if False, sort descending. If None, default sorting will be used.
-    :param: y_name: name of the column to use for y-axis values
-    :param: y_label: label to use for Y axis regardless of what y_name or y_idx are.
-    :param: y_idx: index of the column to use for y-axis values
-    :param: barmode: see https://plotly.com/python-api-reference/generated/plotly.express.bar
-    :param: color: True(default) if a column called "Color" contains color values for the plot
-    :param: color_col: name of color information containing column, see px.bar reference
-    :param: hide_legend: True, if legend should be hidden
-    :param: color_discrete_map: if True, color_discrete_map='identity' will be used with the plotly function.
+    :param defaults: Dictionary of default values for the figure.
+    :param value_df: DataFrame containing the plot data.
+    :param title: Title for the figure.
+    :param x_name: Column to use for x-axis; if ``None``, index is reset and the new column is used.
+    :param x_label: Axis label to use for X regardless of ``x_name``.
+    :param sort_x: If ``True`` ascending, ``False`` descending, ``None`` leaves default order.
+    :param y_name: Column to use for y-axis; if ``None``, use ``y_idx``.
+    :param y_label: Axis label to use for Y regardless of ``y_name``/``y_idx``.
+    :param y_idx: Index of the column to use for y-axis when ``y_name`` is ``None``.
+    :param barmode: Plotly Express bar ``barmode``.
+    :param color: If ``True``, use column ``Color`` unless ``color_col`` is provided.
+    :param color_col: Explicit name of color column.
+    :param hide_legend: If ``True``, hides the legend.
+    :param color_discrete_map: If ``True``, use ``'identity'`` mapping or a provided dict.
+    :param color_discrete_map_dict: Explicit map for colors.
+    :param width: Figure width; if ``None``, derived from defaults and min width policy.
+    :param height: Figure height; if ``None``, derived from defaults.
+    :returns: A Plotly Express bar figure.
     """
     colorval: str
     if color_col is not None:
@@ -100,6 +107,14 @@ def bar_plot(
 
 
 def make_graph(graph_id: str, defaults: dict, *args, **kwargs) -> None:
+    """Create a Dash ``Graph`` configured with a bar plot.
+
+    :param graph_id: Component ID for the ``Graph``.
+    :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
+    :param args: Positional arguments forwarded to ``bar_plot``.
+    :param kwargs: Keyword arguments forwarded to ``bar_plot``.
+    :returns: Dash ``Graph`` instance.
+    """
     config=defaults['config']
     figure = bar_plot(
             defaults,

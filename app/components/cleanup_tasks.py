@@ -13,9 +13,14 @@ logger = logging.getLogger("cleanup_tasks")
 
 @shared_task
 def cleanup_cache_folders():
-    """
-    Remove cache folders not touched in recently enough, as per parameter Maintenance->Clean unused cache interval days.
-    If Maintenance->Archive cache dir is set, zip non-empty folders and move to archive, only delete empty folders.
+    """Clean old cache folders and optionally archive them.
+
+    Uses parameters in ``parameters.toml`` under ``Maintenance -> Cleanup``.
+    For each configured directory, folders older than the interval are removed;
+    if an archive directory is configured, non-empty folders are zipped and moved
+    there, while empty folders are deleted.
+
+    :returns: None
     """
     logger.info("Starting cleanup of cache folders")
     parameters = read_toml(Path('parameters.toml'))
@@ -86,14 +91,17 @@ def cleanup_cache_folders():
 
 @shared_task
 def rotate_logs():
-    """
-    Rotate and clean up log files according to parameters in parameters.toml:
-    - Config.LogDir: directory containing logs
-    - Config."Log compress days": files older than this (by filename date prefix) are compressed per calendar month
-    - Config."Log keep days": files (logs or weekly zips) older than this are deleted
+    """Rotate and prune logs per configuration in parameters.toml.
 
-    Log naming convention: all files are prefixed with "%Y-%m-%d_".
-    Monthly ZIP naming: "%Y-%m_logs.zip" (calendar year-month).
+    Configuration keys:
+    - ``Config.LogDir``: logs directory.
+    - ``Config."Log compress days"``: age (days) to compress into monthly zips.
+    - ``Config."Log keep days"``: age (days) to delete logs/zips.
+
+    Log files are expected to start with ``YYYY-MM-DD_``; monthly zips are named
+    ``YYYY-MM_logs.zip``.
+
+    :returns: None
     """
     parameters = read_toml(Path('parameters.toml'))
     config = parameters.get('Config', {})

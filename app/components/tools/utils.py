@@ -8,14 +8,24 @@ from typing import Any, Dict, List, Union, Mapping, MutableMapping
 from zipfile import ZipFile, ZIP_DEFLATED, ZipInfo
 
 def load_toml(path: Path) -> dict[str, Any]:
+    """Load a TOML file into a Python dict using tomlkit.
+
+    :param path: Path to TOML file.
+    :returns: Parsed dict.
+    """
     with path.open("r", encoding="utf-8") as f:
         return tomlkit.parse(f.read())
 
 def deep_merge(base: MutableMapping[str, Any], override: Mapping[str, Any]) -> MutableMapping[str, Any]:
-    """
-    Deep-merge 'override' into 'base'.
+    """Deep-merge ``override`` into ``base``.
+
+    Rules:
     - Dicts merge recursively.
     - Scalars/lists replace the base value.
+
+    :param base: Destination mapping to mutate.
+    :param override: Source mapping providing updates.
+    :returns: Mutated ``base`` mapping.
     """
     for k, v in override.items():
         if isinstance(v, Mapping) and isinstance(base.get(k), Mapping):
@@ -25,6 +35,12 @@ def deep_merge(base: MutableMapping[str, Any], override: Mapping[str, Any]) -> M
     return base
 
 def save_toml(data: dict[str, Any], path: Path) -> None:
+    """Write a TOML document to disk using tomlkit.
+
+    :param data: Dict to serialize.
+    :param path: Output path.
+    :returns: None
+    """
     with path.open("w", encoding="utf-8") as f:
         f.write(tomlkit.dumps(data))
         
@@ -35,18 +51,12 @@ def prefix_relative_paths(
 ) -> Dict[str, Any]:
     """Recursively prefix relative paths in a nested dict.
 
-    Values are strings, lists, or dicts.
-    - If value is dict → recurse.
-    - If value is str → if not absolute, prepend basepath.
-    - If value is list[str] → look at first element; if it's relative,
-      prepend basepath to every relative string in the list.
+    Values can be strings, lists, or dicts.
 
-    Args:
-        data: Input dictionary.
-        basepath: Base path to prepend. If None, uses global BASEPATH.
-
-    Returns:
-        A new dictionary with paths adjusted.
+    :param data: Input dictionary.
+    :param basepath: Base path to prepend; if None, uses global ``BASEPATH``.
+    :param check_exists: If ``True``, only replace when resulting path exists.
+    :returns: New dict with adjusted paths.
     """
     if basepath is None:
         basepath = BASEPATH
@@ -81,12 +91,24 @@ def prefix_relative_paths(
     return _absify(data)
 
 def dig_dict(in_dict, key_path):
+    """Traverse nested dict by list of keys.
+
+    :param in_dict: Input mapping.
+    :param key_path: Sequence of keys to descend.
+    :returns: Value at the nested path.
+    """
     if len(key_path) > 1:
         return dig_dict(in_dict[key_path[0]], key_path[1:])
     else:
         return in_dict[key_path[0]]
 
 def expand_path(path, param_dict):
+    """Expand a 'params:' reference into a concrete path from a dict.
+
+    :param path: String possibly starting with ``'params:'``.
+    :param param_dict: Parameter dictionary.
+    :returns: Expanded path string or original value.
+    """
     if path.startswith('params:'):
         tokens = path.split(':')[1].split('.')
         ret = dig_dict(param_dict, tokens)
@@ -97,6 +119,12 @@ def expand_path(path, param_dict):
     return ret
 
 def expand_paths(in_dict, param_dict):
+    """Recursively expand 'params:' paths in a nested dict structure.
+
+    :param in_dict: Input dict to mutate.
+    :param param_dict: Parameter dictionary supplying values.
+    :returns: Mutated input dict with paths expanded.
+    """
     for key, value in in_dict.items():
         test_str = None
         if isinstance(value, str):
@@ -109,6 +137,14 @@ def expand_paths(in_dict, param_dict):
     return in_dict
 
 def read_toml(toml_file: Union[str, Path], baseify = ['Data paths'], check_exists = False, expand_paths_in_full_dict = True):
+    """Read a TOML file and optionally prefix/expand embedded paths.
+
+    :param toml_file: TOML file path.
+    :param baseify: Top-level keys whose values should get path prefixing.
+    :param check_exists: If ``True``, only replace with existing paths.
+    :param expand_paths_in_full_dict: If ``True``, expand ``params:`` references.
+    :returns: Parsed and transformed dictionary.
+    """
     toml_path = Path(toml_file)
     basepath = str(toml_path.parent.resolve())
     with toml_path.open('r', encoding='utf-8') as tf:
@@ -120,12 +156,15 @@ def read_toml(toml_file: Union[str, Path], baseify = ['Data paths'], check_exist
     return data
 
 def normalize_key(s: str) -> str:
-    """
-    Normalize strings for consistent matching:
-      - Lowercase
-      - Replace all non-alphanumeric chars with underscore
-      - Collapse multiple underscores
-      - Strip leading/trailing underscores
+    """Normalize a string for consistent matching.
+
+    Steps:
+    - Lowercase and strip directory/extension.
+    - Replace non-alphanumerics with underscore; collapse repeats.
+    - Trim leading/trailing underscores.
+
+    :param s: Input string (e.g., filename).
+    :returns: Normalized key string.
     """
     if s is None:
         return ""
@@ -136,23 +175,15 @@ def normalize_key(s: str) -> str:
     return s
 
 def zipdir(src_dir: str | Path, tmpfs_base: str | Path | None = None) -> Path:
-    """Zip a directory into a tmpfs-backed unique folder and return the zip path.
+    """Zip a directory and return the created archive path.
 
-    The zip will contain paths prefixed by the source directory's basename, e.g.:
-        dirname/file1
-        dirname/subdir/file2
+    The zip contains paths prefixed by the source directory's basename.
 
-    Args:
-        src_dir: Path to the directory to zip.
-        tmpfs_base: Optional base directory for the temporary working folder.
-            Defaults to the first writeable of ['/dev/shm', f'/run/user/{uid}', '/tmp'].
-
-    Returns:
-        Path: Full path to the created ZIP file.
-
-    Raises:
-        FileNotFoundError: If src_dir doesn't exist.
-        NotADirectoryError: If src_dir is not a directory.
+    :param src_dir: Directory to zip.
+    :param tmpfs_base: Base directory for temporary working folder (unused placeholder).
+    :returns: Path to the created ZIP file.
+    :raises FileNotFoundError: If ``src_dir`` doesn't exist.
+    :raises NotADirectoryError: If ``src_dir`` is not a directory.
     """
     src = Path(src_dir).resolve()
     if not src.exists():

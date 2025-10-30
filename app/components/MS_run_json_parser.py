@@ -15,8 +15,14 @@ logger = logging.getLogger("MS_run_json_parser")
 
 @shared_task(base=QueueOnce, once={'graceful': True})
 def parse_json_files():
-    """
-    Parse json files from the MS run data directory. The files are created by MSParser.py, and output will be written to the MS run data input directory for db_updater.
+    """Parse MS run JSON files and emit TSVs for database updater.
+
+    Reads configuration from ``parameters.toml``, processes JSON files in the
+    configured input directory, writes two TSVs (``ms_runs`` and ``ms_plots``)
+    with timestamped filenames, and optionally moves/compresses processed
+    JSONs according to settings.
+
+    :returns: Status string indicating number of files processed and locations.
     """
     logger.info("Starting parsing of json files")
     parameters = read_toml(Path('parameters.toml'))

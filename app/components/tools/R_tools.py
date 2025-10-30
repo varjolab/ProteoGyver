@@ -6,7 +6,13 @@ import sh
 import numpy as np
 
 def vsn(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> pd.DataFrame:
-    """Does vsn transformation on a dataframe using justvsn from vsn package."""
+    """Apply VSN normalization via R's vsn::justvsn.
+
+    :param dataframe: Input DataFrame (rows=ids in index; columns=samples).
+    :param random_seed: Seed for reproducibility in R.
+    :param errorfile: Base path to append Rscript stderr on failure.
+    :returns: DataFrame of VSN-transformed values, aligned to input.
+    """
     tempname: str = str(uuid.uuid4())
     tempdir: str = str(uuid.uuid4())
     dataframe.index.name = 'PROTID'
@@ -26,6 +32,17 @@ def vsn(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> pd.DataFra
     return run_rscript(script, dataframe, tempname, errorfile, replace_dir = tempdir)
 
 def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_name: str, errorfile: str, replace_dir:str|None = None, input_df_has_index:bool = True):
+    """Execute an R script with a temp data file and return parsed output.
+
+    :param r_script_contents: Lines of the R script; occurrences of ``replace_name`` are replaced with temp paths.
+    :param r_script_data: DataFrame to write to temp file for R to read.
+    :param replace_name: Placeholder token to be replaced with temp filename.
+    :param errorfile: Base path for error log on failure.
+    :param replace_dir: Optional directory placeholder to replace with temp dir.
+    :param input_df_has_index: Whether to include index when writing CSV/TSV.
+    :returns: DataFrame parsed from R output file.
+    :raises Exception: Re-raises Rscript execution errors after logging.
+    """
     with tempfile.TemporaryDirectory() as tmpdir:
         with tempfile.NamedTemporaryFile() as datafile:
             repwith = datafile.name
@@ -59,6 +76,13 @@ def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_nam
     return script_output_df
 
 def impute_qrilc(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> pd.DataFrame:
+    """Impute missing values using QRILC (via imputeLCMD).
+
+    :param dataframe: Input DataFrame with missing values.
+    :param random_seed: Seed for reproducibility.
+    :param errorfile: Base path for error log on failure.
+    :returns: DataFrame with imputed values.
+    """
     tempname: str = str(uuid.uuid4())
     script: list = [
         'library("imputeLCMD")',
@@ -69,6 +93,14 @@ def impute_qrilc(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> p
     return run_rscript(script, dataframe, tempname, errorfile)
 
 def impute_random_forest(dataframe: pd.DataFrame, random_seed: int, rev_sample_groups: dict, errorfile: str) -> pd.DataFrame:
+    """Impute missing values using randomForest::rfImpute grouped by sample groups.
+
+    :param dataframe: Input DataFrame with missing values (rows=ids; cols=samples).
+    :param random_seed: Seed for reproducibility.
+    :param rev_sample_groups: Mapping sample -> group for supervised imputation.
+    :param errorfile: Base path for error log on failure.
+    :returns: DataFrame with imputed values.
+    """
     tempname: str = str(uuid.uuid4())
     with tempfile.NamedTemporaryFile() as groupsfile:
         groupsfile.write('sample\tgroup\n'.encode('utf-8'))

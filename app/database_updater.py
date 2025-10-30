@@ -1,3 +1,12 @@
+"""Utilities to update and synchronize the SQLite database from TSV inputs
+and external APIs (UniProt, IntAct, BioGRID).
+
+This module provides helpers for:
+- Creating TSV-based inserts/updates with schema reconciliation
+- Merging interaction datasets and exporting incremental updates
+- Recording update logs and packaging outputs
+"""
+
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 import os
@@ -10,19 +19,16 @@ from components.api_tools import intact
 from components.api_tools import biogrid
 
 def update_table_with_file(cursor, table_name, file_path, parameters, timestamp, add_info: str = ''):
-    """
-    Updates a database table with data from a TSV file, handling column additions and value updates.
+    """Update a table with data from a TSV file, adding columns if needed.
 
-    Args:
-        cursor: SQLite database cursor object
-        table_name (str): Name of the table to update
-        file_path (str): Path to the TSV file containing new data
-        parameters (dict): Configuration parameters including 'Allowed new columns' and 'Allowed missing columns'
-    Returns:
-        tuple: (insertions, modifications) count of new entries and modified entries
-
-    Raises:
-        ValueError: If there are too many new or missing columns compared to parameters
+    :param cursor: SQLite database cursor.
+    :param table_name: Target table name.
+    :param file_path: Path to the TSV file with new data.
+    :param parameters: Configuration parameters; expects keys like 'Allowed new columns', 'Allowed missing columns', 'Ignore diffs'.
+    :param timestamp: Current update timestamp string.
+    :param add_info: Optional progress info for logging.
+    :returns: Tuple of (insertions, modifications).
+    :raises ValueError: If too many new or missing columns are detected.
     """
     ignore_diffs = set(parameters['Ignore diffs'])
     modifications = 0
@@ -123,17 +129,14 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp,
     return insertions, modifications
 
 def update_database(conn, parameters, cc_cols, cc_types, timestamp):
-    """
-    Updates multiple database tables using TSV files from specified directories.
+    """Update multiple database tables using TSV files from configured directories.
 
-    Args:
-        conn: SQLite database connection object
-        parameters (dict): Configuration parameters including 'Update files' with table-to-directory mappings
-
-    Returns:
-        tuple: (inmod_names, inmod_vals)
-            - inmod_names (list): Names of tables with their modification types
-            - inmod_vals (list): Corresponding counts of insertions and modifications
+    :param conn: SQLite database connection.
+    :param parameters: Parameters with 'Update files' table→directory mappings and limits.
+    :param cc_cols: Expected column names for creating fresh tables.
+    :param cc_types: SQL column types aligned with ``cc_cols``.
+    :param timestamp: Current update timestamp string.
+    :returns: Tuple of (inmod_names, inmod_vals) listing counts per table and action.
     """
     update_files = parameters['Update files']
     inmod_names = []
@@ -238,13 +241,15 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
     return inmod_names, inmod_vals
 
 def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_columns: list[str] | None = None) -> tuple[list[str], list[str]]:
-    """Compare two pandas DataFrames and return differences.
-    
-    Returns:
-        tuple: (differences, new_columns, missing_columns, new_rows, missing_rows)
-            - differences: List of (index, column, new_value) tuples for each difference
-            - new_columns: List of column names present in df2 but not df1 
-            - missing_columns: List of column names present in df1 but not df2
+    """Compare two DataFrames and return modified/new indices and missing indices.
+
+    Columns listed in ``ignore_columns`` are dropped before comparison. The two
+    DataFrames must have identical columns after dropping.
+
+    :param df1: Baseline DataFrame.
+    :param df2: New DataFrame to compare against baseline.
+    :param ignore_columns: Columns to ignore during comparison.
+    :returns: Tuple of (new_or_modified_indices, missing_indices).
     """
     if ignore_columns is None:
         ignore_columns = []
@@ -276,6 +281,14 @@ def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_colum
     return list(new_or_modified), missing_rows
 
 def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
+    """Download and stage UniProt data, writing TSV updates if differences found.
+
+    :param conn: SQLite database connection.
+    :param parameters: Updater parameters (paths, ignore diffs, deletion policy).
+    :param timestamp: Current update timestamp string.
+    :param organisms: Optional set of organism IDs to include.
+    :returns: Set of UniProt IDs present in the fetched dataset.
+    """
     from components.api_tools import uniprot
 # Move these into parameters or somesuch:
     uniprot_renames = {
@@ -347,6 +360,14 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
     return uniprot_id_set
 
 def merge_multiple_string_dataframes(dfs: list[pd.DataFrame]) -> pd.DataFrame:
+    """Merge DataFrames with semicolon-separated string fields by union of values.
+
+    Each cell is split on ';' and de-duplicated across dataframes; merged rows are
+    indexed by 'interaction'.
+
+    :param dfs: List of input DataFrames.
+    :returns: Merged DataFrame with unioned semicolon-joined values.
+    """
     if not dfs:
         return pd.DataFrame()
 
@@ -382,6 +403,11 @@ def merge_multiple_string_dataframes(dfs: list[pd.DataFrame]) -> pd.DataFrame:
 
 
 def stream_flattened_rows(df: pd.DataFrame) -> Iterator[dict]:
+    """Yield rows as dictionaries with set-unioned values split on ';'.
+
+    :param df: Input DataFrame; uses 'interaction' as index when present.
+    :returns: Iterator of dict rows with 'interaction' key and set values per column.
+    """
     if 'interaction' in df.columns:
         df.set_index('interaction', inplace=True)
 
@@ -399,6 +425,14 @@ def stream_flattened_rows(df: pd.DataFrame) -> Iterator[dict]:
         yield out_row
 
 def handle_new(new_interactions, odir, timestamp, L) -> None:
+    """Write new interactions to a timestamped TSV file in the output directory.
+
+    :param new_interactions: List of interaction dicts keyed by 'interaction'.
+    :param odir: Output directory.
+    :param timestamp: Current update timestamp string.
+    :param L: Chunk prefix/letter for file naming.
+    :returns: None.
+    """
     i = 1
     modfile = os.path.join(odir, f'{timestamp}_known_interactions_{L}.tsv')
     while os.path.exists(modfile):
@@ -408,6 +442,16 @@ def handle_new(new_interactions, odir, timestamp, L) -> None:
     df.to_csv(modfile.replace(':','-'), sep='\t')
 
 def handle_mods(check_for_mods, existing, timestamp, L, parameters, odir) -> None:
+    """Write modified interactions to TSV and optionally queue deletions.
+
+    :param check_for_mods: List of candidate modified interaction dicts.
+    :param existing: Existing interactions DataFrame (indexed by 'interaction').
+    :param timestamp: Current update timestamp string.
+    :param L: Chunk prefix/letter for file naming.
+    :param parameters: Updater parameters including deletion settings.
+    :param odir: Output directory.
+    :returns: None.
+    """
 
     merg = pd.DataFrame(check_for_mods).set_index('interaction')
     updates, missing_rows = get_dataframe_differences(existing, merg, ignore_columns = parameters['Ignore diffs'])
@@ -438,6 +482,17 @@ def handle_mods(check_for_mods, existing, timestamp, L, parameters, odir) -> Non
         merg.to_csv(modfile.replace(':','-'), sep='\t')
 
 def handle_merg_chunk(existing:pd.DataFrame, organisms: set|None, timestamp: str, L: str, last_update_date: datetime|None, odir: str, parameters: dict) -> None:
+    """Merge IntAct and BioGRID chunks, writing new and modified interactions.
+
+    :param existing: Existing interactions DataFrame (index 'interaction').
+    :param organisms: Optional set of organism IDs to include.
+    :param timestamp: Current update timestamp string.
+    :param L: Chunk prefix letter.
+    :param last_update_date: Optional cutoff date for remote queries.
+    :param odir: Output directory for TSVs.
+    :param parameters: Updater parameters including 'Ignore diffs' and paths.
+    :returns: None.
+    """
     existing_interactions: set = set(existing.index)
     def stream_cleaned_rows():
         sources = [
@@ -502,6 +557,17 @@ def handle_merg_chunk(existing:pd.DataFrame, organisms: set|None, timestamp: str
         handle_mods(check_for_mods, existing, timestamp, L, parameters, odir)
     
 def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date: datetime|None = None, ncpu: int = 1) -> None:
+    """Update known interaction TSVs in parallel by merging external sources.
+
+    :param conn: SQLite connection for reading existing interactions.
+    :param parameters: Updater parameters with file paths.
+    :param timestamp: Current update timestamp string.
+    :param uniprots: Set of UniProt IDs to filter by.
+    :param organisms: Optional set of organism IDs to include.
+    :param last_update_date: Cutoff datetime; ignore older remote entries.
+    :param ncpu: Number of worker processes.
+    :returns: None.
+    """
     biogrid.update(uniprots_to_get = uniprots, organisms=organisms)
     intact.update(uniprots_to_get = uniprots, organisms=organisms)
     get_chunks = sorted(list(set(intact.get_available()) | set(biogrid.get_available())))
@@ -526,16 +592,15 @@ def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_
             future.result()
 
 def update_external_data(conn, parameters, timestamp, organisms: set|None = None, last_update_date: datetime|None = None, ncpu: int = 1):
-    """
-    Updates external data tables in the database.
+    """Update external data tables (UniProt and known interactions).
 
-    Args:
-        conn: SQLite database connection object
-        parameters (dict): Configuration parameters including 'External data update interval days'
-        timestamp (str): Current timestamp
-        organisms (set): Set of organism IDs to update
-        last_update_date (datetime): Last update date, to not heck anything older than this
-        ncpu (int): Number of CPUs to use
+    :param conn: SQLite database connection.
+    :param parameters: Updater parameters; includes external update intervals.
+    :param timestamp: Current update timestamp string.
+    :param organisms: Optional set of organism IDs to update.
+    :param last_update_date: Cutoff date; ignore data older than this.
+    :param ncpu: Number of CPUs to use for merging chunks.
+    :returns: None.
     """ 
     print('Updating uniprot')
     uniprots = update_uniprot(conn, parameters, timestamp, organisms)
@@ -543,16 +608,14 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
     update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date, ncpu)
 
 def update_log_table(conn, inmod_names, inmod_vals, timestamp, uptype: str) -> None:
-    """
-    Records database update statistics in a log table.
+    """Record database update statistics in a log table.
 
-    Args:
-        conn: SQLite database connection object
-        inmod_names (list): Names of tables with their modification types
-        inmod_vals (list): Corresponding counts of insertions and modifications
-
-    The log table is created if it doesn't exist, and new columns are added as needed.
-    Each entry includes a timestamp and the counts of insertions and modifications for each table.
+    :param conn: SQLite database connection.
+    :param inmod_names: Names like 'table action' (e.g., 'proteins insertions').
+    :param inmod_vals: Counts aligned with ``inmod_names``.
+    :param timestamp: Update timestamp string.
+    :param uptype: Update category label (e.g., 'external', 'snapshot').
+    :returns: None.
     """
     hasmods = sum(inmod_vals) > 0
     table_columns = ['update_id TEXT', 'timestamp TEXT', 'update_type TEXT', 'modification_type TEXT', 'tablename TEXT', 'count INTEGER']

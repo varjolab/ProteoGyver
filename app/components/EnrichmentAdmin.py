@@ -7,6 +7,11 @@ from components.tools import utils
 
 
 class EnrichmentAdmin:
+    """Manage enrichment handlers and orchestrate enrichment runs.
+
+    :param parameters_file: Path to parameters TOML used to locate handler modules.
+    """
+
     def __init__(self, parameters_file: str) -> None:
         parameters: dict = utils.read_toml(Path(parameters_file))
 
@@ -51,12 +56,31 @@ class EnrichmentAdmin:
 
         self.import_handlers()
     def get_available(self) -> list:
+        """List all available enrichment names across handlers.
+
+        :returns: Sorted list of enrichment names.
+        """
         return sorted(list(self._enrichments.keys()))
+
     def get_default(self) -> list:
+        """List default enrichment names suggested by handlers.
+
+        :returns: Sorted list of default enrichment names.
+        """
         return sorted(list(self._defaults.keys()))
+
     def get_disabled(self) -> list:
+        """List enrichments disabled by configuration.
+
+        :returns: Sorted list of disabled enrichment names.
+        """
         return sorted(self._disabled)
+
     def import_handlers(self) -> dict:
+        """Import all enrichment handler modules from configured directory.
+
+        :returns: Dict mapping module name -> handler instance.
+        """
         ret_dict: dict = {}
         for module_filename in os.listdir(self._handler_basedir):
             if module_filename.endswith('.py'):
@@ -74,6 +98,17 @@ class EnrichmentAdmin:
         self._imported_handlers: dict = ret_dict
 
     def enrich_all(self, data_table: pd.DataFrame,enrichment_strings: list, id_column: str = None, id_list: list = None, split_by_column: str = None, split_name: str = None) -> list:
+        """Run all requested enrichments via their handlers.
+
+        :param data_table: Input table with identifiers and optional split column.
+        :param enrichment_strings: List of enrichment names to run.
+        :param id_column: Column containing identifiers to enrich.
+        :param id_list: Explicit list of identifiers if not using ``id_column``.
+        :param split_by_column: Optional column to split input by groups/baits.
+        :param split_name: Label for the split dimension (defaults to 'Sample group').
+        :returns: Tuple of (result_names, return_dataframes, information).
+        :raises AssertionError: If neither ``id_column`` nor ``id_list`` is provided.
+        """
         assert ((id_column is not None) or (id_list is not None)), 'Supply either id_column or id_list'
         if split_by_column is not None:
             if split_name is None:

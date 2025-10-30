@@ -1,23 +1,10 @@
 """Text handling utilities for cleaning and normalizing strings.
 
-This module provides functions for handling special characters, accented characters,
-and general text cleaning operations. It includes utilities for:
-    - Removing accent marks from characters
-    - Replacing special characters with specified replacements
-    - Combined accent and special character handling
-    - Simplified text cleaning interface
-
-Example:
-    >>> from components.text_handling import clean_text
-    >>> clean_text("Hello, café!")
-    "hello.cafe"
-
-Typical usage example:
-    text = "Some raw text with special chars: café, étude!"
-    cleaned = clean_text(text)
-    # Or for more control:
-    cleaned = replace_special_characters(text, replacewith="_", 
-                                       remove_duplicates=True)
+Utilities for:
+- Removing accent marks from characters
+- Replacing special characters with specified replacements
+- Combined accent and special character handling
+- Simplified text cleaning interface
 """
 
 from typing import Optional, Dict
@@ -25,17 +12,10 @@ import re
 import unidecode
 
 def remove_accent_characters(text: str) -> str:
-    """Replaces accented characters with their unaccented equivalents in a string.
-    
-    Args:
-        text (str): Input string containing accented characters
-        
-    Returns:
-        str: String with accented characters replaced by unaccented equivalents
-        
-    Example:
-        >>> remove_accent_characters("café")
-        "cafe"
+    """Replace accented characters with their unaccented equivalents.
+
+    :param text: Input string containing accented characters.
+    :returns: String with accented characters replaced by unaccented equivalents.
     """
     return unidecode.unidecode(text)
 
@@ -51,37 +31,19 @@ def replace_special_characters(
     allow_space: bool = False,
     mask_first_digit: str|None = None
 ) -> str:
-    """Replaces special characters in a string with specified replacements.
-    
-    Args:
-        text (str): Input string containing special characters
-        replacewith (str, optional): Character to replace special characters with. Defaults to '.'
-        dict_and_re (bool, optional): Whether to apply both dictionary replacements and regex. 
-            Defaults to False
-        replacement_dict (dict, optional): Dictionary mapping specific special characters to 
-            their replacements. Defaults to None
-        stripresult (bool, optional): Whether to strip whitespace and replacement characters 
-            from result. Defaults to True
-        remove_duplicates (bool, optional): Whether to remove consecutive replacement 
-            characters. Defaults to False
-        make_lowercase (bool, optional): Whether to convert result to lowercase. 
-            Defaults to True
-        allow_numbers (bool, optional): Whether to allow numbers in the result. 
-            Defaults to True
-        allow_space (bool, optional): Whether to allow spaces in the result. 
-            Defaults to False
-        mask_first_digit (str|None, optional): Character to mask the first digit with. 
-            Defaults to None
+    """Replace special characters in a string with specified replacements.
 
-    Returns:
-        str: String with special characters replaced according to specifications
-        
-    Example:
-        >>> replace_special_characters("Hello, World!", replacewith="_")
-        "hello_world"
-        >>> replace_special_characters("Hello, World!", 
-        ...                          replacement_dict={",": " COMMA "})
-        "hello COMMA world"
+    :param text: Input string containing special characters.
+    :param replacewith: Character to use for replacement.
+    :param dict_and_re: Whether to apply both dictionary replacements and regex.
+    :param replacement_dict: Mapping of specific substrings to replacements.
+    :param stripresult: Strip whitespace and replacement characters from result.
+    :param remove_duplicates: Collapse consecutive replacement characters.
+    :param make_lowercase: Convert result to lowercase.
+    :param allow_numbers: Allow numbers in the result.
+    :param allow_space: Allow spaces in the result.
+    :param mask_first_digit: Character to prefix when first char is a digit.
+    :returns: String with special characters replaced.
     """
     ret: str
     regex_pat = r'[^a-zA-Z0-9]'
@@ -129,49 +91,26 @@ def replace_accent_and_special_characters(
     text: str,
     **kwargs
 ) -> str:
-    """Replaces both accented and special characters in a string.
-    
-    Args:
-        text (str): Input string containing accented and special characters
-        **kwargs: Additional keyword arguments passed to replace_special_characters()
-            
-    Returns:
-        str: String with both accented and special characters replaced
-        
-    Example:
-        >>> replace_accent_and_special_characters("café, étude!")
-        "cafe.etude"
-        >>> replace_accent_and_special_characters("café, étude!", make_lowercase=True)
-        "cafe.etude"
+    """Replace both accented and special characters in a string.
+
+    :param text: Input string containing accented and special characters.
+    :param kwargs: Passed through to ``replace_special_characters``.
+    :returns: Cleaned string.
     """
     return replace_special_characters(remove_accent_characters(text), **kwargs)
 
 def clean_text(text: str) -> str:
-    """Simplified alias for replace_accent_and_special_characters.
-    
-    Args:
-        text (str): Input string to clean
-        
-    Returns:
-        str: Cleaned string with default accent and special character handling
-        
-    Example:
-        >>> clean_text("Hello, café!")
-        "hello.cafe"
+    """Simplified alias for ``replace_accent_and_special_characters``.
+
+    :param text: Input string to clean.
+    :returns: Cleaned string with default handling.
     """
     return replace_accent_and_special_characters(text)
 
 def sanitize_for_database_use(text: str) -> str:
-    """Sanitizes a string for use in a database column name.
-    
-    Args:
-        text (str): The input string to sanitize
-        
-    Returns:
-        str: The sanitized string
-        
-    Example:
-        >>> sanitize_for_database_use("1.2.3")
-        "c1_2_3"
+    """Sanitize a string for use in a database column name.
+
+    :param text: Input string to sanitize.
+    :returns: Sanitized string (alnum/underscore, prefixed if starting with digit).
     """
     return  replace_special_characters(remove_accent_characters(text), replacewith='_', allow_numbers=False, mask_first_digit = 'c')

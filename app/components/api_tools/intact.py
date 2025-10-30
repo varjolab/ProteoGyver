@@ -1,18 +1,21 @@
 """
 IntAct database interaction module for protein-protein interaction data.
 
-This module provides functionality to download, parse, and manage protein interaction data
-from the IntAct database (https://www.ebi.ac.uk/intact/). It handles:
+This module provides functionality to download, parse, and manage protein
+interaction data from the IntAct database (https://www.ebi.ac.uk/intact/).
+It handles:
+
 - Automated updates from IntAct's FTP server
 - Parsing of PSI-MITAB formatted files
 - Conversion to pandas DataFrames with standardized column names
 - Version tracking and data freshness checks
 - Methods text generation for citations
 
-The main entry points are:
-- update(): Check for and download new IntAct releases
-- get_latest(): Retrieve the most recent downloaded data as a DataFrame
-- methods_text(): Generate citation text for the data source
+Main entry points
+-----------------
+- ``update``: check for and download new IntAct releases
+- ``get_latest``: retrieve the most recent downloaded data as a DataFrame
+- ``methods_text``: generate citation text for the data source
 """
 
 import sys
@@ -26,6 +29,18 @@ from typing import Optional
 from . import apitools
 
 def get_ids(df, col1, col2, uniprots_to_get: set|None) -> list[str]:
+    """Extract UniProt accessions from PSI-MITAB identifier columns.
+
+    For each row, takes ``col1`` and ``col2`` (pipe-delimited alternates),
+    keeps only ``uniprotkb:`` identifiers, and optionally filters by a
+    provided set of UniProt base accessions.
+
+    :param df: Input DataFrame chunk.
+    :param col1: Primary ID column name.
+    :param col2: Alternate ID column name (pipe-delimited).
+    :param uniprots_to_get: Optional set of accessions to retain.
+    :returns: List of ``;``-joined UniProt IDs per row, or ``|DROP|`` when empty.
+    """
     nvals = []
     for row in df.itertuples(index=False):
         ids_a = [getattr(row, col1)] + getattr(row, col2).split('|')
@@ -36,9 +51,24 @@ def get_ids(df, col1, col2, uniprots_to_get: set|None) -> list[str]:
     return nvals
 
 def get_iso(ser: pd.Series) -> list[str]:
+    """Convert UniProt isoforms to base accessions for a Series.
+
+    :param ser: Series of ``;``-joined UniProt IDs.
+    :returns: List where each element is a ``;``-joined string with isoform suffixes removed.
+    """
     return [';'.join(s.split('-')[0] for s in sv.split(';')).strip(';') for sv in ser.values]
 
 def split_and_save_by_prefix(df: pd.DataFrame, column: str, num_chars: int, output_dir: str, index: bool = False, sep: str = '\t') -> None:
+    """Shard a DataFrame by a column prefix and append to TSV files.
+
+    :param df: Input DataFrame.
+    :param column: Column whose prefix is used for grouping.
+    :param num_chars: Number of prefix characters to use.
+    :param output_dir: Target directory for TSV shards.
+    :param index: Whether to include the index in CSV output.
+    :param sep: Field separator for CSV output.
+    :returns: None
+    """
     os.makedirs(output_dir, exist_ok=True)
     for (prefix, result) in df.groupby(df[column].str[:num_chars]):
         filename = os.path.join(output_dir, f"{prefix}.tsv")
@@ -46,6 +76,11 @@ def split_and_save_by_prefix(df: pd.DataFrame, column: str, num_chars: int, outp
         result.to_csv(filename, mode='a', header=write_header, index=index, sep=sep)
 
 def get_org(ser: pd.Series) -> list:
+    """Extract and normalize organism TaxIDs from PSI-MITAB Taxid fields.
+
+    :param ser: Series with pipe-delimited Taxid entries (e.g., ``taxid:9606(human)``).
+    :returns: List of comma-joined unique TaxIDs per element.
+    """
     return [
         ','.join(
             sorted(
@@ -61,6 +96,17 @@ def get_org(ser: pd.Series) -> list:
     ]
     
 def filter_chunk(chunk: pd.DataFrame, uniprots_to_get: set|None, organisms: set|None) -> pd.DataFrame:
+    """Filter IntAct PSI-MITAB chunk and derive helper columns.
+
+    Keeps rows involving UniProt IDs, removes negative interactions, builds
+    UniProt ID lists and isoform/base variants, derives organism fields, and
+    optionally filters by organisms.
+
+    :param chunk: Raw PSI-MITAB chunk as DataFrame.
+    :param uniprots_to_get: Optional set of UniProt base accessions to retain.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :returns: Filtered and minimally normalized DataFrame chunk.
+    """
     mask = chunk['id1'].str.contains('uniprotkb', na=False) | \
             chunk['id1a'].str.contains('uniprotkb', na=False) | \
             chunk['id2'].str.contains('uniprotkb', na=False) | \
@@ -87,6 +133,17 @@ def filter_chunk(chunk: pd.DataFrame, uniprots_to_get: set|None, organisms: set|
     return chunk
 
 def handle_and_split_save(df: pd.DataFrame, temp_dir: str, sep: str = '\t') -> None:
+    """Expand interactor pairs into symmetric rows and shard to disk.
+
+    Normalizes columns, pre-processes multi-value fields, expands all
+    interactor combinations A->B and B->A with isoform/base variants,
+    and writes sharded TSVs by interaction prefix.
+
+    :param df: Filtered and minimally normalized chunk.
+    :param temp_dir: Output directory for TSV shards.
+    :param sep: TSV separator.
+    :returns: None
+    """
     normcols = [
         'Interaction type(s)',
         'Interaction detection method(s)',
@@ -171,6 +228,12 @@ def handle_and_split_save(df: pd.DataFrame, temp_dir: str, sep: str = '\t') -> N
     split_and_save_by_prefix(findf.reset_index(), 'interaction', 3, temp_dir, index=False, sep=sep)
 
 def only_latest_date(ser: pd.Series, time_format: str = '%Y/%m/%d') -> pd.Series:
+    """Reduce semicolon-joined dates to their latest value.
+
+    :param ser: Series of date strings, possibly semicolon-joined.
+    :param time_format: Output date format string.
+    :returns: Series with only the latest date per element.
+    """
     vals = []
     for v in ser.values:
         if not ';' in v:
@@ -181,6 +244,11 @@ def only_latest_date(ser: pd.Series, time_format: str = '%Y/%m/%d') -> pd.Series
     return pd.Series(vals, index=ser.index)
 
 def get_final_df(df_filename) -> pd.DataFrame:
+    """Deduplicate and finalize a shard file into a consistent DataFrame.
+
+    :param df_filename: Path to a shard TSV produced by the parser.
+    :returns: Final DataFrame indexed by ``interaction`` with dates reduced.
+    """
     non_str_cols = {}
     with open(df_filename, 'r') as file:
         header = file.readline().strip().split('\t')
@@ -270,6 +338,13 @@ def generate_pandas(file_path:str, output_name:str, uniprots_to_get:set|None, or
     os.remove(unzipped_path.replace('.txt','_negative.txt'))
 
 def download_intact_ftp(save_file: str, max_retries: int = 10, retry_delay: int = 30) -> Optional[str]:
+    """Download the IntAct archive over FTP with retries.
+
+    :param save_file: Destination file path for the downloaded zip.
+    :param max_retries: Maximum number of retry attempts.
+    :param retry_delay: Delay between retries in seconds.
+    :returns: Path to the saved file on success, ``None`` otherwise.
+    """
     print('Downloading IntAct')
     ftpurl = 'ftp.ebi.ac.uk'
     ftpdir = '/pub/databases/intact/current/psimitab'
@@ -299,23 +374,23 @@ def download_intact_ftp(save_file: str, max_retries: int = 10, retry_delay: int 
 
 
 def do_update(save_file, uniprots_to_get: set|None, organisms: set|None) -> None:
-    """
-    Handles practicalities of updating the intact tsv file on disk
+    """Download (if needed) and convert the IntAct archive to TSV shards.
 
-    :param save_dir: path to the .tsv file where data should be saved
-    :param uniprots_to_get: a set of which uniprots should be retained. If None, all uniprots will be retained.
-    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
+    :param save_file: Destination zip path (also used to derive output folder).
+    :param uniprots_to_get: Optional set of UniProt accessions to retain.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :returns: None
     """
     if not os.path.exists(save_file):
         download_intact_ftp(save_file)
     generate_pandas(save_file, save_file.replace('.zip','.tsv'),uniprots_to_get, organisms)
 
 def update(uniprots_to_get: set|None = None, organisms: set|None = None) -> None:
-    """
-    Identifies whether update should be done or not, and does an update if needed.
-    
-    :param uniprots_to_get: which uniprots should be retained in the output file. If None, all uniprots will be retained.
-    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
+    """Update the local IntAct cache if a newer release is available.
+
+    :param uniprots_to_get: Optional set of UniProt base accessions to retain.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :returns: None
     """
     ftpurl: str = 'ftp.ebi.ac.uk'
     ftpdir: str = '/pub/databases/intact/current/'
@@ -335,6 +410,14 @@ def update(uniprots_to_get: set|None = None, organisms: set|None = None) -> None
         do_update(os.path.join(apitools.get_save_location('IntAct'),f'{apitools.get_timestamp()}_intact.zip'), uniprots_to_get, organisms)
 
 def read_file_chunks(filepath: str, organisms: set|None = None, subset_letter: str|None = None, since_date: datetime|None = None) -> pd.DataFrame:
+    """Read a TSV shard in chunks and optionally filter by organism/date.
+
+    :param filepath: Path to shard TSV file.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param subset_letter: If provided, only rows whose interaction starts with this letter are retained.
+    :param since_date: Keep rows with creation or update date on/after this date.
+    :returns: Concatenated DataFrame of filtered shard content.
+    """
     iter_csv = pd.read_csv(filepath, iterator=True, sep='\t', chunksize=1000)
     df_parts = []
     for chunk in iter_csv:
@@ -350,6 +433,14 @@ def read_file_chunks(filepath: str, organisms: set|None = None, subset_letter: s
     return pd.concat(df_parts)
 
 def read_folder_chunks(folderpath: str, organisms: set|None = None, subset_letter: str|None = None, since_date: datetime|None = None) -> pd.DataFrame:
+    """Load all TSV shards in a folder, optionally restricting by prefix/date.
+
+    :param folderpath: Directory containing shard files.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param subset_letter: Restrict to files whose names start with this letter.
+    :param since_date: Keep rows with creation or update date on/after this date.
+    :returns: Concatenated DataFrame of matching shard contents.
+    """
     df_parts = []
     for file in os.listdir(folderpath):
         if subset_letter and not file.startswith(subset_letter):
@@ -361,11 +452,13 @@ def read_folder_chunks(folderpath: str, organisms: set|None = None, subset_lette
         return pd.DataFrame()
 
 def get_latest(organisms: set|None = None, subset_letter: str|None = None, name_only: bool = False, since_date: datetime|None = None) -> pd.DataFrame|str:
-    """
-    Fetches the latest data from disk
+    """Fetch the latest IntAct data from the local cache.
 
-    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
-    :returns: Pandas dataframe of the latest IntACT data.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param subset_letter: Restrict to shards whose filename starts with this letter.
+    :param name_only: If ``True``, return the latest folder path instead of loading data.
+    :param since_date: Keep rows with creation or update date on/after this date.
+    :returns: DataFrame of the latest IntAct data or a path string when ``name_only=True``.
     """
     current_version: str = apitools.get_newest_file(apitools.get_save_location('IntAct'))
     filepath: str = os.path.join(apitools.get_save_location('IntAct'), current_version)
@@ -377,21 +470,25 @@ def get_latest(organisms: set|None = None, subset_letter: str|None = None, name_
         return read_folder_chunks(filepath, organisms, subset_letter=subset_letter, since_date=since_date)
     
 def get_available() -> list[str]:
+    """List available interaction shard names for the latest IntAct version.
+
+    :returns: List of shard basenames without the ``.tsv`` suffix.
+    """
     filepath: str = get_latest(name_only=True) # type: ignore
     return [f.split('.')[0] for f in os.listdir(filepath) if f.endswith('.tsv')]
 
 def get_version_info() -> str:
-    """
-    Parses version info from the newest downloaded IntACT file
+    """Return version info for the newest available IntAct version.
+
+    :returns: Human-readable version string, e.g. ``Downloaded (YYYY-MM-DD)``.
     """
     nfile: str = apitools.get_newest_file(apitools.get_save_location('IntAct'))
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def methods_text() -> str:
-    """
-    Generates a methods text for used intact data
+    """Generate a plain-text description of the IntAct data used.
 
-    :returns: a tuple of (readable reference information (str), PMID (str), intact description (str))
+    :returns: Multi-line string including source, version and citation.
     """
     short,long,pmid = apitools.get_pub_ref('IntAct')
     return '\n'.join([

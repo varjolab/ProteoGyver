@@ -1,18 +1,32 @@
+"""Administrative entrypoints and helpers for database lifecycle operations.
+
+Tasks include schema creation, snapshotting, external data updates, and
+periodic cleanup of old versions.
+"""
+
 import multiprocessing
 import os
 import sqlite3
+from components.tools import utils
+from typing import Iterable, Optional
 import shutil
 from pathlib import Path
 from components import db_functions
 from components.tools import utils
 import database_updater
-import database_generator
 import re
 import sys
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 def clean_database(versions_to_keep_dict) -> None:
+    """Remove old database directories, keeping a configured number of versions.
+
+    :param versions_to_keep_dict: Mapping with keys '<name>' (keep count),
+        '<name>_path' (path list), and '<name>_regex' (folder regex with group 1
+        sortable for recency).
+    :returns: None.
+    """
     names = [k for k in versions_to_keep_dict.keys() if not '_' in k]
     for name in names:
         path = os.path.join(*versions_to_keep_dict[name + '_path'])
@@ -24,7 +38,67 @@ def clean_database(versions_to_keep_dict) -> None:
             print('Removing', os.path.join(path, folder[1]))
             shutil.rmtree(os.path.join(path, folder[1]))
 
+def create_sqlite_from_schema(schema_file: str | Path,
+                              db_file: str | Path,
+                              overwrite: bool = False,
+                              pragmas: Optional[Iterable[str]] = ("foreign_keys=ON","journal_mode=WAL")) -> Path:
+    """Create a SQLite database from a .sql schema file.
+
+    :param schema_file: Path to the schema file.
+    :param db_file: Path of the database to create.
+    :param overwrite: Whether to overwrite an existing DB file.
+    :param pragmas: PRAGMAs to apply after connecting (e.g., ("foreign_keys=ON",)).
+    :returns: Absolute path to the created database.
+    :raises FileNotFoundError: If ``schema_file`` does not exist.
+    :raises FileExistsError: If ``db_file`` exists and ``overwrite`` is False.
+    :raises sqlite3.Error: If executing the schema fails.
+    """
+    schema_path = Path(schema_file)
+    db_path = Path(db_file)
+
+    if not schema_path.is_file():
+        raise FileNotFoundError(f"Schema file not found: {schema_path}")
+
+    if db_path.exists():
+        if overwrite:
+            db_path.unlink()
+        else:
+            raise FileExistsError(f"Database already exists: {db_path} (use overwrite=True)")
+
+    # Read with UTF-8-SIG to gracefully handle a BOM; normalize line endings.
+    sql = schema_path.read_text(encoding="utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
+
+    con = sqlite3.connect(db_path)
+    try:
+        if pragmas:
+            for p in pragmas:
+                con.execute(f"PRAGMA {p}")
+        con.executescript(sql)   # Executes multiple CREATE TABLE/INDEX/etc. statements
+        con.commit()
+    except sqlite3.Error:
+        con.close()
+        # Remove partially-created DB on failure
+        try:
+            db_path.unlink()
+        except Exception:
+            pass
+        raise
+    finally:
+        con.close()
+
+    return db_path.resolve()
+
 def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_format: str) -> datetime:
+    """Return the last update time for a given update type or a default.
+
+    If the log lookup fails, defaults to now minus ``interval`` seconds.
+
+    :param conn: SQLite database connection.
+    :param uptype: Update type label to query (e.g., 'external').
+    :param interval: Interval in seconds to compute a safe default.
+    :param time_format: Timestamp format string used in the log table.
+    :returns: Datetime of the last update or a computed default.
+    """
     try:
         last_update = datetime.strptime(db_functions.get_last_update(conn, uptype), time_format)
         print(uptype, 'last update:', last_update)
@@ -32,7 +106,11 @@ def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_forma
         last_update = datetime.now() - relativedelta(seconds=interval+1)
     return last_update
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for database administration.
+
+    :returns: None.
+    """
     force_full_update = False
     parameters = utils.read_toml(Path('parameters.toml'))
     time_format = parameters['Config']['Time format']
@@ -68,7 +146,7 @@ if __name__ == "__main__":
         if need_to_create:
             print('Creating database')
             schema_file = os.path.join(*parameters['Data paths']['Schema file'])
-            database_generator.create_sqlite_from_schema(schema_file, dbfile) # type: ignore
+            create_sqlite_from_schema(schema_file, dbfile) # type: ignore
             conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
             database_updater.update_log_table(conn, ['db creation'], [1], timestamp, 'created')
             db_functions.generate_database_table_templates_as_tsvs(conn, output_dir, parameters['Database updater']['Database table primary keys'])
@@ -128,3 +206,7 @@ if __name__ == "__main__":
     
     conn.close() # type: ignore
     print('Database update done.')
+
+
+if __name__ == "__main__":
+    main()

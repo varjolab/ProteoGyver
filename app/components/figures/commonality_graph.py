@@ -1,4 +1,10 @@
+"""
+Commonality visualizations for sample group overlaps.
 
+Provides two representations:
+- ``supervenn``: Supervenn diagram for up to ~10 sets
+- ``common_heatmap``: Jaccard-like overlap heatmap for larger numbers
+"""
 import io
 import base64
 import matplotlib as mpl
@@ -12,18 +18,13 @@ from numpy import nan as NA
 
 
 def supervenn(group_sets: dict, id_str: str) -> tuple:
-    """Draws a super venn plot for the input data table.
+    """Render a Supervenn plot from named sets and return as a Dash image.
 
-    See https://github.com/gecko984/supervenn for details of the plot.
-    Parameters:
-    data_table: table of samples (columns) and measurements(rows)
-    rev_sample_groups: dictionary of {sample_column_name: sample_group_name} containing all sample columns.
-    figure_name: name for the figure title, as well as saved file
-    save_figure: Path to save the generated figure. if None (default), figure will not be saved.
-    save_format: format for the saved figure. default is svg.
+    See `supervenn <https://github.com/gecko984/supervenn>`_.
 
-    Returns:
-    returns html.Img object containing the figure data in png form.
+    :param group_sets: Mapping of group name to a set of identifiers.
+    :param id_str: Component ID for the returned image.
+    :returns: Tuple ``(dash.html.Img, pdf_data_base64)``.
     """
 
     # Buffer for use
@@ -76,6 +77,15 @@ def supervenn(group_sets: dict, id_str: str) -> tuple:
 
 
 def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
+    """Create a heatmap of pairwise overlap ratios between groups.
+
+    The value for groups ``A`` and ``B`` is ``|A∩B| / |A∪B|`` (Jaccard index).
+
+    :param group_sets: Mapping of group name to a set of identifiers.
+    :param id_str: Component ID for the ``Graph``.
+    :param defaults: Figure defaults (expects ``height``, ``width``, ``config``).
+    :returns: Tuple ``(dash.dcc.Graph, '')``.
+    """
     hmdata: list = []
     index: list = list(group_sets.keys())
     done = set()
@@ -109,6 +119,14 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
 
 
 def make_graph(group_sets: dict, id_str: str, use_supervenn: bool, defaults: dict) -> tuple:
+    """Choose and build an overlap visualization based on group count.
+
+    :param group_sets: Mapping of group name to a set of identifiers.
+    :param id_str: Component ID for the output figure.
+    :param use_supervenn: If ``True``, prefer Supervenn when feasible.
+    :param defaults: Figure defaults (expects ``height``, ``width``, ``config``).
+    :returns: Tuple of (component, aux_data) where aux_data may be a base64 PDF.
+    """
     if len(group_sets.keys()) > 10:
         use_supervenn = False
     if use_supervenn:

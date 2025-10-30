@@ -50,15 +50,12 @@ available_cmaps = sorted(list(set(available_cmaps)))#[u for u in usable if u.low
 )
 def handle_uploaded_data_table(file_contents, file_name, mod_date, current_upload_style) -> tuple:
     """Handle uploaded microscopy file and update UI elements.
-    
-    Args:
-        file_contents: Base64 encoded file contents
-        file_name: Name of uploaded file
-        mod_date: Modification timestamp of file
-        current_upload_style: Current style dictionary for upload indicator
-        
-    Returns:
-        tuple: (parsed image data, UI elements for file info, updated upload style)
+
+    :param file_contents: Base64 encoded file contents.
+    :param file_name: Name of uploaded file.
+    :param mod_date: Modification timestamp (epoch seconds).
+    :param current_upload_style: Current style dict for upload indicator.
+    :returns: Tuple of (parsed image data, file info elements, updated style).
     """
     if file_contents is not None:
         current_upload_style['background-color'] = 'green'
@@ -75,17 +72,10 @@ def handle_uploaded_data_table(file_contents, file_name, mod_date, current_uploa
     return no_update,no_update,no_update
 
 def load_image(image_data:str):
-    """Parse and load microscopy image data from base64 encoded string.
-    
-    Args:
-        image_data: Base64 encoded .lif file contents
-        
-    Returns:
-        dict: Parsed image data organized by:
-            - Image name
-            - Timepoint
-            - Z-stack level
-            - Channel
+    """Parse a base64-encoded .lif file into nested image arrays.
+
+    :param image_data: Base64-encoded contents of a Leica .lif file.
+    :returns: Dict image_name -> timepoint -> z_level -> stacked channel array.
     """
     content_string: str
     _, content_string = image_data.split(',')
@@ -122,12 +112,9 @@ def load_image(image_data:str):
 )
 def load_names_options(image_metadata: dict):
     """Generate radio options for available image series names.
-    
-    Args:
-        image_metadata: Dictionary containing image metadata
-        
-    Returns:
-        tuple: (radio options list, default selected value)
+
+    :param image_metadata: Dictionary containing image metadata.
+    :returns: Tuple of (options list, default value).
     """
     vals: list = sorted(list(image_metadata.keys()))
     return (
@@ -147,14 +134,11 @@ def load_names_options(image_metadata: dict):
     prevent_initial_call=True
 )
 def load_timepoint_options(image_metadata: dict, img_name: str):
-    """Generate radio options for available timepoints in selected image.
-    
-    Args:
-        image_metadata: Dictionary containing image metadata
-        img_name: Selected image series name
-        
-    Returns:
-        tuple: (radio options list, default selected value)
+    """Generate timepoint options for the selected image.
+
+    :param image_metadata: Dictionary containing image metadata.
+    :param img_name: Selected image series name.
+    :returns: Tuple of (options list, default value).
     """
     if image_metadata is None: # TODO: check if this still happens;; There is no reason why this gets triggered with a none value in metadata, but it does. Even with prevent_initial_call.
         return no_update
@@ -177,15 +161,12 @@ def load_timepoint_options(image_metadata: dict, img_name: str):
     prevent_initial_call = True
 )
 def load_zleveloptions(image_metadata: dict, img_name: str, timepoint: int):
-    """Generate radio options for available Z-stack levels.
-    
-    Args:
-        image_metadata: Dictionary containing image metadata
-        img_name: Selected image series name
-        timepoint: Selected timepoint
-        
-    Returns:
-        tuple: (radio options list, default middle Z-level as selected value)
+    """Generate Z-level options for the selected image/timepoint.
+
+    :param image_metadata: Dictionary containing image metadata.
+    :param img_name: Selected image series name.
+    :param timepoint: Selected timepoint index.
+    :returns: Tuple of (options list, default middle Z-level).
     """
     vals: list = image_metadata[img_name][timepoint]
     default = vals[int(len(vals)/2)]
@@ -204,14 +185,11 @@ def load_zleveloptions(image_metadata: dict, img_name: str, timepoint: int):
 )
 def update_cmap(channel_cmap: str, reverse: list, fig: go.Figure):
     """Update colormap settings for a channel visualization.
-    
-    Args:
-        channel_cmap: Name of colormap to use
-        reverse: Whether to reverse the colormap
-        fig: Current figure object
-        
-    Returns:
-        go.Figure: Updated figure with new colormap settings
+
+    :param channel_cmap: Colormap name.
+    :param reverse: Whether to reverse the colormap.
+    :param fig: Current figure object.
+    :returns: Updated Plotly Figure.
     """
     fig=go.Figure(fig)
     fig.update_coloraxes(colorscale=channel_cmap,reversescale = reverse)
@@ -227,16 +205,13 @@ def update_cmap(channel_cmap: str, reverse: list, fig: go.Figure):
     prevent_initial_call=True
 )
 def load_image_slice(image_data, name, t, z):
-    """Load specific image slice based on selected parameters.
-    
-    Args:
-        image_data: Full image dataset
-        name: Selected image series name
-        t: Selected timepoint
-        z: Selected Z-level
-        
-    Returns:
-        numpy.ndarray: Image data for selected slice
+    """Load a specific image slice based on selected parameters.
+
+    :param image_data: Full image dataset.
+    :param name: Selected image series name.
+    :param t: Selected timepoint.
+    :param z: Selected Z-level.
+    :returns: Numpy array for the selected slice.
     """
     if (name is None) or (t is None) or (z is None) or (image_data is None): # TODO: check if this still happens;; This also gets called when app loads, even with prevent
         return no_update
@@ -249,13 +224,10 @@ def load_image_slice(image_data, name, t, z):
     Input('selected-image-data-store','data')
 )
 def generate_figures(image_data:list):
-    """Generate channel and merged view figures.
-    
-    Args:
-        image_data: List of channel image data arrays
-        
-    Returns:
-        tuple: (list of channel figures, merged view area components)
+    """Generate channel figures and merged view UI.
+
+    :param image_data: List of channel image data arrays.
+    :returns: Tuple of (list of channel figure columns, merged view components).
     """
     if image_data is None:
         return no_update
@@ -339,13 +311,10 @@ def generate_figures(image_data:list):
     Input('image-data-store','data'),
 )
 def parse_metadata(image_data):
-    """Extract metadata from image data structure.
-    
-    Args:
-        image_data: Full image dataset
-        
-    Returns:
-        dict: Metadata organized by image name, timepoint and Z-levels
+    """Extract metadata from the nested image data structure.
+
+    :param image_data: Full image dataset.
+    :returns: Dict of image_name -> timepoint -> list of Z-levels.
     """
     if image_data is None:
         return no_update
@@ -362,14 +331,11 @@ def parse_metadata(image_data):
     State('channel-selection','options')
 )
 def update_channel_selection(value, options):
-    """Update channel selection options based on current selection.
-    
-    Args:
-        value: Currently selected channels
-        options: All available channel options
-        
-    Returns:
-        list: Updated options with appropriate disabled states
+    """Update checklist options to enforce selection of two channels.
+
+    :param value: Currently selected channel indices.
+    :param options: All checklist option dicts.
+    :returns: Updated options with disabled states applied.
     """
     if len(value) >= 2:
         options = [
@@ -394,13 +360,10 @@ def update_channel_selection(value, options):
 )
 def LinkedZoom(relayout_data, figure_states):
     """Synchronize zoom/pan across all channel views.
-    
-    Args:
-        relayout_data: Layout update data from user interaction
-        figure_states: Current state of all figures
-        
-    Returns:
-        tuple: (updated layout data, updated figure states)
+
+    :param relayout_data: List of per-figure relayout dicts.
+    :param figure_states: List of figure dicts to update.
+    :returns: Tuple of (broadcast relayout dicts, updated figures).
     """
     unique_data = None
     for data in relayout_data:
@@ -436,17 +399,14 @@ def LinkedZoom(relayout_data, figure_states):
 )
 def load_merge(image_data: list, channel_selection: list, method:str, channel_cmap: str, reverse: list, fig: go.Figure):
     """Generate merged view of selected channels.
-    
-    Args:
-        image_data: List of channel image data arrays
-        channel_selection: List of selected channel indices
-        method: Merge method ('Multiply' or 'Add')
-        channel_cmap: Colormap for merged view
-        reverse: Whether to reverse the colormap
-        fig: Current figure object
-        
-    Returns:
-        go.Figure: Updated figure with merged channels
+
+    :param image_data: List of channel image data arrays.
+    :param channel_selection: Two selected channel indices.
+    :param method: Merge method (``'Multiply'`` or ``'Add'``).
+    :param channel_cmap: Colormap for merged view.
+    :param reverse: Whether to reverse the colormap.
+    :param fig: Current figure object.
+    :returns: Updated Plotly Figure for the merged view.
     """
     trigger = ctx.triggered_id
     if isinstance(trigger, dict):
@@ -489,9 +449,8 @@ def load_merge(image_data: list, channel_selection: list, method:str, channel_cm
 
 def microscopy_content_div():
     """Create the main content area for microscopy images.
-    
-    Returns:
-        dbc.Col: Column containing rows for channel images and colocalization analysis
+
+    :returns: Column containing rows for channel images and colocalization analysis.
     """
     return dbc.Col(
         [
@@ -503,12 +462,8 @@ def microscopy_content_div():
 
 def utils():
     """Create hidden utility components for storing application state.
-    
-    Returns:
-        html.Div: Container with Store components for:
-            - image-data-store: Raw image data
-            - image-metadata-only-store: Image metadata
-            - selected-image-data-store: Currently selected image data
+
+    :returns: Div with Store components for raw data, metadata, and selection.
     """
     return html.Div([
         dcc.Store(id = 'image-data-store'),#,data=load_image(os.path.join('..','..','..','202410 PG microscopy/SP8/EFN1-GLI3-STAV.lif'))),
@@ -518,13 +473,10 @@ def utils():
 
 def make_du_uploader(id_str: str, message: str):
     """Create a dash-uploader component with success indicator.
-    
-    Args:
-        id_str: ID for the uploader component
-        message: Display text for the upload area
-        
-    Returns:
-        tuple: (html.Div containing uploader and indicator, session_id)
+
+    :param id_str: ID for the uploader component.
+    :param message: Display text for the upload area.
+    :returns: Tuple of (uploader Div, session_id).
     """
     session_id = str(uuid.uuid1())
     asty = {k: v for k, v in UPLOAD_INDICATOR_STYLE.items()}
@@ -551,16 +503,9 @@ def make_du_uploader(id_str: str, message: str):
     ), session_id
 
 def sidebar():
-    """Create the sidebar containing file upload and image selection controls.
-    
-    Returns:
-        dbc.Col: Column containing:
-            - File upload area
-            - Image metadata display
-            - Series selection radio buttons
-            - Timepoint selection radio buttons
-            - Z-level selection radio buttons
-            - Download button
+    """Create sidebar with upload and image selection controls.
+
+    :returns: Column with upload area, metadata, and selection inputs.
     """
     return dbc.Col(
         [

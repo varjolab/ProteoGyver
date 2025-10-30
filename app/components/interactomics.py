@@ -46,33 +46,11 @@ logger = logging.getLogger(__name__)
 
 def count_knowns(saint_output: pd.DataFrame, 
                 replicate_colors: Dict[str, Dict[str, Dict[str, str]]]) -> pd.DataFrame:
-    """Counts the number of known interactions for each bait protein.
+    """Count known interactions per bait protein.
 
-    Takes a SAINT output DataFrame and processes it to count known interactions,
-    adding color coding based on whether interactions are known or not.
-
-    Args:
-        saint_output: DataFrame containing SAINT output with at least 'Bait' and 
-            'Known interaction' columns
-        replicate_colors: Dictionary with structure:
-            {
-                'contaminant': {'sample groups': {bait_name: color}},
-                'non-contaminant': {'sample groups': {bait_name: color}}
-            }
-
-    Returns:
-        pd.DataFrame: Contains columns:
-            - Bait: Name of the bait protein
-            - Known interaction: Boolean indicating if row count is for known interactors or not
-            - Prey count: Number of prey proteins
-            - Color: Color code for visualization
-
-    Example:
-        >>> colors = {
-        ...     'contaminant': {'sample groups': {'BaitA': 'red'}},
-        ...     'non-contaminant': {'sample groups': {'BaitA': 'blue'}}
-        ... }
-        >>> count_knowns(saint_df, colors)
+    :param saint_output: SAINT output with columns including ``Bait`` and ``Known interaction``.
+    :param replicate_colors: Mapping with structure ``{'contaminant': {'sample groups': {bait: color}}, 'non-contaminant': {...}}``.
+    :returns: DataFrame with columns ``Bait``, ``Known interaction``, ``Prey count``, and ``Color``.
     """
     data: pd.DataFrame = saint_output[['Bait', 'Known interaction']].\
         value_counts().to_frame().reset_index().rename(
@@ -91,27 +69,11 @@ def count_knowns(saint_output: pd.DataFrame,
 
 def do_network(saint_output_json: str, 
               plot_height: int) -> Tuple[html.Div, List[Dict[str, Any]], Dict[str, Any]]:
-    """Creates a network plot from filtered SAINT output data.
+    """Create a Cytoscape network from filtered SAINT output.
 
-    Converts JSON-formatted SAINT output into a network visualization using Cytoscape.
-
-    Args:
-        saint_output_json: JSON string containing SAINT output data in split format
-        plot_height: Height of the network plot in pixels
-
-    Returns:
-        tuple containing:
-            - html.Div: Container with the network plot
-            - list: Cytoscape elements (nodes and edges)
-            - list: Interaction data
-
-    Raises:
-        json.JSONDecodeError: If saint_output_json is not valid JSON
-        KeyError: If required columns are missing from the SAINT output
-
-    Example:
-        >>> plot, elements, interactions = do_network(saint_json, 600)
-        >>> app.layout = html.Div([plot])
+    :param saint_output_json: SAINT output in pandas split-JSON format.
+    :param plot_height: Height of the network plot in pixels.
+    :returns: Tuple of (plot container Div, cytoscape elements, interactions dict).
     """
     saint_output: pd.DataFrame = pd.read_json(
         StringIO(saint_output_json), orient='split')
@@ -126,34 +88,13 @@ def network_display_data(
     table_height: int, 
     datatype: str = 'Cytoscape'
 ) -> list[html.Label | dash_table.DataTable]:
-    """Creates a table displaying the connections between nodes in the network plot.
+    """Create a table for network connections.
 
-    Processes network node and interaction data into a tabular format for display.
-
-    Args:
-        node_data: Dictionary containing node data with structure depending on datatype:
-            For Cytoscape: {'edgesData': [{'source': str, 'target': str}, ...]}
-            For visdcc: {'edges': ['source_-_target', ...]}
-        int_data: Dictionary mapping source->target->interaction_data
-            {source: {target: [gene_name, avg_spec]}}
-        table_height: Height of the table in pixels
-        datatype: Type of network data format, either 'Cytoscape' or 'visdcc'
-
-    Returns:
-        list containing:
-            - html.Label: Table title
-            - dash_table.DataTable: Interactive table with columns:
-                - Bait: Source node
-                - Prey: Target node
-                - PreyGene: Gene name of prey
-                - AvgSpec: Average spectral count
-
-    Raises:
-        ValueError: If datatype is not 'Cytoscape' or 'visdcc'
-
-    Example:
-        >>> table_elements = network_display_data(nodes, interactions, 500)
-        >>> app.layout = html.Div(table_elements)
+    :param node_data: Node data; for Cytoscape use ``{'edgesData': [{'source','target'},...]}``; for visdcc use ``{'edges': ['source_-_target', ...]}``.
+    :param int_data: Mapping ``source -> target -> [gene_name, avg_spec]``.
+    :param table_height: Table height in pixels.
+    :param datatype: ``'Cytoscape'`` or ``'visdcc'``.
+    :returns: List containing a label and a DataTable with Bait, Prey, PreyGene, AvgSpec.
     """
     ret = [['Bait','Prey', 'PreyGene','AvgSpec']]
     if datatype == 'Cytoscape':
@@ -186,27 +127,14 @@ def known_plot(filtered_saint_input_json: str,
               rep_colors_with_cont: Dict[str, Dict[str, str]], 
               figure_defaults: Dict[str, Any], 
               isoform_agnostic: bool = False) -> Tuple[html.Div, str]:
-    """Creates a plot showing known interactions for each bait protein.
+    """Plot known interactions per bait.
 
-    Processes SAINT output data and compares it against known interactions from the database
-    to generate a visualization of known vs discovered interactions.
-
-    Args:
-        filtered_saint_input_json: JSON string containing filtered SAINT output data
-        db_file: Path to the SQLite database file
-        rep_colors_with_cont: Dictionary mapping sample groups to their display colors
-        figure_defaults: Dictionary containing default figure parameters
-        isoform_agnostic: If True, ignores protein isoform differences when matching
-
-    Returns:
-        tuple: (
-            html.Div containing the plot and related elements,
-            JSON string containing the processed SAINT output
-        )
-
-    Raises:
-        sqlite3.Error: If there is an error accessing the database
-        json.JSONDecodeError: If the input JSON is invalid
+    :param filtered_saint_input_json: Filtered SAINT output in pandas split-JSON format.
+    :param db_file: Path to SQLite database file.
+    :param rep_colors_with_cont: Mapping for contaminant and non-contaminant colors by bait.
+    :param figure_defaults: Figure defaults for plotting.
+    :param isoform_agnostic: If ``True``, match using base UniProt IDs (no isoforms).
+    :returns: Tuple of (plot Div, processed SAINT output JSON).
     """
     logger.info(f'known_plot - started: {datetime.now()}')
     upid_a_col: str = 'uniprot_id_a'
@@ -294,25 +222,12 @@ def known_plot(filtered_saint_input_json: str,
 def pca(saint_output_data: str, 
         defaults: Dict[str, Any], 
         replicate_colors: Dict[str, str]) -> Tuple[html.Div, str]:
-    """Performs Principal Component Analysis (PCA) on SAINT output data.
+    """Perform PCA on SAINT output and plot bait relationships.
 
-    Creates a PCA visualization of the relationships between different baits based on 
-    their interaction profiles.
-
-    Args:
-        saint_output_data: Dictionary containing SAINT output data in split format
-        defaults: Dictionary containing default parameters
-        replicate_colors: Dictionary mapping sample groups to their display colors
-            {sample_group: color_code}
-
-    Returns:
-        tuple: (
-            html.Div: Container with PCA plot and related elements,
-            str: JSON string containing the PCA data
-        )
-
-    Notes:
-        Returns empty plot if fewer than 2 sample groups are present.
+    :param saint_output_data: SAINT output in pandas split-JSON format.
+    :param defaults: Figure defaults.
+    :param replicate_colors: Mapping ``'sample groups'`` -> color.
+    :returns: Tuple of (plot Div, PCA data JSON). Returns empty plot if <2 baits.
     """
     data_table: pd.DataFrame = pd.read_json(StringIO(saint_output_data),orient='split')
     if len(data_table['Bait'].unique()) < 2:
@@ -359,28 +274,15 @@ def enrich(saint_output_json: str,
           keep_all: bool = False, 
           sig_threshold: float = 0.01,
           parameters_file: str = 'parameters.toml') -> Tuple[List[html.Div], Dict[str, Any], List[Any]]:
-    """Enriches SAINT output data using selected enrichment methods.
+    """Run selected enrichment methods and visualize results.
 
-    Performs enrichment analysis on the filtered interactions using specified methods
-    and creates visualizations of the results.
-
-    Args:
-        saint_output_json: JSON string containing SAINT output data
-        chosen_enrichments: List of selected enrichment method names
-        figure_defaults: Dictionary containing default figure parameters
-        keep_all: If True, keeps all enriched pathways otherwise, filters by significance. 
-        sig_threshold: Significance threshold for filtering
-
-    Returns:
-        tuple: (
-            list: HTML elements containing the enrichment results,
-            dict: Enrichment data for each method,
-            list: Additional enrichment information
-        )
-
-    Example:
-        >>> divs, data, info = enrich(params, saint_json, ['GO_BP'], defaults)
-        >>> app.layout = html.Div(divs)
+    :param saint_output_json: SAINT output in pandas split-JSON format.
+    :param chosen_enrichments: List of enrichment method names.
+    :param figure_defaults: Figure defaults for plotting.
+    :param keep_all: If ``True``, include non-significant rows meeting fold criteria.
+    :param sig_threshold: Significance cutoff.
+    :param parameters_file: Path to parameters TOML used by enrichment admin.
+    :returns: Tuple of (list of result Divs, dict of enrichment data, list of info).
     """
     div_contents:list = []
     enrichment_data: dict = {}
@@ -500,23 +402,12 @@ def enrich(saint_output_json: str,
 def map_intensity(saint_output_json: str, 
                  intensity_table_json: str, 
                  sample_groups: Dict[str, str]) -> str:
-    """Maps intensity data to SAINT output data.
+    """Map averaged intensity per group onto SAINT output rows.
 
-    Combines SAINT output with intensity measurements by matching prey proteins
-    and calculating average intensities per sample group.
-
-    Args:
-        saint_output_json: JSON string containing a pd.DataFrame with SAINT output data
-        intensity_table_json: JSON string containing a pd.DataFrame with intensity data
-        sample_groups: Dictionary mapping sample groups to their display colors
-            {sample_name: group_name}
-
-    Returns:
-        str: JSON string containing SAINT output with added intensity column
-
-    Notes:
-        Returns original SAINT output if intensity data is empty or invalid.
-        NaN values are used when intensity data is missing for a prey.
+    :param saint_output_json: SAINT output in pandas split-JSON format.
+    :param intensity_table_json: Intensity table in pandas split-JSON format.
+    :param sample_groups: Mapping bait -> group name.
+    :returns: SAINT output JSON with optional ``Averaged intensity`` column.
     """
     intensity_table: pd.DataFrame = pd.read_json(
         StringIO(intensity_table_json), orient='split')
@@ -542,19 +433,11 @@ def map_intensity(saint_output_json: str,
 
 def saint_histogram(saint_output_json: str, 
                    figure_defaults: Dict[str, Any]) -> Tuple[html.Div, str]:
-    """Creates a histogram plot from SAINT output data.
+    """Create a histogram of BFDR scores from SAINT output.
 
-    Generates a histogram visualization of BFDR scores from SAINT analysis.
-
-    Args:
-        saint_output_json: JSON string containing a pd.DataFrame with SAINT output data
-        figure_defaults: Dictionary containing default figure parameters
-
-    Returns:
-        tuple: (
-            html.Div: Container with histogram plot and related elements,
-            str: JSON string containing the histogram data
-        )
+    :param saint_output_json: SAINT output in pandas split-JSON format.
+    :param figure_defaults: Figure defaults for plotting.
+    :returns: Tuple of (histogram Div, histogram data JSON).
     """
     saint_output: pd.DataFrame = pd.read_json(
         StringIO(saint_output_json), orient='split')
@@ -566,23 +449,11 @@ def saint_histogram(saint_output_json: str,
 
 def add_bait_column(saint_output: pd.DataFrame, 
                     bait_uniprot_dict: Dict[str, str]) -> pd.DataFrame:
-    """Adds bait column to SAINT output data.
+    """Add bait UniProt and bait-self flags to SAINT output.
 
-    Processes SAINT output to add bait UniProt IDs and identify bait-bait self-interactions.
-
-    Args:
-        saint_output: DataFrame containing SAINT output data
-        bait_uniprot_dict: Dictionary mapping bait names to UniProt IDs
-            {bait_name: uniprot_id}
-
-    Returns:
-        pd.DataFrame: SAINT output with added columns:
-            - Bait uniprot: UniProt ID of the bait protein
-            - Prey is bait: Boolean indicating if prey is also used as bait
-
-    Notes:
-        Handles multiple UniProt IDs per bait (semicolon-separated).
-        Uses 'No bait uniprot' for baits not found in dictionary.
+    :param saint_output: SAINT output DataFrame with ``Bait`` and ``Prey``.
+    :param bait_uniprot_dict: Mapping bait name -> UniProt IDs (``;`` separated allowed).
+    :returns: DataFrame with ``Bait uniprot`` and ``Prey is bait`` added.
     """
     saint_output['Bait'] = [b.rsplit('_',maxsplit=1)[0] for b in saint_output['Bait'].values]
     bu_column: list = []
@@ -601,25 +472,14 @@ def add_bait_column(saint_output: pd.DataFrame,
 def saint_cmd(saint_input: Dict[str, List[List[str]]], 
              saint_tempdir: List[str], 
              session_uid: str) -> str:
-    """Runs SAINT command on SAINT input data.
+    """Run SAINTexpressSpc on prepared input files.
 
-    Creates temporary files and executes SAINTexpressSpc command for interaction scoring.
-
-    Args:
-        saint_input: Dictionary containing SAINT input data with keys:
-            - bait: List of bait information rows
-            - prey: List of prey information rows
-            - int: List of interaction data rows
-        saint_tempdir: List of directory components for temporary files
-            e.g. ['home','user','tmp'] corresponds to /home/user/tmp
-        session_uid: Unique identifier for the session
-
-    Returns:
-        str: Path to the temporary directory containing SAINT output
-
-    Raises:
-        OSError: If temporary directory creation fails
-        sh.CommandNotFound: If SAINT executable is not found
+    :param saint_input: Dict with keys ``bait``, ``prey``, ``int`` containing row lists.
+    :param saint_tempdir: List of path segments for temp dir base.
+    :param session_uid: Unique identifier to isolate run directory.
+    :returns: Path to directory containing ``list.txt`` (or dummy if SAINT missing).
+    :raises OSError: On temp dir creation failure.
+    :raises sh.CommandNotFound: If SAINTexpressSpc is not available.
     """
     temp_dir: str = os.path.join(*(saint_tempdir))
     temp_dir = os.path.join(temp_dir, session_uid)
@@ -654,8 +514,16 @@ def saint_cmd(saint_input: Dict[str, List[List[str]]],
             create_dummy_list_txt(temp_dir, saint_input)
     return temp_dir
 
-# Horrible code, it works and hopefully will not be needed much.
 def create_dummy_list_txt(temp_dir: str, saint_input: Dict[str, List[List[str]]]) -> None:
+    """Create a dummy SAINT ``list.txt`` when SAINTexpressSpc is unavailable.
+
+    Generates a plausible-looking SAINT output file using random values so that
+    downstream steps can proceed in demo or fallback mode.
+
+    :param temp_dir: Target directory to write ``list.txt`` and marker file.
+    :param saint_input: SAINT input dict with keys ``bait``, ``prey``, ``int``.
+    :returns: None
+    """
     baits = {}
     baitmap = {}
     for baitrun, group, ctrl in saint_input['bait']:
@@ -723,24 +591,14 @@ def run_saint(saint_input: Dict[str, List[List[str]]],
              session_uid: str, 
              bait_uniprots: Dict[str, str], 
              cleanup: bool = True) -> Tuple[str, bool]:
-    """Runs SAINT analysis on interaction data.
+    """Execute SAINT pipeline and return processed output.
 
-    Executes SAINT analysis pipeline and processes the results.
-
-    Args:
-        saint_input: Dictionary containing SAINT input data
-        saint_tempdir: List of directory components for temporary files
-            e.g. ['home','user','tmp'] corresponds to /home/user/tmp
-        session_uid: Unique identifier for the session
-        bait_uniprots: Dictionary mapping baits to UniProt IDs
-        cleanup: If True, removes temporary files after analysis
-
-    Returns:
-        str: JSON string containing processed SAINT output DataFrame
-            Returns error message if SAINT execution fails
-
-    Notes:
-        Cannot use logging due to Celery integration - uses print for logging.
+    :param saint_input: SAINT input dict.
+    :param saint_tempdir: Temp directory base as path segments.
+    :param session_uid: Unique run identifier.
+    :param bait_uniprots: Mapping bait -> UniProt IDs.
+    :param cleanup: If ``True``, remove temp files after success.
+    :returns: Tuple of (output JSON or error string, saint_missing_flag).
     """
     # Can not use logging in this function, since it's called from a background_callback_manager using celery, and logging will lead to a hang.
     # Instead, we can use print statements, and they will show up as WARNINGS in celery log.
@@ -766,15 +624,11 @@ def run_saint(saint_input: Dict[str, List[List[str]]],
 
 def prepare_crapome(db_conn: sqlite3.Connection, 
                    crapomes: List[str]) -> pd.DataFrame:
-    """
-    Prepares crapome data for SAINT analysis.
+    """Prepare CRAPome tables for downstream filtering.
 
-    Args:
-        db_conn: SQLite database connection
-        crapomes: List of crapome names
-
-    Returns:
-        DataFrame: DataFrame containing the processed crapome data
+    :param db_conn: SQLite connection.
+    :param crapomes: List of CRAPome table names (possibly with suffixes).
+    :returns: DataFrame with per-CRAPome frequency and spc averages plus max frequency.
     """
     crapomes = [c.rsplit('_(',maxsplit=1)[0] for c in crapomes]
     crapome_tables: list = [
@@ -803,27 +657,15 @@ def prepare_controls(input_data_dict: Dict[str, Any],
                     db_conn: sqlite3.Connection, 
                     select_most_similar_only: bool = False, 
                     top_n: int = 30) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Prepares control data for SAINT analysis.
+    """Assemble uploaded and DB controls for SAINT.
 
-    Combines uploaded controls with database controls and processes them for SAINT.
-
-    Args:
-        input_data_dict: Dictionary containing input data and sample groups
-        uploaded_controls: List of uploaded control sample names
-        additional_controls: List of additional control names from database
-        db_conn: SQLite database connection
-        select_most_similar_only: If True, selects most similar controls
-        top_n: Number of top controls to keep when similarity filtering
-
-    Returns:
-        tuple: (
-            pd.DataFrame: Processed SPC table without control columns,
-            pd.DataFrame: Combined control data table
-        )
-
-    Notes:
-        When select_most_similar_only is enabled, only the top_n most similar 
-        controls are kept.
+    :param input_data_dict: Inputs including sample groups and SPC data tables.
+    :param uploaded_controls: Names of uploaded control groups.
+    :param additional_controls: Additional DB control table names.
+    :param db_conn: SQLite connection.
+    :param select_most_similar_only: If ``True``, keep only most similar controls.
+    :param top_n: Number of controls to keep per-sample when filtering.
+    :returns: Tuple of (SPC table without control columns, combined control table).
     """
     
     logger.debug(f'additional controls: {additional_controls}')
@@ -864,21 +706,12 @@ def prepare_controls(input_data_dict: Dict[str, Any],
 def filter_controls_by_similarity(spc_table: pd.DataFrame, 
                    controls: List[pd.DataFrame], 
                    top_n: int) -> pd.DataFrame:
-    """Filters controls based on similarity to sample runs.
+    """Filter control runs by similarity to experiment runs.
 
-    Selects the most similar control samples by comparing their spectral count profiles
-    to the experimental samples.
-
-    Args:
-        spc_table: DataFrame containing spectral count data for samples
-        controls: List of control DataFrames to be filtered
-        top_n: Number of most similar controls to keep
-
-    Returns:
-        pd.DataFrame: Filtered control table containing only the top_n most similar controls
-
-    Example:
-        >>> filtered_controls = filter_controls(samples_df, [control1_df, control2_df], 30)
+    :param spc_table: Spectral count table for experiment samples.
+    :param controls: List of candidate control tables.
+    :param top_n: Number of top similar controls to keep per sample.
+    :returns: Filtered control table with selected columns.
     """
     control_table: pd.DataFrame = pd.concat(controls, axis=1).T.groupby(level=0).mean().T
     chosen_controls: list = []
@@ -891,15 +724,11 @@ def filter_controls_by_similarity(spc_table: pd.DataFrame,
 
 def add_crapome(saint_output_json: str, 
                 crapome_json: str) -> str:
-    """
-    Adds crapome data to SAINT output data.
+    """Merge CRAPome annotations into SAINT output JSON.
 
-    Args:
-        saint_output_json: JSON string containing SAINT output data
-        crapome_json: JSON string containing crapome data
-
-    Returns:
-        str: JSON string containing the processed SAINT output
+    :param saint_output_json: SAINT output in pandas split-JSON format.
+    :param crapome_json: CRAPome table in pandas split-JSON format.
+    :returns: Merged SAINT output JSON.
     """
     if 'Saint failed.' in saint_output_json:
         return saint_output_json
@@ -920,28 +749,13 @@ def make_saint_dict(spc_table: pd.DataFrame,
                    rev_sample_groups: Dict[str, str], 
                    control_table: pd.DataFrame, 
                    protein_table: pd.DataFrame) -> Dict[str, List[List[str]]]:
-    """Creates a dictionary containing SAINT input data.
+    """Create SAINT input dict from SPC and metadata tables.
 
-    Formats spectral count data and metadata into the structure required by SAINT.
-
-    Args:
-        spc_table: DataFrame containing spectral count data
-        rev_sample_groups: Dictionary mapping samples to their groups
-        control_table: DataFrame containing control data
-        protein_table: DataFrame containing protein information including:
-            - uniprot_id: UniProt identifier
-            - length: Protein length
-            - gene_name: Gene name
-
-    Returns:
-        dict: Dictionary with SAINT input data structure:
-            - bait: List of [bait_name, group, type] lists
-            - prey: List of [uniprot_id, length, gene_name] lists
-            - int: List of [sample, group, protein, value] lists
-
-    Notes:
-        Logs warnings when protein length information is missing.
-        Uses default length of 200 for missing proteins.
+    :param spc_table: Spectral count data.
+    :param rev_sample_groups: Mapping sample -> group.
+    :param control_table: Control spectral count table.
+    :param protein_table: Protein info with columns ``uniprot_id``, ``length``, ``gene_name``.
+    :returns: Dict with keys ``bait``, ``prey``, ``int`` as lists of rows.
     """
     protein_lenghts_and_names = {}
     logger.info(
@@ -1007,25 +821,13 @@ def do_ms_microscopy(saint_output_json: str,
                     db_file: str, 
                     figure_defaults: Dict[str, Any], 
                     version: str = 'v1.0') -> Tuple[html.Div, str]:
-    """Performs MS-microscopy analysis on SAINT output data.
+    """Perform MS-microscopy localization analysis and visualize.
 
-    Analyzes protein localization patterns using MS-microscopy reference data
-    and creates visualization plots.
-
-    Args:
-        saint_output_json: JSON string containing SAINT output data
-        db_file: Path to the SQLite database file containing MS-microscopy references
-        figure_defaults: Dictionary containing default figure parameters
-        version: Version string for MS-microscopy analysis
-
-    Returns:
-        tuple: (
-            html.Div: Container with MS-microscopy plots and related elements,
-            str: JSON string containing the MS-microscopy results
-        )
-
-    Notes:
-        Creates both polar plots for individual baits and a heatmap for overall results.
+    :param saint_output_json: SAINT output in pandas split-JSON format.
+    :param db_file: SQLite DB path for MS-microscopy reference.
+    :param figure_defaults: Figure defaults.
+    :param version: Analysis version tag.
+    :returns: Tuple of (plots Div, results JSON).
     """
     saint_output: pd.DataFrame = pd.read_json(
         StringIO(saint_output_json), orient='split'
@@ -1106,29 +908,16 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
                            db_file: str, 
                            select_most_similar_only: bool, 
                            n_controls: int) -> Tuple[html.Div, Dict[str, List[List[str]]], str]:
-    """Generates a container for SAINT analysis.
+    """Build SAINT UI container and prepare inputs.
 
-    Prepares input data, controls, and CRAPome data for SAINT analysis and creates
-    the necessary UI container.
-
-    Args:
-        input_data_dict: Dictionary containing input data and metadata
-        uploaded_controls: List of uploaded control sample names
-        additional_controls: List of additional control names to include
-        crapomes: List of CRAPome datasets to use for filtering
-        db_file: Path to the SQLite database file
-        select_most_similar_only: If True, selects most similar controls
-        n_controls: Number of controls to keep when similarity filtering
-
-    Returns:
-        tuple: (
-            html.Div: Container for SAINT analysis interface,
-            dict: SAINT input data dictionary,
-            str: JSON string containing processed CRAPome data
-        )
-
-    Notes:
-        Returns a simple message if no spectral count data is available.
+    :param input_data_dict: Input data and metadata including sample groups.
+    :param uploaded_controls: Uploaded control group names.
+    :param additional_controls: Additional DB control names.
+    :param crapomes: CRAPome dataset names.
+    :param db_file: SQLite database path.
+    :param select_most_similar_only: If ``True``, filter controls by similarity.
+    :param n_controls: Number of controls to keep when filtering.
+    :returns: Tuple of (container Div, SAINT input dict, CRAPome JSON).
     """
     if '["No data"]' in input_data_dict['data tables']['spc']:
         return (html.Div(['No spectral count data in input, cannot run SAINT.']),{},'')
@@ -1189,19 +978,14 @@ def saint_filtering(saint_output_json: str,
                    crapome_percentage: float, 
                    crapome_fc: float, 
                    do_rescue: bool = False) -> str:
-    """
-    Filters SAINT output data based on BFDR threshold and crapome percentage/crapome fold change.
-    Crapome percentage determines, how frequently a given bait should be seen in crapome runs to be considered a contaminant. These will be dropped, unless their spectral count is higher than crapome average*crapome_fc
+    """Filter SAINT output by BFDR and CRAPome thresholds.
 
-    Args:
-        saint_output_json: JSON string containing a dataframe with SAINT output data
-        bfdr_threshold: BFDR threshold for filtering
-        crapome_percentage: Crapome percentage for filtering
-        crapome_fc: Crapome fold change for filtering
-        do_rescue: If True, uses preys that pass the filter in one bait should be rescued in the others, regardless of their spectral count.
-
-    Returns:
-        str: JSON string containing the filtered SAINT output
+    :param saint_output_json: SAINT output in pandas split-JSON format.
+    :param bfdr_threshold: BFDR threshold for filtering.
+    :param crapome_percentage: CRAPome frequency threshold.
+    :param crapome_fc: CRAPome fold-change threshold for rescue.
+    :param do_rescue: If ``True``, keep preys that pass in any bait.
+    :returns: Filtered SAINT output JSON.
     """
     saint_output: pd.DataFrame = pd.read_json(
         StringIO(saint_output_json), orient='split')
@@ -1270,23 +1054,10 @@ def saint_filtering(saint_output_json: str,
     return filtered_saint_output.reset_index().drop(columns=['index']).to_json(orient='split')
 
 def get_saint_matrix(saint_data_json: str) -> pd.DataFrame:
-    """Retrieves the SAINT matrix from SAINT output data.
+    """Convert SAINT output JSON to prey x bait matrix of AvgSpec.
 
-    Converts SAINT output JSON into a matrix format with preys as rows and baits as columns.
-
-    Args:
-        saint_data_json: JSON string containing SAINT output data in split format
-
-    Returns:
-        pd.DataFrame: Matrix containing average spectral counts with:
-            - Rows: Prey proteins
-            - Columns: Bait proteins
-            - Values: Average spectral counts
-
-    Example:
-        >>> matrix = get_saint_matrix(saint_json)
-        >>> print(matrix.shape)
-        (100, 5)  # 100 preys, 5 baits
+    :param saint_data_json: SAINT output in pandas split-JSON format.
+    :returns: Pivot table DataFrame (rows=Prey, cols=Bait, values=AvgSpec).
     """
     df = pd.read_json(StringIO(saint_data_json),orient='split')
     return df.pivot_table(index='Prey',columns='Bait',values='AvgSpec')
@@ -1294,25 +1065,12 @@ def get_saint_matrix(saint_data_json: str) -> pd.DataFrame:
 def saint_counts(filtered_output_json: str, 
                 figure_defaults: Dict[str, Any], 
                 replicate_colors: Dict[str, str]) -> Tuple[html.Div, str]:
-    """Counts the number of preys for each bait protein.
+    """Count prey per bait and plot as a bar chart.
 
-    Creates a bar plot showing the number of identified prey proteins per bait.
-
-    Args:
-        filtered_output_json: JSON string containing filtered SAINT output data
-        figure_defaults: Dictionary containing default figure parameters
-        replicate_colors: Dictionary mapping sample groups to their display colors
-            {sample_group: color_code}
-
-    Returns:
-        tuple: (
-            bar_graph.bar_plot: Plot showing prey counts per bait,
-            str: JSON string containing the count data
-        )
-
-    Example:
-        >>> plot, data_json = saint_counts(filtered_json, defaults, colors)
-        >>> app.layout = html.Div([plot])
+    :param filtered_output_json: Filtered SAINT output in pandas split-JSON format.
+    :param figure_defaults: Figure defaults for plotting.
+    :param replicate_colors: Mapping ``'sample groups'`` -> color.
+    :returns: Tuple of (bar plot Div, count data JSON).
     """
     count_df: pd.DataFrame = pd.read_json(StringIO(filtered_output_json),orient='split')['Bait'].\
         value_counts().\

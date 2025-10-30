@@ -1,3 +1,9 @@
+"""
+Heatmap utilities, including clustered correlation heatmaps.
+
+Provides a dendrogram-coupled clustergram builder and a simple imshow
+heatmap factory for numeric matrices.
+"""
 from dash.dcc import Graph
 from plotly import graph_objects as go
 from plotly import express as px
@@ -12,6 +18,15 @@ from scipy.cluster.hierarchy import linkage, leaves_list
 
 
 def draw_clustergram(plot_data, defaults, color_map:list|None = None, **kwargs) -> go.Figure:
+    """Draw a clustered correlation heatmap with dendrograms.
+
+    :param plot_data: Square DataFrame-like correlation matrix (symmetric).
+    :param defaults: Dict with ``height`` and ``width``.
+    :param color_map: Plotly colorscale list; defaults to white→red.
+    :param kwargs: Optional ``zmin`` and ``zmax`` overrides.
+    :returns: Plotly ``Figure`` containing the clustergram.
+    :raises ValueError: If input is not square.
+    """
     method: str = "average"
     if color_map is None:
         color_map = [
@@ -142,6 +157,18 @@ def draw_clustergram(plot_data, defaults, color_map:list|None = None, **kwargs) 
     return fig
 
 def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict, cmap: str, autorange: bool = False, symmetrical: bool = True, cluster: str = None) -> Graph:
+    """Create a simple heatmap as a Dash ``Graph``.
+
+    :param matrix_df: DataFrame with numeric values to plot.
+    :param plot_name: Name suffix for component ID.
+    :param value_name: Colorbar label.
+    :param defaults: Dict with ``height``, ``width``, ``config``.
+    :param cmap: Plotly continuous color scale name.
+    :param autorange: If ``True``, derive zmin from data with padding.
+    :param symmetrical: If ``True``, use symmetric min/max around zero.
+    :param cluster: If not ``None``, apply clustering via ``matrix_functions``.
+    :returns: Dash ``Graph`` component with the heatmap figure.
+    """
     zmi: int = 0
     if autorange:
         zmi = matrix_df.min().min()

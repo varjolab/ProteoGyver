@@ -11,6 +11,10 @@ dash.register_page(__name__, path=f'/user_guide')
 logger.info(f'{__name__} loading')
 
 def announcements():
+    """Render announcements markdown page.
+
+    :returns: Div containing announcements markdown content.
+    """
     announcements:str = ''
     umstyle:dict = GENERIC_PAGE.copy()
     umstyle['max-width']='800px'
@@ -26,6 +30,10 @@ def announcements():
     ], style=umstyle)
 
 def other_tools():
+    """Render other tools markdown page.
+
+    :returns: Div containing other tools markdown content.
+    """
     manual_contents:str = ''
     umstyle:dict = GENERIC_PAGE.copy()
     umstyle['max-width']='800px'
@@ -41,6 +49,10 @@ def other_tools():
 
 
 def user_manual():
+    """Render the user manual markdown page.
+
+    :returns: Div containing user guide markdown content.
+    """
     manual_contents:str = ''
     umstyle:dict = GENERIC_PAGE.copy()
     umstyle['max-width']='800px'

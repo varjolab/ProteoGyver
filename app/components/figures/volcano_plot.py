@@ -1,3 +1,9 @@
+"""
+Volcano plots and significant-difference heatmaps.
+
+Provides a Plotly volcano plot builder and utilities to generate a set
+of volcano graphs and an aggregate heatmap of significant changes.
+"""
 from pandas import DataFrame
 from dash import html, dcc
 import numpy as np
@@ -11,18 +17,16 @@ def volcano_plot(
     data_table, defaults, title: str = None, fc_axis_min_max: float = 2, highlight_only: list = None,
     adj_p_threshold: float = 0.01, fc_threshold: float = 1.0
 ) -> tuple:
-    """Draws a Volcano plot of the given data_table
+    """Draw a volcano plot from a differential results table.
 
-    :param data_table: data table from stats.differential. Should only contain one comparison.
-    :param defaults: dictionary with height and width for the figure.
-    :param title: Figure title
-    :param fc_axis_min_max: minimum for the maximum value of fold change axis. Default of 2 is used to keep the plot from becoming ridiculously narrow
-    :param adj_p_threshold: threshold of significance for the calculated adjusted p value (Default 0.01)
-    :param fc_threshold: threshold of significance for the log2 fold change. Proteins with fold change of <-fc_threshold or >fc_threshold are considered significant (Default 1)
-
-    :param highlight_only: only highlight significant ones that are also in this list
-
-    :returns: volcano_plot: go.Figure
+    :param data_table: Data from ``stats.differential``; only one comparison expected.
+    :param defaults: Dict with ``height`` and ``width`` for the figure.
+    :param title: Figure title.
+    :param fc_axis_min_max: Minimum absolute FC range to avoid narrow plots.
+    :param adj_p_threshold: Adjusted p-value threshold (q-value).
+    :param fc_threshold: Absolute log2 fold change threshold for significance.
+    :param highlight_only: Optional set/list; only significant points with names in this set are labeled.
+    :returns: Plotly ``Figure``.
     """
     if highlight_only is None:
         highlight_only = set(data_table['Name'].values)
@@ -68,6 +72,15 @@ def volcano_plot(
 
 
 def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, p_thr: float, id_prefix: str) -> html.Div:
+    """Generate volcano plots and a heatmap for significant changes.
+
+    :param significant_data: Long-form DataFrame with at least ``Sample``, ``Control``, ``fold_change``, ``p_value_adj`` columns.
+    :param defaults: Dict with figure defaults and component config.
+    :param fc_thr: Absolute log2 fold change threshold for significance.
+    :param p_thr: Adjusted p-value threshold.
+    :param id_prefix: Prefix used for generated component IDs.
+    :returns: ``dash.html.Div`` containing headers, plots, and legends.
+    """
     return_div_contents: list = []
     significant_data = significant_data.sort_values(by=['Sample','Control'])
     for control in significant_data['Control'].unique():

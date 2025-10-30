@@ -1,8 +1,23 @@
+"""
+Coefficient of variation (CV) plot per sample group.
+
+Computes per-group mean, std and CV, and renders a violin plot with mean
+annotations for each group.
+"""
 import plotly.graph_objects as go
 from dash.dcc import Graph
 import pandas as pd
 
 def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: dict, defaults: dict, id_name: str):
+    """Create a CV violin plot across sample groups.
+
+    :param raw_data: DataFrame of values; columns referenced by ``sample_groups``.
+    :param sample_groups: Mapping group -> list of column names.
+    :param replicate_colors: Mapping with ``'sample groups'`` color strings per group.
+    :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
+    :param id_name: Component ID for the ``Graph``.
+    :returns: Tuple ``(Graph, out_data)`` where out_data contains group stats.
+    """
     # Dictionary to store CVs for each sample group
     group_cvs = {}
     group_means = {}

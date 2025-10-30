@@ -64,13 +64,10 @@ layout: html.Div = html.Div([
 #TODO: implement clearing.
 #TODO: Alternatively we could load the data store elements at this point, except for the ones needed to ingest files up to this point.
 def clear_data_stores(begin_clicks: Optional[int]) -> str:
-    """Clears all data stores before analysis begins.
-    
-    Args:
-        begin_clicks (int): Number of times the begin analysis button has been clicked
-        
-    Returns:
-        str: Empty string to clear notification
+    """Clear all data stores before analysis begins.
+
+    :param begin_clicks: Number of clicks on the begin analysis button.
+    :returns: Empty string to clear notification.
     """
     #logger.info(
     #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
@@ -96,21 +93,13 @@ def handle_uploaded_data_table(
     mod_date: int, 
     current_upload_style: Dict[str, Any],
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], list, bool]:
-    """Parses uploaded data table and sends data to data stores.
-    
-    Args:
-        file_contents: Contents of the uploaded file
-        file_name (str): Name of the uploaded file
-        mod_date: Last modified timestamp of the file
-        current_upload_style (dict): Current style of the upload success indicator
-        
-    Returns:
-        tuple: Contains:
-            - Updated upload success style
-            - Data table info for storage
-            - Data table contents for storage
-            - List of warnings
-            - Boolean indicating if warnings div should be hidden
+    """Parse uploaded data table and populate stores.
+
+    :param file_contents: Uploaded file contents.
+    :param file_name: Uploaded filename.
+    :param mod_date: File modification timestamp.
+    :param current_upload_style: Upload success indicator style.
+    :returns: Tuple of (upload style, data table info, data table contents, warnings, hide_warnings).
     """
     if file_contents is not None:
         upload_style, info, tables, warning_list = parsing.parse_data_file(
@@ -146,20 +135,13 @@ def handle_uploaded_sample_table(
     mod_date: int,
     current_upload_style: Dict[str, Any],
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], list, bool]:
-    """Parses uploaded sample table and sends data to data stores.
-    
-    Args:
-        file_contents: Contents of the uploaded file
-        file_name (str): Name of the uploaded file
-        mod_date: Last modified timestamp of the file
-        current_upload_style (dict): Current style of the upload success indicator
-    Returns:
-        tuple: Contains:
-            - Updated upload success style
-            - Sample table info for storage
-            - Sample table contents for storage
-            - List of warnings
-            - Boolean indicating if warnings div should be hidden
+    """Parse uploaded sample table and populate stores.
+
+    :param file_contents: Uploaded file contents.
+    :param file_name: Uploaded filename.
+    :param mod_date: File modification timestamp.
+    :param current_upload_style: Upload success indicator style.
+    :returns: Tuple of (upload style, sample table info, sample table contents, warnings, hide_warnings).
     """
     if file_contents is not None:
         upload_style, info, table_data = parsing.parse_sample_table(file_contents, file_name, mod_date, current_upload_style)
@@ -205,23 +187,16 @@ def validate_data(
     figure_template: str,
     additional_options: Optional[List[str]]
 ) -> Tuple[Dict[str, Any], bool, list[html.Div], bool]:
-    """Validates and formats uploaded data for analysis.
-    
-    Args:
-        _ (str): Placeholder for start analysis notifier
-        data_tables: Uploaded data tables
-        data_info: Information about uploaded data tables
-        expdes_table: Experimental design table
-        expdes_info: Information about experimental design
-        figure_template (str): Selected figure template
-        additional_options (list): Selected additional processing options
-        
-    Returns:
-        tuple: Contains:
-            - Formatted data dictionary
-            - Boolean indicating if download button should be disabled
-            - List of warnings for warnings div
-            - Boolean indicating if warnings div should be hidden
+    """Validate and format uploaded data for analysis.
+
+    :param _: Placeholder for start analysis notifier.
+    :param data_tables: Uploaded data tables.
+    :param data_info: Info about uploaded data tables.
+    :param expdes_table: Experimental design table.
+    :param expdes_info: Info about experimental design.
+    :param figure_template: Selected figure template.
+    :param additional_options: Selected additional processing options.
+    :returns: Tuple of (data_dict, disable_download, warnings, hide_warnings).
     """
     logger.info(f'Validating data: {datetime.now()}')
     cont: List[str] = []
@@ -264,14 +239,11 @@ def remove_samples(
     discard_samples_list: Optional[List[str]], 
     data_dictionary: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Removes selected samples from the data dictionary.
-    
-    Args:
-        discard_samples_list (list): List of sample names to remove
-        data_dictionary (dict): Current data dictionary containing all samples
-        
-    Returns:
-        dict: Updated data dictionary with selected samples removed
+    """Remove selected samples from the data dictionary.
+
+    :param discard_samples_list: Sample names to remove.
+    :param data_dictionary: Current data dictionary.
+    :returns: Updated data dictionary without the selected samples.
     """
     return parsing.delete_samples(discard_samples_list, data_dictionary)
 
@@ -285,17 +257,10 @@ def remove_samples(
     prevent_initial_call=True
 )
 def create_qc_area(_: Dict[str, Any]) -> Tuple[html.Div, bool, str, str]:
-    """Creates the quality control analysis area and shows sample discard button.
-    
-    Args:
-        _ (dict): Placeholder for replicate colors data store
-        
-    Returns:
-        tuple: Contains:
-            - QC area UI components
-            - Boolean for sample discard button visibility
-            - Empty string for workflow input div
-            - Empty string for workflow div
+    """Create the quality control area and show the discard button.
+
+    :param _: Placeholder for replicate colors data store.
+    :returns: Tuple of (QC area, discard button hidden flag, workflow input, workflow div).
     """
     return (ui.qc_area(), False,'','')
 
@@ -308,15 +273,10 @@ def create_qc_area(_: Dict[str, Any]) -> Tuple[html.Div, bool, str, str]:
     prevent_initial_call=True
 )
 def assign_replicate_colors(data_dictionary: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    """Assigns colors to sample replicates for visualization.
-    
-    Args:
-        data_dictionary (dict): Data dictionary containing sample information
-        
-    Returns:
-        dict: Two color dictionaries:
-            - One for regular samples
-            - One including contaminant colors
+    """Assign colors to sample replicates for visualization.
+
+    :param data_dictionary: Data dictionary with sample groups.
+    :returns: Tuple of (colors for samples, colors incl. contaminants).
     """
     return get_assigned_colors(data_dictionary['sample groups']['norm'])
 
@@ -332,20 +292,14 @@ def assign_replicate_colors(data_dictionary: Dict[str, Any]) -> Tuple[Dict[str, 
     prevent_initial_call=True
 )
 def check_inputs(*args: Any) -> bool:
-    """Validates that all required inputs are present before analysis can begin.
+    """Validate that all required inputs are present before analysis.
 
-    Returns True, if invalid so that the value can be used directly as input for dis/abling the begin analysis button.
-    
-    Args:
-        *args: Variable length argument list containing:
-            - Data table info
-            - Sample table info
-            - Selected workflow
-            - Selected figure theme
-            - Upload success styles
-            
-    Returns:
-        bool: True if inputs are invalid, False if valid
+    Returns True if inputs are invalid, to directly control the disabled state
+    of the "Begin analysis" button.
+
+    :param args: Data table info, sample table info, selected workflow, selected
+        figure theme, and upload success styles.
+    :returns: True if inputs are invalid, False if valid.
     """
     return parsing.validate_basic_inputs(*args)
 
@@ -362,15 +316,12 @@ def open_discard_samples_modal(
     count_plot: List[Any], 
     data_dictionary: Dict[str, Any]
 ) -> html.Div:
-    """Creates modal dialog for selecting samples to discard.
-    
-    Args:
-        _ (int): Number of clicks on discard samples button
-        count_plot (list): Current count plot components
-        data_dictionary (dict): Data dictionary containing sample information
-        
-    Returns:
-        tuple: Contains checklist UI components for sample selection
+    """Create modal contents for selecting samples to discard.
+
+    :param _: Number of clicks on discard samples button.
+    :param count_plot: Current count plot components.
+    :param data_dictionary: Data dictionary containing sample information.
+    :returns: Checklist UI components for sample selection.
     """
     return ui.discard_samples_checklist(
         count_plot,
@@ -386,15 +337,12 @@ def open_discard_samples_modal(
     prevent_initial_call=True
 )
 def toggle_discard_modal(n1: Optional[int], n2: Optional[int], is_open: bool) -> bool:
-    """Toggles visibility of the discard samples modal dialog.
-    
-    Args:
-        n1 (int): Number of clicks on discard samples button
-        n2 (int): Number of clicks on done discarding button
-        is_open (bool): Current modal visibility state
-        
-    Returns:
-        bool: New modal visibility state
+    """Toggle visibility of the discard samples modal dialog.
+
+    :param n1: Clicks on discard samples button.
+    :param n2: Clicks on done discarding button.
+    :param is_open: Current modal visibility state.
+    :returns: New modal visibility state.
     """
     if (n1 > 0) or (n2 > 0):
         return not is_open
@@ -408,14 +356,11 @@ def toggle_discard_modal(n1: Optional[int], n2: Optional[int], is_open: bool) ->
     prevent_initial_call=True
 )
 def add_samples_to_discarded(n_clicks: Optional[int], chosen_samples: List[str]) -> Union[List[str], Any]:
-    """Adds selected samples to the list of discarded samples.
-    
-    Args:
-        n_clicks (int): Number of clicks on done discarding button
-        chosen_samples (list): List of sample names selected for discarding
-        
-    Returns:
-        list: Updated list of discarded samples or no update if conditions not met
+    """Add selected samples to the list of discarded samples.
+
+    :param n_clicks: Number of clicks on done discarding button.
+    :param chosen_samples: Sample names selected for discarding.
+    :returns: Updated list of discarded samples, or no_update if not triggered.
     """
     if n_clicks is None:
         return no_update
@@ -433,17 +378,12 @@ def add_samples_to_discarded(n_clicks: Optional[int], chosen_samples: List[str])
     prevent_initial_call=True
 )
 def parse_chromatogram_data(_: Any, data_dictionary: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates chromatogram plot data from sample information.
-    
-    Args:
-        _ (list): Placeholder for QC area children
-        data_dictionary (dict): Data dictionary containing sample information
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - TIC plot components
-            - TIC data for storage
+    """Generate chromatogram plot data from sample information.
+
+    :param _: Trigger placeholder from QC area.
+    :param data_dictionary: Data dictionary containing sample information.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (TIC plot components, TIC data for storage).
     """
     return qc_analysis.parse_tic_data(
         data_dictionary['data tables']['experimental design'],
@@ -458,14 +398,11 @@ def parse_chromatogram_data(_: Any, data_dictionary: Dict[str, Any], replicate_c
     Input('qc-tic-dropdown','value')
 ) 
 def plot_tic(chromatogram_data: Dict[str, Any], graph_type: str) -> go.Figure:
-    """Creates chromatogram plot figure.
-    
-    Args:
-        tic_data (dict): Processed chromatogram data
-        graph_type (str): Type of chromatogram graph to display
-        
-    Returns:
-        dict: Plotly figure object for chromatogram plot
+    """Create a chromatogram plot figure.
+
+    :param chromatogram_data: Processed chromatogram data.
+    :param graph_type: Type of chromatogram graph to display.
+    :returns: Plotly Figure for the chromatogram plot.
     """
     return tic_graph.tic_figure(parameters['Figure defaults']['full-height'], chromatogram_data, graph_type)
 
@@ -482,17 +419,12 @@ def count_plot(
     data_dictionary: Dict[str, Any], 
     replicate_colors: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates protein count plot for samples.
-    
-    Args:
-        _ (list): Placeholder for TIC plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        replicate_colors (dict): Color assignments for samples including contaminants
-        
-    Returns:
-        tuple: Contains:
-            - Count plot components
-            - Count data for storage
+    """Generate protein count plot for samples.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :param replicate_colors: Color assignments for samples including contaminants.
+    :returns: Tuple of (count plot components, count data for storage).
     """
     return qc_analysis.count_plot(
         data_dictionary['data tables']['with-contaminants'][data_dictionary['data tables']['table to use']],
@@ -512,16 +444,11 @@ def common_proteins_plot(
     _: Any, 
     data_dictionary: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates plot showing common proteins across samples.
-    
-    Args:
-        _ (list): Placeholder for count plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        
-    Returns:
-        tuple: Contains:
-            - Common proteins plot components
-            - Common proteins data for storage
+    """Generate plot showing common proteins across samples.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :returns: Tuple of (common proteins plot components, common proteins data).
     """
     return qc_analysis.common_proteins(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
@@ -544,16 +471,11 @@ def coverage_plot(
     _: Any, 
     data_dictionary: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates protein coverage plot across samples.
-    
-    Args:
-        _ (list): Placeholder for common proteins plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        
-    Returns:
-        tuple: Contains:
-            - Coverage plot components
-            - Coverage data for storage
+    """Generate protein coverage plot across samples.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :returns: Tuple of (coverage plot components, coverage data for storage).
     """
     return qc_analysis.coverage_plot(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
@@ -571,16 +493,11 @@ def reproducibility_plot(
     _: Any, 
     data_dictionary: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates plot showing reproducibility between sample replicates.
-    
-    Args:
-        _ (list): Placeholder for coverage plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        
-    Returns:
-        tuple: Contains:
-            - Reproducibility plot components
-            - Reproducibility data for storage
+    """Generate reproducibility plot between sample replicates.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :returns: Tuple of (reproducibility plot components, reproducibility data).
     """
     return qc_analysis.reproducibility_plot(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
@@ -602,17 +519,12 @@ def missing_plot(
     data_dictionary: Dict[str, Any], 
     replicate_colors: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates plot showing missing values across samples.
-    
-    Args:
-        _ (list): Placeholder for reproducibility plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - Missing values plot components
-            - Missing values data for storage
+    """Generate missing values plot across samples.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (missing values plot components, missing values data).
     """
     return qc_analysis.missing_plot(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
@@ -633,17 +545,12 @@ def sum_plot(
     data_dictionary: Dict[str, Any], 
     replicate_colors: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates plot showing sum of intensities across samples.
-    
-    Args:
-        _ (list): Placeholder for missing plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - Sum plot components
-            - Sum data for storage
+    """Generate plot showing sum of intensities across samples.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (sum plot components, sum data).
     """
     return qc_analysis.sum_plot(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
@@ -664,17 +571,12 @@ def mean_plot(
     data_dictionary: Dict[str, Any], 
     replicate_colors: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates plot showing mean intensities across samples.
-    
-    Args:
-        _ (list): Placeholder for sum plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - Mean plot components
-            - Mean data for storage
+    """Generate plot showing mean intensities across samples.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (mean plot components, mean data).
     """
     return qc_analysis.mean_plot(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
@@ -695,17 +597,12 @@ def distribution_plot(
     data_dictionary: Dict[str, Any], 
     replicate_colors: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Generates plot showing distribution of intensities across samples.
-    
-    Args:
-        _ (list): Placeholder for mean plot children
-        data_dictionary (dict): Data dictionary containing sample information
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - Distribution plot components
-            - Distribution data for storage
+    """Generate plot showing distribution of intensities across samples.
+
+    :param _: Trigger placeholder from upstream callback.
+    :param data_dictionary: Data dictionary containing sample information.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (distribution plot components, distribution data).
     """
     return qc_analysis.distribution_plot(
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
@@ -725,14 +622,11 @@ def pass_selected_groups_to_data_store(
     _: Optional[int], 
     selection: List[str]
 ) -> Dict[str, List[str]]:
-    """Stores selected sample groups for commonality plot visibility.
-    
-    Args:
-        _ (int): Number of clicks on update plot button
-        selection (list): List of selected sample groups
-        
-    Returns:
-        dict: Dictionary containing selected groups for visibility
+    """Store selected sample groups for commonality plot visibility.
+
+    :param _: Clicks on update plot button.
+    :param selection: Selected sample groups.
+    :returns: Dict with selected groups for visibility.
     """
     return {'groups': selection}
 
@@ -741,13 +635,10 @@ def pass_selected_groups_to_data_store(
     Input({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
 )
 def generate_commonality_container(data_dictionary: Dict[str, Any]) -> html.Div:
-    """Generates container for commonality plot showing shared proteins between samples.
-    
-    Args:
-        data_dictionary (dict): Data dictionary containing sample group information
-        
-    Returns:
-        html.Div: Container component for commonality plot
+    """Generate container for the commonality plot.
+
+    :param data_dictionary: Data dictionary containing sample group information.
+    :returns: Div container for commonality plot.
     """
     sample_groups = sorted(list(data_dictionary['sample groups']['norm'].keys()))
     return qc_analysis.generate_commonality_container(sample_groups)
@@ -766,18 +657,12 @@ def commonality_plot(
     additional_options: List[str], 
     show_only_groups: Optional[Dict[str, List[str]]]
 ) -> Tuple[html.Div, Dict[str, Any], Dict[str, Any]]:
-    """Creates commonality plot showing protein overlap between sample groups.
-    
-    Args:
-        data_dictionary (dict): Data dictionary containing sample information
-        additional_options (list): List of selected additional plot options
-        show_only_groups (dict): Dictionary specifying which groups to display
-        
-    Returns:
-        tuple: Contains:
-            - Commonality plot components
-            - Plot data for storage
-            - PDF version of plot for export
+    """Create a commonality plot showing protein overlap between groups.
+
+    :param data_dictionary: Data dictionary containing sample information.
+    :param additional_options: Selected additional plot options.
+    :param show_only_groups: Optional dict specifying groups to display.
+    :returns: Tuple of (plot components, plot data, PDF data).
     """
     show_groups: Union[str, List[str]] = None
     if show_only_groups is not None:
@@ -797,13 +682,10 @@ def commonality_plot(
     prevent_initial_call=True
 )
 def qc_done(_: Any) -> str:
-    """Notifies that QC analysis is complete.
-    
-    Args:
-        _ (list): Placeholder for distribution plot children
-        
-    Returns:
-        str: Empty string to trigger completion notification
+    """Notify that QC analysis is complete.
+
+    :param _: Trigger placeholder from distribution plot.
+    :returns: Empty string to trigger completion notification.
     """
     return ''
 
@@ -817,17 +699,13 @@ def qc_done(_: Any) -> str:
     prevent_initial_call=True
 )
 def proteomics_filtering_plot(nclicks: Optional[int], uploaded_data: Dict[str, Any], filtering_percentage: int, filter_type: str) -> Union[Tuple[html.Div, Dict[str, Any]], Tuple[Any, Any]]:
-    """Creates plot showing results of NA filtering in proteomics workflow.
-    
-    Args:
-        nclicks (int): Number of clicks on run button
-        uploaded_data (dict): Data dictionary containing proteomics data
-        filtering_percentage (int): Minimum percentage threshold for filtering
-        
-    Returns:
-        tuple: Contains:
-            - NA filtering plot components
-            - Filtered data for storage
+    """Create NA filtering results plot in proteomics workflow.
+
+    :param nclicks: Number of clicks on run button.
+    :param uploaded_data: Data dictionary containing proteomics data.
+    :param filtering_percentage: Minimum percentage threshold for filtering.
+    :param filter_type: Filter type ('sample-group' or 'sample-set').
+    :returns: Tuple of (plot components, filtered data) or (no_update, no_update).
     """
     if nclicks is None:
         return (no_update, no_update)
@@ -843,23 +721,11 @@ def proteomics_filtering_plot(nclicks: Optional[int], uploaded_data: Dict[str, A
     prevent_initial_call=True
 )
 def proteomics_normalization_plot(filtered_data: Optional[Dict[str, Any]], normalization_option: str) -> Union[Tuple[html.Div, Dict[str, Any]], Any]:
-    """Creates plot showing results of data normalization in proteomics workflow.
-    
-    Args:
-        filtered_data (dict): NA-filtered proteomics data containing intensity values
-            and sample information
-        normalization_option (str): Selected normalization method (e.g., 'median', 
-            'mean', 'vsn', etc.)
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: Normalization plot components showing data distribution
-                before and after normalization
-            - dict: Normalized data for storage and downstream analysis
-            
-    Notes:
-        Returns no_update if filtered_data is None. Uses figure height parameters
-        from config and writes any R errors to specified error file.
+    """Create normalization results plot in proteomics workflow.
+
+    :param filtered_data: NA-filtered proteomics data with intensities and metadata.
+    :param normalization_option: Normalization method (e.g., 'median', 'quantile', 'vsn').
+    :returns: Tuple of (plot components, normalized data) or no_update if no input.
     """
     if filtered_data is None:
         return no_update
@@ -871,15 +737,10 @@ def proteomics_normalization_plot(filtered_data: Optional[Dict[str, Any]], norma
     prevent_initial_call=True
 )
 def proteomics_missing_in_other_samples(normalized_data: Dict[str, Any]) -> html.Div:
-    """Creates plot showing patterns of missing values across samples after normalization.
-    
-    Args:
-        normalized_data (dict): Normalized proteomics data containing intensity values
-            and sample information
-        
-    Returns:
-        html.Div: Plot components showing the distribution and patterns of missing
-            values across different samples, using half-height figure parameters
+    """Create plot showing missing values patterns after normalization.
+
+    :param normalized_data: Normalized proteomics data with intensities and metadata.
+    :returns: Div with plot components (half-height figure).
     """
     return proteomics.missing_values_in_other_samples(normalized_data, parameters['Figure defaults']['half-height'])
 
@@ -892,23 +753,12 @@ def proteomics_missing_in_other_samples(normalized_data: Dict[str, Any]) -> html
     prevent_initial_call=True
 )
 def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputation_option: str, data_dictionary: Dict[str, Any]) -> Union[Tuple[html.Div, Dict[str, Any]], Any]:
-    """Creates plot showing results of missing value imputation in proteomics workflow.
-    
-    Args:
-        normalized_data (dict): Normalized proteomics data containing intensity values
-            and sample information
-        imputation_option (str): Selected imputation method (e.g., 'knn', 'mean', 
-            'median', etc.)
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: Imputation plot components showing data distribution
-                before and after imputation
-            - dict: Imputed data for storage and downstream analysis
-            
-    Notes:
-        Returns no_update if normalized_data is None. Uses figure height parameters
-        from config and writes any R errors to specified error file.
+    """Create imputation results plot in proteomics workflow.
+
+    :param normalized_data: Normalized proteomics data.
+    :param imputation_option: Imputation method (e.g., 'minprob', 'minvalue', 'gaussian', 'qrilc', 'random_forest').
+    :param data_dictionary: Full data dictionary (for sample group metadata).
+    :returns: Tuple of (plot components, imputed data) or no_update if no input.
     """
     if normalized_data is None:
         return no_update
@@ -932,22 +782,13 @@ def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputa
     prevent_initial_call=True
 )
 def proteomics_cv_plot(uploaded_data: Dict[str, Any], na_filtered_data: Dict[str, Any], upload_dict: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
-    """Creates coefficient of variation (CV) plot for proteomics data.
-    
-    Generates a plot showing the coefficient of variation across samples using raw intensity
-    data filtered to match the NA-filtered dataset. Uses sample grouping information and
-    replicate colors for visualization.
-    
-    Args:
-        uploaded_data (dict): Original uploaded data dictionary containing raw intensity values
-        na_filtered_data (dict): NA-filtered proteomics data for filtering raw data
-        upload_dict (dict): Main data dictionary containing sample grouping information
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: CV plot components showing variation across samples
-            - dict: CV analysis data for storage
+    """Create coefficient of variation (CV) plot for proteomics data.
+
+    :param uploaded_data: Original uploaded data dictionary with raw intensities.
+    :param na_filtered_data: NA-filtered proteomics data for filtering raw data.
+    :param upload_dict: Main data dictionary with sample grouping.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (CV plot components, CV analysis data).
     """
     return proteomics.perc_cvplot(uploaded_data['data tables']['raw intensity'], na_filtered_data, upload_dict['sample groups']['norm'], replicate_colors, parameters['Figure defaults']['full-height'])
 
@@ -960,20 +801,12 @@ def proteomics_cv_plot(uploaded_data: Dict[str, Any], na_filtered_data: Dict[str
     prevent_initial_call=True
 )
 def proteomics_pca_plot(imputed_data: Dict[str, Any], upload_dict: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
-    """Creates principal component analysis (PCA) plot for proteomics data.
-    
-    Generates a PCA plot to visualize sample clustering and relationships using imputed
-    proteomics data. Uses sample grouping information and replicate colors for visualization.
-    
-    Args:
-        imputed_data (dict): Imputed proteomics data for PCA analysis
-        upload_dict (dict): Main data dictionary containing sample grouping information
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: PCA plot components showing sample relationships
-            - dict: PCA analysis data for storage
+    """Create PCA plot for proteomics data.
+
+    :param imputed_data: Imputed proteomics data for PCA analysis.
+    :param upload_dict: Data dictionary with sample grouping information.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (PCA plot components, PCA analysis data).
     """
     return proteomics.pca(imputed_data, upload_dict['sample groups']['rev'], parameters['Figure defaults']['full-height'], replicate_colors)
 
@@ -985,19 +818,10 @@ def proteomics_pca_plot(imputed_data: Dict[str, Any], upload_dict: Dict[str, Any
     prevent_initial_call=True
 )
 def proteomics_clustermap(imputed_data: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any], str]:
-    """Creates hierarchical clustering heatmap for proteomics data.
-    
-    Generates a clustermap visualization showing hierarchical clustering of samples and
-    proteins based on imputed proteomics data. Uses default figure height parameters.
-    
-    Args:
-        imputed_data (dict): Imputed proteomics data for clustering analysis
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: Clustermap plot components showing hierarchical clustering
-            - dict: Clustering analysis data for storage
-            - str: Empty string for completion notification
+    """Create hierarchical clustering clustermap for proteomics data.
+
+    :param imputed_data: Imputed proteomics data for clustering analysis.
+    :returns: Tuple of (clustermap components, clustering data, completion notifier).
     """
     return proteomics.clustermap(imputed_data, parameters['Figure defaults']['full-height']) + ('',)
 
@@ -1017,22 +841,13 @@ def proteomics_check_comparison_table(
     current_style: Dict[str, str], 
     data_dictionary: Dict[str, Any]
 ) -> Tuple[Dict[str, str], Optional[Dict[str, Any]]]:
-    """Validates uploaded comparison table for proteomics differential analysis.
-    
-    Checks the uploaded comparison table file for correct format and compatibility
-    with the sample groups in the dataset.
-    
-    Args:
-        contents (str): Base64 encoded contents of uploaded comparison file
-        filename (str): Name of uploaded comparison file
-        current_style (dict): Current style settings for upload success indicator
-        data_dictionary (dict): Main data dictionary containing sample group information
-        
-    Returns:
-        tuple: Contains:
-            - dict: Updated style for upload success indicator (green for success,
-                   red for failure)
-            - dict: Validated comparison table data if successful, None if validation fails
+    """Validate uploaded comparison table for differential analysis.
+
+    :param contents: Base64 contents of uploaded comparison file.
+    :param filename: Uploaded filename.
+    :param current_style: Current success indicator style.
+    :param data_dictionary: Data dictionary with sample group information.
+    :returns: Tuple of (updated style, parsed comparison data or None).
     """
     return parsing.check_comparison_file(contents, filename, data_dictionary['sample groups']['norm'], current_style)
 
@@ -1061,31 +876,17 @@ def proteomics_volcano_plots(
     p_thr: float, 
     test_type: str
 ) -> Union[Tuple[html.Div, Dict[str, Any], str], Any]:
-    """Creates volcano plots for differential abundance analysis in proteomics workflow.
-    
-    Generates volcano plots showing differential protein abundance between sample groups,
-    using either a control group or comparison table approach. Includes statistical testing
-    and fold change thresholding.
-    
-    Args:
-        imputed_data (dict): Imputed proteomics data for analysis
-        control_group (str): Selected control group name, if using control-based comparisons
-        comparison_data (dict): Comparison table data for custom comparisons
-        comparison_upload_success_style (dict): Style indicating comparison table validation status
-        data_dictionary (dict): Main data dictionary containing sample information
-        fc_thr (float): Fold change threshold for significance
-        p_thr (float): P-value threshold for significance
-        test_type (str): Statistical test type to use for comparisons
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: Volcano plot components showing differential abundance results
-            - dict: Differential analysis data for storage
-            - str: Empty string for completion notification
-            
-    Notes:
-        Returns no_update if input validation fails. Logs warnings for various
-        failure conditions related to comparison data validation.
+    """Create volcano plots for proteomics differential abundance analysis.
+
+    :param imputed_data: Imputed proteomics data for analysis.
+    :param control_group: Selected control group name for control-based comparisons.
+    :param comparison_data: Comparison table data for custom comparisons.
+    :param comparison_upload_success_style: Style indicating comparison table validation status.
+    :param data_dictionary: Main data dictionary with sample information.
+    :param fc_thr: Fold-change threshold for significance.
+    :param p_thr: P-value threshold for significance.
+    :param test_type: Statistical test type to use.
+    :returns: Tuple of (volcano plot components, differential data, completion notifier) or no_update on invalid input.
     """
     if imputed_data is None:
         return no_update
@@ -1115,16 +916,11 @@ def proteomics_volcano_plots(
     prevent_initial_call=True
 )
 def select_all_none_controls(all_selected: bool, options: List[Dict[str, str]]) -> List[str]:
-    """Handles selection/deselection of all uploaded control samples.
-    
-    Args:
-        all_selected (bool): Whether the "select all" checkbox is checked
-        options (list): List of available control sample options, each containing
-            a 'value' key
-            
-    Returns:
-        list: List of all control sample values if all_selected is True,
-            empty list otherwise
+    """Select or deselect all uploaded control samples.
+
+    :param all_selected: Whether the "select all" checkbox is checked.
+    :param options: Available control sample options with 'value' keys.
+    :returns: All values if selected, otherwise an empty list.
     """
     all_or_none: List[str] = [option['value'] for option in options if all_selected]
     return all_or_none
@@ -1135,13 +931,10 @@ def select_all_none_controls(all_selected: bool, options: List[Dict[str, str]]) 
     prevent_initial_call=True
 )
 def select_none_enrichments(deselect_click: Optional[int]) -> List[str]:
-    """Deselects all enrichment options.
-    
-    Args:
-        deselect_click (int): Number of times the deselect button has been clicked. Unused.
-            
-    Returns:
-        list: Empty list to clear all enrichment selections
+    """Deselect all enrichment options.
+
+    :param deselect_click: Number of times the deselect button has been clicked.
+    :returns: Empty list to clear all enrichment selections.
     """
     all_or_none: List[str] = []
     return all_or_none
@@ -1159,17 +952,12 @@ def collapse_or_uncollapse_input(
     begin_click: Optional[int], 
     input_is_open: bool
 ) -> Tuple[str, bool]:
-    """Toggles the collapse state of the input section.
-    
-    Args:
-        header_click (int): Number of clicks on the header. Not used. 
-        begin_click (int): Number of clicks on the begin analysis button. Nod used.
-        input_is_open (bool): Current collapse state of the input section
-            
-    Returns:
-        tuple: Contains:
-            - str: Updated header text with arrow indicator (► or ▼)
-            - bool: New collapse state (True for open, False for closed)
+    """Toggle the collapse state of the input section.
+
+    :param header_click: Number of clicks on the header (unused).
+    :param begin_click: Number of clicks on the begin analysis button (unused).
+    :param input_is_open: Current collapse state of the input section.
+    :returns: Tuple of (new header text with arrow, new collapse state).
     """
     if input_is_open:
         return ('► Input', False)
@@ -1184,16 +972,11 @@ def collapse_or_uncollapse_input(
     prevent_initial_call=True
 )
 def select_all_none_inbuilt_controls(all_selected: bool, options: List[Dict[str, str]]) -> List[str]:
-    """Handles selection/deselection of all inbuilt control sets.
-    
-    Args:
-        all_selected (bool): Whether the "select all" checkbox is checked
-        options (list): List of available inbuilt control set options, each containing
-            a 'value' key
-            
-    Returns:
-        list: List of all inbuilt control set values if all_selected is True,
-            empty list otherwise
+    """Select or deselect all inbuilt control sets.
+
+    :param all_selected: Whether the "select all" checkbox is checked.
+    :param options: Available inbuilt control set options with 'value' keys.
+    :returns: All values if selected, otherwise an empty list.
     """
     all_or_none: List[str] = [option['value'] for option in options if all_selected]
     return all_or_none
@@ -1206,16 +989,11 @@ def select_all_none_inbuilt_controls(all_selected: bool, options: List[Dict[str,
     prevent_initial_call=True
 )
 def select_all_none_crapomes(all_selected: bool, options: List[Dict[str, str]]) -> List[str]:
-    """Handles selection/deselection of all CRAPome control sets.
-    
-    Args:
-        all_selected (bool): Whether the "select all" checkbox is checked
-        options (list): List of available CRAPome control set options, each containing
-            a 'value' key
-            
-    Returns:
-        list: List of all CRAPome control set values if all_selected is True,
-            empty list otherwise
+    """Select or deselect all CRAPome control sets.
+
+    :param all_selected: Whether the "select all" checkbox is checked.
+    :param options: Available CRAPome control set options with 'value' keys.
+    :returns: All values if selected, otherwise an empty list.
     """
     all_or_none: List[str] = [option['value'] for option in options if all_selected]
     return all_or_none
@@ -1246,26 +1024,16 @@ def interactomics_saint_analysis(
     proximity_filtering_checklist: List[str], 
     n_controls: int
 ) -> Union[Tuple[html.Div, Dict[str, Any], Dict[str, Any]], Tuple[Any, Any, Any]]:
-    """Initializes SAINT analysis with selected control samples and parameters.
-    
-    Args:
-        nclicks (int): Number of clicks on run analysis button
-        uploaded_controls (list): List of selected uploaded control samples
-        additional_controls (list): List of selected additional control sets
-        crapomes (list): List of selected CRAPome control sets
-        uploaded_data (dict): Dictionary containing uploaded experimental data
-        proximity_filtering_checklist (list): List of selected filtering options
-        n_controls (int): Number of nearest controls to use if proximity filtering enabled
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: SAINT analysis container components
-            - dict: SAINT input data for storage
-            - dict: CRAPome data for storage
-            
-    Notes:
-        Returns no_update if button not clicked. Uses proximity filtering if 'Select'
-        is in the filtering checklist.
+    """Initialize SAINT analysis with selected control samples and parameters.
+
+    :param nclicks: Number of clicks on run analysis button.
+    :param uploaded_controls: Selected uploaded control samples.
+    :param additional_controls: Selected additional control sets.
+    :param crapomes: Selected CRAPome control sets.
+    :param uploaded_data: Uploaded experimental data dictionary.
+    :param proximity_filtering_checklist: Selected filtering options.
+    :param n_controls: Number of nearest controls if proximity filtering enabled.
+    :returns: Tuple of (SAINT container Div, SAINT input data, CRAPome data) or no_update if not triggered.
     """
     if nclicks is None:
         return (no_update, no_update, no_update)
@@ -1288,17 +1056,11 @@ def interactomics_run_saint(
     saint_input: Dict[str, Any], 
     data_dictionary: Dict[str, Any]
 ) -> Tuple[Union[Dict[str, Any], str], str, str]:
-    """Executes SAINT analysis using prepared input data.
-    
-    Args:
-        saint_input (dict): Prepared SAINT input data
-        data_dictionary (dict): Main data dictionary containing session and bait information
-        
-    Returns:
-        tuple: Contains:
-            - dict: SAINT analysis output data
-            - bool: Whether SAINT executable was found
-            - str: Empty string to clear loading indicator
+    """Execute SAINT analysis using prepared input data.
+
+    :param saint_input: Prepared SAINT input data.
+    :param data_dictionary: Data dictionary with session and bait information.
+    :returns: Tuple of (SAINT output data or error string, error message, empty string).
     """
     saint_data, saint_not_found = interactomics.run_saint(
         saint_input,
@@ -1323,14 +1085,11 @@ def interactomics_add_crapome_to_saint(
     saint_output: Union[Dict[str, Any], str], 
     crapome: Dict[str, Any]
 ) -> Union[Dict[str, Any], str]:
-    """Integrates CRAPome data with SAINT analysis results.
-    
-    Args:
-        saint_output (dict): Results from SAINT analysis
-        crapome (dict): CRAPome control data to integrate
-        
-    Returns:
-        dict: Combined SAINT and CRAPome data, or error message if SAINT failed
+    """Integrate CRAPome data with SAINT analysis results.
+
+    :param saint_output: Results from SAINT analysis.
+    :param crapome: CRAPome control data to integrate.
+    :returns: Combined SAINT and CRAPome data, or error string if SAINT failed.
     """
     if saint_output == 'SAINT failed. Can not proceed.':
         return saint_output
@@ -1350,20 +1109,12 @@ def interactomics_create_saint_filtering_container(
     saint_not_found: str,
     rescue: List[str]
 ) -> Tuple[str, html.Div]:
-    """Creates the filtering interface container for SAINT analysis results.
-    
-    Args:
-        saint_output_ready (dict): Final SAINT analysis output data
-        rescue (list): Selected rescue options for filtered interactions
-        
-    Returns:
-        tuple: Contains:
-            - str: Empty string for workflow completion notification
-            - html.Div: Either error message if SAINT failed or filtering interface container
-            
-    Notes:
-        Enables rescue functionality if "Rescue interactions that pass filter in any 
-        sample group" is selected.
+    """Create the filtering container for SAINT analysis results.
+
+    :param saint_output_ready: Final SAINT analysis output data.
+    :param saint_not_found: Error message if SAINT executable was not found.
+    :param rescue: Selected rescue options.
+    :returns: Tuple of (completion notifier, filtering container Div).
     """
     rescue_bool: bool = ('Rescue interactions that pass filter in any sample group' in rescue)
     saint_found: bool = len(saint_not_found) == 0
@@ -1387,20 +1138,12 @@ def interactomics_draw_saint_histogram(
     saint_output: str, 
     saint_output_filtered: Optional[str]
 ) -> Tuple[go.Figure, Dict[str, Any]]:
-    """Generates histogram visualization of SAINT BFDR scores.
-    
-    Args:
-        container_ready (list): Trigger input indicating filtering container is ready
-        saint_output (str): Original SAINT analysis results
-        saint_output_filtered (str): Filtered SAINT results if available
-        
-    Returns:
-        tuple: Contains:
-            - dict: Plotly figure object for BFDR histogram
-            - dict: Histogram data for storage
-            
-    Notes:
-        Uses filtered output data if available, otherwise uses original SAINT output.
+    """Generate histogram visualization of SAINT BFDR scores.
+
+    :param container_ready: Trigger indicating the filtering container is ready.
+    :param saint_output: Original SAINT analysis results.
+    :param saint_output_filtered: Filtered SAINT results, if available.
+    :returns: Tuple of (BFDR histogram Figure, histogram data JSON).
     """
     if saint_output_filtered is not None:
         saint_output = saint_output_filtered
@@ -1423,24 +1166,14 @@ def interactomics_apply_saint_filtering(
     saint_output: str, 
     rescue: List[str]
 ) -> Dict[str, Any]:
-    """Applies filtering criteria to SAINT analysis results.
-    
-    Args:
-        bfdr_threshold (float): BFDR score threshold for filtering
-        crapome_percentage (int): CRAPome frequency percentage threshold
-        crapome_fc (int): CRAPome fold change threshold
-        saint_output (str): SAINT analysis results to filter
-        rescue (list): Selected rescue options for filtered interactions
-        
-    Returns:
-        dict: Filtered SAINT analysis results based on specified thresholds
-        
-    Notes:
-        Applies multiple filtering criteria:
-        - BFDR score threshold
-        - CRAPome frequency threshold
-        - CRAPome fold change threshold
-        Rescue functionality is enabled if rescue list is not empty.
+    """Apply filtering criteria to SAINT analysis results.
+
+    :param bfdr_threshold: BFDR score threshold.
+    :param crapome_percentage: CRAPome frequency threshold.
+    :param crapome_fc: CRAPome fold-change threshold.
+    :param saint_output: SAINT results to filter.
+    :param rescue: Selected rescue options.
+    :returns: Filtered SAINT results.
     """
     return interactomics.saint_filtering(saint_output, bfdr_threshold, crapome_percentage, crapome_fc, len(rescue) > 0)
 
@@ -1454,16 +1187,11 @@ def interactomics_apply_saint_filtering(
     prevent_initial_call=True
 )
 def interactomics_draw_saint_filtered_figure(filtered_output: Dict[str, Any], replicate_colors: Dict[str, Any]) -> Tuple[go.Figure, Dict[str, Any]]:
-    """Creates visualization of filtered SAINT analysis results.
-    
-    Args:
-        filtered_output (dict): Filtered SAINT analysis results
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - dict: Plotly figure object showing filtered SAINT results
-            - dict: Graph data for storage
+    """Create visualization of filtered SAINT analysis results.
+
+    :param filtered_output: Filtered SAINT analysis results.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (Figure for filtered results, graph data JSON).
     """
     return interactomics.saint_counts(filtered_output, parameters['Figure defaults']['half-height'], replicate_colors)
 
@@ -1474,13 +1202,10 @@ def interactomics_draw_saint_filtered_figure(filtered_output: Dict[str, Any], re
     prevent_initial_call=True
 )
 def interactomics_initiate_post_saint(_: Optional[int]) -> html.Div:
-    """Initializes the post-SAINT analysis interface container.
-    
-    Args:
-        _ (int): Number of clicks on done filtering button (unused)
-        
-    Returns:
-        html.Div: Container component for post-SAINT analysis interface
+    """Initialize the post-SAINT analysis interface container.
+
+    :param _: Clicks on done filtering button (unused).
+    :returns: Div containing post-SAINT analysis interface.
     """
     return ui.post_saint_container()
 
@@ -1494,19 +1219,12 @@ def interactomics_initiate_post_saint(_: Optional[int]) -> html.Div:
     prevent_initial_callback=True
 )
 def interactomics_map_intensity(n_clicks: Optional[int], filtered_saint_data: Dict[str, Any], data_dictionary: Dict[str, Any]) -> Union[str, Any]:
-    """Maps intensity values to filtered SAINT results.
-    
-    Args:
-        n_clicks (int): Number of clicks on done filtering button
-        unfiltered_saint_data (dict): Filtered SAINT analysis results
-        data_dictionary (dict): Main data dictionary containing intensity values
-            and sample group information
-            
-    Returns:
-        str: JSON string containing SAINT results with mapped intensity values
-        
-    Notes:
-        Returns no_update if button not clicked or clicked less than once.
+    """Map averaged intensity to filtered SAINT results.
+
+    :param n_clicks: Clicks on done filtering button.
+    :param filtered_saint_data: Filtered SAINT results.
+    :param data_dictionary: Data dictionary with intensity values and sample groups.
+    :returns: JSON string of SAINT results with mapped intensity, or no_update if not triggered.
     """
     if (n_clicks is None):
         return no_update
@@ -1525,16 +1243,11 @@ def interactomics_map_intensity(n_clicks: Optional[int], filtered_saint_data: Di
     prevent_initial_call=True
 )
 def interactomics_known_plot(saint_output: Dict[str, Any], rep_colors_with_cont: Dict[str, Any]) -> Tuple[html.Div, Dict[str, Any]]:
-    """Creates plot showing known interactions in SAINT results.
-    
-    Args:
-        saint_output (dict): SAINT results with mapped intensity values
-        rep_colors_with_cont (dict): Color assignments for samples including contaminants
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: Plot components showing known interactions
-            - dict: Known interactions data for storage
+    """Create plot showing known interactions in SAINT results.
+
+    :param saint_output: SAINT results with mapped intensity values.
+    :param rep_colors_with_cont: Color assignments for samples including contaminants.
+    :returns: Tuple of (plot components, known interactions data).
     """
     return interactomics.known_plot(saint_output, db_file, rep_colors_with_cont, parameters['Figure defaults']['half-height'])
 
@@ -1551,20 +1264,11 @@ def interactomics_common_proteins_plot(
     _: Dict[str, Any], 
     saint_data: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Creates plot showing common proteins across SAINT results.
-    
-    Args:
-        _ (dict): Trigger input from known interactions plot (unused)
-        saint_data (dict): Filtered SAINT analysis results
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: Plot components showing common proteins
-            - dict: Common proteins data for storage
-            
-    Notes:
-        Converts SAINT data to matrix format before analysis. Includes contaminant
-        proteins as an additional group in the visualization.
+    """Create plot showing common proteins across SAINT results.
+
+    :param _: Trigger input from known interactions plot (unused).
+    :param saint_data: Filtered SAINT analysis results.
+    :returns: Tuple of (common proteins plot components, data for storage).
     """
     saint_data = interactomics.get_saint_matrix(saint_data)
     return qc_analysis.common_proteins(
@@ -1591,17 +1295,12 @@ def interactomics_pca_plot(
     saint_data: Dict[str, Any], 
     replicate_colors: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Creates principal component analysis (PCA) plot for interactomics data.
-    
-    Args:
-        _ (dict): Trigger input from common proteins plot (unused)
-        saint_data (dict): Filtered SAINT analysis results
-        replicate_colors (dict): Color assignments for sample replicates
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: PCA plot components showing sample relationships
-            - dict: PCA analysis data for storage
+    """Create a PCA plot for interactomics data.
+
+    :param _: Trigger input from common proteins plot (unused).
+    :param saint_data: Filtered SAINT analysis results.
+    :param replicate_colors: Color assignments for sample replicates.
+    :returns: Tuple of (PCA plot components, PCA data).
     """
     return interactomics.pca(
         saint_data,
@@ -1622,19 +1321,11 @@ def interactomics_ms_microscopy_plots(
     _: Dict[str, Any], 
     saint_output: Dict[str, Any]
 ) -> Tuple[html.Div, Dict[str, Any]]:
-    """Creates MS microscopy visualization plots.
-    
-    Args:
-        _ (dict): Trigger input from PCA plot (unused)
-        saint_output (dict): Filtered SAINT analysis results
-        
-    Returns:
-        tuple: Contains:
-            - html.Div: MS microscopy plot components
-            - dict: MS microscopy analysis data for storage
-            
-    Notes:
-        Uses version 1.0 of MS microscopy visualization.
+    """Create MS microscopy visualization plots.
+
+    :param _: Trigger input from PCA plot (unused).
+    :param saint_output: Filtered SAINT analysis results.
+    :returns: Tuple of (MS microscopy plot components, analysis data).
     """
     res = interactomics.do_ms_microscopy(saint_output, db_file, 
                                        parameters['Figure defaults']['full-height'], 
@@ -1656,18 +1347,11 @@ def interactomics_network_plot(
     _: Dict[str, Any], 
     saint_output: Dict[str, Any]
 ) -> Tuple[str, html.Div, Dict[str, Any], Dict[str, Any]]:
-    """Creates interactive network visualization of protein interactions.
-    
-    Args:
-        _ (dict): Trigger input from MS microscopy plot (unused)
-        saint_output (dict): Filtered SAINT analysis results
-        
-    Returns:
-        tuple: Contains:
-            - str: Empty string for workflow completion notification
-            - html.Div: Network plot container components
-            - dict: Network visualization elements data
-            - dict: Interaction data for network
+    """Create interactive network visualization of protein interactions.
+
+    :param _: Trigger input from MS microscopy plot (unused).
+    :param saint_output: Filtered SAINT analysis results.
+    :returns: Tuple of (completion notifier, network container, elements, interactions).
     """
     container, c_elements, interactions = interactomics.do_network(
         saint_output, 
@@ -1694,22 +1378,12 @@ def interactomics_enrichment(
     saint_output: Dict[str, Any], 
     chosen_enrichments: List[str]
 ) -> Tuple[str, html.Div, Dict[str, Any], Dict[str, Any]]:
-    """Performs enrichment analysis on filtered interactomics data.
-    
-    Args:
-        _ (dict): Trigger input from network plot (unused)
-        saint_output (dict): Filtered SAINT analysis results
-        chosen_enrichments (list): List of selected enrichment analyses to perform
-        
-    Returns:
-        tuple: Contains:
-            - str: Empty string for workflow completion notification
-            - html.Div: Enrichment analysis plot components
-            - dict: Enrichment analysis results data
-            - dict: Additional enrichment information data
-            
-    Notes:
-        Runs as a background callback to handle potentially long computation times.
+    """Perform enrichment analysis on filtered interactomics data.
+
+    :param _: Trigger input from network plot (unused).
+    :param saint_output: Filtered SAINT analysis results.
+    :param chosen_enrichments: Selected enrichment analyses to perform.
+    :returns: Tuple of (completion notifier, enrichment plots, results data, info data).
     """
     return ('',) + interactomics.enrich(
         saint_output, 
@@ -1734,18 +1408,12 @@ def interactomics_enrichment(
           'name': 'interactomics-network-interactions-data-store'},'data')
 )
 def display_tap_node(node_data: Optional[Dict[str, Any]], int_data: Dict[str, Any], network_type: str = 'Cytoscape') -> Optional[html.Div]:
-    """Displays detailed information for a selected node in the network visualization.
-    
-    Args:
-        node_data (dict): Data associated with the tapped network node
-        int_data (dict): Network interaction data store
-        network_type (str, optional): Type of network visualization. Defaults to 'Cytoscape'
-        
-    Returns:
-        html.Div: Component containing detailed node information, or None if no node selected
-        
-    Notes:
-        Currently only supports Cytoscape network type. visdcc network support is commented out.
+    """Display detailed information for a selected node in the network visualization.
+
+    :param node_data: Data associated with the tapped network node.
+    :param int_data: Network interaction data store.
+    :param network_type: Network visualization type (default 'Cytoscape').
+    :returns: Div with node connection details, or None if not selected.
     """
     if not node_data:
         return None
@@ -1762,16 +1430,10 @@ def display_tap_node(node_data: Optional[Dict[str, Any]], int_data: Dict[str, An
     Input("dropdown-layout", "value")
 )
 def update_cytoscape_layout(layout: str) -> Dict[str, Any]:
-    """Updates the layout of the Cytoscape network visualization.
-    
-    Args:
-        layout (str): Selected layout type from dropdown
-        
-    Returns:
-        dict: Layout configuration dictionary with name and optional parameters
-        
-    Notes:
-        Applies additional layout parameters if defined in parameters['Cytoscape layout parameters']
+    """Update Cytoscape network layout configuration.
+
+    :param layout: Selected layout type from dropdown.
+    :returns: Layout configuration dict including extra parameters if defined.
     """
     ret_dic: Dict[str, Any] = {"name": layout}
     if layout in parameters['Cytoscape layout parameters']:
@@ -1798,14 +1460,14 @@ def table_of_contents(
     ____: Any, 
     main_div_contents: List[Any]
 ) -> html.Div:
-    """Updates table of contents based on main content.
-    
-    Args:
-        _,__,___,____ (any): Trigger inputs from various workflow completion notifiers (unused)
-        main_div_contents (list): Current contents of main div
-        
-    Returns:
-        html.Div: Updated table of contents component
+    """Update the table of contents based on main content.
+
+    :param _: Trigger input (unused).
+    :param __: Trigger input (unused).
+    :param ___: Trigger input (unused).
+    :param ____: Trigger input (unused).
+    :param main_div_contents: Current contents of main div.
+    :returns: Updated table of contents component.
     """
     return ui.table_of_contents(main_div_contents)
 
@@ -1822,15 +1484,12 @@ def workflow_area(
     workflow: str, 
     data_dictionary: Dict[str, Any]
 ) -> Tuple[html.Div, html.Div]:
-    """Updates workflow-specific areas based on selected workflow.
-    
-    Args:
-        _ (any): Trigger input from QC completion notifier (unused)
-        workflow (str): Selected workflow type
-        data_dictionary (dict): Main data dictionary containing uploaded data
-        
-    Returns:
-        tuple: Contains workflow-specific input and content areas
+    """Update workflow-specific areas based on selected workflow.
+
+    :param _: Trigger input from QC completion notifier (unused).
+    :param workflow: Selected workflow type.
+    :param data_dictionary: Data dictionary containing uploaded data.
+    :returns: Tuple of (workflow input area, workflow content area).
     """
     return ui.workflow_area(workflow, parameters['workflow parameters'], data_dictionary)
 
@@ -1841,13 +1500,10 @@ def workflow_area(
     prevent_initial_call=True
 )
 def download_example_comparison_file(n_clicks: Optional[int]) -> Optional[Dict[str, Any]]:
-    """Handles download of example proteomics comparison file.
-    
-    Args:
-        n_clicks (int): Number of clicks on download button
-        
-    Returns:
-        dict: File download configuration for example comparison file, or None if button not clicked
+    """Provide example proteomics comparison file for download.
+
+    :param n_clicks: Number of clicks on the download button.
+    :returns: dcc.send_file payload for the example file, or None if not triggered.
     """
     if n_clicks is None:
         return None
@@ -1861,13 +1517,10 @@ def download_example_comparison_file(n_clicks: Optional[int]) -> Optional[Dict[s
     prevent_initial_call=True,
 )
 def example_files_download(_: Optional[int]) -> Dict[str, Any]:
-    """Handles download of example files.
-    
-    Args:
-        _ (int): Number of clicks on download button (unused)
-        
-    Returns:
-        dict: File download configuration for example files
+    """Provide example files bundle for download.
+
+    :param _: Number of clicks on download button (unused).
+    :returns: dcc.send_file payload for the zipped example files.
     """
     return dcc.send_file(utils.zipdir(os.path.join(*parameters['Data paths']['Example files'])))
 
@@ -1876,20 +1529,12 @@ def get_adiv_by_id(
     idvals: List[Dict[str, str]], 
     idval_to_find: str
 ) -> Optional[Any]:
-    """Retrieves a specific div element from a list by matching its ID.
-    
-    Args:
-        divs (list): List of div elements
-        idvals (list): List of dictionaries containing ID values
-        idval_to_find (str): Target ID value to search for
-        
-    Returns:
-        Any: The matching div element if found, None otherwise
-        
-    Notes:
-        - Used for finding specific analysis div elements in the UI
-        - Returns None if no matching ID is found
-        - Assumes idvals list contains dictionaries with 'id' key
+    """Retrieve a specific div element by matching its ID.
+
+    :param divs: List of div elements.
+    :param idvals: List of dicts containing ID values (with key 'id').
+    :param idval_to_find: Target ID value to search for.
+    :returns: Matching div element if found, otherwise None.
     """
     use_index: int = -1
     for i, idval in enumerate(idvals):
@@ -1918,21 +1563,11 @@ def prepare_for_download(
     _: Optional[int], 
     main_data: Dict[str, Any]
 ) -> Tuple[str, html.Div]:
-    """Prepares directory structure and README for data export.
-    
-    Args:
-        _ (int): Number of clicks on download button (unused)
-        main_data (dict): Main data dictionary containing session information
-        
-    Returns:
-        tuple: Contains:
-            - str: Path to created export directory
-            - html.Div: Temporary loading indicator components
-            
-    Notes:
-        - Creates timestamped export directory
-        - Removes existing directory if present
-        - Converts output guide markdown to HTML for README
+    """Prepare directory structure and README for data export.
+
+    :param _: Clicks on download button (unused).
+    :param main_data: Data dictionary containing session information.
+    :returns: Tuple of (export directory path, temporary loading indicators Div).
     """
     timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
     export_dir: str = os.path.join(*parameters['Data paths']['Cache dir'],  
@@ -1951,20 +1586,11 @@ def prepare_for_download(
     prevent_initial_call=True
 )
 def save_input_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[str, str]:
-    """Saves input data stores to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        stores (list): List of input data stores to save
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Uses infrastructure function to save data stores
+    """Save input data stores to export directory.
+
+    :param export_dir: Destination directory.
+    :param stores: Input data stores to save.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_input_stores at {start}')
@@ -1981,20 +1607,11 @@ def save_input_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[st
     prevent_initial_call=True
 )
 def save_workflow_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[str, str]:
-    """Saves workflow data stores to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        stores (list): List of workflow data stores to save
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Uses infrastructure function to save data stores
+    """Save workflow data stores to export directory.
+
+    :param export_dir: Destination directory.
+    :param stores: Workflow data stores to save.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_workflow_stores at {start}')
@@ -2019,24 +1636,14 @@ def save_qc_figures(
     commonality_pdf_data: Optional[Dict[str, Any]], 
     workflow: str
 ) -> Tuple[str, str]:
-    """Saves quality control figures to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        analysis_divs (list): List of analysis div elements
-        analysis_div_ids (list): List of analysis div IDs
-        commonality_pdf_data (dict): PDF data for commonality figures
-        workflow (str): Current workflow type
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Handles errors by writing to error file
-        - Uses infrastructure function to save figures
+    """Save quality control figures to export directory.
+
+    :param export_dir: Destination directory.
+    :param analysis_divs: Analysis div elements.
+    :param analysis_div_ids: IDs of analysis divs.
+    :param commonality_pdf_data: Optional PDF data for commonality figures.
+    :param workflow: Current workflow name.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_qc_figures at {start}')
@@ -2061,20 +1668,11 @@ def save_qc_figures(
     prevent_initial_call=True
 )
 def save_input_information(export_dir: str, input_divs: List[html.Div]) -> Tuple[str, str]:
-    """Saves input information to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        input_divs (list): List of input div elements
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Uses infrastructure function to save input information
+    """Save input information to export directory.
+
+    :param export_dir: Destination directory.
+    :param input_divs: Input div elements to inspect.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_input_information at {start}')
@@ -2097,23 +1695,13 @@ def save_interactomics_figures(
     analysis_div_ids: List[Dict[str, str]], 
     workflow: str
 ) -> Tuple[str, str]:
-    """Saves interactomics analysis figures to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        analysis_divs (list): List of analysis div elements
-        analysis_div_ids (list): List of analysis div IDs
-        workflow (str): Current workflow type
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Handles errors by writing to error file
-        - Uses infrastructure function to save figures
+    """Save interactomics analysis figures to export directory.
+
+    :param export_dir: Destination directory.
+    :param analysis_divs: Analysis div elements.
+    :param analysis_div_ids: IDs of analysis divs.
+    :param workflow: Current workflow name.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_interactomics_figures at {start}')
@@ -2142,22 +1730,13 @@ def save_interactomics_post_saint_figures(
     analysis_div_ids: List[Dict[str, str]], 
     workflow: str
 ) -> Tuple[str, str]:
-    """Saves post-SAINT interactomics analysis figures to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        analysis_divs (list): List of analysis div elements
-        analysis_div_ids (list): List of analysis div IDs
-        workflow (str): Current workflow type
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Handles errors by writing to error file
+    """Save post-SAINT interactomics figures to export directory.
+
+    :param export_dir: Destination directory.
+    :param analysis_divs: Analysis div elements.
+    :param analysis_div_ids: IDs of analysis divs.
+    :param workflow: Current workflow name.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_interactomics_post_saint_figures at {start}')
@@ -2186,22 +1765,13 @@ def save_proteomics_figures(
     analysis_div_ids: List[Dict[str, str]], 
     workflow: str
 ) -> Tuple[str, str]:
-    """Saves proteomics analysis figures to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        analysis_divs (list): List of analysis div elements
-        analysis_div_ids (list): List of analysis div IDs
-        workflow (str): Current workflow type
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Handles errors by writing to error file
+    """Save proteomics analysis figures to export directory.
+
+    :param export_dir: Destination directory.
+    :param analysis_divs: Analysis div elements.
+    :param analysis_div_ids: IDs of analysis divs.
+    :param workflow: Current workflow name.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_proteomics_figures at {start}')
@@ -2230,22 +1800,13 @@ def save_phosphoproteomics_figures(
     analysis_div_ids: List[Dict[str, str]], 
     workflow: str
 ) -> Tuple[str, str]:
-    """Saves phosphoproteomics analysis figures to export directory.
-    
-    Args:
-        export_dir (str): Path to export directory
-        analysis_divs (list): List of analysis div elements
-        analysis_div_ids (list): List of analysis div IDs
-        workflow (str): Current workflow type
-        
-    Returns:
-        tuple: Contains:
-            - str: Completion message
-            - str: Empty string to clear loading indicator
-            
-    Notes:
-        - Logs start and completion times
-        - Handles errors by writing to error file
+    """Save phosphoproteomics analysis figures to export directory.
+
+    :param export_dir: Destination directory.
+    :param analysis_divs: Analysis div elements.
+    :param analysis_div_ids: IDs of analysis divs.
+    :param workflow: Current workflow name.
+    :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_phosphoproteomics_figures at {start}')
@@ -2275,48 +1836,11 @@ def save_phosphoproteomics_figures(
     prevent_initial_call=True
 )
 def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], Tuple[Any, Any]]:
-    """Creates and sends a ZIP archive containing all exported analysis data.
-    
-    Args:
-        export_dir (str): Path to the temporary export directory
-        *args: Variable number of completion status inputs from previous export steps:
-            - download_temp1: Input stores
-            - download_temp2: Workflow stores
-            - download_temp3: QC figures
-            - download_temp4: Input information
-            - download_temp5: Interactomics figures
-            - download_temp6: Post-SAINT figures
-            - download_temp7: Proteomics figures
-            - download_temp8: Phosphoproteomics figures
-        
-    Returns:
-        tuple: Contains:
-            - dict: Download configuration for ZIP file using dcc.send_bytes
-            - str: Updated button text indicating download is ready
-            
-    Notes:
-        - Verifies all export steps are complete by checking for 'done' in status
-        - Creates timestamped ZIP archive containing all exported files
-        - Preserves directory structure relative to export directory
-        - Excludes the ZIP file itself from the archive
-        - Cleans up temporary export directory after ZIP creation
-        - Logs start time and duration of packaging process
-        - Returns no_update if any export step is incomplete
-        - Handles errors with logging and returns no_update on failure
-        
-    Example ZIP structure:
-        timestamp ProteoGyver output.zip/
-        ├── README.html
-        ├── figures/
-        │   ├── qc/
-        │   ├── interactomics/
-        │   ├── proteomics/
-        │   └── phosphoproteomics/
-        ├── data/
-        │   ├── input_stores/
-        │   └── workflow_stores/
-        └── errors/
-            └── *_errors (if any occurred)
+    """Create and send a ZIP archive containing all exported analysis data.
+
+    :param export_dir: Temporary export directory path.
+    :param args: Completion tokens from prior export steps (must include 'done').
+    :returns: Tuple of (send_bytes payload, updated button text) or no_update while incomplete.
     """
     # Verify all export steps are complete
     for a in args:

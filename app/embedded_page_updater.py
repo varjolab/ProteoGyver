@@ -16,13 +16,10 @@ import os
 from typing import Tuple, List
 
 def parse_embed_file(filename: str) -> List[Tuple[str, str]]:
-    """Parse the embed file containing website names and URLs.
-    
-    Args:
-        filename (str): Path to the text file containing site information
-        
-    Returns:
-        List[Tuple[str, str]]: List of (site_name, url) tuples
+    """Parse the embed configuration file containing website names and URLs.
+
+    :param filename: Path to the text file containing site information.
+    :returns: List of (site_name, url) tuples.
     """
     sites = []
     with open(filename, 'r') as f:
@@ -35,11 +32,11 @@ def parse_embed_file(filename: str) -> List[Tuple[str, str]]:
 
 def create_page_file(output_dir: str, site_name: str, url: str) -> None:
     """Create a new Dash page file for embedding a website.
-    
-    Args:
-        output_dir (str): Directory where the page file should be created
-        site_name (str): Name of the website (used for the page title)
-        url (str): URL of the website to embed
+
+    :param output_dir: Directory where the page file should be created.
+    :param site_name: Name of the website (used for the page title and route).
+    :param url: URL of the website to embed.
+    :returns: None.
     """
     # Create sanitized filename from site name
     filename = f"{site_name.lower().replace(' ', '_').replace('.', '_')}.py"
@@ -79,10 +76,10 @@ layout = html.Div([
 
 def update_pages(output_dir: str, embed_file: str) -> None:
     """Update embedded pages based on the configuration file.
-    
-    Args:
-        output_dir (str): Directory where page files should be created
-        embed_file (str): Path to the text file containing site information
+
+    :param output_dir: Directory where page files should be created.
+    :param embed_file: Path to the text file containing site information.
+    :returns: None.
     """
     # Create output directory if it doesn't exist
     if not os.path.exists(output_dir):

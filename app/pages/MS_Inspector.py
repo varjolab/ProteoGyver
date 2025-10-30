@@ -62,10 +62,9 @@ dash.register_page(__name__, path=f'/MS_inspector')
 logger.info(f'{__name__} loading')
 
 def description_card() -> html.Div:
-    """Creates the description card component for the dashboard.
+    """Create the description card component for the dashboard.
 
-    Returns:
-        html.Div: A Dash HTML Div containing the dashboard title and descriptions.
+    :returns: Div containing dashboard title and descriptions.
     """
     return html.Div(
         id="description-card",
@@ -84,11 +83,9 @@ def description_card() -> html.Div:
     )
 
 def generate_control_card() -> html.Div:
-    """Creates the control card component with input widgets.
+    """Create the control card with input widgets.
 
-    Returns:
-        html.Div: A Dash HTML Div containing controls for MS selection, date range,
-            sample type selection, and run ID input.
+    :returns: Div with controls for MS selection, date range, sample types, run IDs.
     """
     ms_list: list = sorted(list(MASS_SPECS.keys()))
     return html.Div(
@@ -154,14 +151,11 @@ def generate_control_card() -> html.Div:
     prevent_initial_call=True
 )
 def toggle_graphs(n_clicks, current) -> tuple:
-    """Toggles the graph animation state between running and stopped.
+    """Toggle the graph animation state between running and stopped.
 
-    Args:
-        n_clicks (int): Number of times the button has been clicked
-        current (str): Current button text ('Start' or 'Stop')
-
-    Returns:
-        tuple: (disabled state, button text)
+    :param n_clicks: Number of button clicks.
+    :param current: Current button text (``'Start'`` or ``'Stop'``).
+    :returns: Tuple of (interval disabled flag, new button text).
     """
     if (int(n_clicks)==0) or (n_clicks is None) or (current == 'Stop'):
         text = 'Start'
@@ -198,25 +192,16 @@ def reset_graphs(_) -> int:
     prevent_initial_call=True
     )
 def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str, supp_datatype:str, traces:dict, plot_data: str, max_y:dict) -> tuple:
-    """Updates the TIC graphs and supplementary metrics plots.
+    """Update the TIC and supplementary metric graphs.
 
-    Args:
-        prev_btn_nclicks (int): Number of clicks on previous button
-        next_btn_nclicks (int): Number of clicks on next button
-        tic_index (int): Current TIC index being displayed
-        ticlist (list): List of TIC IDs to display
-        datatype (str): Type of data to display (TIC or MSn)
-        supp_datatype (str): Type of data for supplementary plots
-        traces (dict): Dictionary containing trace data
-        plot_data (str): JSON string containing plot data
-        max_y (dict): Dictionary of maximum y-values for each trace type
-
-    Returns:
-        tuple: (tic_figure, auc_figure, mean_intensity_figure, max_intensity, return_tic_index)
-            Contains updated Plotly figures and next TIC index
-
-    Notes:
-        The number of times the previous, next, or reset button is clicked is not used.
+    :param tic_index: Current TIC index.
+    :param ticlist: List of TIC internal run IDs.
+    :param datatype: Trace type to display (e.g., ``'TIC'`` or ``'MSn'``).
+    :param supp_datatype: Trace type for supplementary plots.
+    :param traces: Dict mapping run id -> trace dicts.
+    :param plot_data: Plot data (pandas split-JSON).
+    :param max_y: Dict of maximum y-values per trace type.
+    :returns: Tuple of (tic fig, auc fig, mean fig, max fig, next index).
     """
     data_to_use: pd.DataFrame = pd.read_json(StringIO(plot_data),orient='split')
     ticlist.sort()
@@ -325,28 +310,21 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     return tic_figure, auc_figure, mean_intensity_figure, max_intensity, return_tic_index
 
 def sort_dates(date1, date2):
-    """Sorts two dates in ascending order.
+    """Sort two date strings in ascending order.
 
-    Args:
-        date1 (str): First date in YYYY-MM-DD format
-        date2 (str): Second date in YYYY-MM-DD format
-
-    Returns:
-        tuple[str, str]: A tuple containing (earlier_date, later_date)
+    :param date1: First date (YYYY-MM-DD).
+    :param date2: Second date (YYYY-MM-DD).
+    :returns: Tuple of (earlier_date, later_date).
     """
     if datetime.strptime(date1, '%Y-%m-%d') > datetime.strptime(date2, '%Y-%m-%d'):
         return (date2,date1)
     return (date1, date2)
 
 def delim_runs(runs):
-    """Parses a string of run IDs into a list of valid run identifiers.
+    """Parse a string of run IDs into a sorted list of identifiers.
 
-    Args:
-        runs (str): String containing run IDs separated by spaces, tabs, commas, 
-            semicolons, or colons
-
-    Returns:
-        list[str]: Sorted list of valid run IDs
+    :param runs: String containing run IDs separated by whitespace or , ; :.
+    :returns: Sorted list of run IDs (strings).
     """
     retruns = []
     for run in sorted([
@@ -376,17 +354,14 @@ def delim_runs(runs):
     prevent_initial_call=True
 ) 
 def update_run_choices(_, start_date, end_date, sample_types, run_id_list, button_text) -> list:
-    """Updates the list of runs based on selected criteria.
+    """Update the list of runs based on selected criteria.
 
-    Args:
-        start_date (str): Start date
-        end_date (str): End date
-        sample_types (list): List of selected sample types
-        run_id_list (str): String of run IDs to load
-        button_text (str): Current button text
-
-    Returns:
-        list: Contains [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks]
+    :param start_date: Start date.
+    :param end_date: End date.
+    :param sample_types: Selected sample types.
+    :param run_id_list: Optional string of run IDs to load.
+    :param button_text: Current button text.
+    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks, not_found_text].
     """
     db_conn = db_functions.create_connection(database_file)
     not_found_ids = []
@@ -462,17 +437,9 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
     )
 
 def ms_analytics_layout():
-    """Creates the main layout for the MS analytics dashboard.
+    """Create the main layout for the MS analytics dashboard.
 
-    The layout includes:
-    - A description card explaining the dashboard's purpose
-    - Control panel for selecting MS instruments, date ranges, and sample types
-    - TIC visualization area with animation controls
-    - Supplementary metrics graphs (AUC, mean intensity, max intensity)
-
-    Returns:
-        html.Div: Main container with all dashboard components organized in a 
-            responsive grid layout
+    :returns: Div containing controls, TIC visualization, and supplementary graphs.
     """
     return html.Div(
         id="app-container",
@@ -549,27 +516,15 @@ def ms_analytics_layout():
     prevent_initial_call=True
 )
 def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
-    """Creates a ZIP file containing graphs and data for download.
+    """Create a ZIP with current graphs and data for download.
 
-    Saves the current graphs in multiple formats (HTML, PNG, PDF) and the underlying
-    data as a TSV file. All files are bundled into a ZIP archive for download.
-
-    Args:
-        n_clicks (int): Number of clicks on download button
-        tic_fig (plotly.graph_objects.Figure): TIC plot figure
-        auc_fig (plotly.graph_objects.Figure): AUC plot figure
-        mean_fig (plotly.graph_objects.Figure): Mean intensity plot figure
-        max_fig (plotly.graph_objects.Figure): Max intensity plot figure
-        plot_data (str): JSON string containing plot data
-
-    Returns:
-        dcc.send_bytes: ZIP file containing:
-            - HTML, PNG, and PDF versions of all plots
-            - TSV file with the underlying data
-            - Named with timestamp prefix
-            
-    Raises:
-        Exception: If there's an error during file creation or zipping process
+    :param n_clicks: Number of clicks on download button.
+    :param tic_fig: TIC plot figure.
+    :param auc_fig: AUC plot figure.
+    :param mean_fig: Mean intensity plot figure.
+    :param max_fig: Max intensity plot figure.
+    :param plot_data: Underlying data (pandas split-JSON).
+    :returns: send_bytes payload of the ZIP, or no_update if not triggered.
     """
     if not n_clicks:
         return no_update

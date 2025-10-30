@@ -1,7 +1,22 @@
+"""
+Before/After grouped bar plot for paired counts.
+
+Builds a simple grouped bar chart comparing two Series (before vs after)
+per sample, returning a Dash ``Graph`` component.
+"""
 from pandas import DataFrame, Series
 from plotly.express import bar
 from dash.dcc import Graph
 def make_graph(defaults:dict, before: Series, after: Series, graph_id:str, title: str = None) -> Graph:
+    """Create a grouped bar chart comparing before vs after counts.
+
+    :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
+    :param before: Series of counts before, indexed by sample.
+    :param after: Series of counts after, indexed by sample.
+    :param graph_id: Component ID for the ``Graph``.
+    :param title: Optional chart title.
+    :returns: Dash ``Graph`` instance containing the grouped bar plot.
+    """
     data: list = [['Before or after', 'Count', 'Sample']]
     for i in before.index:
         if i in after.index:

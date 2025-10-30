@@ -1,29 +1,45 @@
 """Infrastructure components for the Proteogyver web application.
 
 This module provides core infrastructure components and utilities for the Proteogyver web app,
-including data storage, figure export, and utility functions. Key functionality includes:
+including data storage, figure export, and utility functions.
 
-- Data store configuration and management
-- Figure export in multiple formats (HTML, PDF, PNG)
-- Input parameter tracking and export
-- Utility functions for component traversal and data formatting
-- Hidden utility components for app functionality
+Key functionality includes:
+
+*   Data store configuration and management
+*   Figure export in multiple formats (HTML, PDF, PNG)
+*   Input parameter tracking and export
+*   Utility functions for component traversal and data formatting
+*   Hidden utility components for app functionality
 
 The module defines configurations for data store exports and figure directories, and provides
 functions for saving data, figures, and input parameters to files. It also creates various
 Dash components used throughout the application.
 
-Key Classes/Functions:
-    - save_data_stores: Saves data from data stores to files
-    - save_figures: Exports figures in various formats
-    - save_input_information: Saves input parameters to TSV
-    - get_all_props/get_all_types: Utility functions for traversing Dash components
-    - Various component creation functions (upload_data_stores, working_data_stores, etc.)
+Functions
+---------
+.. py:func:: save_data_stores
+    Saves data from data stores to files.
+.. py:func:: save_figures
+    Exports figures in various formats.
+.. py:func:: save_input_information
+    Saves input parameters to TSV.
+.. py:func:: get_all_props
+    Utility function for traversing Dash components.
+.. py:func:: get_all_types
+    Utility function for traversing Dash components.
+.. py:func:: upload_data_stores
+    Creates Dash components for uploaded data stores.
+.. py:func:: working_data_stores
+    Creates Dash components for processed/working data stores.
 
-Constants:
-    - DATA_STORE_IDS: List of all data store IDs
-    - data_store_export_configuration: Export settings for each data store
-    - figure_export_directories: Output directory mapping for figures
+Constants
+---------
+.. py:data:: DATA_STORE_IDS
+    List of all data store IDs.
+.. py:data:: data_store_export_configuration
+    Export settings for each data store.
+.. py:data:: figure_export_directories
+    Output directory mapping for figures.
 """
 
 from dash import dcc, html
@@ -131,12 +147,11 @@ figure_export_directories: dict = {
 DATA_STORE_IDS = list(data_store_export_configuration.keys())
 
 def save_data_stores(data_stores, export_dir) -> dict:
-    """Saves data from data stores to files in the specified export directory.
-    
-    Args:
-        data_stores: List of data store components containing data to export
-        export_dir: Directory path where files should be saved
-        
+    """Save data from data stores into files under an export directory.
+
+    :param data_stores: List of Store-like elements with ``props.data``.
+    :param export_dir: Destination directory path.
+    :returns: Dict of failures keyed by store id (empty if none).
     """
     prev_time: datetime = datetime.now()
     logger.info(f'save data stores - started: {prev_time}')
@@ -292,15 +307,12 @@ def save_data_stores(data_stores, export_dir) -> dict:
         f'save data stores - Done with export: {datetime.now() - prev_time}')
 
 def get_all_props(elements, marker_key, match_partial=True) -> list:
-    """Recursively finds all props containing the marker key in a nested element structure.
-    
-    Args:
-        elements: Nested dictionary/list structure of dash components
-        marker_key: Key to search for in props
-        match_partial: Whether to match partial key names
-        
-    Returns:
-        list: Tuples of (marker_key, element) for matching elements
+    """Find all elements whose props contain a marker key.
+
+    :param elements: Nested dash component-like dict/list structure.
+    :param marker_key: Key to search for within ``props``.
+    :param match_partial: Whether to allow partial matches (unused).
+    :returns: List of tuples ``(marker_key, element)``.
     """
     ret: list = []
     if isinstance(elements, dict):
@@ -323,14 +335,11 @@ def get_all_props(elements, marker_key, match_partial=True) -> list:
 
 
 def get_all_types(elements, get_types) -> list:
-    """Recursively finds all elements of specified types in a nested element structure.
-    
-    Args:
-        elements: Nested dictionary/list structure of dash components
-        get_types: List of element types to find (e.g. ['h4', 'graph'])
-        
-    Returns:
-        list: Elements matching the specified types
+    """Find all elements of specified types in a nested structure.
+
+    :param elements: Nested dash component-like dict/list structure.
+    :param get_types: List of element type strings to collect (e.g., ``['h4','graph']``).
+    :returns: List of matching elements.
     """
     ret = []
     if isinstance(elements, dict):
@@ -351,11 +360,11 @@ def get_all_types(elements, get_types) -> list:
     return ret
 
 def write_README(save_dir, guide_file) -> None:
-    """Writes a README file to the export directory.
-    
-    Args:
-        save_dir: Directory to save the README file in
-        guide_file: Path to the readme contents markdown file.
+    """Write a README.html file rendered from markdown.
+
+    :param save_dir: Target directory for README.
+    :param guide_file: Path to markdown file to render.
+    :returns: None
     """
 
     with open(guide_file) as fil:
@@ -389,14 +398,14 @@ def write_README(save_dir, guide_file) -> None:
         fil.write(html_template)
 
 def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data, workflow) -> None:
-    """Saves figures from the analysis to files in various formats.
-    
-    Args:
-        analysis_divs: Div elements containing the figures
-        export_dir: Directory to save figures in
-        output_formats: List of formats to save figures in (e.g. ['html', 'pdf', 'png'])
-        commonality_pdf_data: PDF data for commonality figures
-        workflow: Name of the current workflow
+    """Save figures found in analysis divs in requested formats.
+
+    :param analysis_divs: Analysis container elements to scan.
+    :param export_dir: Base directory to save figures to.
+    :param output_formats: Formats to export (e.g., ``['html','pdf','png']``).
+    :param commonality_pdf_data: Optional PDF bytes (base64) for commonality figure.
+    :param workflow: Workflow name used in paths.
+    :returns: None
     """
     logger.info(f'saving figures: {datetime.now()}')
     prev_time: datetime = datetime.now()
@@ -511,13 +520,10 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
 
 
 def format_nested_list(input_list: list):
-    """Formats a nested list structure into a comma-separated string.
-    
-    Args:
-        input_list: Nested list structure to format
-        
-    Returns:
-        str: Comma-separated string representation
+    """Format a nested list into a comma-separated string.
+
+    :param input_list: Nested list to format.
+    :returns: Comma-separated string representation.
     """
     if not isinstance(input_list, list):
         return str(input_list)
@@ -531,11 +537,11 @@ def format_nested_list(input_list: list):
 
 
 def save_input_information(input_divs, export_dir) -> None:
-    """Saves information about input parameters and settings to a TSV file.
-    
-    Args:
-        input_divs: Div elements containing input components
-        export_dir: Directory to save the output file in
+    """Save user input parameters/settings to a TSV file.
+
+    :param input_divs: Input container elements to scan.
+    :param export_dir: Destination directory.
+    :returns: None
     """
     logger.info(f'saving input info: {datetime.now()}')
     prev_time: datetime = datetime.now()
@@ -588,10 +594,9 @@ def save_input_information(input_divs, export_dir) -> None:
     logger.info(f'saving input info - done: {datetime.now() - prev_time}')
 
 def upload_data_stores() -> html.Div:
-    """Creates data store components for uploaded data.
-    
-    Returns:
-        html.Div: Container with data store components for uploaded data
+    """Create Store components for uploaded data.
+
+    :returns: Div containing uploaded data Stores.
     """
     stores: list = []
     for ID_STR in DATA_STORE_IDS:
@@ -605,10 +610,9 @@ def upload_data_stores() -> html.Div:
 
 
 def working_data_stores() -> html.Div:
-    """Creates data store components for working/processed data.
-    
-    Returns:
-        html.Div: Container with data store components for working data
+    """Create Store components for processed/working data.
+
+    :returns: Div containing working data Stores.
     """
     stores: list = []
     for ID_STR in DATA_STORE_IDS:
@@ -618,10 +622,9 @@ def working_data_stores() -> html.Div:
     return html.Div(id='workflow-stores', children=stores)
 
 def temporary_download_divs():
-    """Creates temporary divs used for downloads.
-    
-    Returns:
-        html.Div: Container with temporary download divs
+    """Create temporary divs used for downloads.
+
+    :returns: Div containing temporary download children.
     """
     return html.Div(
         id='download-temporary-things',
@@ -629,10 +632,9 @@ def temporary_download_divs():
     )
 
 def temporary_download_button_loading_divs():
-    """Creates loading indicators for download buttons.
-    
-    Returns:
-        html.Div: Container with loading indicator divs
+    """Create hidden loading indicators for download buttons.
+
+    :returns: Div with Loading components used during downloads.
     """
     return html.Div(
         [
@@ -642,10 +644,9 @@ def temporary_download_button_loading_divs():
     )
 
 def invisible_utilities() -> html.Div:
-    """Creates container for utility components that should be hidden.
-    
-    Returns:
-        html.Div: Hidden container with utility components
+    """Create hidden utility components container.
+
+    :returns: Hidden Div with utility components.
     """
     return html.Div(
         id='utils-div',
@@ -660,10 +661,9 @@ def invisible_utilities() -> html.Div:
     )
 
 def notifiers() -> html.Div:
-    """Creates notification components used by callbacks.
-    
-    Returns:
-        html.Div: Hidden container with notification components
+    """Create notification components used by callbacks.
+
+    :returns: Hidden Div with notifier children.
     """
     return html.Div(
         id='notifiers-div',

@@ -1,3 +1,9 @@
+"""
+Histogram comparing imputed vs non-imputed distributions.
+
+Builds a violin-marginal histogram and highlights imputed values for
+visual comparison of value distributions.
+"""
 import numpy as np
 from pandas import DataFrame
 from dash.dcc import Graph
@@ -5,6 +11,16 @@ from plotly.graph_objects import Figure
 from plotly.express import histogram
 
 def make_graph(non_imputed, imputed, defaults, id_name: str = None, title:str = None, **kwargs) -> Graph:
+    """Create a histogram comparing imputed vs non-imputed values.
+
+    :param non_imputed: DataFrame before imputation.
+    :param imputed: DataFrame after imputation.
+    :param defaults: Dict with ``height``, ``width``, ``config``.
+    :param id_name: Component ID for the ``Graph``.
+    :param title: Figure title.
+    :param kwargs: Additional keyword args forwarded to Plotly Express ``histogram``.
+    :returns: Dash ``Graph`` containing the histogram figure.
+    """
     #x,y = sp.coo_matrix(non_imputed.isnull()).nonzero()
     non_imputed: DataFrame = non_imputed.melt(ignore_index=False).rename(
         columns={'variable': 'Sample'})

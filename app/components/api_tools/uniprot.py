@@ -1,4 +1,23 @@
+"""
+UniProt data access and utilities.
 
+This module provides helpers to download and process UniProtKB data via
+the public REST API, including pagination handling, column mapping,
+organism filtering, and convenience wrappers for common datasets used in
+ProteoGyver.
+
+Main entry points
+-----------------
+- ``download_uniprot_chunks``: batched download for an organism/field set
+- ``download_full_uniprot_for_organism``: comprehensive download builder
+- ``retrieve_uniprot``: cache-aware retrieval to a local TSV
+- ``update``: check and refresh local UniProt dataset for an organism
+
+Notes
+-----
+Large result sets are fetched using server-side pagination with retry
+policies and optional progress reporting.
+"""
 from datetime import datetime
 import sys
 import os

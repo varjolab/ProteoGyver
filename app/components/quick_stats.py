@@ -1,4 +1,9 @@
+"""
+Quick statistical utilities for QC and differential analysis.
 
+Includes ANOVA, pairwise differential testing, and helpers to compute
+basic per-sample metrics used across figures.
+"""
 import pandas as pd
 import numpy as np
 from statsmodels.stats import multitest
@@ -7,6 +12,12 @@ from typing import Any
 from components.db_functions import map_protein_info
 
 def anova(dataframe: pd.DataFrame, sample_groups: dict) -> pd.DataFrame:
+    """Run one-way ANOVA across sample groups for each row.
+
+    :param dataframe: Wide matrix with samples as columns and proteins as rows.
+    :param sample_groups: Mapping group -> list of column names.
+    :returns: DataFrame with F-statistic, p-value, and Benjamini-Hochberg q-value.
+    """
     # Create an empty DataFrame to store the results
     results = []
     index = []
@@ -24,6 +35,19 @@ def anova(dataframe: pd.DataFrame, sample_groups: dict) -> pd.DataFrame:
 
 
 def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: list, data_is_log2_transformed: bool = True, namemap: dict = None, adj_p_thr: float = 0.01, fc_thr:float = 1.0, test_type: str = 'independent', db_file_path: str = None) -> pd.DataFrame:
+    """Compute pairwise differential statistics for specified comparisons.
+
+    :param data_table: Wide matrix with samples as columns and proteins as rows.
+    :param sample_groups: Mapping from group name to list of column names.
+    :param comparisons: List of ``(sample_group, control_group)`` pairs.
+    :param data_is_log2_transformed: If ``True``, data is already log2; otherwise log2 means are computed.
+    :param namemap: Optional mapping from index to display name.
+    :param adj_p_thr: FDR q-value threshold used for the ``Significant`` flag.
+    :param fc_thr: Absolute log2 fold change threshold for ``Significant``.
+    :param test_type: ``'independent'`` or ``'paired'`` t-test.
+    :param db_file_path: Optional database path for gene mapping.
+    :returns: Long-form DataFrame with FC, p-values, q-values and metadata per comparison.
+    """
     sig_data: list = []
     for sample, control in comparisons:
         sample_columns: list = sample_groups[sample]
@@ -85,7 +109,12 @@ def differential(data_table: pd.DataFrame, sample_groups: dict, comparisons: lis
          ]]
 
 def get_count_data(data_table: pd.DataFrame, contaminant_list: list = None) -> pd.DataFrame:
-    """Returns non-na count per column."""
+    """Count non-NA entries per column, optionally excluding contaminants.
+
+    :param data_table: Input DataFrame.
+    :param contaminant_list: Optional list of identifiers to treat as contaminants.
+    :returns: DataFrame with counts and an ``Is contaminant`` flag when applicable.
+    """
     data: pd.DataFrame
     data = data_table.\
         notna().sum().\
@@ -106,7 +135,11 @@ def get_count_data(data_table: pd.DataFrame, contaminant_list: list = None) -> p
 
 
 def get_coverage_data(data_table: pd.DataFrame) -> pd.DataFrame:
-    """Returns coverage pd.DataFrame."""
+    """Compute identification coverage counts.
+
+    :param data_table: Input DataFrame.
+    :returns: DataFrame of value counts of the number of samples each protein is identified in.
+    """
     return pd.DataFrame(
         data_table.notna()
         .astype(int)
@@ -116,7 +149,11 @@ def get_coverage_data(data_table: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_na_data(data_table: pd.DataFrame) -> pd.DataFrame:
-    """Returns na count per column."""
+    """Compute NA percentage per column.
+
+    :param data_table: Input DataFrame.
+    :returns: DataFrame with ``Missing value %`` per sample.
+    """
     data: pd.DataFrame = ((data_table.
                         isna().sum() / data_table.shape[0]) * 100).\
         to_frame(name='Missing value %')
@@ -125,6 +162,11 @@ def get_na_data(data_table: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_sum_data(data_table) -> pd.DataFrame:
+    """Compute column sums.
+
+    :param data_table: Input DataFrame.
+    :returns: DataFrame with ``Value sum`` per sample.
+    """
     data: pd.DataFrame = data_table.sum().\
         to_frame(name='Value sum')
     data.index.name = 'Sample name'
@@ -132,6 +174,11 @@ def get_sum_data(data_table) -> pd.DataFrame:
 
 
 def get_mean_data(data_table) -> pd.DataFrame:
+    """Compute column means.
+
+    :param data_table: Input DataFrame.
+    :returns: DataFrame with ``Value mean`` per sample.
+    """
     data: pd.DataFrame = data_table.mean().\
         to_frame(name='Value mean')
     data.index.name = 'Sample name'
@@ -139,6 +186,12 @@ def get_mean_data(data_table) -> pd.DataFrame:
 
 
 def get_comparative_data(data_table, sample_groups) -> tuple:
+    """Split data into a list of group-specific DataFrames.
+
+    :param data_table: Wide matrix with samples as columns.
+    :param sample_groups: Mapping from sample to group name.
+    :returns: Tuple of (list of group names, list of DataFrames).
+    """
     sample_group_names: list = sorted(
         list(set([g for _, g in sample_groups.items()])))
     comparative_data: list = []
@@ -152,6 +205,13 @@ def get_comparative_data(data_table, sample_groups) -> tuple:
     )
 
 def get_common_data(data_table: pd.DataFrame, rev_sample_groups: dict, only_groups: list = None) -> dict:
+    """Collect sets of identified proteins per group.
+
+    :param data_table: Input DataFrame with proteins as index and samples as columns.
+    :param rev_sample_groups: Mapping from sample name to group name.
+    :param only_groups: Optional subset of group names to include.
+    :returns: Dict mapping group name to set of identified proteins.
+    """
     group_sets: dict = {}
     for column in data_table.columns:
         col_proteins: set = set(data_table[[column]].dropna().index.values)

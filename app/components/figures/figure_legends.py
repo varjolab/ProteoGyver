@@ -1,3 +1,9 @@
+"""
+Legend helpers for QC, proteomics, and interactomics figures.
+
+Provides prewritten legend paragraphs and small utilities for dynamic
+legend generation and templating.
+"""
 from dash.html import P
 
 leg_dict: dict = {
@@ -45,16 +51,51 @@ INTERACTOMICS_LEGENDS: dict = {key: P(id=f'interactomics-legend-{key}', children
                                for key, val in leg_dict['interactomics'].items()}
 
 def leg_rep(legend, replace, rep_with) -> P:
+    """Replace text in an existing legend paragraph.
+
+    :param legend: Existing ``dash.html.P`` element.
+    :param replace: Substring to replace.
+    :param rep_with: Replacement string.
+    :returns: New ``P`` element with modified text.
+    """
     return P(id=legend.id, children = legend.children.replace(replace, rep_with))
 
 def volcano_plot_legend(sample, control, id_prefix) -> P:
+    """Create a legend paragraph for a volcano plot comparison.
+
+    :param sample: Sample name.
+    :param control: Control name.
+    :param id_prefix: Prefix for the element ID.
+    :returns: ``dash.html.P`` element.
+    """
     return P(id=f'{id_prefix}-volcano-plot-{sample}-{control}', children=f'{sample} vs {control} volcano plot. Significant values are marked with the name and different color, and the lines represent significance thresholds in fold change and q-value dimensions.')
 
 def saint_legend(rescued: bool) -> P:
+    """Legend for SAINT filtered counts with rescue flag.
+
+    :param rescued: Whether preys were rescued across baits.
+    :returns: ``dash.html.P`` element.
+    """
     return leg_rep(INTERACTOMICS_LEGENDS['filtered-saint-counts'], '$RESCUE', 'rescued' if rescued else 'not rescued')
 
 def enrichment_legend(clean_enrichment_name, enrichment_name, fc_col, fc_threshold, p_value_name, p_threshold):
+    """Legend paragraph for enrichment plot settings.
+
+    :param clean_enrichment_name: Clean identifier for the element ID.
+    :param enrichment_name: Display name of the enrichment.
+    :param fc_col: Fold change column used for filtering.
+    :param fc_threshold: Fold change threshold value.
+    :param p_value_name: P-value column name used for filtering.
+    :param p_threshold: P-value threshold.
+    :returns: ``dash.html.P`` element.
+    """
     return P(id=f'{clean_enrichment_name}-enrichment-legend', children=f'{enrichment_name} enrichment using {fc_col} filter of {fc_threshold} and {p_value_name} filter of {p_threshold}.')
 
 def volcano_heatmap_legend(control, id_prefix) -> P:
+    """Legend paragraph for multi-comparison volcano heatmap.
+
+    :param control: Control name used in comparisons.
+    :param id_prefix: Prefix for the element ID.
+    :returns: ``dash.html.P`` element.
+    """
     return P(id=f'{id_prefix}-volcano-heatmap-{control}', children=f'All comparisons vs vs {control} volcano plot. Only significantly different proteins shown')

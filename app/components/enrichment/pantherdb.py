@@ -1,4 +1,15 @@
+"""
+PANTHER DB enrichment utilities.
 
+This module integrates with the PANTHER overrepresentation API and
+dataset listings to support enrichment analysis workflows in
+ProteoGyver.
+
+Main entry points
+-----------------
+- ``handler``: stateful helper exposing dataset discovery and enrichment
+- ``handler.enrich``: runs overrepresentation across configured datasets
+"""
 import os
 import pandas as pd
 import requests
@@ -17,6 +28,12 @@ __all__ = [
 
 
 class handler():
+    """Stateful PANTHER enrichment helper.
+
+    Provides dataset discovery, file retrieval utilities, and convenience
+    wrappers to run PANTHER overrepresentation analysis and assemble
+    results for downstream visualization.
+    """
 
     _defaults: list = [
         'Panther Reactome pathways',
@@ -94,11 +111,17 @@ class handler():
             self._datasets[realname] = [annotation, name, description]
             
     def get_available(self) -> dict:
+        """Return display names of available datasets.
+
+        :returns: Sorted list of dataset names.
+        """
         return self._available
 
     def get_pantherdb_datasets(self, ) -> list:
-        """Retrieves all available pantherDB datasets and returns them in a list of [annotation, \
-            annotation_name, annotation_description]"""
+        """Retrieve available PANTHER datasets from the service.
+
+        :returns: Mapping from annotation ID to tuple of (name, description).
+        """
         success: bool = False
         for i in range(20, 100, 20):
             try:
@@ -124,7 +147,11 @@ class handler():
         return datasets
 
     def __get_species_from_panther_datafiles(self, request: str, species_list: list) -> list:
-        """Parses out wanted species datafiles from panther request
+        """Parse selected species datafiles from a PANTHER index request.
+
+        :param request: Raw HTML/text listing response.
+        :param species_list: List of species filters, or ``['all']`` to keep all.
+        :returns: Filtered list of datafile names.
         """
         datafilelist = [a.split('href')[-1].split('<')[0].split('>')[-1].strip() for a in
                         request.text.split('\n')]
@@ -146,14 +173,16 @@ class handler():
     def retrieve_pantherdb_gene_classification(self, species: list = None,
                                                savepath: str = 'PANTHER datafiles',
                                                progress: bool = False) -> None:
-        """Downloads PANTHER gene classification files for desired organisms.
+        """Download PANTHER gene classification files for desired organisms.
 
-        Will not download, if files with the same name already exist in the save directory.
+        Will not download when files with the same name already exist in
+        the save directory.
 
-        Parameters:
-        species: list of species to download. If None, will download human only.\
-            If 'all', will download all species files.
-        savepath: directory in which to save the files.
+        :param species: List of species to download. If ``None``, downloads human only.
+            If ``'all'``, downloads all species files.
+        :param savepath: Directory in which to save the files.
+        :param progress: If ``True``, print progress information.
+        :returns: None
         """
         pantherpath: str = 'http://data.pantherdb.org/ftp/sequence_classifications/current_release/\
             PANTHER_Sequence_Classification_files/'
@@ -182,9 +211,18 @@ class handler():
                 print(f'{line} done, {len(datafilelist)-(i+1)} left')
 
     def get_default_panel(self) -> list:
+        """Return the default set of dataset display names.
+
+        :returns: List of default dataset names.
+        """
         return self._defaults
 
     def panel_to_usable(self, entries: list) -> list:
+        """Convert display names/IDs to internal dataset metadata.
+
+        :param entries: List of dataset display names or IDs.
+        :returns: List of triples [annotation_id, display_name, (annotation_id, name, description)].
+        """
         new_list = [ ]
         for e in entries:
             started = len(new_list)
@@ -197,7 +235,12 @@ class handler():
         return new_list
 
     def enrich(self,data_lists: list, options: str, filter_out_negative: bool = True) -> list:
-        """
+        """Run PANTHER overrepresentation for multiple bait lists.
+
+        :param data_lists: List of pairs ``(bait_name, prey_list)``.
+        :param options: ``'defaults'`` to use default panel, or semicolon-delimited dataset names.
+        :param filter_out_negative: If ``True``, filter rows with non-positive fold enrichment.
+        :returns: Tuple of (result_names, result_dataframes, result_legends) suitable for plotting.
         """
         if options == 'defaults':
             datasets: list = self.get_default_panel()
@@ -237,26 +280,23 @@ class handler():
                                                 organism: int = 9606,
                                                 test_type: str = 'FISHER',
                                                 correction_type: str = 'FDR') -> dict:
-        """Runs statistical overrepresentation analysis on PANTHER server (pantherdb.org), and \
-            returns the results as a dictionary.
+        """Run PANTHER overrepresentation analysis for a protein list.
 
-        The output will contain dictionary with following keys:
-            Name: name of the enrichment database
-            Description: description of the database
-            Reference information: information about tool, database, and analysis. E.g. versions
-            Results: pandas dataframe with the full enrichment results
+        The returned dictionary contains:
 
-        Parameters:
-        datasets: pantherDB datasets to run overrepresentation analysis against, see \
-            get_pantherdb_datasets method
-        protein_list: list of identified proteins
-        data_set_name: Name for the incoming dataset (protein list). if None, f'{datetime.today().strftime("%Y-%m-%d")}_proteinlist' will be used.
-        background_list: list of background proteins. if None, entire annotation database \
-            will be used
-        organism: numerical ID of the organism, e.g. human is 9606
-        test_type: statistical test to apply, see PANTHER documentation for options: \
-            http://pantherdb.org/services/openAPISpec.jsp
-        correction_type: correction to apply to p-values
+        - ``Name``: name of the enrichment database
+        - ``Description``: description of the database
+        - ``Reference information``: information about tool, database, and analysis
+        - ``Results``: pandas DataFrame with the full enrichment results
+
+        :param datasets: Datasets to run against; see ``get_pantherdb_datasets``.
+        :param protein_list: List of identified proteins (UniProt accessions).
+        :param data_set_name: Label for the incoming dataset; if ``None``, a date-stamped name is used.
+        :param background_list: Optional background proteins; if ``None``, entire annotation DB is used.
+        :param organism: NCBI TaxID of the organism (e.g., human is 9606).
+        :param test_type: Statistical test type, see PANTHER docs.
+        :param correction_type: Multiple testing correction.
+        :returns: Mapping from dataset key to result bundle.
         """
         baseurl: str = 'http://pantherdb.org/services/oai/pantherdb/enrich/overrep?'
         ret: dict = {}

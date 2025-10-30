@@ -5,6 +5,14 @@ from dash.dcc import Graph
 from plotly import express as px
 
 def generate_msmic_dataframes(saint_data:pd.DataFrame, reference_data: pd.DataFrame, plot_min: int = 0, plot_max: int = 100) -> tuple:
+    """Generate MS microscopy localization score DataFrame.
+
+    :param saint_data: SAINT results with columns ``Bait``, ``Prey``, ``AvgSpec``.
+    :param reference_data: Reference localization data with columns ``Loc``, ``Prey`` and precomputed scores.
+    :param plot_min: Minimum plotting value (for normalization).
+    :param plot_max: Maximum plotting value (for normalization).
+    :returns: DataFrame of bait x localization integer scores (0..plot_max).
+    """
 
     #baitnorm = []
     baitsumnorm = []
@@ -57,6 +65,14 @@ def generate_msmic_dataframes(saint_data:pd.DataFrame, reference_data: pd.DataFr
     return bd_sum
     
 def tweak_fig_size_hw(height: int, width: int, desired_ratio: float, method='reduce') -> tuple:
+    """Adjust figure height/width to target aspect ratio.
+
+    :param height: Current height in pixels.
+    :param width: Current width in pixels.
+    :param desired_ratio: Target height/width ratio.
+    :param method: ``'reduce'`` to reduce the larger dimension, ``'inflate'`` to increase the smaller.
+    :returns: Tuple of (new_height, new_width) as ints.
+    """
     current_ratio: float = height/width
     if method == 'reduce':
         height = height * (desired_ratio/current_ratio)
@@ -65,6 +81,16 @@ def tweak_fig_size_hw(height: int, width: int, desired_ratio: float, method='red
     return (int(height), int(width))
 
 def draw_localization_plot(defaults: dict, datarow: pd.Series, cmap: list = [[255,255,255], [0,0,255]], nsteps: int = 10, plot_min: int = 0, plot_max: int = 100):
+    """Draw a polar localization plot for a single bait row.
+
+    :param defaults: Dict containing ``height`` and ``width``.
+    :param datarow: Series of localization scores (columns=locations).
+    :param cmap: Two RGB triplets defining start and end colors.
+    :param nsteps: Number of discrete color steps between min and max.
+    :param plot_min: Minimum plotting value for radial axis.
+    :param plot_max: Maximum plotting value for radial axis.
+    :returns: Plotly Figure.
+    """
     r = list(datarow.values)
     width = int(360/len(r))
     theta = list(range(0,360,width))
@@ -121,6 +147,15 @@ def draw_localization_plot(defaults: dict, datarow: pd.Series, cmap: list = [[25
     return fig
 
 def localization_graph(graph_id: str, defaults: dict, plot_type: str, *args, **kwargs) -> Graph:
+    """Create a Dash Graph for localization visualization.
+
+    :param graph_id: Component ID for the graph.
+    :param defaults: Dict with ``config``, ``height``, ``width``.
+    :param plot_type: ``'polar'`` or ``'heatmap'``.
+    :param args: Positional args forwarded to the specific drawing function.
+    :param kwargs: Keyword args forwarded to the specific drawing function.
+    :returns: Dash Graph.
+    """
     if plot_type == 'polar':
         return Graph(
             id=graph_id,
@@ -144,6 +179,12 @@ def localization_graph(graph_id: str, defaults: dict, plot_type: str, *args, **k
     return 'NOT A VALID MSMIC PLOT TYPE'
 
 def draw_localization_heatmap(defaults: dict, localization_results: pd.DataFrame) -> go.Figure:
+    """Draw a heatmap of localization scores (bait x localization).
+
+    :param defaults: Dict containing ``height`` and ``width``.
+    :param localization_results: DataFrame of scores (index=baits, columns=locs).
+    :returns: Plotly Figure heatmap.
+    """
     fig_height: int = defaults['height']
     fig_width: int = defaults['width']
     fig = px.imshow(localization_results, height=fig_height, width = fig_width, aspect='auto', color_continuous_scale='Blues')

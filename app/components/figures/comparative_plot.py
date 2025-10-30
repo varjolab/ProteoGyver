@@ -1,3 +1,9 @@
+"""
+Comparative violin/box plot for grouped data frames.
+
+Takes a list of DataFrames (columns = replicates), stacks values into a
+long format and renders either grouped violin or box plots.
+"""
 import numpy as np
 from pandas import DataFrame
 from dash.dcc import Graph
@@ -17,6 +23,19 @@ def make_graph(
         title: str = None, 
         showbox: bool = False, 
         plot_type: str = 'violin') -> Graph:
+    """Create a comparative violin/box plot from multiple DataFrames.
+
+    :param id_name: Component ID for the ``Graph``; default name used if ``None``.
+    :param sets: List of DataFrames; each column is treated as a replicate.
+    :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
+    :param names: Optional list of labels for each DataFrame in ``sets``.
+    :param replicate_colors: Mapping with ``'sample groups'`` color strings per name.
+    :param points_visible: Violin/box points visibility (e.g., ``'outliers'`` or ``False``).
+    :param title: Optional title.
+    :param showbox: For violin, whether to show the internal box.
+    :param plot_type: ``'violin'`` or ``'box'``.
+    :returns: Dash ``Graph`` instance with the figure.
+    """
     if id_name is None:
         id_name: str = 'comparative-violin-plot'
     if isinstance(names, list):

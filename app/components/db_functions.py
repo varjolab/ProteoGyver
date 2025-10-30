@@ -7,10 +7,13 @@ from typing import Iterable, Dict, Any, List, Optional, Tuple
 
 
 def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: list | str = None, db_file_path: str|None = None):
-    """Map information from the protein table.
-    :param uniprot_ids: IDs to map. If ID is not found, placeholder value will be used
-    :param info: if str, returned list will have only the mapped values from this column. If type is list, will return a list of lists. By default, will return gene_name column data.
-    :param placeholder: Value to use if ID is not found. By default, value from the uniprot_ids list will be used. If type list, the placeholders should be in the same order as info list. 
+    """Map requested columns from the ``proteins`` table for UniProt IDs.
+
+    :param uniprot_ids: UniProt IDs to map; order is preserved in result.
+    :param info: Column name or list of column names to return (default ``'gene_name'``).
+    :param placeholder: Placeholder(s) for missing IDs; str or list aligned to ``info``.
+    :param db_file_path: SQLite DB path; if None, all IDs are treated as missing.
+    :returns: List (or list of lists) with mapped values per input ID.
     """
     ret_info = []
     if info is None:
@@ -59,9 +62,18 @@ def get_from_table_match_with_priority(
     extra_tiebreak: Optional[List[Tuple[str, str]]] = None,  # e.g. [("acq_time","DESC")]
     return_cols: Optional[List[str]] = None,  # default: all columns in table
 ) -> Dict[str, Optional[Dict[str, Any]]]:
-    """
-    For each value in criteria_list, find the single best-matching row from `table`
-    using `criteria_cols` in priority order (1,2,3,...). Returns {value -> row_dict or None}.
+    """Find the best-matching row per value using priority columns.
+
+    :param conn: SQLite connection.
+    :param criteria_list: Values to match.
+    :param table: Table name.
+    :param criteria_cols: Columns to try in priority order.
+    :param case_insensitive: If ``True``, match case-insensitively.
+    :param key_col: Column ensuring deterministic ordering; defaults to ``rowid``.
+    :param extra_tiebreak: Extra (column, direction) order terms.
+    :param return_cols: Columns to return (default all).
+    :returns: Mapping value -> row dict (or None if no match).
+    :raises ValueError: For invalid table/columns.
     """
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -207,6 +219,15 @@ def get_from_table_match_with_priority(
 
 
 def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter_col: str|None = None, startswith: str|None = None) -> pd.DataFrame:
+    """Read an entire table into a pandas DataFrame with optional prefix filter.
+
+    :param db_conn: SQLite connection.
+    :param table_name: Table name to read.
+    :param index_col: Column to set as index.
+    :param filter_col: Column to apply ``LIKE 'startswith%'`` on.
+    :param startswith: Prefix for the filter.
+    :returns: DataFrame converted to pandas nullable dtypes.
+    """
     query = f"SELECT * FROM {table_name}"
     
     if filter_col and startswith is not None:
@@ -215,14 +236,11 @@ def get_full_table_as_pd(db_conn, table_name, index_col: str|None = None, filter
     return pd.read_sql_query(query, db_conn, index_col=index_col).convert_dtypes()
 
 def get_last_update(conn, uptype: str) -> str:
-    """
-    Get the last update timestamp from the update_log table.
+    """Get the last update timestamp of a given type from ``update_log``.
 
-    Args:
-        conn: SQLite database connection object
-        uptype: update type to get the last update for
-    Returns:
-        str: Last update timestamp
+    :param conn: SQLite connection.
+    :param uptype: Update type value to filter on.
+    :returns: Latest timestamp string.
     """
     cursor = conn.cursor()
     cursor.execute("SELECT timestamp FROM update_log WHERE update_type = ? ORDER BY timestamp DESC LIMIT 1", (uptype,))
@@ -231,6 +249,11 @@ def get_last_update(conn, uptype: str) -> str:
     return last_update[0]
 
 def is_test_db(db_path: str) -> bool:
+    """Check if an SQLite DB has metadata key ``is_test`` set to true.
+
+    :param db_path: Path to database file.
+    :returns: ``True`` if DB indicates test, else ``False``.
+    """
     conn = create_connection(db_path)
     cursor = conn.cursor()
     try:
@@ -241,6 +264,14 @@ def is_test_db(db_path: str) -> bool:
         return False
 
 def export_snapshot(source_path: str, snapshot_dir: str, snapshots_to_keep: int) -> None:
+    """Create a timestamped SQLite snapshot and prune old backups.
+
+    :param source_path: Source DB path.
+    :param snapshot_dir: Directory to store backups.
+    :param snapshots_to_keep: Keep at most this many snapshots (None to skip pruning).
+    :returns: None
+    :raises FileNotFoundError: If source DB does not exist.
+    """
     if not os.path.exists(source_path):
         raise FileNotFoundError(f"Source DB file not found: {source_path}")
     os.makedirs(snapshot_dir, exist_ok=True)
@@ -271,6 +302,12 @@ def export_snapshot(source_path: str, snapshot_dir: str, snapshots_to_keep: int)
                 print(f"Failed to delete {old_path}: {e}")
 
 def dump_full_database_to_csv(database_file, output_directory) -> None:
+    """Dump all tables to TSV files in an output directory.
+
+    :param database_file: Path to database file.
+    :param output_directory: Destination directory.
+    :returns: None
+    """
     conn: sqlite3.Connection = create_connection(database_file) # type: ignore
     cursor: sqlite3.Cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -283,6 +320,11 @@ def dump_full_database_to_csv(database_file, output_directory) -> None:
     conn.close()
 
 def list_tables(database_file) -> list[str]:
+    """List table names in an SQLite database.
+
+    :param database_file: Path to database file.
+    :returns: List of table names.
+    """
     conn = sqlite3.connect(database_file)
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -292,6 +334,15 @@ def list_tables(database_file) -> list[str]:
     return [table[0] for table in tables]
 
 def add_column(db_conn, tablename, colname, coltype):
+    """Add a column to a table.
+
+    :param db_conn: SQLite connection.
+    :param tablename: Target table name.
+    :param colname: New column name.
+    :param coltype: Column type string.
+    :returns: None
+    :raises sqlite3.Error: On SQL failure.
+    """
     sql_str: str = f"""
         ALTER TABLE {tablename} 
         ADD COLUMN {colname} '{coltype}'
@@ -306,16 +357,13 @@ def add_column(db_conn, tablename, colname, coltype):
         cursor.close()
 
 def modify_multiple_records(db_conn, table, updates):
-    """Modify multiple records in a table.
-    
-    Args:
-        db_conn: SQLite database connection
-        table (str): Name of the table to update
-        updates (list): List of dictionaries, each containing:
-            - criteria_col (str): Column name for WHERE clause
-            - criteria: Value to match in WHERE clause
-            - columns (list): List of column names to update
-            - values (list): List of values corresponding to columns
+    """Modify multiple records according to update specs.
+
+    :param db_conn: SQLite connection.
+    :param table: Table name.
+    :param updates: List of dicts with keys ``criteria_col``, ``criteria``, ``columns``, ``values``.
+    :returns: None
+    :raises sqlite3.Error: On SQL failure.
     """
     try:
         cursor: sqlite3.Cursor = db_conn.cursor()
@@ -332,6 +380,16 @@ def modify_multiple_records(db_conn, table, updates):
 
 # Original function maintained for backwards compatibility
 def modify_record(db_conn, table, criteria_col, criteria, columns, values):
+    """Modify a single record convenience wrapper.
+
+    :param db_conn: SQLite connection.
+    :param table: Table name.
+    :param criteria_col: WHERE column.
+    :param criteria: WHERE value.
+    :param columns: Columns to update.
+    :param values: Values to set.
+    :returns: Executed SQL template string.
+    """
     update = {
         "criteria_col": criteria_col,
         "criteria": criteria,
@@ -342,6 +400,14 @@ def modify_record(db_conn, table, criteria_col, criteria, columns, values):
     return f'UPDATE {table} SET {" = ?, ".join(columns)} = ? WHERE {criteria_col} = ?'
 
 def remove_column(db_conn, tablename, colname):
+    """Remove a column from a table.
+
+    :param db_conn: SQLite connection.
+    :param tablename: Table name.
+    :param colname: Column name to drop.
+    :returns: None
+    :raises sqlite3.Error: On SQL failure.
+    """
     sql_str: str = f"""
         ALTER TABLE {tablename} 
         DROP COLUMN {colname}
@@ -357,6 +423,15 @@ def remove_column(db_conn, tablename, colname):
         cursor.close()
 
 def rename_column(db_conn, tablename, old_col, new_col):
+    """Rename a column.
+
+    :param db_conn: SQLite connection.
+    :param tablename: Table name.
+    :param old_col: Existing column name.
+    :param new_col: New column name.
+    :returns: None
+    :raises sqlite3.Error: On SQL failure.
+    """
     sql_str = f'ALTER TABLE {tablename} RENAME COLUMN {old_col} TO {new_col};'
     try:
         cursor: sqlite3.Cursor = db_conn.cursor()
@@ -366,14 +441,13 @@ def rename_column(db_conn, tablename, old_col, new_col):
         raise
 
 def delete_multiple_records(db_conn, table, deletes):
-    """Delete multiple records from a table.
-    
-    Args:
-        db_conn: SQLite database connection
-        table (str): Name of the table to delete from
-        deletes (list): List of dictionaries, each containing:
-            - criteria_col (str): Column name for WHERE clause
-            - criteria: Value to match in WHERE clause
+    """Delete multiple records per delete spec.
+
+    :param db_conn: SQLite connection.
+    :param table: Table name.
+    :param deletes: List of dicts with keys ``criteria_col`` and ``criteria``.
+    :returns: None
+    :raises sqlite3.Error: On SQL failure.
     """
     try:
         cursor: sqlite3.Cursor = db_conn.cursor()
@@ -387,6 +461,14 @@ def delete_multiple_records(db_conn, table, deletes):
         cursor.close()
 
 def delete_record(db_conn, tablename, criteria_col, criteria):
+    """Delete a single record convenience wrapper.
+
+    :param db_conn: SQLite connection.
+    :param tablename: Table name.
+    :param criteria_col: WHERE column.
+    :param criteria: WHERE value.
+    :returns: None
+    """
     delete = {
         "criteria_col": criteria_col,
         "criteria": criteria
@@ -394,6 +476,15 @@ def delete_record(db_conn, tablename, criteria_col, criteria):
     delete_multiple_records(db_conn, tablename, [delete])
 
 def add_record(db_conn, tablename, column_names, values):
+    """Insert a single record into a table.
+
+    :param db_conn: SQLite connection.
+    :param tablename: Table name.
+    :param column_names: List of column names.
+    :param values: List of values.
+    :returns: None
+    :raises sqlite3.Error: On SQL failure.
+    """
     sql_str: str = f"""
         INSERT INTO {tablename} ({", ".join(column_names)}) VALUES ({", ".join(["?" for _ in column_names])})
         """
@@ -407,6 +498,15 @@ def add_record(db_conn, tablename, column_names, values):
         cursor.close()
 
 def add_multiple_records(db_conn, tablename, column_names, list_of_values) -> None:
+    """Insert multiple records into a table.
+
+    :param db_conn: SQLite connection.
+    :param tablename: Table name.
+    :param column_names: List of column names.
+    :param list_of_values: Iterable of row value sequences.
+    :returns: None
+    :raises sqlite3.Error: On SQL failure.
+    """
     sql_str: str = f"""
         INSERT INTO {tablename} ({", ".join(column_names)}) VALUES ({", ".join(["?" for _ in column_names])})
     """
@@ -420,11 +520,12 @@ def add_multiple_records(db_conn, tablename, column_names, list_of_values) -> No
         cursor.close()
         
 def create_connection(db_file, error_file: str|None = None, mode: str = 'ro'):
-    """ create a database connection to the SQLite database
-        specified by the db_file
-    :param db_file: database file. If file doesn't exist, returns None
-    :error_file: file to write errors to. If none, print errors to output
-    :return: Connection object or None
+    """Create a database connection to an SQLite file.
+
+    :param db_file: Database file path; returns None if file doesn't exist.
+    :param error_file: Optional path to append exception messages.
+    :param mode: ``'ro'`` for read-only (default) or any other for read-write.
+    :returns: Connection object or None.
     """
     if not os.path.exists(db_file):
         return None
@@ -443,17 +544,12 @@ def create_connection(db_file, error_file: str|None = None, mode: str = 'ro'):
     return conn
 
 def generate_database_table_templates_as_tsvs(db_conn, output_dir, primary_keys):
-    """Generate TSV templates for each table in an SQLite database.
+    """Generate TSV templates (headers only) for selected tables.
 
-    Args:
-        db_conn (sqlite3.Connection): Connection to the SQLite3 database.
-        output_dir (str): Directory to save the TSV template files.
-        primary_keys (dict): Dictionary containing primary keys for each database table that a template is generated for.
-    
-    Notes:
-    - The db_conn is not closed after the function is called.
-    - The primary keys are used to ensure that the correct columns are included in the TSV file.
-    - The TSV files are saved in the output directory.
+    :param db_conn: SQLite connection (not closed by this function).
+    :param output_dir: Directory to write TSV files.
+    :param primary_keys: Mapping table -> primary key column name to place first.
+    :returns: None
     """
 
     # Connect to the SQLite database
@@ -498,17 +594,17 @@ def get_from_table(
         as_pandas:bool = False,
         pandas_index_col:str|None = None,
         operator:str = '=') -> list[tuple] | pd.DataFrame:
-    """Get data from a table in an SQLite database.
+    """Query a table with optional WHERE and return list or DataFrame.
 
-    Args:
-        conn (sqlite3.Connection): Connection to the SQLite3 database.
-        table_name (str): Name of the table to get data from.
-        criteria_col (str|None): Column name to use for the WHERE clause.
-        criteria (str|None): Value to match in the WHERE clause.
-        select_col (str|list|None): Column name to select. If None, all columns are selected.
-        as_pandas (bool): If True, return a pandas DataFrame. If False, return a list of tuples.
-        pandas_index_col (str|None): Column name to use as the index of the pandas DataFrame.
-        operator (str): Operator to use in the WHERE clause.
+    :param conn: SQLite connection.
+    :param table_name: Table name.
+    :param criteria_col: Optional WHERE column.
+    :param criteria: WHERE value or tuple for two-parameter condition.
+    :param select_col: Column(s) to select (default all).
+    :param as_pandas: If ``True``, return DataFrame; else list.
+    :param pandas_index_col: Index column for DataFrame.
+    :param operator: SQL operator to use (default ``=``).
+    :returns: DataFrame or list of values (first column) depending on ``as_pandas``.
     """
     assert (((criteria is not None) & (criteria_col is not None)) |\
              ((criteria is None) & (criteria_col is None))),\
@@ -549,7 +645,17 @@ def get_from_table_by_list_criteria(
     select_col: str = None,
     pandas_index_col:str|None = None
     ):
-    """"""
+    """Query rows where a column matches any of the given values.
+
+    :param conn: SQLite connection.
+    :param table_name: Table name.
+    :param criteria_col: Column name for the IN clause.
+    :param criteria: List of values for the IN clause.
+    :param as_pandas: If ``True``, return DataFrame; else list of tuples.
+    :param select_col: Column(s) to select (default all).
+    :param pandas_index_col: Optional index column for DataFrame.
+    :returns: DataFrame or list depending on ``as_pandas``.
+    """
     cursor: sqlite3.Cursor = conn.cursor()
     if select_col is None:
         select_col = '*'
@@ -565,11 +671,12 @@ def get_from_table_by_list_criteria(
     return ret
 
 def get_contaminants(db_file: str, protein_list:list = None, error_file: str = None) -> list:
-    """Retrieve contaminants from a database.
-    :param db_file: database file
-    :protein_list: if list is supplied, only return contaminants found in the list
-    :error_file: file to write errors to. If none, print errors to output
-    :return: list of contaminants
+    """Retrieve contaminant UniProt IDs from the ``contaminants`` table.
+
+    :param db_file: Database file path.
+    :param protein_list: If provided, intersect results with this list.
+    :param error_file: Optional error log path for connection errors.
+    :returns: List of contaminant UniProt IDs.
     """
     conn: sqlite3.Connection = create_connection(db_file, error_file)
     ret_list: list = get_from_table(conn, 'contaminants', select_col='uniprot_id')
@@ -577,9 +684,11 @@ def get_contaminants(db_file: str, protein_list:list = None, error_file: str = N
     return ret_list
 
 def drop_table(conn:sqlite3.Connection, table_name: str) -> None:
-    """Drop a table from the database.
-    :param conn: database connection
-    :param table_name: name of the table to drop
+    """Drop a table from the database if it exists.
+
+    :param conn: SQLite connection.
+    :param table_name: Table name to drop.
+    :returns: None
     """
     sql_str: str = f'DROP TABLE IF EXISTS {table_name}'
     cursor: sqlite3.Cursor = conn.cursor()
@@ -588,14 +697,11 @@ def drop_table(conn:sqlite3.Connection, table_name: str) -> None:
 
 
 def get_table_column_names(db_conn, table_name: str) -> list[str]:
-    """Get the column names for a table in an SQLite database.
+    """Get column names for a table.
 
-    Args:
-        db_conn (sqlite3.Connection): Connection to the SQLite3 database.
-        table_name (str): Name of the table to get the column names for.
-    
-    Notes:
-    - The db_conn is not closed after the function is called.
+    :param db_conn: SQLite connection.
+    :param table_name: Table name.
+    :returns: List of column names.
     """
 
     # Connect to the SQLite database

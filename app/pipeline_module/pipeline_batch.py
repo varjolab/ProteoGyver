@@ -16,19 +16,15 @@ from components import parsing, qc_analysis, proteomics, interactomics, db_funct
 from components.figures import color_tools 
 
 def dash_to_wire(obj):
-    """Recursively convert Dash/Plotly components to dicts/lists like callbacks see.
+    """Recursively convert Dash/Plotly components to JSON-serializable structures.
 
     - Leaves primitives (str, int, float, bool, None) untouched.
-    - Converts any object exposing .to_plotly_json() (Dash components, go.Figure).
-    - Recurse through dicts and lists/tuples.
-    - Dataclasses are converted via asdict() then recursed.
+    - Converts any object exposing ``to_plotly_json()`` (Dash components, go.Figure).
+    - Recurses through dicts and lists/tuples.
+    - Dataclasses are converted via ``asdict()`` then recursed.
 
-    Args:
-        obj: Any Python object (Dash component, go.Figure, dict/list, primitives).
-
-    Returns:
-        JSON-serializable structure where components are replaced by dicts/lists,
-        and non-component primitives are preserved as-is.
+    :param obj: Any Python object (Dash component, go.Figure, dict/list, primitives).
+    :returns: JSON-serializable structure with components replaced by dicts/lists.
     """
     # Fast path: primitives / “don’t touch”
     if obj is None or isinstance(obj, (str, int, float, bool, bytes, bytearray, memoryview)):
@@ -106,7 +102,11 @@ class BatchConfig:
 
 # -------- Helpers that mimic Dash's upload content --------
 def _upload_contents_for_path(path: str) -> Tuple[str, str, int]:
-    """Return (contents_str, filename, last_modified_int) like dash Upload component."""
+    """Return tuple compatible with Dash Upload: (contents, filename, mtime_ms).
+
+    :param path: Path to a file on disk.
+    :returns: Tuple of (base64 contents string, filename, last-modified ms).
+    """
     with open(path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode("ascii")
     # Dash passes strings like "data:application/octet-stream;base64,AAAA..."
@@ -125,6 +125,12 @@ def _dump_json(outdir: str, name: str, obj: Any):
 
 # -------- Pipeline --------
 def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
+    """Execute the batch pipeline mirroring the app's QC and analysis steps.
+
+    :param cfg: Batch configuration object.
+    :param params: Parsed application parameters.
+    :returns: Summary dict and JSON artifacts written to ``cfg.outdir``.
+    """
     # 1) Load parameters & db/contaminants (mirrors QC_and_data_analysis.py)
     db_file = os.path.join(*params["Data paths"]["Database file"])
     contaminant_list = db_functions.get_contaminants(db_file)
@@ -307,7 +313,15 @@ def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
 def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any], 
                             rep_colors: Dict[str, Any], params: Dict[str, Any], 
                             artifacts: Dict[str, Any]) -> Dict[str, Any]:
-    """Run the proteomics analysis workflow."""
+    """Run the proteomics analysis workflow.
+
+    :param cfg: Batch configuration.
+    :param data_dictionary: Parsed/validated inputs and groups.
+    :param rep_colors: Replicate color assignments.
+    :param params: Parsed application parameters.
+    :param artifacts: QC artifacts dict.
+    :returns: Proteomics summary dict.
+    """
 
     divs = {}
     # NA filter
@@ -449,7 +463,16 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
 def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
                                rep_colors: Dict[str, Any], rep_colors_with_cont: Dict[str, Any], params: Dict[str, Any],
                                artifacts: Dict[str, Any]) -> Dict[str, Any]:
-    """Run the interactomics analysis workflow."""
+    """Run the interactomics analysis workflow.
+
+    :param cfg: Batch configuration.
+    :param data_dictionary: Parsed/validated inputs and groups.
+    :param rep_colors: Replicate color assignments.
+    :param rep_colors_with_cont: Replicate colors incl. contaminants.
+    :param params: Parsed application parameters.
+    :param artifacts: QC artifacts dict.
+    :returns: Interactomics summary dict.
+    """
     db_file = os.path.join(*params["Data paths"]["Database file"])
     divs = {}
     # Check if we have spectral count data

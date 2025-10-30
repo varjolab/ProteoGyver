@@ -1,3 +1,9 @@
+"""
+Reproducibility plots for deviations from sample-group means.
+
+Generates per-replicate histograms of deviations from group mean and
+lays them out in a grid for quick visual inspection.
+"""
 import pandas as pd
 from dash.dcc import Graph
 from plotly import express as px
@@ -5,6 +11,12 @@ from plotly import graph_objects as go
 from plotly.subplots import make_subplots
 
 def get_reproducibility_dataframe(data_table: pd.DataFrame, sample_groups: dict) -> pd.DataFrame:
+    """Compute per-replicate deviations from the group mean.
+
+    :param data_table: DataFrame with sample columns.
+    :param sample_groups: Mapping group -> list of column names.
+    :returns: Nested dict ``{group: {replicate: [deviations...]}}`` suitable for plotting.
+    """
     repro_data: dict = {}
     for sample_group, sample_columns in sample_groups.items():
         sgroup_data_table: pd.DataFrame = data_table[sample_columns]
@@ -19,6 +31,12 @@ def get_reproducibility_dataframe(data_table: pd.DataFrame, sample_groups: dict)
 
 
 def get_max(plot_data: dict, minval=2) -> int:
+    """Return the maximum absolute deviation across all replicates.
+
+    :param plot_data: Output from ``get_reproducibility_dataframe``.
+    :param minval: Minimum value to enforce.
+    :returns: Integer maximum used for x-axis range sizing.
+    """
     maxval: int = minval
     for _, sgroup_data in plot_data.items():
         for __, replicate_values in sgroup_data.items():
@@ -27,6 +45,16 @@ def get_max(plot_data: dict, minval=2) -> int:
 
 
 def make_graph(graph_id: str, defaults: dict, plot_data: dict, title: str, table_type: str, num_per_row: int = 2) -> Graph:
+    """Create a grid of histograms of deviations from group mean.
+
+    :param graph_id: Component ID for the ``Graph``.
+    :param defaults: Dict with ``height``, ``width``, ``config``.
+    :param plot_data: Nested dict from ``get_reproducibility_dataframe``.
+    :param title: Plot title.
+    :param table_type: Label for x-axis description.
+    :param num_per_row: Number of subplots per row.
+    :returns: Dash ``Graph`` with the subplot figure.
+    """
     sample_groups: list = sorted(list(plot_data.keys()))
     num_plots: int = len(sample_groups)
     rows: int = int(num_plots/num_per_row)

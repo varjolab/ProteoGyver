@@ -1,3 +1,8 @@
+"""End-to-end tests for the batch pipeline with TOML-driven configs.
+
+Includes helpers to generate TOML files and persist outputs for inspection.
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -29,15 +34,31 @@ PERSIST_ROOT = REPO_ROOT / 'tests' / 'test_datafiles'
 
 
 def _exists(outdir: Path, stem: str) -> bool:
+    """Check whether a JSON artifact exists by name stem in a directory.
+
+    :param outdir: Output directory to check.
+    :param stem: File stem (without extension).
+    :returns: True if ``{stem}.json`` exists in ``outdir``.
+    """
     return (outdir / f'{stem}.json').exists()
 
 
 def _load_params() -> dict:
+    """Load application parameters from the default ``parameters.toml``.
+
+    :returns: Parsed parameters dictionary.
+    """
     params_path = APP_DIR / 'parameters.toml'
     return parsing.parse_parameters(params_path)
 
 
 def _persist_dir(tmp_path: Path, name: str) -> Path:
+    """Return a directory for test output, persistent when enabled.
+
+    :param tmp_path: Pytest temporary path.
+    :param name: Name used to derive the persistent directory path.
+    :returns: Directory path to write test outputs.
+    """
     if KEEP_TEST_OUTPUT:
         from datetime import datetime as _dt
         target = PERSIST_ROOT / f"{name}__{_dt.now().strftime('%Y%m%d-%H%M%S')}"
@@ -51,11 +72,22 @@ from tomlkit import load as tomlkit_load, dump as tomlkit_dump
 
 
 def _read_toml(path: Path) -> dict:
+    """Read a TOML file via tomlkit.
+
+    :param path: TOML file path.
+    :returns: Parsed TOML document as a dict-like structure.
+    """
     with path.open('r', encoding='utf-8') as f:
         return tomlkit_load(f)
 
 
 def _deep_merge(a: dict, b: dict) -> dict:
+    """Deep-merge dict ``b`` into ``a`` recursively.
+
+    :param a: Base dictionary.
+    :param b: Dictionary with overrides/updates.
+    :returns: New merged dictionary.
+    """
     out = dict(a)
     for k, v in b.items():
         if isinstance(v, dict) and isinstance(out.get(k), dict):
@@ -66,6 +98,15 @@ def _deep_merge(a: dict, b: dict) -> dict:
 
 
 def _build_toml(workflow: str, data_path: Path, sample_table_path: Path, overrides: dict | None, out_dir: Path) -> Path:
+    """Construct a workflow TOML by merging defaults and overrides.
+
+    :param workflow: Workflow name ('proteomics' or 'interactomics').
+    :param data_path: Path to the data table.
+    :param sample_table_path: Path to the sample table.
+    :param overrides: Optional overrides to apply on top of defaults.
+    :param out_dir: Directory to write the TOML into.
+    :returns: Path to the generated TOML file.
+    """
     defaults_dir = APP_DIR / 'data' / 'Pipeline module default tomls'
     common = _read_toml(defaults_dir / 'common.toml')
     wf_defaults = _read_toml(defaults_dir / (f'{workflow}.toml'))

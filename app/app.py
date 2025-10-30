@@ -45,9 +45,7 @@ if not os.path.exists('/.dockerenv'):
     
 
 def main() -> None:
-    """Main entry point for running the application.
-
-    """
+    """Run the Dash application (main entry point)."""
     logger.info(f'Proteogyver {__version__} started: {datetime.now()}')
     # Only run in debug mode when not in Docker
     debug_mode = not os.path.exists('/.dockerenv')
@@ -55,18 +53,10 @@ def main() -> None:
     app.run(debug=debug_mode)
 
 def create_navbar(parameters: dict) -> dbc.Navbar:
-    """Creates the application navigation bar.
-    
-    Args:
-        parameters (dict): Application parameters containing navbar configuration
-        
-    Returns:
-        dbc.Navbar: Bootstrap navbar component with configured pages and styling
-        
-    Notes:
-        - Creates NavItems for each registered page
-        - Orders pages according to parameters['Navbar page order']
-        - Includes logo, brand name and collapsible navigation
+    """Create the application navigation bar.
+
+    :param parameters: App parameters containing navbar configuration.
+    :returns: Bootstrap Navbar with pages and branding.
     """
     LOGO = 'assets/images/proteogyver.png'
     for page in page_registry.values():
@@ -117,14 +107,11 @@ def create_navbar(parameters: dict) -> dbc.Navbar:
     [State("proteogyver-navbar-collapse", "is_open")],
 )
 def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
-    """Callback to toggle the navbar collapse state.
-    
-    Args:
-        n (int): Number of clicks on the toggle button
-        is_open (bool): Current collapse state
-        
-    Returns:
-        bool: New collapse state
+    """Toggle the navbar collapse state.
+
+    :param n: Number of clicks on the toggle button.
+    :param is_open: Current collapse state.
+    :returns: New collapse state.
     """
     if n:
         return not is_open

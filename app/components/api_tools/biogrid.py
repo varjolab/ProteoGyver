@@ -1,3 +1,22 @@
+"""
+BioGRID interaction data utilities.
+
+This module provides helpers to download, parse and manage BioGRID
+protein-protein interaction data and expose them as normalized
+tab-separated files and pandas DataFrames.
+
+Main entry points:
+- ``update``: checks remote and updates the local BioGRID cache if needed
+- ``get_latest``: loads the latest cached data as a DataFrame
+- ``methods_text``: returns a ready-to-use methods description
+
+Notes
+-----
+The processing pipelines operate on large datasets and therefore use
+chunked reading and on-disk sharding (by interaction prefix) to reduce
+memory pressure.
+"""
+
 import sys
 import os
 from zipfile import ZipFile
@@ -10,6 +29,14 @@ from itertools import chain
 from . import apitools
 
 def deduplicate_str_dataframe_by_index(df) -> pd.DataFrame:
+    """Deduplicate string values per index by merging rows.
+
+    For each index value, string-like columns are split by ``;``,
+    deduplicated, sorted, and then re-joined with ``;``.
+
+    :param df: Input DataFrame with potentially duplicated index rows.
+    :returns: DataFrame where rows sharing an index are merged.
+    """
     def merge_row_group(group):
         merged_row = {}
         for col in group.columns:
@@ -21,6 +48,13 @@ def deduplicate_str_dataframe_by_index(df) -> pd.DataFrame:
 
     return df.groupby(df.index).apply(merge_row_group)
 def get_upid(upcol: pd.Series) -> pd.Series:
+    """Normalize UniProt IDs contained in a Series.
+
+    Removes placeholder/null tokens and converts empty results to ``NaN``.
+
+    :param upcol: Series containing UniProt accessions as strings.
+    :returns: Cleaned Series with empty values converted to ``NaN``.
+    """
     news = []
     for v in upcol:
         for nullchar in ['-1','nan','none','-','0']:
@@ -31,6 +65,19 @@ def get_upid(upcol: pd.Series) -> pd.Series:
     return retser
 
 def filter_chunk(df: pd.DataFrame, uniprots_to_get:set|None, organisms: set|None = None) -> tuple[pd.DataFrame, list[str], list[str]]:
+    """Filter and normalize a BioGRID chunk.
+
+    Keeps only physical interactions with valid UniProt accessions,
+    applies optional organism and UniProt filters, derives helper
+    columns, and prepares processed variants for downstream merging.
+
+    :param df: Raw chunk as read from BioGRID TAB3 file.
+    :param uniprots_to_get: Optional set of UniProt accessions to retain
+        (isoforms allowed; matching is applied on base accession).
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :returns: Tuple of (filtered DataFrame, normalized column names list,
+        interactor-specific column names list).
+    """
     df = df[df['Experimental System Type']=='physical'][['Experimental System', 'Experimental System Type', 'Publication Source', 'Organism ID Interactor A', 
             'Organism ID Interactor B', 'Throughput', 'Score', 'Modification', 'Qualifications', 
             'Tags', 'Source Database', 'SWISS-PROT Accessions Interactor A', 'SWISS-PROT Accessions Interactor B', 
@@ -123,6 +170,18 @@ def filter_chunk(df: pd.DataFrame, uniprots_to_get:set|None, organisms: set|None
     return df, normcols, swcols
 
 def get_final_df(chunk_df: pd.DataFrame, previous: pd.DataFrame|None = None,time_format: str = '%Y/%m/%d') -> pd.DataFrame:
+    """Aggregate sharded chunk into a final deduplicated DataFrame.
+
+    Combines semicolon-delimited values per interaction key, and manages
+    creation/update dates by carrying forward dates from a previous
+    version when values are unchanged.
+
+    :param chunk_df: DataFrame assembled from shard files for a prefix.
+    :param previous: Optional DataFrame for the same prefix from an
+        older version to preserve creation dates.
+    :param time_format: Output date format string.
+    :returns: Final deduplicated DataFrame indexed by ``interaction``.
+    """
     datarows = {}
     for intname, row in chunk_df.iterrows():
         datarows.setdefault(intname, {v: set() for v in chunk_df.columns})
@@ -151,6 +210,18 @@ def get_final_df(chunk_df: pd.DataFrame, previous: pd.DataFrame|None = None,time
     return findf
 
 def handle_and_split_save(df: pd.DataFrame, folder_path: str, normcols: list[str], swcols: list[str]) -> None:
+    """Expand interactor-specific rows and shard to disk by prefix.
+
+    Produces a symmetric representation (A->B and B->A) and writes
+    records into prefix-based TSV shards in ``folder_path``.
+
+    :param df: Filtered and normalized chunk DataFrame.
+    :param folder_path: Output directory for shard files.
+    :param normcols: List of normalized, non-interactor-specific columns.
+    :param swcols: List of interactor-specific columns (will be expanded
+        for both interactors).
+    :returns: None
+    """
     swcols.extend(['biological_role_interactor_a',
     'annotation_interactor_a',
     'biological_role_interactor_b',
@@ -208,6 +279,16 @@ def handle_and_split_save(df: pd.DataFrame, folder_path: str, normcols: list[str
     split_and_save_by_prefix(findf.reset_index(), 'interaction', 3, folder_path)
 
 def split_and_save_by_prefix(df: pd.DataFrame, column: str, num_chars: int, output_dir: str, index: bool = False, sep: str = '\t') -> None:
+    """Shard a DataFrame by a column prefix and append to TSV files.
+
+    :param df: Input DataFrame.
+    :param column: Column whose prefix is used for grouping.
+    :param num_chars: Number of prefix characters to use.
+    :param output_dir: Target directory for TSV shards.
+    :param index: Whether to include the index in CSV output.
+    :param sep: Field separator for CSV output.
+    :returns: None
+    """
     os.makedirs(output_dir, exist_ok=True)
     for (prefix, result) in df.groupby(df[column].str[:num_chars]):
         filename = os.path.join(output_dir, f"{prefix}.tsv")
@@ -216,13 +297,18 @@ def split_and_save_by_prefix(df: pd.DataFrame, column: str, num_chars: int, outp
 
 # super inefficient, but run rarely, so good enough.
 def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None = None, current_version: str|None = None) -> None:
-    """
-    Inefficiently generates a pandas dataframe from a given biogrid file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.
+    """Convert a BioGRID TAB3 file into normalized TSV shards on disk.
 
-    :param file_path: path to the downloaded .tab3 file
-    :param current_version: current version of the biogrid file
-    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file. If None, all uniprots will be included.
-    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
+    The file is read in chunks, filtered and normalized, and then
+    expanded into symmetric interaction rows which are sharded by
+    interaction prefix for deduplication and memory efficiency.
+
+    :param file_path: Path to the downloaded ``.tab3.txt`` file.
+    :param uniprots_to_get: Optional set of UniProt accessions to retain.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param current_version: Path to current version directory for reuse
+        of creation/update dates during final merge.
+    :returns: None
     """
     folder_path: str = file_path.replace('.txt','')
     if not current_version:
@@ -244,14 +330,15 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
             findf.to_csv(os.path.join(folder_path, fname), index=True, sep='\t')
 
 def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set|None, organisms: set|None = None, current_version: str|None = None) -> None:
-    """
-    Handles practicalities of updating the biogrid tsv file on disk
+    """Download, extract and convert the latest BioGRID archive.
 
-    :param save_dir: directory where the datafiles will be put
-    :param save_zipname: filename for the zipfile that will be downloaded
-    :param latest_zip_url: url for the zip to download from BioGRID
-    :param uniprots_to_get: a set of which uniprots should be retained. If None, all uniprots will be retained.
-    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
+    :param save_dir: Directory where the data files will be placed.
+    :param save_zipname: Zip filename to write under ``save_dir``.
+    :param latest_zip_url: URL for the BioGRID zip resource.
+    :param uniprots_to_get: Optional set of UniProt accessions to retain.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param current_version: Current version directory for date propagation.
+    :returns: None
     """
     print('Downloading BioGRID')
     urlretrieve(latest_zip_url,os.path.join(save_dir, save_zipname))
@@ -264,6 +351,13 @@ def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_
     os.remove(datafile_path)
 
 def read_file_chunks(filepath: str, organisms: set|None = None, since_date:str|None = None) -> pd.DataFrame:
+    """Read a TSV shard file in chunks and optionally filter by organism.
+
+    :param filepath: Path to a TSV shard.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param since_date: Not implemented yet; reserved for future use.
+    :returns: Concatenated DataFrame of the shard file.
+    """
     iter_csv = pd.read_csv(filepath, iterator=True, sep='\t', chunksize=1000)
     df_parts = []
     for chunk in iter_csv:
@@ -273,6 +367,14 @@ def read_file_chunks(filepath: str, organisms: set|None = None, since_date:str|N
     return pd.concat(df_parts)
 
 def read_folder_chunks(folderpath: str, organisms: set|None = None, subset_letter: str|None = None, since_date:str|None = None) -> pd.DataFrame:
+    """Load all TSV shards in a folder, optionally restricting by prefix.
+
+    :param folderpath: Directory containing shard files.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param subset_letter: If provided, only files starting with this letter are read.
+    :param since_date: Not implemented yet; reserved for future use.
+    :returns: Concatenated DataFrame of all matching shards.
+    """
     df_parts = []
     for file in os.listdir(folderpath):
         if subset_letter and not file.startswith(subset_letter):
@@ -286,11 +388,13 @@ def read_folder_chunks(folderpath: str, organisms: set|None = None, subset_lette
 
 # TODO: implement since_date
 def get_latest(organisms: set|None = None, subset_letter: str|None = None, name_only: bool = False, since_date:str|None = None) -> pd.DataFrame|str :
-    """
-    Fetches the latest data from disk
+    """Fetch the latest BioGRID data from the local cache.
 
-    :param name_only: if True, returns the filepath of the latest file instead of the dataframe.
-    :returns: Pandas dataframe of the latest BioGRID data.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :param subset_letter: Restrict to shards whose filename starts with this letter.
+    :param name_only: If ``True``, return the latest folder path instead of loading data.
+    :param since_date: Not implemented yet; reserved for future use.
+    :returns: DataFrame of the latest BioGRID data or a path string when ``name_only=True``.
     """
     current_version: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'))
     filepath: str = os.path.join(apitools.get_save_location('BioGRID'), current_version)
@@ -302,17 +406,21 @@ def get_latest(organisms: set|None = None, subset_letter: str|None = None, name_
         return read_folder_chunks(filepath, organisms, subset_letter, since_date)
 
 def get_available() -> list[str]:
+    """List available interaction shard names for the latest version.
+
+    :returns: List of shard basenames without the ``.tsv`` suffix.
+    """
     filepath: str = get_latest(name_only=True) # type: ignore
     return [f.split('.')[0] for f in os.listdir(filepath) if f.endswith('.tsv')]
 
 
 #TODO: check uniprots in should_update bool check too, not just version. Also organisms should be checked too.
 def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
-    """
-    Updates the database, if required
+    """Update the local BioGRID cache if a newer release is available.
 
-    :param uniprots_to_get: uniprots to retain in the database. if None, all uniprots will be retained.
-    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.
+    :param uniprots_to_get: Optional set of UniProt accessions to retain.
+    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
+    :returns: None
     """
     url = 'https://downloads.thebiogrid.org/BioGRID/Release-Archive'
     r = get(url).text.split('\n')
@@ -331,15 +439,17 @@ def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
         do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms, current_file)
         
 def get_version_info() -> str:
-    """
-    Returns version info for the newest available biogrid version.
+    """Return version info for the newest available BioGRID version.
+
+    :returns: Human-readable version string, e.g. ``Downloaded (YYYY-MM-DD)``.
     """
     nfile: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'))
     return f'Downloaded ({nfile.split("_")[0]})'
 
 def get_method_annotation() -> dict:
-    """
-    Returns information regarding annotation for interaction identification methods used in BioGRID
+    """Return annotations for BioGRID interaction identification methods.
+
+    :returns: Mapping from method name to description text.
     """
     legend = {
         'Affinity Capture-Luminescence': r'An interaction is inferred when a bait protein, tagged with luciferase, is enzymatically detected in immunoprecipitates of the prey protein as light emission. The prey protein is affinity captured from cell extracts by either polyclonal antibody or epitope tag.', 
@@ -363,10 +473,9 @@ def get_method_annotation() -> dict:
     return legend
 
 def methods_text() -> str:
-    """
-    Generates a methods text for used biogrid data
-    
-    :returns: a tuple of (readable reference information (str), PMID (str), biogrid description (str))
+    """Generate a plain-text description of the BioGRID data used.
+
+    :returns: Multi-line string including source, version and citation.
     """
     short,long,pmid = apitools.get_pub_ref('BioGRID')
     return '\n'.join([

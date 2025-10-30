@@ -26,11 +26,9 @@ logger = logging.getLogger(__name__)
 
 def run_batch_pipeline(toml_path: str) -> dict:
     """Run the complete batch pipeline using GUI infrastructure.
-    
-    Args:
-        toml_path: Path to the TOML configuration file
-    Returns:
-        dict: Summary of pipeline execution, export, and plot generation
+
+    :param toml_path: Path to the TOML configuration file.
+    :returns: Summary dict with execution details, export paths, and figures info.
     """
     script_dir = Path(__file__).resolve().parent
     parameters_file = script_dir / 'parameters.toml'
@@ -158,7 +156,10 @@ def run_batch_pipeline(toml_path: str) -> dict:
 
 
 def main():
-    """Command line interface for the batch pipeline."""
+    """Command line interface for the batch pipeline.
+
+    :returns: None.
+    """
     parser = argparse.ArgumentParser(
         description="Run ProteoGyver batch pipeline using GUI infrastructure",
         formatter_class=argparse.RawDescriptionHelpFormatter,

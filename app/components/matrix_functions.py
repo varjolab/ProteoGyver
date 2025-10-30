@@ -5,22 +5,18 @@ from math import ceil
 from components.tools import R_tools
 from scipy.stats import median_abs_deviation
 from sklearn.decomposition import PCA
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.spatial.distance import pdist
 
 def hierarchical_clustering(df, cluster='both', method='ward', fillval: float = 0.0):
-    """
-    Perform hierarchical clustering on a pandas DataFrame.
-    
-    Parameters:
-    - df: pandas DataFrame with numerical values
-    - cluster: 'rows', 'columns', or 'both' to specify which dimension to cluster
-    - method: Method of linkage for hierarchical clustering. Defaults to 'ward'
-    
-    Returns:
-    - clustered_df: pandas DataFrame reordered according to hierarchical clustering
+    """Perform hierarchical clustering on a DataFrame.
+
+    :param df: DataFrame with numerical values.
+    :param cluster: One of ``'rows'``, ``'columns'``, or ``'both'``.
+    :param method: Linkage method for clustering (e.g., ``'ward'``).
+    :param fillval: Value used to fill NaNs before distance computation.
+    :returns: Reordered DataFrame according to hierarchical clustering.
+    :raises ValueError: If ``cluster`` is not one of the allowed values.
     """
     
     if cluster not in ['rows', 'columns', 'both']:
@@ -39,7 +35,17 @@ def hierarchical_clustering(df, cluster='both', method='ward', fillval: float = 
 
 
 def filter_missing(data_table: DataFrame, sample_groups: dict, filter_type: str, threshold_percentage: int = 60) -> DataFrame:
-    """Discards rows with more than threshold percent of missing values in all sample groups"""
+    """Filter rows with excessive missing values.
+
+    Keeps a row if it meets the threshold either per group (``sample-group``)
+    or across the whole table (``sample-set``).
+
+    :param data_table: Input DataFrame.
+    :param sample_groups: Mapping group -> list of column names.
+    :param filter_type: ``'sample-group'`` or ``'sample-set'``.
+    :param threshold_percentage: Minimum non-NA percentage required.
+    :returns: Filtered copy of ``data_table``.
+    """
     threshold: float = float(threshold_percentage)/100
     keeps: list = []
     for _, row in data_table.iterrows():
@@ -57,6 +63,12 @@ def filter_missing(data_table: DataFrame, sample_groups: dict, filter_type: str,
 
 
 def ranked_dist(main_df, supplemental_df):
+    """Rank supplemental columns by summed distance to main columns.
+
+    :param main_df: DataFrame providing reference columns.
+    :param supplemental_df: DataFrame to compare against.
+    :returns: List of [column_name, distance_sum] sorted ascending by distance.
+    """
     filtered_main_df: DataFrame = main_df[main_df.index.isin(
         supplemental_df.index.values)]
     filtered_main_df.sort_index(inplace=True)
@@ -74,6 +86,13 @@ def ranked_dist(main_df, supplemental_df):
 
 
 def ranked_dist_n_per_run(main_df, supplemental_df, per_run):
+    """Select top-N closest supplemental columns per main column.
+
+    :param main_df: DataFrame providing reference columns.
+    :param supplemental_df: DataFrame to compare against.
+    :param per_run: Number of closest supplemental columns to take per main column.
+    :returns: Sorted unique list of chosen supplemental column names.
+    """
     filtered_main_df: DataFrame = main_df[main_df.index.isin(
         supplemental_df.index.values)]
     filtered_main_df.sort_index(inplace=True)
@@ -88,7 +107,13 @@ def ranked_dist_n_per_run(main_df, supplemental_df, per_run):
     return sorted(list(set(chosen_runs)))
 
 def count_per_sample(data_table: DataFrame, rev_sample_groups: dict) -> Series:
-    """Counts non-zero values per sample (sample names from rev_sample_groups.keys()) and returns a series with sample names in index and counts as values."""
+    """Count non-NA values per sample for given sample list.
+
+    :param data_table: Input DataFrame.
+    :param rev_sample_groups: Mapping sample -> group; keys define sample order.
+    :returns: Series indexed by sample name with non-NA counts.
+    :raises ValueError: If inputs are empty.
+    """
     if not rev_sample_groups:
         raise ValueError("rev_sample_groups is empty")
     if data_table.empty:
@@ -102,6 +127,13 @@ def count_per_sample(data_table: DataFrame, rev_sample_groups: dict) -> Series:
 
 
 def do_pca(data_df: DataFrame, rev_sample_groups: dict, n_components) -> tuple:
+    """Compute PCA of samples and return labeled components and DataFrame.
+
+    :param data_df: DataFrame with features in rows and samples in columns.
+    :param rev_sample_groups: Mapping sample -> group for labeling.
+    :param n_components: Number of components to compute (>=2).
+    :returns: Tuple ``(pc1_label, pc2_label, pca_result_df)``.
+    """
     data_df: DataFrame = data_df.T
     pca: PCA = PCA(n_components=n_components)
     pca_result: np.ndarray = pca.fit_transform(data_df)
@@ -123,15 +155,10 @@ def do_pca(data_df: DataFrame, rev_sample_groups: dict, n_components) -> tuple:
 
 
 def median_normalize(data_frame: DataFrame) -> DataFrame:
-    """
-    Median-normalizes a dataframe by dividing each column by its median and multiplying by the median of the medians.
+    """Median-normalize a log2-transformed DataFrame.
 
-    Args:
-        df (pandas.DataFrame): The dataframe to median-normalize. Needs to be log2-transformed.
-        Each column represents a sample, and each row represents a measurement.
-
-    Returns:
-        pandas.DataFrame: The median-normalized dataframe.
+    :param data_frame: DataFrame with samples as columns (log2-transformed).
+    :returns: Median-normalized DataFrame.
     """
     medians: Series = data_frame.median(axis=0, skipna=True)
     median_of_medians: float = medians.median(skipna=True)
@@ -140,22 +167,31 @@ def median_normalize(data_frame: DataFrame) -> DataFrame:
 
 
 def quantile_normalize(dataframe: DataFrame) -> DataFrame:
-    """Quantile-normalizes a dataframe.
+    """Quantile-normalize a DataFrame.
 
-    Args:
-        df (pandas.DataFrame): The dataframe to quantile-normalize.
-        Each column represents a sample, and each row represents a measurement.
-
-    Returns:
-        pandas.DataFrame: The quantile-normalized dataframe.
+    :param dataframe: DataFrame to normalize.
+    :returns: Quantile-normalized DataFrame.
     """
     return qnorm.quantile_normalize(dataframe, ncpus=8)
 
 def reverse_log2(value):
+    """Reverse a log2 transformation.
+
+    :param value: Log2-transformed numeric value.
+    :returns: Original (base-2) value.
+    """
     return 2**value
 
 def normalize(data_table, normalization_method, errorfile: str, random_seed: int = 13) -> DataFrame:
-    """Normalizes a given dataframe with the wanted method."""
+    """Normalize a DataFrame using a specified method.
+
+    :param data_table: Input DataFrame (log2 for median/quantile; raw for VSN).
+    :param normalization_method: One of ``'no_normalization'``, ``'median'``, ``'quantile'``, ``'vsn'``.
+    :param errorfile: Path used by VSN routine for diagnostics.
+    :param random_seed: Random seed for VSN reproducibility.
+    :returns: Normalized DataFrame.
+    :raises ValueError: For invalid normalization method.
+    """
     if normalization_method.lower() == 'no_normalization':
         return_table = data_table
     elif normalization_method.lower() == 'median':
@@ -171,7 +207,16 @@ def normalize(data_table, normalization_method, errorfile: str, random_seed: int
 
 
 def impute(data_table: DataFrame, errorfile: str, method: str, random_seed: int, rev_sample_groups: dict) -> DataFrame:
-    """Imputes missing values in the dataframe with the specified method"""
+    """Impute missing values using the specified method.
+
+    :param data_table: Input DataFrame.
+    :param errorfile: Path used by external methods for diagnostics.
+    :param method: One of ``'minprob'``, ``'minvalue'``, ``'gaussian'``, ``'qrilc'``, ``'random_forest'``.
+    :param random_seed: Random seed for reproducibility.
+    :param rev_sample_groups: Mapping sample -> group (used by some methods).
+    :returns: Imputed DataFrame.
+    :raises ValueError: For invalid imputation method.
+    """
     if method.lower() == 'minprob':
         ret = impute_minprob_df(data_table, random_seed)
     elif method.lower() == 'minvalue':
@@ -188,14 +233,11 @@ def impute(data_table: DataFrame, errorfile: str, method: str, random_seed: int,
 
 
 def impute_minval(dataframe: DataFrame, impute_zero: bool = False) -> DataFrame:
-    """Impute missing values in dataframe using minval method
+    """Impute missing values with the per-column minimum.
 
-    Input dataframe should only have numerical data with missing values.
-    Missing values will be replaced by the minimum value of each column.
-
-    Parameters:
-    df: pandas dataframe with the missing values. Should not have any text columns
-    impute_zero: True, if zero should be considered a missing value
+    :param dataframe: Numeric DataFrame with missing values.
+    :param impute_zero: If ``True``, treat zeros as missing.
+    :returns: DataFrame with imputed values.
     """
     newdf: DataFrame = DataFrame(index=dataframe.index)
     for column in dataframe.columns:
@@ -208,15 +250,15 @@ def impute_minval(dataframe: DataFrame, impute_zero: bool = False) -> DataFrame:
 
 
 def impute_gaussian(data_table: DataFrame, random_seed: int, dist_width: float = 0.15, dist_down_shift: float = 2,) -> DataFrame:
-    """Impute missing values in dataframe using values from random numbers from normal distribution.
+    """Impute values by sampling from a shifted/scaled Gaussian.
 
-    Based on the method used by Perseus (http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:imputation:replacemissingfromgaussian)
+    Based on Perseus' method.
 
-    Parameters:
-    data_table: pandas dataframe with the missing values. Should not have any text columns
-    dist_width: Gaussian distribution relative to stdev of each column. 
-        Value of 0.5 means the width of the distribution is half the standard deviation of the sample column values.
-    dist_down_shift: How far downwards the distribution is shifted. By default, 2 standard deviations down.
+    :param data_table: Numeric DataFrame with missing values.
+    :param random_seed: Random seed for reproducibility.
+    :param dist_width: Width as a fraction of column standard deviation.
+    :param dist_down_shift: Downward shift in standard deviations.
+    :returns: DataFrame with imputed values.
     """
     np.random.seed(random_seed)
     newdf: DataFrame = DataFrame(index=data_table.index)
@@ -239,17 +281,14 @@ def impute_gaussian(data_table: DataFrame, random_seed: int, dist_width: float =
 
 def impute_minprob(series_to_impute: Series, random_seed: int, scale: float = 1.0,
                    tune_sigma: float = 0.01, impute_zero=True) -> Series:
-    """Imputes missing values with randomly selected entries from a distribution \
-        centered around the lowest non-NA values of the series.
+    """Impute values from a distribution near the lowest non-NA values.
 
-    Arguments:
-    series_to_impute: pandas series with possible missing values
-
-    Keyword arguments:
-    scale: passed to numpy.random.normal
-    tune_sigma: fraction of values from the lowest end of the series to use for \
-        generating the distribution
-    impute_zero: treat 0 values as missing values and impute new values for them
+    :param series_to_impute: Series with possible missing values.
+    :param random_seed: Random seed for reproducibility.
+    :param scale: Scale parameter for ``numpy.random.normal``.
+    :param tune_sigma: Fraction of the lowest values to define the distribution.
+    :param impute_zero: If ``True``, treat zeros as missing.
+    :returns: Series with imputed values.
     """
     np.random.seed(random_seed)
     ser: Series = series_to_impute.sort_values(ascending=True)
@@ -272,11 +311,12 @@ def impute_minprob(series_to_impute: Series, random_seed: int, scale: float = 1.
     return output_series
 
 def impute_minprob_df(dataframe: DataFrame, *args, **kwargs) -> DataFrame:
-    """imputes whole dataframe with minprob imputation. Dataframe should only have numerical columns
+    """Impute an entire DataFrame using the minprob method.
 
-    Parameters:
-    df: dataframe to impute
-    kwargs: keyword args to pass on to impute_minprob
+    :param dataframe: Numeric DataFrame to impute.
+    :param args: Positional args forwarded to ``impute_minprob``.
+    :param kwargs: Keyword args forwarded to ``impute_minprob``.
+    :returns: Imputed DataFrame.
     """
     newdf: DataFrame = DataFrame(index=dataframe.index)
     for column in dataframe.columns:
@@ -285,17 +325,14 @@ def impute_minprob_df(dataframe: DataFrame, *args, **kwargs) -> DataFrame:
     return newdf
 
 def compute_zscore(data: DataFrame, test_samples: list, control_samples: list, measure: str ='median', std: int =2):
-    """
-    Computes Z-scores for log2 transformed MS intensity data using control samples.
-    
-    Parameters:
-    - data: DataFrame proteins in index and samples in columns.
-    - control_samples: List control sample column names.
-    - measure: 'mean' or 'median' to specify the central tendency measure.
-    - std: Standard deviation threshold for Z-score calculation.
-    
-    Returns:
-    - DataFrame with Z-scores, where values below 'std' are set to 0.
+    """Compute Z-scores of test samples relative to control samples.
+
+    :param data: DataFrame with proteins in index and samples in columns (log2).
+    :param test_samples: List of test sample column names.
+    :param control_samples: List of control sample column names.
+    :param measure: ``'mean'`` or ``'median'`` center for controls.
+    :param std: Threshold; values below are set to 0 in the result.
+    :returns: DataFrame of Z-scores for test samples.
     """
     control_data = data[control_samples]
     calc_data = data[test_samples]
@@ -315,6 +352,14 @@ def compute_zscore(data: DataFrame, test_samples: list, control_samples: list, m
     return z_scores
 
 def compute_zscore_based_deviation_from_control(df: DataFrame, sample_groups: dict, control_group: str, top_n: int = 50) -> tuple:
+    """Compute group-wise Z-score deviations relative to a control group.
+
+    :param df: DataFrame with proteins in rows and samples in columns (log2).
+    :param sample_groups: Mapping group -> list of sample names.
+    :param control_group: Name of the control group.
+    :param top_n: Number of top proteins to aggregate per group.
+    :returns: Tuple of (dict of Z-score summaries, per-protein summary DataFrame, top-N proteins DataFrame).
+    """
     results = {}
     all_topn_proteins: set = set()
     for sample_group, sample_columns in sample_groups.items():

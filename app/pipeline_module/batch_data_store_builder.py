@@ -23,14 +23,11 @@ logger = logging.getLogger(__name__)
 
 def create_data_store_component(store_id: str, data: Any, timestamp: Optional[float] = None) -> Dict:
     """Create a Dash data store component.
-    
-    Args:
-        store_id: The data store ID (e.g., 'proteomics-volcano-data-store')
-        data: The data to store (can be dict, DataFrame as JSON string, etc.)
-        timestamp: Optional timestamp, uses current time if None
-        
-    Returns:
-        Dict: Dash Store component structure
+
+    :param store_id: Data store ID (e.g., 'proteomics-volcano-data-store').
+    :param data: Data to store (dict/JSON string/etc.).
+    :param timestamp: Optional milliseconds since epoch; uses current time if None.
+    :returns: Dash Store component dict structure.
     """
     if timestamp is None:
         timestamp = datetime.now().timestamp() * 1000  # Convert to milliseconds
@@ -48,12 +45,9 @@ def create_data_store_component(store_id: str, data: Any, timestamp: Optional[fl
 
 def build_upload_data_store(data_dict: Dict) -> Dict:
     """Build the main upload data store from batch data dictionary.
-    
-    Args:
-        data_dict: The data dictionary from batch output
-        
-    Returns:
-        Dict: Data store component for upload-data-store
+
+    :param data_dict: Data dictionary from batch output.
+    :returns: Data store component for 'upload-data-store'.
     """
     upload_data = {
         'sample groups': {},
@@ -80,12 +74,9 @@ def build_upload_data_store(data_dict: Dict) -> Dict:
 
 def build_replicate_colors_stores(data_dict: Dict) -> List[Dict]:
     """Build replicate color data stores.
-    
-    Args:
-        data_dict: The data dictionary from batch output
-        
-    Returns:
-        List[Dict]: List containing replicate color data stores
+
+    :param data_dict: Data dictionary from batch output.
+    :returns: List containing replicate color data store components.
     """
     stores = []
     
@@ -110,12 +101,9 @@ def build_replicate_colors_stores(data_dict: Dict) -> List[Dict]:
 
 def build_qc_data_stores(qc_data: Dict) -> List[Dict]:
     """Build QC-related data stores.
-    
-    Args:
-        qc_data: QC artifacts data from batch output
-        
-    Returns:
-        List[Dict]: List of QC data store components
+
+    :param qc_data: QC artifacts from batch output.
+    :returns: List of QC data store components.
     """
     stores = []
     
@@ -168,12 +156,9 @@ def build_qc_data_stores(qc_data: Dict) -> List[Dict]:
 
 def build_proteomics_data_stores(batch_output_dir: str) -> List[Dict]:
     """Build proteomics-specific data stores from batch output.
-    
-    Args:
-        batch_output_dir: Directory containing batch output JSON files
-        
-    Returns:
-        List[Dict]: List of proteomics data store components
+
+    :param batch_output_dir: Directory containing batch output JSON files.
+    :returns: List of proteomics data store components.
     """
     stores = []
     
@@ -258,12 +243,9 @@ def build_proteomics_data_stores(batch_output_dir: str) -> List[Dict]:
 
 def build_interactomics_data_stores(batch_output_dir: str) -> List[Dict]:
     """Build interactomics-specific data stores from batch output.
-    
-    Args:
-        batch_output_dir: Directory containing batch output JSON files
-        
-    Returns:
-        List[Dict]: List of interactomics data store components
+
+    :param batch_output_dir: Directory containing batch output JSON files.
+    :returns: List of interactomics data store components.
     """
     stores = []
     
@@ -392,14 +374,11 @@ def build_interactomics_data_stores(batch_output_dir: str) -> List[Dict]:
 
 
 def build_data_stores_from_batch_output(batch_output_dir: str, workflow: str) -> List[Dict]:
-    """Build complete data stores list from batch output directory.
-    
-    Args:
-        batch_output_dir: Directory containing batch output JSON files
-        workflow: Either 'proteomics' or 'interactomics'
-        
-    Returns:
-        List[Dict]: Complete list of data store components ready for infra.save_data_stores
+    """Build the complete list of data stores from batch output directory.
+
+    :param batch_output_dir: Directory containing batch output JSON files.
+    :param workflow: Workflow name ('proteomics' or 'interactomics').
+    :returns: Complete list of data store components ready for infra.save_data_stores.
     """
     data_stores = []
     
@@ -464,14 +443,11 @@ def build_data_stores_from_batch_output(batch_output_dir: str, workflow: str) ->
 
 def save_batch_data_using_infra(batch_output_dir: str, export_dir: str, workflow: str) -> Dict[str, Any]:
     """Save batch data using the GUI's infra.save_data_stores function.
-    
-    Args:
-        batch_output_dir: Directory containing batch output JSON files
-        export_dir: Directory to save exported data
-        workflow: Either 'proteomics' or 'interactomics'
-        
-    Returns:
-        Dict: Summary of export operation
+
+    :param batch_output_dir: Directory containing batch output JSON files.
+    :param export_dir: Directory to save exported data.
+    :param workflow: Workflow name ('proteomics' or 'interactomics').
+    :returns: Summary dict of the export operation.
     """
     
     # Build data stores from batch output

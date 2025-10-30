@@ -1,16 +1,32 @@
+"""
+Color utilities for Plotly/Dash figures.
+
+Includes helpers to translate color formats, darken colors, trim overly
+light template colors, and assign consistent group/sample colors.
+"""
 import numpy as np
 from matplotlib import pyplot as plt
 import plotly.io as pio
 import plotly.colors as pc
 
 def rgba_to_hex(rgba: str) -> str:
-    """Converts an rgba color to a hex color.
-    :param rgba: input color as  "rgba(123,321,123,0.5)"
-    :returns: new color string in the  "rgb(123,321,123)" format.
+    """Convert an RGBA color string to hex.
+
+    :param rgba: Input as ``"rgba(r,g,b,a)"``.
+    :returns: Hex color string, e.g. ``"#RRGGBB"``.
     """
     return f'#{rgba.split("(")[1].split(")")[0].split(",")[0:3]}'
 
 def remove_unwanted_colors(figure_template: str) -> str:
+    """Return a Plotly template with overly light colors darkened.
+
+    The function reads the colorway from the named template and adjusts
+    entries with high luminance to improve visibility on light
+    backgrounds.
+
+    :param figure_template: Name of a Plotly template (e.g., ``"plotly"``).
+    :returns: Modified template object with updated ``layout.colorway``.
+    """
 
     # grab the current template
     tmpl = pio.templates[figure_template]
@@ -34,11 +50,11 @@ def remove_unwanted_colors(figure_template: str) -> str:
     return tmpl
 
 def get_assigned_colors(sample_group_dict: dict) -> dict:
-    """Returns a dictionary with each sample name from the sample group dict assigned a color\
-        corresponding to its sample group.
+    """Assign per-group and per-sample colors.
 
-    :param sample_group_dict: dictionary of sample groups, where one group maps to a list of samples.
-    :returns: tuple of (dictionary of samples and sample groups,dictionary of samples and sample groups with contaminant annotation)
+    :param sample_group_dict: Mapping of group name to list of sample names.
+    :returns: Tuple ``(colors, colors_with_contaminant)`` where both are dicts
+        with keys ``'samples'`` and ``'sample groups'``.
     """
     entry_list: list = list(sample_group_dict.keys())
     colors: list = get_cut_colors(number_of_colors=len(entry_list))
@@ -59,10 +75,11 @@ def get_assigned_colors(sample_group_dict: dict) -> dict:
     return (ret, ret_cont)
 
 def darken(color: str, percent: int) -> str:
-    """Darkens a given color by a given percentage value).
-    :param color: input color as  "rgb(123,321,123)"
-    :param percent: percentage for how much to darken
-    :returns: new color string in the  "rgb(123,321,123)" format.
+    """Darken a given RGB(A) color by a percentage.
+
+    :param color: Color as ``"rgb(r,g,b)"`` or ``"rgba(r,g,b,a)"``.
+    :param percent: Percentage to darken (0–100).
+    :returns: Darkened color string of the same type.
     """
     tp: str
     col_ints:list
@@ -76,12 +93,12 @@ def darken(color: str, percent: int) -> str:
 
 def get_cut_colors(colormapname: str = 'gist_ncar', number_of_colors: int = 15,
                 cut: float = 0.4) -> list:
-    """Returns cut colors from the given colormapname
+    """Return a list of evenly spaced colors from a matplotlib colormap.
 
-    :param colormap: which matplotlib colormap to use
-    :param number_of_colors: how many colors to return. Colors will be equally spaced in the map
-    :param cut: how much to cut the colors.
-    :returns: cut color list
+    :param colormapname: Matplotlib colormap name.
+    :param number_of_colors: Number of colors to sample.
+    :param cut: Brightness adjustment mixed with white (0–1).
+    :returns: List of RGBA tuples in 0–1 range.
     """
     number_of_colors += 1
     colors: list = (1. - cut) * (plt.get_cmap(colormapname)(np.linspace(0., 1., number_of_colors))) + \

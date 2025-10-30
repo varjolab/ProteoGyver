@@ -30,12 +30,9 @@ logger = logging.getLogger(__name__)
 
 def load_div_pickle(pickle_path: str) -> Dict[str, Any]:
     """Load a div pickle file.
-    
-    Args:
-        pickle_path: Path to the pickle file
-        
-    Returns:
-        Dict of div components, or empty dict if file doesn't exist
+
+    :param pickle_path: Path to the pickle file.
+    :returns: Dict of div components or empty dict if not found or on error.
     """
     if not os.path.exists(pickle_path):
         logger.warning(f"Div pickle file not found: {pickle_path}")
@@ -52,17 +49,14 @@ def load_div_pickle(pickle_path: str) -> Dict[str, Any]:
 
 
 def build_analysis_divs_from_saved_divs(batch_output_dir: str, workflow: str, params: dict) -> List[Any]:
-    """Build analysis_divs list from saved div pickle files.
-    
-    The key insight is that infra.save_figures expects a list of individual div components,
-    not a single container. Each div in our pickle files should become one element in the list.
-    
-    Args:
-        batch_output_dir: Directory containing the batch output files
-        workflow: Workflow type ('proteomics' or 'interactomics')
-        
-    Returns:
-        List of analysis div components ready for infra.save_figures
+    """Build ``analysis_divs`` list from saved div pickle files.
+
+    The GUI export expects a flat list of individual div components.
+
+    :param batch_output_dir: Directory containing the batch output files.
+    :param workflow: Workflow type ('proteomics' or 'interactomics').
+    :param params: Parsed parameters dict (for TIC rendering defaults).
+    :returns: List of analysis div components ready for infra.save_figures.
     """
     analysis_divs = []
     
@@ -145,12 +139,9 @@ def build_analysis_divs_from_saved_divs(batch_output_dir: str, workflow: str, pa
 
 def get_commonality_pdf_data(batch_output_dir: str) -> Optional[str]:
     """Get commonality PDF data if available.
-    
-    Args:
-        batch_output_dir: Directory containing batch output
-        
-    Returns:
-        PDF data string or None if not available
+
+    :param batch_output_dir: Directory containing batch output.
+    :returns: PDF data string, or None if not available.
     """
     artifacts_path = os.path.join(batch_output_dir, "03_qc_artifacts.json")
     
@@ -176,17 +167,15 @@ def get_commonality_pdf_data(batch_output_dir: str) -> Optional[str]:
 
 
 def save_batch_figures_using_saved_divs(batch_output_dir: str, export_dir: str, 
-                                       workflow: str, parameters:dict, output_formats: List[str] = None) -> Dict[str, Any]:
+                                       workflow: str, parameters:dict, output_formats: Optional[List[str]] = None) -> Dict[str, Any]:
     """Save batch figures using saved div pickle files and GUI infrastructure.
-    
-    Args:
-        batch_output_dir: Directory containing batch output and div pickle files
-        export_dir: Directory for figure export
-        workflow: Workflow type ('proteomics' or 'interactomics')
-        output_formats: List of output formats ['html', 'pdf', 'png']
-        
-    Returns:
-        Dict with summary information about figure export
+
+    :param batch_output_dir: Directory containing batch output and div pickle files.
+    :param export_dir: Directory for figure export.
+    :param workflow: Workflow type ('proteomics' or 'interactomics').
+    :param parameters: Parsed parameters dict for figure defaults.
+    :param output_formats: Output format list, default ['html', 'pdf', 'png'].
+    :returns: Summary dict with export details and counts.
     """
     if output_formats is None:
         output_formats = ['html', 'pdf', 'png']
@@ -246,7 +235,10 @@ def save_batch_figures_using_saved_divs(batch_output_dir: str, export_dir: str,
 
 
 def main():
-    """Main function for testing"""
+    """Command-line entry point for figure generation using saved divs.
+
+    :returns: None.
+    """
     
     import argparse
     
@@ -267,8 +259,8 @@ def main():
         args.batch_output_dir, 
         args.export_dir,
         args.workflow,
-        args.formats,
         parameters
+        args.formats,
     )
     
     if result["success"]:

@@ -1,3 +1,9 @@
+"""
+Network visualization utilities using Dash Cytoscape.
+
+Creates Cytoscape elements and container for displaying bait–prey
+interaction networks with selectable layouts and styles.
+"""
 from dash import dcc, html, callback
 import dash_bootstrap_components as dbc
 import dash_cytoscape as cyto
@@ -5,6 +11,11 @@ import dash_cytoscape as cyto
 cyto.load_extra_layouts()
 
 def get_cytoscape_elements_and_ints(interaction_data):
+    """Convert interaction table to Cytoscape elements and a dict index.
+
+    :param interaction_data: DataFrame with columns including ``Bait``, ``Prey``, ``PreyGene``, ``AvgSpec``.
+    :returns: Tuple ``(elements, interactions)`` where elements is a list of nodes/edges and interactions is a nested dict.
+    """
     cy_edges = []
     cy_nodes = []
     keepi = []
@@ -35,6 +46,10 @@ def get_cytoscape_elements_and_ints(interaction_data):
     return (created_elements, interactions)
 
 def get_stylesheet():
+    """Return the default Cytoscape stylesheet for bait/prey nodes.
+
+    :returns: List of stylesheet dictionaries.
+    """
     return [
         {"selector": "node", "style": {"opacity": 0.65, "z-index": 9999}},
         {
@@ -70,6 +85,12 @@ def get_stylesheet():
     ]
 
 def get_cytoscape_container(cyto_elements, full_height): 
+    """Build a Cytoscape container with controls and the graph component.
+
+    :param cyto_elements: List of Cytoscape nodes and edges.
+    :param full_height: CSS height string (e.g., ``"600px"``).
+    :returns: Dash ``html.Div`` containing the Cytoscape graph and layout selector.
+    """
     default_stylesheet = get_stylesheet()
     cyto_layouts = [
         "grid",
