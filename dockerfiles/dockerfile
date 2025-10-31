@@ -96,7 +96,7 @@ COPY utils/resource_monitoring.sh /proteogyver/utils/resource_monitoring.sh
 
 RUN apt-get update && \
     apt-get -yq dist-upgrade && \
-    apt-get install -yq chromium-browser
+    apt-get install -yq chromium-browser libnss3 libatk-bridge2.0-0 libcups2 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libpango-1.0-0 libcairo2 libasound2
 ENV BROWSER_PATH=/usr/bin/chromium
 
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
