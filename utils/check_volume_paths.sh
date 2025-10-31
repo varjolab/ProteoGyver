@@ -18,8 +18,10 @@ done
 
 echo "Checking volume source paths from docker-compose.yaml..."
 
-# Extract the volume section and parse it
-volumes=$(sed -n '/^[[:space:]]*volumes:/,/^[[:space:]]*[a-z]:/p' dockerfiles/docker-compose.yaml | grep "^[[:space:]]*-")
+# Extract the volume section and parse it from multiple docker-compose files
+volumes=$( (sed -n '/^[[:space:]]*volumes:/,/^[[:space:]]*[a-z]:/p' dockerfiles/proteogyver/docker-compose.yaml; \
+            sed -n '/^[[:space:]]*volumes:/,/^[[:space:]]*[a-z]:/p' dockerfiles/pg_updater/docker-compose.yaml) | \
+            grep "^[[:space:]]*-")
 
 # Arrays to store results
 declare -a MISSING_PATHS=()
