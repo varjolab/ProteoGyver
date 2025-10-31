@@ -13,12 +13,11 @@ RUN mkdir -p /proteogyver/data/Server_input
 RUN mkdir -p /proteogyver/data/Server_output/logs
 # Requirement and config
 COPY requirements/updater_requirements.txt requirements.txt
-COPY app/parameters.toml parameters.toml
+COPY app/config/parameters.toml parameters.toml
 COPY app/resources /proteogyver/resources
-
+RUN rm -rf /proteogyver/config/parameters.toml
 # Main scripts
 COPY app/database_updater.py database_updater.py
-COPY app/database_generator.py database_generator.py
 COPY app/database_admin.py database_admin.py
 
 # Needed data
