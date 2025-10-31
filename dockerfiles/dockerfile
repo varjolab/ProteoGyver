@@ -98,7 +98,7 @@ COPY utils/resource_monitoring.sh /proteogyver/utils/resource_monitoring.sh
 RUN wget -q  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
+    apt-get -yq dist-upgrade
 RUN apt install -y ./google-chrome-stable_current_amd64.deb
 
 RUN ls -la /usr/bin/google-chrome* && \
