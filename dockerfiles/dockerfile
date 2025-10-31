@@ -18,15 +18,14 @@ ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
     RENV_PATHS_CACHE=/opt/renv/cache
 
 # Get chrome
-RUN wget -q  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-# System updates, locale setup, and package installation
 RUN apt-get update && \
     apt-get -yq dist-upgrade && \
+    apt-get install -yq wget && \
+    wget -q  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     apt-get install -yq locales && \
     locale-gen en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8 && \
-    apt-get install -y software-properties-common dirmngr wget xz-utils cron apt-utils && \
+    apt-get install -y software-properties-common dirmngr xz-utils cron apt-utils && \
     wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
     add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
     wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc && \
