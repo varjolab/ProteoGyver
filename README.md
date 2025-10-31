@@ -50,7 +50,7 @@ Example files are downloadable from the sidebar of the main interface. These inc
     - FragPipe (combined_prot.tsv)
     - DIA-NN (pg_matrix.tsv, report.tsv (discouraged due to size))
     - Generic matrix format (one row = one protein, one column = one sample)
-### Pipeline input format
+### Pipeline mode
 The pipeline module features an ingest directory (see parameters.toml [Pipeline module.Input watch directory], by default data/Server_input/Pipeline_input ). While the Proteogyver container is running, a watcher script will detect newly created folders in this directory, and launch the analysis in the background for each.
 
 Each input folder should contain:
@@ -58,6 +58,8 @@ Each input folder should contain:
 - Data table
 - Sample table
 Of these, the data table and sample table can be in a subdirectory, if so specified in the toml file.
+
+For example files, see pipeline example inputs -directory
 
 Once the analysis is done, output will be generated in the same directory, as the input. IF errors occur, ERRORS.txt will be generated, and reanalysis will not be performed.
 
@@ -220,7 +222,11 @@ will match the rows in the database where uniprot_id is UPID1 and gene_name is G
 
 Empty lines and lines starting with '#' are ignored.
 
-Deleting columns from tables is not supported this way, nor is deleting entire tables. These need to be done manually. The database is sqlite3, and thus easy to work with. Please make a backup first.
+Deleting columns from tables is not supported this way, nor is deleting entire tables. These need to be done manually. The database is sqlite3, and thus easy to work with. Please make a backup first. 
+
+As an example, utils/database_control_set_purger_examplescript.py is provided.
+It will take as input the path to the database file, and delete ALL control sets from it. 
+
 
 ### Update logging
 Updates will be logged to the update_log table.
