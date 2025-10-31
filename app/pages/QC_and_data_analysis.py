@@ -10,11 +10,10 @@ Attributes:
     figure_output_formats (list): Supported figure export formats
     layout (html.Div): Main application layout
 """
-from io import StringIO
 import os
 import shutil
+import traceback
 import zipfile
-import pandas as pd
 from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
@@ -1710,8 +1709,10 @@ def save_interactomics_figures(
                     figure_output_formats, None, workflow)
     except Exception as e:
         logger.warning(f'save_interactomics_figures failed: {e}')
-        with open(os.path.join(export_dir, 'save_interactomics_figures_errors'),'w') as fil:
-            fil.write(f'{e}')
+        tb = traceback.format_exc()
+        logger.warning(f"save_interactomics_figures failed: {e}\n{tb}")
+        with open(os.path.join(export_dir, "save_interactomics_figures_errors.txt"), "w") as fil:
+            fil.write(f"save_interactomics_figures failed: {e}\n{tb}")
     logger.info(f'done with download request save_interactomics_figures, took {datetime.now()-start}')
     return 'save_interactomics_figures done', ''
 

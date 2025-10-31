@@ -153,13 +153,13 @@ def parse_json_files():
         os.makedirs(move_done_dir, exist_ok=True)
         for file in done_jsons:
             shutil.move(os.path.join(input_path, file), os.path.join(move_done_dir, file))
-        jsons_in_dir = [j for j in os.listdir(input_path) if j.endswith('.json')]
+        jsons_in_dir = [j for j in os.listdir(move_done_dir) if j.endswith('.json')]
         if len(jsons_in_dir) > compress_done_when_filecount_over:
-            with zipfile.ZipFile(os.path.join(input_path, f'{timestamp}_done_jsons.zip'), 'w') as zipf:
+            with zipfile.ZipFile(os.path.join(move_done_dir, f'{timestamp}_done_jsons.zip'), 'w') as zipf:
                 for file in jsons_in_dir:
-                    zipf.write(os.path.join(input_path, file), file)
+                    zipf.write(os.path.join(move_done_dir, file), file)
             for file in jsons_in_dir:
-                os.remove(os.path.join(input_path, file))
+                os.remove(os.path.join(move_done_dir, file))
     else:
         for file in done_jsons:
             os.remove(os.path.join(input_path, file))
