@@ -94,5 +94,10 @@ ENV PATH="/opt/conda/envs/PG/bin:${PATH}"
 
 COPY utils/resource_monitoring.sh /proteogyver/utils/resource_monitoring.sh
 
+RUN apt-get update && \
+    apt-get -yq dist-upgrade && \
+    apt-get install -yq chromium-browser
+ENV BROWSER_PATH=/usr/bin/chromium
+
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
 
