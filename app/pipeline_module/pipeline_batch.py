@@ -576,7 +576,7 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
             filtered_saint,
             cfg.chosen_enrichments,
             params["Figure defaults"]["full-height"],
-            parameters_file="parameters.toml"
+            parameters_file="config/parameters.toml"
         )
         _dump_json(cfg.outdir, "26_enrichment_data", enrichment_data)
         _dump_json(cfg.outdir, "26_enrichment_info", enrichment_info)

@@ -43,6 +43,9 @@ randomize = true
 "Data import dir" = ["data", "Server_input"]
 "Data export dir" = ["data", "Server_output"]
 
+# For data paths, the first entry of the path list can include paths from the parameters.toml file. these are prefixed with params: and contain the path in the config. 
+# E.g. ["params:Data paths.Example files", "more examples", "Example text.txt"] would evaluate to, by default, data/PG example files/more examples/Example text.txt
+
 ["Pipeline module"]
 "Input watch directory" = ["params:Data paths.Data import and export.Data import dir", "Pipeline_input"]
 "Default toml files directory" = ["params:Data paths.Data dir", "Pipeline module default tomls"]

@@ -146,7 +146,7 @@ def read_toml(toml_file: Union[str, Path], baseify = ['Data paths'], check_exist
     :returns: Parsed and transformed dictionary.
     """
     toml_path = Path(toml_file)
-    basepath = str(toml_path.parent.resolve())
+    basepath = str(toml_path.parent.parent.resolve())
     with toml_path.open('r', encoding='utf-8') as tf:
         data = tomlkit.load(tf)
     for key in baseify:

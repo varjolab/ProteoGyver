@@ -23,7 +23,7 @@ def cleanup_cache_folders():
     :returns: None
     """
     logger.info("Starting cleanup of cache folders")
-    parameters = read_toml(Path('parameters.toml'))
+    parameters = read_toml(Path('config/parameters.toml'))
     cleanup_settings = parameters.get('Maintenance', {}).get('Cleanup', {})
     if not cleanup_settings:
         return
@@ -103,7 +103,7 @@ def rotate_logs():
 
     :returns: None
     """
-    parameters = read_toml(Path('parameters.toml'))
+    parameters = read_toml(Path('config/parameters.toml'))
     config = parameters.get('Config', {})
     log_dir = Path(config.get('LogDir', 'logs'))
     compress_days = int(config.get('Log compress days', 7))

@@ -25,7 +25,7 @@ def parse_json_files():
     :returns: Status string indicating number of files processed and locations.
     """
     logger.info("Starting parsing of json files")
-    parameters = read_toml(Path('parameters.toml'))
+    parameters = read_toml(Path('config/parameters.toml'))
     input_path = os.path.join(*parameters['Maintenance']['MS run parsing']['Input files'])
     os.makedirs(input_path, exist_ok=True)
     jsons_to_do = os.listdir(input_path)

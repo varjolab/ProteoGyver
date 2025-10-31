@@ -4,7 +4,7 @@ set -e
 # Get absolute path to the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Now refer to files relative to the script
-TARGET_FILE="$SCRIPT_DIR/../../app/parameters.toml"
+TARGET_FILE="$SCRIPT_DIR/../../app/config/parameters.toml"
 
 echo "Reverting local paths in parameters.toml file: $TARGET_FILE"
 

@@ -16,5 +16,5 @@ services:
       - /data/PG_containers/PG_revc/input:/proteogyver/data/Server_input
       - /data/PG_containers/PG_revc/output:/proteogyver/data/Server_output
       # This is required for the updater to share one parameter file with the server.
-      - /data/PG_containers/PG_revc/conf/parameters.toml:/proteogyver/parameters.toml
+      - /data/PG_containers/PG_revc/config:/proteogyver/config
     restart: unless-stopped

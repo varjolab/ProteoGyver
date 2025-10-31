@@ -259,7 +259,7 @@ def main():
         args.batch_output_dir, 
         args.export_dir,
         args.workflow,
-        parameters
+        parameters,
         args.formats,
     )
     

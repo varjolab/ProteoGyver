@@ -117,7 +117,7 @@ def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
         return not is_open
     return is_open
 
-parameters = utils.read_toml(Path('parameters.toml'))
+parameters = utils.read_toml(Path('config/parameters.toml'))
 server = app.server
 if not os.path.isdir('logs'):
     os.makedirs('logs')

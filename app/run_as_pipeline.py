@@ -31,7 +31,7 @@ def run_batch_pipeline(toml_path: str) -> dict:
     :returns: Summary dict with execution details, export paths, and figures info.
     """
     script_dir = Path(__file__).resolve().parent
-    parameters_file = script_dir / 'parameters.toml'
+    parameters_file = script_dir / 'config/parameters.toml'
     parameters = parsing.parse_parameters(parameters_file)
     
     input_dir = os.path.dirname(os.path.realpath(toml_path))

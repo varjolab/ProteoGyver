@@ -6,7 +6,7 @@ Proteogyver (PG) is a low-threshold, web-based platform for proteomics and inter
 
 ## Security
 
-The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet, and contain data only accessible to trusted users.
+The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)
 
 ## QC and quick analysis toolset
 
@@ -25,6 +25,8 @@ The app is insecure as it is. It is intended to be run on a network that is not 
   - MS-microscopy analysis
   - Known interaction mapping
 
+- **Pipeline mode**
+  - Any of the above workflows can be run in the background in automated fashion through the pipeline module.
 
 ### Usage
 Example files are downloadable from the sidebar of the main interface. These include example data files and sample tables for interactomics, and proteomics workflows.
@@ -43,31 +45,29 @@ Example files are downloadable from the sidebar of the main interface. These inc
 - Supported data formats:
   - Interactomics:
     - FragPipe (combined_prot.tsv, reprint.spc)
-    - Generic matrix format
+    - Generic matrix format (one row = one protein, one column = one sample)
   - Proteomics:
     - FragPipe (combined_prot.tsv)
     - DIA-NN (pg_matrix.tsv, report.tsv (discouraged due to size))
-    - Generic matrix format
+    - Generic matrix format (one row = one protein, one column = one sample)
+### Pipeline input format
+The pipeline module features an ingest directory (see parameters.toml [Pipeline module.Input watch directory], by default data/Server_input/Pipeline_input ). While the Proteogyver container is running, a watcher script will detect newly created folders in this directory, and launch the analysis in the background for each.
+
+Each input folder should contain:
+- pipeline.toml file
+- Data table
+- Sample table
+Of these, the data table and sample table can be in a subdirectory, if so specified in the toml file.
+
+Once the analysis is done, output will be generated in the same directory, as the input. IF errors occur, ERRORS.txt will be generated, and reanalysis will not be performed.
+
+To trigger reanalysis, the input folder must not contain either the error file, nor the "PG output" folder.
+
+#### Pipeline input toml
 
 ## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs
 - **Microscopy Image Colocalizer**: Analysis tool for .lif image files
-
-### Microscopy Colocalizer
-
-The Microscopy Colocalizer is a tool for analyzing spatial relationships between different fluorescent channels in microscopy images.
-
-#### Features
-- Multi-channel image visualization
-- Colocalization analysis and colocalization map generation
-- Support for .lif (Leica), other formats may be supported in the future
-
-#### Usage
-1. Upload your microscopy file (only .lif is supported for now)
-2. Select channels for analysis
-3. Select the Z-stack for analysis
-4. Generate colocalization maps
-5. Export results as merged channel visualizations from the upper right corner of the displayed images.
 
 ### MS Inspector
 
@@ -116,117 +116,68 @@ This is optional, but highly recommended. In order for the MS-inspector to have 
 
 MS run data needs to be pre-analyzed. As it may not be desirable to present run files directly to the server PG is running on, PG assumes that run file pre-analysis .json files are present in the directory specified in parameters.toml at "Maintenance"."MS run parsing"."Input files". Te parser script is provided in utils folder (MSParser subdir), with its own conda environment .env file. MSParser.py can handle timsTOF and thermo data currently. Tested MS systems so far include the TimsTOF Pro, Pro2, QExactive, Orbitrap Elite, Astral, and Astral Zoom.
 
-The parse_tims_data.py script requires four parameters:
-- root directory, where the .d folders are located
-- output directory for json files
-- error file to write error information
-- parameters file (parameters.toml from PG repository).
+to run, set up the MSParser venv:
+```
+cd utils/MSParser
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt
+```
+And then run it. MSParser expects three inputs: path to raw file, path to output **directory**, and path to an error file:
+```
+python3 MSParser.py /path/to/rawfile.d /path/to/output_dir/for/jsons/ /path/to/errorfile.txt
+```
+It will parse the rawfile, and produce a .json file, which is understood by MS_run_json_parser.py. The parser runs in the background, and will digest files in the directory specified in parameters at Maintenance.MS run parsing.Input files. By default, it will move the jsons afterwards to the directory specified in parameters at Maintenance.MS run parsing.Move done jsons into subdir. If the latter is empty, files will be deleted after parsing. The parsed json files, if kept, will also be compressed, when they accumulate.
 
-### Demo image for testing use
-Demo image is available in Zenodo (). However, few caveats apply:
-- Database included in the demo image only contains the bare minimum required to use the test files, and all data within the database has been scrambled. 
-- Similarly, SAINTExpress is not available on the demo image. This CAN be added by adding the executables to the container and making sure they are found in the path. However, we cannot distribute them by default.
 
 ### Docker Installation (recommended use case)
-```
-git clone https://github.com/varjolab/Proteogyver/
-cd Proteogyver
-```
-#### Build the Docker images and run the PG updater
-These commands may need sudo depending on the system.
-PG updater is used to generate a database. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface. The test database contains scrambled data, and is thus not recommended as a base for a production database. Proper database should be built before real use.
 
-##### Prerequisites:
-- Download SAINTexpress from https://saint-apms.sourceforge.net/Main.html and place the **linux** executables into app/external/SAINTexpress:
-  - Folder structure should contain:
-    app/external/SAINTexpress/SAINTexpress-int
-    app/external/SAINTexpress/SAINTexpress-spc
-  - These will be registered as executables and put into the path of the PG container during the container creation (see dockerfile)
-- IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data
-  - Afterwards, you need to format the data into a format usable by pg_updater, see [Updating the database](#updating-the-database) for details
+TODO: dockerhub/zenodo here.
 
-##### Used API data
-During database building, PG downloads data from several sources:
-- Known interactions are downloaded from [IntACT](https://www.ebi.ac.uk/intact/home) and [BioGRID](https://thebiogrid.org/)
-- Protein data is downloaded from [UniProt](https://www.uniprot.org/)
-- Common contaminants are downloaded from [Global proteome machine](https://thegpm.org/), [MaxQuant](https://www.maxquant.org/), and a publication by Frankenfield et al., 2022 (PMID: 35793413).
-- MS-microscopy data is from a previous publication (PMID: 29568061)
-Some are included in the files already.
 
-##### Build the main docker image.
-!!NOTE!! docker commands in particular may require superuser rights (sudo).
-This should take around 15 minutes, but can take much longer, mostly due to R requirements. 
-```
-docker build -t proteogyver:1.0 -f dockerfiles/dockerfile .
-```
+### Running the docker images
 
-Next make sure that the paths specified in docker-compose.yaml exist. Modify docker-compose NOW to suit your local system if needed.
-```
-utils/check_volume_paths.sh -v
-```
-IF the script says that some paths are missing and you want to modify those, change them in the docker-compose.yaml. If the missing paths are OK, they can be created with --create switch:
-```
-utils/check_volume_paths.sh -v --create
-```
-For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater script as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn't yet exist. If you want to see what docker command the updater would run, run with --test flag (>utils/run_updater.sh --test)
+Next modify docker-compose NOW to suit your local system if needed.
 
-In order to have run annotations that are not parsed from the raw MS data files (see [MS run pre-analysis](#ms-run-data-pre-analysis) ), an excel file CAN be supplied. The file name is specified in parameters.toml under "Database creation"."MS runs information"."Additional nfo excel". Minimal example is supplied in this repo.
+For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn't yet exist.
+
 Building the updater container should take around a minute. Running the updater can take a long time, especially on the first run.
+**All commands should be run from the proteogyver root folder**
+
+First run volume path checks to make sure all required paths exist:
 ```
-docker build -t pg_updater:1.0 -f dockerfiles/dockerfile_updater .
-utils/run_updater.sh
+bash utils/check_volume_paths.sh # This will print a summary
+bash utils/check_volume_paths.sh -c # This will create any missing paths.
+```
+
+Then build and run the updater to generate a database:
+```
+docker build -t pg_updater:1.5 -f dockerfiles/dockerfile_updater .
+cd dockerfiles/pg_updater && docker compose up
 ```
 
 #### Changing parameters
-In order to keep the parameters.toml in sync with PG and the updater container, it is copied into path specified in the docker-compose.yaml. The file needs to be edited in that location ONLY, in order for the updated parameters to be applied to existing docker container, and the updater (e.g. different database name, or modified update intervals).
+In order to keep the parameters.toml in sync with PG and the updater container, it is copied into path specified in the docker-compose.yaml. The file needs to be edited in that location ONLY, in order for the updated parameters to be applied to existing docker container, and the updater (e.g. different database name, or modified update intervals). When pg_updater or proteogyver is run the first time, it will copy the default parameters.toml into config folder.
 
 #### Run the container
 - Modify the dockerfiles/docker-compose.yaml file to suit your environment, and then deploy the container:
 ```
-docker compose -f dockerfiles/docker-compose.yaml up
+cd dockerfiles/proteogyver && docker compose up
 ```
 
 ##### Volume paths
 PG will generate data on disk in the form of tempfiles when a dataset is requested for download, and when certain functions are used (e.g. imputation). As such, it is suggested that the cache folder (/proteogyver/cache) is mounted from e.g. tmpfs (/tmp on most linux distros) or similar, for speed and latency.
 
-Database is suggested to live on an externally mounted directory due to size. 
+/proteogyver/data/db is suggested to live on an externally mounted directory due to database size. 
+/proteogyver/data/Server_input should contain the MS_rundata directory, which houses .json files for MS runs that should be included in the database by the updater.
+/proteogyver/data/Server_output currently has no use, but will in the future be used for larger exports.
+/proteogyver/cache Should live on a fast disk
+/proteogyver/config should also be an external mount to sync parameters between proteogyver and pg_updater
 
-/data/Server_input should contain the MS_rundata directory, which houses .json files for MS runs that should be included in the database by the updater.
-/data/Server_output currently has no use, but will in the future be used for larger exports.
-
-### Run PG locally (not encouraged, but possible)
-
-Running PG locally is possible, especially for testing and development use. However, it is not a supported use case.
-On a windows computer, it is recommended to use WSL. These instructions apply only to linux systems.
-
-#### Requirements and setup:
-- micromamba (or conda)
-- Python 3.10+
-- redis-cli
-- celery
-- SaintExpressSpc available in path
-
-First step is to adjust the parameters.toml file:
-- Change "Data paths"."Cache dir" to suit your local machin e (e.g. /tmp/pg_cache)
-- Change "Data paths."Data import and export": both paths need to be adjusted
-- Optional: Change "Config"."Local debug" to true, if you encounter problems or are doing development and want to see error messages.
-
+## Creating and updating the database
+To update the database, use the updater container
 ```
-# Create the PG environment and install dependencies (micromamba recommended)
-micromamba create -y -n PG -f app/requirements/environment.yml
-# Generate a database. This can take a while.
-micromamba run -n PG python database_admin.py
-```
-#### Run PG:
-```
-micromamba run -n PG bash startup.sh
-```
-
-
-## Updating the database
-To update the database, use the updater container, preferably with the included script:
-```
-utils/run_updater.sh
+cd dockerfiles/pg_updater && docker compose up
 ```
 On the first run, it will create a new database file in the specified db directory (specified in parameters.toml), if the file does not exist. In other cases, it will update the existing database. For updates, data will be added to existing tables from the update files directory (specified in parameters.toml). If it does not exist, the updater will create it, as well as example files for each database table. Crapome and control set table examples will not be created, because they would clutter up the output. For each of these tables, lines in them represent either new data rows, or modifications to existing rows. Deletions are handled differently, and are described below.
 
@@ -243,6 +194,9 @@ Keep in mind that the updater will delete the files from the db_updates director
 4) Finally other modifications are applied.
 
 If the tools that provide the external data provide ANY new columns that do not already exist in the database, the new columns will need to be manually added to the database FIRST. Otherwise the updater will throw an error.
+
+#### Forcing an update
+In some cases it is useful to force a full update of the database, even if the interval specified in the parameters.toml has not elapsed. In this case, add an environmental variable to the docker compose: FORCE_PG_DB_UPDATE: '1'
 
 ### Adding MS run data
 See [MS run data pre-analysis](#ms-run-data-pre-analysis) section of the install instructions.
@@ -270,6 +224,40 @@ Deleting columns from tables is not supported this way, nor is deleting entire t
 
 ### Update logging
 Updates will be logged to the update_log table.
+
+## Building the docker images:
+If you want to build the docker images locally, start by cloning the repo:
+```
+git clone https://github.com/varjolab/Proteogyver/
+cd Proteogyver
+```
+### Build the Docker images and run the PG updater
+These commands may need sudo depending on the system.
+PG updater is used to generate a database. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface. The test database contains scrambled data, and is thus not recommended as a base for a production database. Proper database should be built before real use.
+
+#### Prerequisites:
+- Download SAINTexpress from https://saint-apms.sourceforge.net/Main.html and place the **linux** executables into app/external/SAINTexpress:
+  - Folder structure should contain:
+    app/external/SAINTexpress/SAINTexpress-int
+    app/external/SAINTexpress/SAINTexpress-spc
+  - These will be registered as executables and put into the path of the PG container during the container creation (see dockerfile)
+- IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data
+  - Afterwards, you need to format the data into a format usable by pg_updater, see [Updating the database](#updating-the-database) for details
+
+#### Used API data
+During database building, PG downloads data from several sources:
+- Known interactions are downloaded from [IntACT](https://www.ebi.ac.uk/intact/home) and [BioGRID](https://thebiogrid.org/)
+- Protein data is downloaded from [UniProt](https://www.uniprot.org/)
+- Common contaminants are downloaded from [Global proteome machine](https://thegpm.org/), [MaxQuant](https://www.maxquant.org/), and a publication by Frankenfield et al., 2022 (PMID: 35793413).
+- MS-microscopy data is from a previous publication (PMID: 29568061)
+Some are included in the files already.
+
+#### Build the main docker image.
+!!NOTE!! docker commands in particular may require superuser rights (sudo).
+This should take around 15 minutes, but can take much longer, mostly due to R requirements. 
+```
+docker build -t proteogyver:1.5 -f dockerfiles/dockerfile .
+```
 
 ## Rare use cases
 

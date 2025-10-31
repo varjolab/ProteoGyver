@@ -37,7 +37,7 @@ register_page(__name__, path='/')
 logger = logging.getLogger(__name__)
 logger.info(f'{__name__} loading')
 
-parameters_file = 'parameters.toml'
+parameters_file = 'config/parameters.toml'
 parameters: Dict[str, Any] = parsing.parse_parameters(Path(parameters_file))
 db_file: str = os.path.join(*parameters['Data paths']['Database file'])
 contaminant_list: List[str] = db_functions.get_contaminants(db_file)

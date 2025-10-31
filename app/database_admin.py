@@ -112,7 +112,7 @@ def main():
     :returns: None.
     """
     force_full_update = False
-    parameters = utils.read_toml(Path('parameters.toml'))
+    parameters = utils.read_toml(Path('config/parameters.toml'))
     time_format = parameters['Config']['Time format']
     if '--force-full-update' in sys.argv:
         force_full_update = True

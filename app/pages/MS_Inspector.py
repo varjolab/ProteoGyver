@@ -578,7 +578,7 @@ def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
         logger.error(f"Error creating download package: {str(e)}")
         return no_update
     
-parameters = parsing.parse_parameters(Path('parameters.toml'))
+parameters = parsing.parse_parameters(Path('config/parameters.toml'))
 database_file = os.path.join(*parameters['Data paths']['Database file'])    
 
 num_of_traces_visible = 7

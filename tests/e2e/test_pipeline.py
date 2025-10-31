@@ -48,7 +48,7 @@ def _load_params() -> dict:
 
     :returns: Parsed parameters dictionary.
     """
-    params_path = APP_DIR / 'parameters.toml'
+    params_path = APP_DIR / 'config/parameters.toml'
     return parsing.parse_parameters(params_path)
 
 

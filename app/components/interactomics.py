@@ -273,7 +273,7 @@ def enrich(saint_output_json: str,
           figure_defaults: Dict[str, Any], 
           keep_all: bool = False, 
           sig_threshold: float = 0.01,
-          parameters_file: str = 'parameters.toml') -> Tuple[List[html.Div], Dict[str, Any], List[Any]]:
+          parameters_file: str = 'config/parameters.toml') -> Tuple[List[html.Div], Dict[str, Any], List[Any]]:
     """Run selected enrichment methods and visualize results.
 
     :param saint_output_json: SAINT output in pandas split-JSON format.

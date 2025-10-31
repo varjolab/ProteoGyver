@@ -8,6 +8,11 @@ if [ "$MONITOR_RESOURCES" = "true" ]; then
 fi
 # --- Activate environment and move to project folder ---
 cd /proteogyver
+# Ensure config/parameters.toml exists, copy from default if not
+if [ ! -f config/parameters.toml ]; then
+    echo "[INIT] config/parameters.toml not found, copying default parameters.toml to config/parameters.toml"
+    cp parameters.toml config/parameters.toml
+fi
 
 # Initialize micromamba and activate env
 export MAMBA_ROOT_PREFIX=/opt/conda
@@ -31,7 +36,7 @@ killall celery || true
 # --- Run the embedded page updater before app starts---
 echo "[INIT] Running embedded page updater..."
 python embedded_page_updater.py
-CPU_COUNT=$(python /proteogyver/resources/get_cpu_count.py /proteogyver/parameters.toml)
+CPU_COUNT=$(python /proteogyver/resources/get_cpu_count.py /proteogyver/config/parameters.toml)
 echo "[INIT] Starting Redis server..."
 redis-server --daemonize yes
 sleep 5  # Give Redis time to start

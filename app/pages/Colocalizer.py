@@ -30,7 +30,7 @@ from element_styles import UPLOAD_INDICATOR_STYLE, UPLOAD_STYLE,GENERIC_PAGE
 
 
 register_page(__name__, path='/colocalizer')
-parameters = parse_parameters('parameters.toml')
+parameters = parse_parameters('config/parameters.toml')
 logger = logging.getLogger(__name__)
 logger.info(f'{__name__} loading')
 available_cmaps = 'blackbody blues icefire bugn bupu cividis electric greens hot ylorbr gnbu greens amp thermal ice dense pubugn purd purp algae hot gray greys inferno magma pubu oranges reds purples rdpu tempo teal'.split()
