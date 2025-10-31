@@ -94,10 +94,18 @@ ENV PATH="/opt/conda/envs/PG/bin:${PATH}"
 
 COPY utils/resource_monitoring.sh /proteogyver/utils/resource_monitoring.sh
 
-RUN apt-get update && \
-    apt-get -yq dist-upgrade && \
-    apt-get install -yq chromium-browser libnss3 libatk-bridge2.0-0 libcups2 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libpango-1.0-0 libcairo2 libasound2
-ENV BROWSER_PATH=/usr/bin/chromium
+# Install Chrome
+RUN wget -q  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+RUN apt install -y ./google-chrome-stable_current_amd64.deb
+
+RUN ls -la /usr/bin/google-chrome* && \
+      google-chrome --version
+
+# Set the PRE_LOAD_CHROME env variable to True to prevent invoking get_chrome_sync() from METplotpy 
+ENV PRE_LOAD_CHROME='False'
+RUN echo "INFO: environment PRE_LOAD_CHROME set to ${PRE_LOAD_CHROME} ";
+
+
 
 ENTRYPOINT ["/bin/bash", "/docker_entrypoint.sh"]
 
