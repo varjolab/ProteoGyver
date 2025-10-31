@@ -13,4 +13,4 @@ services:
       # This is required for the updater to share one parameter file with the server.
       - /data/PG_containers/PG_revc/conf/parameters.toml:/proteogyver/parameters.toml
       - /data/PG_containers/PG_revc/api_data:/proteogyver/components/api_tools/data
-    restart: unless-stopped
+    restart: no
