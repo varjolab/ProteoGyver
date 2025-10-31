@@ -17,6 +17,9 @@ ENV RENV_CONFIG_EXTERNAL_LIBRARIES="" \
     R_LIBS_USER="" \
     RENV_PATHS_CACHE=/opt/renv/cache
 
+# Get chrome
+RUN wget -q  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
 # System updates, locale setup, and package installation
 RUN apt-get update && \
     apt-get -yq dist-upgrade && \
@@ -34,9 +37,11 @@ RUN apt-get update && \
         libcurl4-openssl-dev libxml2-dev libblas-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
         gfortran libfreetype6-dev libpng-dev liblapack-dev libfftw3-dev libtiff5-dev libjpeg-dev \
         libssl-dev libgit2-dev libicu-dev && \
+    apt install -y ./google-chrome-stable_current_amd64.deb && \
     rm -rf /var/lib/apt/lists/* && \
     npm install -g configurable-http-proxy
-
+RUN ls -la /usr/bin/google-chrome* && \
+google-chrome --version
 # Create directories and copy dependency files
 RUN mkdir -p /proteogyver/resources /opt/renv/cache ${MAMBA_ROOT_PREFIX} /proteogyver/data/Server_output /proteogyver/data/Server_input /proteogyver/data/Server_output/logs /etc/supervisor/conf.d
 
@@ -94,15 +99,6 @@ ENV PATH="/opt/conda/envs/PG/bin:${PATH}"
 
 COPY utils/resource_monitoring.sh /proteogyver/utils/resource_monitoring.sh
 
-# Install Chrome
-RUN wget -q  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-RUN apt-get update && \
-    apt-get -yq dist-upgrade
-RUN apt install -y ./google-chrome-stable_current_amd64.deb
-
-RUN ls -la /usr/bin/google-chrome* && \
-      google-chrome --version
 
 # Set the PRE_LOAD_CHROME env variable to True to prevent invoking get_chrome_sync() from METplotpy 
 ENV PRE_LOAD_CHROME='False'
