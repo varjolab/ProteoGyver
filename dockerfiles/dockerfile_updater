@@ -43,8 +43,9 @@ COPY app/components/api_tools components/api_tools
 COPY app/components/tools/utils.py components/tools/utils.py
 
 
-# Copy the updater script and any additional files into the container
-#COPY database_updater.py /app/
-#COPY parameters.toml /app/
-# Specify the default entry point to run the updater script
-ENTRYPOINT python /proteogyver/database_admin.py $( [ "$FORCE_PG_DB_UPDATE" = "1" ] && echo "--force-full-update" )
+# Copy minimal updater entrypoint script
+COPY dockerfiles/updater_entrypoint.sh /proteogyver/updater_entrypoint.sh
+RUN chmod +x /proteogyver/updater_entrypoint.sh
+
+# Use minimal bash entrypoint for updater
+ENTRYPOINT ["/bin/bash", "/proteogyver/updater_entrypoint.sh"]
