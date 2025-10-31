@@ -1,16 +1,16 @@
 services:
   pg_update:
-    image: pgu:1.3c
-    container_name: pg_updater13c
+    image: pgu:1.3d
+    container_name: pg_updater13d
     environment:
       TZ: Europe/Helsinki
       FORCE_PG_DB_UPDATE: '1' # set to '1' to force a full database update, otherwise only updates that are due will be performed.
     volumes:
-      - /data/PG_containers/PG_revc/cache:/proteogyver/cache
-      - /data/PG_containers/PG_revc/db:/proteogyver/data/db
-      - /data/PG_containers/PG_revc/input:/proteogyver/data/Server_input
-      - /data/PG_containers/PG_revc/output:/proteogyver/data/Server_output
+      - /data/PG_containers/PG_revd/cache:/proteogyver/cache
+      - /data/PG_containers/PG_revd/db:/proteogyver/data/db
+      - /data/PG_containers/PG_revd/input:/proteogyver/data/Server_input
+      - /data/PG_containers/PG_revd/output:/proteogyver/data/Server_output
       # This is required for the updater to share one parameter file with the server.
-      - /data/PG_containers/PG_revc/config:/proteogyver/config
-      - /data/PG_containers/PG_revc/api_data:/proteogyver/components/api_tools/data
+      - /data/PG_containers/PG_revd/config:/proteogyver/config
+      - /data/PG_containers/PG_revd/api_data:/proteogyver/components/api_tools/data
     restart: no
