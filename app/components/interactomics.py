@@ -193,15 +193,17 @@ def known_plot(filtered_saint_input_json: str,
     more_known = more_known.strip().strip(', ') + '. '
     if len(no_knowns_found) == len(figure_data.index.values):
         more_known = ''
+    figtitle = 'High-confidence interactions and identified known interactions'
     return (
         html.Div(
             id='interactomics-saint-known-plot',
             children=[
                 html.H4(id='interactomics-known-header',
-                        children='High-confidence interactions and identified known interactions'),
+                        children=figtitle),
                 bar_graph.make_graph(
                     'interactomics-saint-filt-int-known-graph',
                     figure_defaults,
+                    figtitle, 
                     figure_data,
                     '', color_discrete_map=True, y_name='Prey count', x_label='Bait'
                 ),
@@ -245,11 +247,13 @@ def pca(saint_output_data: str,
             data_table.fillna(0), spoofed_sample_groups, n_components=2)
         pca_result.sort_values(by=pc1, ascending=True, inplace=True)
         pca_result['Sample group color'] = [replicate_colors['sample groups'][grp] for grp in pca_result['Sample group']]
+        dlname = 'SPC PCA'
         gdiv = [
-            html.H4(id='interactomics-pca-header', children='SPC PCA'),
+            html.H4(id='interactomics-pca-header', children=dlname),
             scatter.make_graph(
                 'interactomics-pca-plot',
                 defaults,
+                dlname,
                 pca_result,
                 pc1,
                 pc2,
@@ -338,6 +342,7 @@ def enrich(saint_output_json: str,
                 rescol.replace('_', ' '),
                 figure_defaults,
                 cmap = 'dense',
+                dlname = enrichment_names[i],
                 symmetrical = False
             )
 
@@ -357,7 +362,7 @@ def enrich(saint_output_json: str,
             filter_action='native',
             id=f'interactomics-enrichment-{table_label.replace(" ","-")}',
         )
-        e_legend: str = enrichment_legend(
+        e_legend: html.P = enrichment_legend(
             replace_accent_and_special_characters(enrichment_names[i]),
             enrichment_names[i],
             rescol,
@@ -840,10 +845,10 @@ def do_ms_microscopy(saint_output_json: str,
     msmic_results: pd.DataFrame = ms_microscopy.generate_msmic_dataframes(saint_output, msmic_reference, )
 
     polar_plots: list = [
-        (bait, ms_microscopy.localization_graph(f'interactomics-msmic-{bait}',figure_defaults, 'polar', data_row))
+        (bait, ms_microscopy.localization_graph(f'interactomics-msmic-{bait}',figure_defaults, 'polar', bait, data_row))
         for bait, data_row in msmic_results.iterrows()
     ]
-    msmic_heatmap = ms_microscopy.localization_graph(f'interactomics-msmic-heatmap', figure_defaults, 'heatmap', msmic_results)
+    msmic_heatmap = ms_microscopy.localization_graph(f'interactomics-msmic-heatmap', figure_defaults, 'heatmap', 'All baits', msmic_results)
 
     tablist: list = [
         Tab(

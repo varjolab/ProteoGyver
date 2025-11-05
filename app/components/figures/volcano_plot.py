@@ -16,7 +16,7 @@ from components.figures import heatmaps
 def volcano_plot(
     data_table, defaults, title: str = None, fc_axis_min_max: float = 2, highlight_only: list = None,
     adj_p_threshold: float = 0.01, fc_threshold: float = 1.0
-) -> tuple:
+) -> go.Figure:
     """Draw a volcano plot from a differential results table.
 
     :param data_table: Data from ``stats.differential``; only one comparison expected.
@@ -89,15 +89,17 @@ def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, 
         sigs = sigs[abs(sigs['fold_change'])>fc_thr]
         sigs = sigs.pivot_table(columns='Name',index='Sample',values='fold_change')
         if sigs.shape[0] > 1:
+            dlname = f'All significant differences vs {control}'
             return_div_contents.extend([
                 html.H4(id=f'{id_prefix}-volcano-header-heatmap-{control}',
-                        children=f'All significant differences vs {control}'),
+                        children=dlname),
                 heatmaps.make_heatmap_graph(
                     sigs,
                     plot_name=f'volcano-significant-vs-{control.lower().strip()}',
                     value_name='log2 fold change',
                     defaults=defaults,
                     cmap='balance',
+                    dlname=dlname,
                     autorange=True,
                     symmetrical=True,
                     cluster='columns'
@@ -107,10 +109,15 @@ def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, 
     for _, row in significant_data[['Sample', 'Control']].drop_duplicates().iterrows():
         sample: str = row['Sample']
         control: str = row['Control']
+        dlname = f'Volcano {sample} vs {control}'
         return_div_contents.append(
             html.H4(id=f'{id_prefix}-volcano-header-{sample}-vs-{control}',
-                    children=f'Volcano {sample} vs {control}'),
+                    children=dlname),
         )
+        
+        config = defaults['config'].copy()
+        config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+        config['toImageButtonOptions']['filename'] = dlname
         return_div_contents.append(
             dcc.Graph(
                 id=f'{id_prefix}-{sample}-vs-{control}-volcano',
@@ -119,7 +126,7 @@ def generate_graphs(significant_data: DataFrame, defaults: dict, fc_thr: float, 
                         significant_data['Control'] == control)].copy(),
                     defaults, adj_p_threshold=p_thr, fc_threshold=fc_thr
                 ),
-                config=defaults['config']
+                config=config
             )
         )
         return_div_contents.append(

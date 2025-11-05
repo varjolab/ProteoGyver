@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from dash.dcc import Graph
 import pandas as pd
 
-def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: dict, defaults: dict, id_name: str):
+def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: dict, defaults: dict, id_name: str, dlname: str):
     """Create a CV violin plot across sample groups.
 
     :param raw_data: DataFrame of values; columns referenced by ``sample_groups``.
@@ -16,6 +16,7 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
     :param replicate_colors: Mapping with ``'sample groups'`` color strings per group.
     :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
     :param id_name: Component ID for the ``Graph``.
+    :param dlname: Name for the downloaded figure file.
     :returns: Tuple ``(Graph, out_data)`` where out_data contains group stats.
     """
     # Dictionary to store CVs for each sample group
@@ -98,4 +99,7 @@ def make_graph(raw_data: pd.DataFrame, sample_groups: dict, replicate_colors: di
         'group_stds': {sg: stds.to_dict() for sg, stds in group_stds.items()}
     }
     
-    return (Graph(config=defaults['config'], figure=fig, id=id_name), out_data)
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
+    return (Graph(config=config, figure=fig, id=id_name), out_data)

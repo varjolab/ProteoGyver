@@ -475,7 +475,7 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
                     _debug(entry, "run_summary.json written")
                     _safe_write_end_of_processing(entry, 'success')
                 else:
-                    _safe_write_end_of_processing(entry, 'failure'
+                    _safe_write_end_of_processing(entry, 'failure')
         finally:
             _clear_analyzing(entry)
             _debug(entry, "Cleared analyzing lock")

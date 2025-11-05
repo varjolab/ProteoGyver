@@ -156,7 +156,7 @@ def draw_clustergram(plot_data, defaults, color_map:list|None = None, **kwargs) 
 
     return fig
 
-def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict, cmap: str, autorange: bool = False, symmetrical: bool = True, cluster: str = None) -> Graph:
+def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict, cmap: str, dlname: str, autorange: bool = False, symmetrical: bool = True, cluster: str = None) -> Graph:
     """Create a simple heatmap as a Dash ``Graph``.
 
     :param matrix_df: DataFrame with numeric values to plot.
@@ -164,6 +164,7 @@ def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict,
     :param value_name: Colorbar label.
     :param defaults: Dict with ``height``, ``width``, ``config``.
     :param cmap: Plotly continuous color scale name.
+    :param dlname: Name for the downloaded figure file.
     :param autorange: If ``True``, derive zmin from data with padding.
     :param symmetrical: If ``True``, use symmetric min/max around zero.
     :param cluster: If not ``None``, apply clustering via ``matrix_functions``.
@@ -196,4 +197,7 @@ def make_heatmap_graph(matrix_df, plot_name:str, value_name:str, defaults: dict,
         zmin = zmi,
         zmax = zma,
     )
-    return Graph(config=defaults['config'], figure=figure, id=f'heatmap-{plot_name}')
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
+    return Graph(config=config, figure=figure, id=f'heatmap-{plot_name}')

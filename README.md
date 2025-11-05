@@ -172,7 +172,7 @@ The Microscopy image colocalizer is a simple tool to generate colocalization ima
 ### MS run data pre-analysis
 This is optional, but highly recommended. In order for the MS-inspector to have data to work with, or for QC to display chromatograms, information about MS runs needs to be included in the database.
 
-MS run data needs to be pre-analyzed. As it may not be desirable to present run files directly to the server PG is running on, PG assumes that run file pre-analysis .json files are present in the directory specified in parameters.toml at "Maintenance"."MS run parsing"."Input files". Te parser script is provided in utils folder (MSParser subdir), with its own conda environment .env file. MSParser.py can handle timsTOF and thermo data currently. Tested MS systems so far include the TimsTOF Pro, Pro2, QExactive, Orbitrap Elite, Astral, and Astral Zoom.
+MS run data needs to be pre-analyzed. As it may not be desirable to present run files directly to the server PG is running on, PG assumes that rawfile pre-analysis .json files are present in the directory specified in parameters.toml at "Maintenance"."MS run parsing"."Input files". The parser script is provided in utils folder (MSParser subdir), with its own venv requirements.txt file. MSParser.py can handle timsTOF and thermo data currently. Tested MS systems so far include the TimsTOF Pro, Pro2, QExactive, Orbitrap Elite, Astral, and Astral Zoom.
 
 to run, set up the MSParser venv:
 ```
@@ -184,11 +184,12 @@ pip3 install -r requirements.txt
 And then run it. MSParser expects three inputs: path to raw file, path to output **directory**, and path to an error file:
 ```
 python3 MSParser.py /path/to/rawfile.d /path/to/output_dir/for/jsons/ /path/to/errorfile.txt
+python3 MSParser.py /path/to/rawfile.raw /path/to/output_dir/for/jsons/ /path/to/errorfile.txt
 ```
-It will parse the rawfile, and produce a .json file, which is understood by MS_run_json_parser.py. The parser runs in the background, and will digest files in the directory specified in parameters at Maintenance.MS run parsing.Input files. By default, it will move the jsons afterwards to the directory specified in parameters at Maintenance.MS run parsing.Move done jsons into subdir. If the latter is empty, files will be deleted after parsing. The parsed json files, if kept, will also be compressed, when they accumulate.
+It will parse the rawfile, and produce a .json file, which is understood by MS_run_json_parser.py. The parser runs in the background, and will digest files in the directory specified in parameters at Maintenance.MS run parsing.Input files. By default, it will move the jsons afterwards to the directory specified in parameters at Maintenance.MS run parsing.Move done jsons into subdir. If the latter parameter is empty, files will be deleted after parsing. The parsed json files, if kept, will also be compressed (zip), when they accumulate.
 
+### Docker Installation (recommended)
 
-### Docker Installation (recommended use case)
 
 TODO: dockerhub/zenodo here.
 

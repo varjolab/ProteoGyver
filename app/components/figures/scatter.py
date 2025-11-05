@@ -44,17 +44,21 @@ def make_figure(defaults: dict, data_table: DataFrame, x: str, y: str, color_col
         figure.update_traces(textposition = figure_functions.improve_text_position(data_table))
     return figure
 
-def make_graph(id_name, defaults, *args, **kwargs) -> Graph:
+def make_graph(id_name, defaults, dlname, *args, **kwargs) -> Graph:
     """Wrap the scatter figure in a Dash ``Graph`` component.
 
     :param id_name: Component ID for the ``Graph``.
     :param defaults: Dict including a ``config`` key passed to the component.
+    :param dlname: Name for the downloaded figure file.
     :param args: Positional args passed to ``make_figure``.
     :param kwargs: Keyword args passed to ``make_figure``.
     :returns: Dash ``Graph`` component.
     """
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     return Graph(
         id=id_name, 
-        config = defaults['config'],
+        config = config,
         figure = make_figure(defaults, *args, **kwargs)
     )

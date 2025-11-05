@@ -17,9 +17,10 @@ def make_graph(
         id_name: str, 
         sets: list, 
         defaults: dict, 
+        dlname: str,
         names: list = None, 
         replicate_colors: dict = None, 
-        points_visible: str = 'outliers', 
+        points_visible: str = 'outliers',  
         title: str = None, 
         showbox: bool = False, 
         plot_type: str = 'violin') -> Graph:
@@ -28,6 +29,7 @@ def make_graph(
     :param id_name: Component ID for the ``Graph``; default name used if ``None``.
     :param sets: List of DataFrames; each column is treated as a replicate.
     :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
+    :param dlname: Name for the downloaded figure file.
     :param names: Optional list of labels for each DataFrame in ``sets``.
     :param replicate_colors: Mapping with ``'sample groups'`` color strings per name.
     :param points_visible: Violin/box points visibility (e.g., ``'outliers'`` or ``False``).
@@ -98,8 +100,11 @@ def make_graph(
     
     logger.info(
         f'returning graph: {datetime.now()}')
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     return Graph(
         id=id_name,
-        config=defaults['config'],
+        config=config,
         figure=figure
     )

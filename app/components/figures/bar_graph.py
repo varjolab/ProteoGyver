@@ -106,16 +106,19 @@ def bar_plot(
     return figure
 
 
-def make_graph(graph_id: str, defaults: dict, *args, **kwargs) -> None:
+def make_graph(graph_id: str, defaults: dict, dlname, *args, **kwargs) -> Graph:
     """Create a Dash ``Graph`` configured with a bar plot.
 
     :param graph_id: Component ID for the ``Graph``.
     :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
+    :param dlname: Name for the downloaded figure file.
     :param args: Positional arguments forwarded to ``bar_plot``.
     :param kwargs: Keyword arguments forwarded to ``bar_plot``.
     :returns: Dash ``Graph`` instance.
     """
     config=defaults['config']
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     figure = bar_plot(
             defaults,
             *args,

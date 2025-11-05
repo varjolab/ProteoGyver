@@ -16,5 +16,5 @@ services:
       - /data/PG/input:/proteogyver/data/Server_input
       - /data/PG/output:/proteogyver/data/Server_output
       # This is required for the updater to share one parameter file with the server.
-      - /data/PG_revd/config:/proteogyver/config
+      - /data/PG/config:/proteogyver/config
     restart: unless-stopped

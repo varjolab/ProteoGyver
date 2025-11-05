@@ -229,6 +229,7 @@ def main_sidebar(figure_templates: List[str], implemented_workflows: List[str]) 
                     ],
                     style={'display': 'inline-block'}
                 ),
+                html.Br(),
                 html.Label('Select workflow:'),
                 dbc.Select(
                     options=[
@@ -833,6 +834,12 @@ def saint_filtering_container(
     :param saint_found: Whether SAINT executable was found (controls warning visibility).
     :returns: Div with SAINT histogram, thresholds, and controls.
     """
+    bfdr_config = defaults['config'].copy()
+    bfdr_config['toImageButtonOptions'] = bfdr_config['toImageButtonOptions'].copy()
+    bfdr_config['toImageButtonOptions']['filename'] = 'Saint BFDR histogram'
+    count_config = defaults['config'].copy()
+    count_config['toImageButtonOptions'] = count_config['toImageButtonOptions'].copy()
+    count_config['toImageButtonOptions']['filename'] = 'Saint filtered counts'
     return html.Div(
         id={'type': 'input-div', 'id': 'interactomics-saint-filtering-area'},
         children=[
@@ -857,12 +864,12 @@ def saint_filtering_container(
             html.H4(id='interactomics-saint-histo-header',
                     children='SAINT BFDR value distribution'),
             dcc.Graph(id='interactomics-saint-bfdr-histogram',
-                      config=defaults['config']),
+                      config=bfdr_config),
             interactomics_legends['saint-histo'],
             html.H4(id='interactomics-saint-filtered-counts-header',
                     children='Filtered Prey counts per bait'),
             dcc.Graph(id='interactomics-saint-graph',
-                      config=defaults['config']),
+                      config=count_config),
             saint_legend(rescue),
             dbc.Label('Saint BFDR threshold:'),
             dcc.Slider(0, 0.1, 0.01, value=0.05,

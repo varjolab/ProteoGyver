@@ -7,13 +7,14 @@ per sample, returning a Dash ``Graph`` component.
 from pandas import DataFrame, Series
 from plotly.express import bar
 from dash.dcc import Graph
-def make_graph(defaults:dict, before: Series, after: Series, graph_id:str, title: str = None) -> Graph:
+def make_graph(defaults:dict, before: Series, after: Series, graph_id:str, dlname: str, title: str = None) -> Graph:
     """Create a grouped bar chart comparing before vs after counts.
 
     :param defaults: Dictionary with ``config``, ``height``, ``width`` and related settings.
     :param before: Series of counts before, indexed by sample.
     :param after: Series of counts after, indexed by sample.
     :param graph_id: Component ID for the ``Graph``.
+    :param dlname: Name for the downloaded figure file.
     :param title: Optional chart title.
     :returns: Dash ``Graph`` instance containing the grouped bar plot.
     """
@@ -32,8 +33,11 @@ def make_graph(defaults:dict, before: Series, after: Series, graph_id:str, title
         target_width = defaults['side_width'] + defaults['min_width_per']*2*len(dataframe['Sample'].unique())
         if width < target_width:
             width = target_width
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     return Graph(
-            config=defaults['config'], 
+            config=config, 
             id=graph_id,
             figure=bar(
                 dataframe,

@@ -89,6 +89,9 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
     hmdata: list = []
     index: list = list(group_sets.keys())
     done = set()
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = 'Shared identifications'
     for gname in index:
         hmdata.append([])
         for gname2 in index:
@@ -112,7 +115,7 @@ def common_heatmap(group_sets: dict, id_str: str, defaults) -> tuple:
                 zmax=1,
                 color_continuous_scale = 'Blues'
             ),
-            config=defaults['config']
+            config=config
         ),
         ''
     )

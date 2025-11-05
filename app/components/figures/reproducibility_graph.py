@@ -44,7 +44,7 @@ def get_max(plot_data: dict, minval=2) -> int:
     return int(maxval)
 
 
-def make_graph(graph_id: str, defaults: dict, plot_data: dict, title: str, table_type: str, num_per_row: int = 2) -> Graph:
+def make_graph(graph_id: str, defaults: dict, plot_data: dict, title: str, table_type: str, dlname:str, num_per_row: int = 2) -> Graph:
     """Create a grid of histograms of deviations from group mean.
 
     :param graph_id: Component ID for the ``Graph``.
@@ -52,6 +52,7 @@ def make_graph(graph_id: str, defaults: dict, plot_data: dict, title: str, table
     :param plot_data: Nested dict from ``get_reproducibility_dataframe``.
     :param title: Plot title.
     :param table_type: Label for x-axis description.
+    :param dlname: Name for the downloaded figure file.
     :param num_per_row: Number of subplots per row.
     :returns: Dash ``Graph`` with the subplot figure.
     """
@@ -101,8 +102,11 @@ def make_graph(graph_id: str, defaults: dict, plot_data: dict, title: str, table
         hovermode='x unified'
     )
 
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     # xmax = int(xmax*0.25)
     tick_distance: int = max(1, round(xmax/4))
     fig.update_xaxes(range=[-xmax, xmax], dtick=tick_distance)
     fig.update_traces(opacity=0.5)
-    return Graph(id=graph_id, figure=fig, config=defaults['config'])
+    return Graph(id=graph_id, figure=fig, config=config)

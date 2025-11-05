@@ -55,14 +55,15 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
         'FILTERPERC', f'{filtering_percentage}')
     logger.info(
         f'nafilter - only plot left: {datetime.now()}')
+    figtitle = 'Missing value filtering'
     return (
         html.Div(
             id='proteomics-na-filter-plot-div',
             children=[
                 html.H4(id='proteomics-na-filter-header',
-                        children='Missing value filtering'),
+                        children=figtitle),
                 before_after_plot.make_graph(
-                    figure_defaults, original_counts, filtered_counts, 'proteomics-na-filter-plot', title=title),
+                    figure_defaults, original_counts, filtered_counts, 'proteomics-na-filter-plot', figtitle, title=title),
                 figure_legend
             ],
             style={
@@ -122,6 +123,7 @@ def normalization(filtered_data_json: str, normalization_option: str, defaults: 
         'proteomics-normalization-plot',
         comparative_data,
         defaults,
+        'Normalization',
         names=names,
         title=title,
         replicate_colors=plot_colors,
@@ -178,15 +180,19 @@ def missing_values_in_other_samples(filtered_data_json,defaults) -> html.Div:
         barmode='overlay'
     )
     figure.update_traces(opacity=0.75)
+    dlname = 'Intensity of proteins with missing values in other samples'
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     return html.Div(
         id='proteomics-missing-in-other-samples-graph-div',
         children = [
             html.H4(
                 id='proteomics-missing-in-other-samples-header',
-                children='Intensity of proteins with missing values in other samples'
+                children=dlname
             ),
             Graph(
-                config=defaults['config'],
+                config=config,
                 id='proteomics-missing-in-other-samples-graph',
                 figure=figure
             ),
@@ -208,13 +214,13 @@ def perc_cvplot(raw_int_data: str, na_filtered_data: str, sample_groups: dict, r
     na_filtered_df: pd.DataFrame = pd.read_json(StringIO(na_filtered_data), orient='split')
     # Drop rows that are no longer present in filtered data
     raw_int_df.drop(index=list(set(raw_int_df.index)-set(na_filtered_df.index)),inplace=True)
-
-    graph, data = cvplot.make_graph(raw_int_df,sample_groups, replicate_colors, defaults, 'proteomics-cv-plot')
+    dlname = 'Coefficients of variation'
+    graph, data = cvplot.make_graph(raw_int_df,sample_groups, replicate_colors, defaults, 'proteomics-cv-plot', dlname)
     return (
         html.Div(
             id = 'proteomics-cv-div',
             children = [
-                html.H4(id='proteomics-cv-header', children='Coefficients of variation'),
+                html.H4(id='proteomics-cv-header', children=dlname),
                 graph,
                 legends['cv']
             ],
@@ -245,16 +251,18 @@ def imputation(filtered_data_json, imputation_option, defaults, errorfile:str, s
         data_table, errorfile, imputation_option, random_seed=13, rev_sample_groups=sample_groups_rev)
     logger.info(
         f'imputation - imputed, only plot left: {datetime.now()}')
+    dlname = 'Imputation'
     return (
         html.Div(
             id='proteomics-imputation-plot-div',
             children=[
                 html.H4(id='proteomics-imputation-header',
-                        children='Imputation'),
+                        children=dlname),
                 imputation_histogram.make_graph(
                     data_table,
                     imputed_table,
                     defaults,
+                    dlname,
                     id_name='proteomics-imputation-plot',
                     title=title,
 
@@ -296,6 +304,7 @@ def pca(imputed_data_json: str, sample_groups_rev: dict, defaults: dict, replica
                 scatter.make_graph(
                     'proteomics-pca-plot',
                     defaults,
+                    'PCA',
                     pca_result,
                     pc1,
                     pc2,
@@ -321,15 +330,19 @@ def clustermap(imputed_data_json: str, defaults: dict) -> tuple:
         StringIO(imputed_data_json), orient='split').corr()
     logger.info(
         f'clustermap - only plotting left: {datetime.now()}')
+    dlname = 'Sample correlation clustering'
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     return (
         html.Div(
             id='proteomics-clustermap-plot-div',
             children=[
                 html.H4(id='proteomics-clustermap-header',
-                        children='Sample correlation clustering'),
+                        children=dlname),
                 Graph(
                     id='proteomics-clustermap-plot',
-                    config=defaults['config'],
+                    config=config,
                     figure=heatmaps.draw_clustergram(
                         corrdata, defaults
                     )

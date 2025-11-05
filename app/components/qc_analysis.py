@@ -52,14 +52,16 @@ def count_plot(pandas_json: str, replicate_colors: dict, contaminant_list: list,
     logger.info(
         f'count_plot - color_added: {datetime.now() }')
 
+    figtitle = 'Proteins per sample'
     graph_div: html.Div = html.Div(
         id='qc-count-div',
         children=[
             html.H4(id='qc-heading-proteins_per_sample',
-                    children='Proteins per sample'),
+                    children=figtitle),
             bar_graph.make_graph(
                 'qc-count-plot',
                 defaults,
+                figtitle,
                 count_data,
                 title, color_discrete_map=True,
                 hide_legend=False
@@ -129,16 +131,17 @@ def common_proteins(data_table: str, db_file: str, figure_defaults: dict, additi
         ])
     plot_frame: DataFrame = DataFrame(data=plot_data,columns=plot_headers)
     plot_frame.sort_values(by='Protein class',ascending=False)
-    
+    figtitle = f'Common proteins in data ({id_str})'
     return (
         html.Div(
             id=f'{id_str}-common-proteins-plot',
             children=[
                 html.H4(id=f'{id_str}-common-proteins-header',
-                        children=f'Common proteins in data ({id_str})'),
+                        children=figtitle),
                 bar_graph.make_graph(
                     f'{id_str}-common-proteins-graph',
                     figure_defaults,
+                    figtitle,
                     plot_frame,
                     '', color_col='Protein class',y_name='ValueSum', x_name='Sample name'
                 ),
@@ -182,7 +185,7 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
             int_run_ids.append(run_data[sample]['internal_run_id'])
             int_id_to_sample[run_data[sample]['internal_run_id']] = sample
     if len(int_run_ids) == 0:
-        return (html.Div, {})
+        return (html.Div(), {})
     with db_functions.create_connection(db_file, mode='ro') as db_conn:# No need for rw anymore
         graph_data = db_functions.get_from_table_by_list_criteria(db_conn, 'ms_plots', 'internal_run_id', int_run_ids)
     tracetypes = ['TIC','MSn','BPC']
@@ -203,12 +206,15 @@ def parse_tic_data(expdesign_json: str, replicate_colors: dict, db_file: str,def
             'max_x': max_x,
             'max_y': max_y
         }
+    dlname = 'Chromatogram'
+    config = defaults['config'].copy()
+    config['toImageButtonOptions']['filename'] = dlname
     graph_div = html.Div(
         id = 'qc-tic-fic',
         children = [
                 html.H4(id='qc-heading-tic-graph',
                         children='Sample run TICs'),
-                Graph(id='qc-tic-plot', config=defaults['config']),
+                Graph(id='qc-tic-plot', config=config),
                 legends['tic'],
                 Dropdown(id='qc-tic-dropdown',options=tracetypes, value='TIC')
         ]
@@ -227,12 +233,13 @@ def coverage_plot(pandas_json: str, defaults: dict, title: str = None) -> tuple:
     coverage_data: DataFrame = quick_stats.get_coverage_data(pd_read_json(StringIO(pandas_json),orient='split'))
     logger.info(
         f'coverage - summary stats calculated: {datetime.now() }')
+    figtitle = 'Protein identification coverage'
     graph_div: html.Div = html.Div(
         id='qc-coverage-div',
         children=[
             html.H4(id='qc-heading-id_coverage',
                     children='Protein identification coverage'),
-            bar_graph.make_graph('qc-coverage-plot', defaults,
+            bar_graph.make_graph('qc-coverage-plot', defaults, figtitle,
                                  coverage_data, title, color=False, sort_x=False, x_label='Protein identified in N samples'),
             legends['coverage-plot']
         ],
@@ -266,13 +273,14 @@ def reproducibility_plot(pandas_json: str, sample_groups: dict, table_type: str,
     logger.info(
         f'reproducibility_plot - summary stats calculated: {datetime.now()}')
 
+    dlname = 'Sample reproducibility'
     graph_div: html.Div = html.Div(
         id='qc-reproducibility-div',
         children=[
             html.H4(id='qc-heading-reproducibility',
-                    children='Sample reproducibility'),
+                    children=dlname),
             reproducibility_graph.make_graph(
-                'qc-reproducibility-plot', defaults, repro_data, title, table_type),
+                'qc-reproducibility-plot', defaults, repro_data, title, table_type, dlname),
             legends['reproducibility-plot']
         ],
         style={
@@ -304,14 +312,16 @@ def missing_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title
 
     logger.info(
         f'missing_plot - summary stats calculated: {datetime.now() }')
+    figtitle = 'Missing values per sample'
     graph_div: html.Div = html.Div(
         id='qc-missing-div',
         children=[
             html.H4(id='qc-heading-missing_values',
-                    children='Missing values per sample'),
+                    children=figtitle),
             bar_graph.make_graph(
                 'qc-missing-plot',
                 defaults,
+                figtitle,
                 na_data,
                 title, color_discrete_map=True
             ),
@@ -346,14 +356,16 @@ def sum_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: st
 
     logger.info(
         f'sum_plot - summary stats calculated: {datetime.now() }')
+    figtitle = 'Sum of values per sample'
     graph_div: html.Div = html.Div(
         id='qc-sum-div',
         children=[
             html.H4(id='qc-heading-value_sum',
-                    children='Sum of values per sample'),
+                    children=figtitle),
             bar_graph.make_graph(
                 'qc-sum-plot',
                 defaults,
+                figtitle,
                 sum_data,
                 title, color_discrete_map=True
             ),
@@ -390,13 +402,15 @@ def mean_plot(pandas_json: str, replicate_colors: dict, defaults: dict, title: s
 
     logger.info(
         f'mean_plot - summary stats calculated: {datetime.now() }')
+    figtitle = 'Value mean'
     graph_div: html.Div = html.Div(
         id='qc-mean-div',
         children=[
-            html.H4(id='qc-heading-value_mean', children='Value mean'),
+            html.H4(id='qc-heading-value_mean', children=figtitle),
             bar_graph.make_graph(
                 'qc-mean-plot',
                 defaults,
+                figtitle, 
                 mean_data,
                 title, color_discrete_map=True
             ),
@@ -442,6 +456,7 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
                 'qc-value_distribution-plot',
                 comparative_data,
                 defaults,
+                'Value distribution per sample',
                 names=names,
                 title=title,
                 replicate_colors=replicate_colors,

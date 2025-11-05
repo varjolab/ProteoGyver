@@ -146,20 +146,24 @@ def draw_localization_plot(defaults: dict, datarow: pd.Series, cmap: list = [[25
     fig.update_polars(radialaxis_showline=False)
     return fig
 
-def localization_graph(graph_id: str, defaults: dict, plot_type: str, *args, **kwargs) -> Graph:
+def localization_graph(graph_id: str, defaults: dict, plot_type: str, baitname: str, *args, **kwargs) -> Graph:
     """Create a Dash Graph for localization visualization.
 
     :param graph_id: Component ID for the graph.
     :param defaults: Dict with ``config``, ``height``, ``width``.
     :param plot_type: ``'polar'`` or ``'heatmap'``.
+    :param baitname: Bait name for the naming of the downloadable figure file.
     :param args: Positional args forwarded to the specific drawing function.
     :param kwargs: Keyword args forwarded to the specific drawing function.
     :returns: Dash Graph.
     """
+    config = defaults['config'].copy()
+    config['toImageButtonOptions'] = config['toImageButtonOptions'].copy()
     if plot_type == 'polar':
+        config['toImageButtonOptions']['filename'] = f'{baitname} MS microscopy'
         return Graph(
             id=graph_id,
-            config=defaults['config'],
+            config=config,
             figure=draw_localization_plot(
                 defaults,
                 *args,
@@ -167,9 +171,10 @@ def localization_graph(graph_id: str, defaults: dict, plot_type: str, *args, **k
             )
         )
     elif plot_type == 'heatmap':
+        config['toImageButtonOptions']['filename'] = f'{baitname} MS microscopy'
         return Graph(
                 id=graph_id,
-                config=defaults['config'],
+                config=config,
                 figure=draw_localization_heatmap(
                     defaults,
                     *args,

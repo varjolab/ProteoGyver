@@ -10,12 +10,13 @@ from dash.dcc import Graph
 from plotly.graph_objects import Figure
 from plotly.express import histogram
 
-def make_graph(non_imputed, imputed, defaults, id_name: str = None, title:str = None, **kwargs) -> Graph:
+def make_graph(non_imputed, imputed, defaults, dlname:str, id_name: str = None, title:str = None, **kwargs) -> Graph:
     """Create a histogram comparing imputed vs non-imputed values.
 
     :param non_imputed: DataFrame before imputation.
     :param imputed: DataFrame after imputation.
     :param defaults: Dict with ``height``, ``width``, ``config``.
+    :param dlname: Name for the downloaded figure file.
     :param id_name: Component ID for the ``Graph``.
     :param title: Figure title.
     :param kwargs: Additional keyword args forwarded to Plotly Express ``histogram``.
@@ -47,8 +48,7 @@ def make_graph(non_imputed, imputed, defaults, id_name: str = None, title:str = 
         barmode='overlay'
     )
     figure.update_traces(opacity=0.75) 
-    config=dict(defaults['config'],displayModeBar = False)
-    figure.update_layout(hovermode=False)
-    figure.update_traces(hoverinfo='skip', hovertemplate=None)
+    config=defaults['config']
+    config['toImageButtonOptions']['filename'] = dlname
     return Graph(config=config, id=id_name, figure=figure)
     
