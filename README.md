@@ -67,6 +67,8 @@ To trigger reanalysis, the input folder must not contain either the error file, 
 
 #### Pipeline input toml
 
+# TODO fill here
+
 ## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs
 - **Microscopy Image Colocalizer**: Analysis tool for .lif image files
@@ -105,11 +107,16 @@ The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) 
 7. Export visualizations and data using "Download Data"
 
 #### Notes
+- Unfortunately the proteogyver container needs a restart to detect new runs in the database in MS inspector. This limitation will be fixed in the next update.
 - Maximum of 100 runs can be loaded at once
 - Multiple traces are displayed with decreasing opacity for temporal comparison
 - Supplementary metrics are synchronized with TIC visualization
 - For switching to a different run set, reload the page to ensure clean state
 - Prerequisite for the use of the tool, as well as chromatogram visualization in the QC workflow, is the pre-analysis of MS rawfiles and their inclusion into the PG database with the bundled database updater tool. See the "Updating the database" section for more information.
+
+### Microscopy Image Colocalizer
+
+The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format.
 
 ## Installation
 

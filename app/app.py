@@ -151,7 +151,7 @@ celery_app.conf.beat_schedule = {
     },
     'parse-MS-runs': {
         'task': 'components.MS_run_json_parser.parse_json_files',
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(minute='*'),
     },
     'watch-pipeline-input': {
         'task': 'pipeline_module.pipeline_input_watcher.watch_pipeline_input',

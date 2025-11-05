@@ -270,6 +270,7 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     tic_figure.update_layout(
         #title=setname,
         height=400,
+        width=1200,
         xaxis_range=[0,max_x],
         yaxis_range=[0,max_y[datatype]],
         #template='plotly_dark',
@@ -346,6 +347,7 @@ def delim_runs(runs):
     Output('start-stop-btn','n_clicks'),
     Output('run-ids-not-found','children'),
     Input('load-runs-button','n_clicks'),
+    State('ms-select', 'value'),
     State('date-picker-select', 'start_date'),
     State('date-picker-select', 'end_date'),
     State('ddadia-select', 'value'),
@@ -353,12 +355,13 @@ def delim_runs(runs):
     State('load-runs-spinner-div','children'),
     prevent_initial_call=True
 ) 
-def update_run_choices(_, start_date, end_date, sample_types, run_id_list, button_text) -> list:
+def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_list, button_text) -> list:
     """Update the list of runs based on selected criteria.
 
+    :param selected_ms: Selected MS.
     :param start_date: Start date.
     :param end_date: End date.
-    :param sample_types: Selected sample types.
+    :param data_types: Selected data types.
     :param run_id_list: Optional string of run IDs to load.
     :param button_text: Current button text.
     :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks, not_found_text].
@@ -376,15 +379,16 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
         chosen_runs: pd.DataFrame = db_functions.get_from_table(
             db_conn, # type: ignore
             'ms_runs',
-            'run_time',
+            'run_date',
             (start, end),
             select_col=', '.join(REQUIRED_MAINCOLS),
             as_pandas=True,
             operator = 'BETWEEN',
-            index_col = 'internal_run_id'
+            pandas_index_col = 'internal_run_id'
         )
-        chosen_runs = chosen_runs[chosen_runs['sample_type'].isin(sample_types)]
-        chosen_runs.sort_values(by='run_time',ascending=True, inplace=True)
+        chosen_runs = chosen_runs[chosen_runs['inst_model'] == selected_ms]
+        chosen_runs = chosen_runs[chosen_runs['data_type'].isin(data_types)]
+        chosen_runs.sort_values(by='run_date',ascending=True, inplace=True)
         #chosen_runs.index = chosen_runs.index.astype(str)# And flip back to make passing trace_dict easier. Keys of the dict will be converted to strings when passed through data store.
         if chosen_runs.shape[0] > RUN_LIMIT:
             chosen_runs = chosen_runs.tail(RUN_LIMIT)
@@ -399,15 +403,15 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
             'internal_run_id',
             run_ids,
             select_col=', '.join(REQUIRED_MAINCOLS),
-            index_col = 'internal_run_id'
+            pandas_index_col = 'internal_run_id'
         )
-        chosen_runs.sort_values(by='run_time',ascending=True, inplace=True)
+        chosen_runs.sort_values(by='run_date',ascending=True, inplace=True)
     run_plots = db_functions.get_from_table_by_list_criteria(
         db_conn, 
         'ms_plots',
         'internal_run_id',
         list(chosen_runs.index),
-        index_col = 'internal_run_id'
+        pandas_index_col = 'internal_run_id'
     )
     db_conn.close() # type: ignore
     not_found_text = None
@@ -424,6 +428,8 @@ def update_run_choices(_, start_date, end_date, sample_types, run_id_list, butto
             tracename = tracename
             trace_dict[runid][tracename] = {}
             for color_i in range(num_of_traces_visible):
+                if rundata[f'{tracename}_trace'] == 'placeholder':
+                    continue
                 d = json.loads(rundata[f'{tracename}_trace'])
                 d['line'] = {'color': trace_color,'width': 1}
                 d['opacity'] = (1/num_of_traces_visible)*(num_of_traces_visible - color_i)
@@ -584,7 +590,7 @@ database_file = os.path.join(*parameters['Data paths']['Database file'])
 num_of_traces_visible = 7
 trace_color = 'rgb(56, 8, 35)'
 trace_types: list = ['TIC','BPC','MSn']
-samplecols = ['file_name', 'file_name_clean', 'sample_id', 'sample_name' ]
+samplecols = ['file_name', 'file_name_clean']
 REQUIRED_MAINCOLS = [
     'internal_run_id',
     'inst_model',
@@ -594,10 +600,10 @@ REQUIRED_MAINCOLS = [
 ] + samplecols
 required_plot_cols = ['internal_run_id']
 for tracename in trace_types:
-    required_plot_cols.append(f'{tracename} trace')
-    required_plot_cols.append(f'{tracename} mean_intensity')
-    required_plot_cols.append(f'{tracename} auc')
-    required_plot_cols.append(f'{tracename} max_intensity')
+    required_plot_cols.append(f'{tracename}_trace')
+    required_plot_cols.append(f'{tracename}_mean_intensity')
+    required_plot_cols.append(f'{tracename}_auc')
+    required_plot_cols.append(f'{tracename}_max_intensity')
 
 db_conn = db_functions.create_connection(database_file)
 data = db_functions.get_from_table(

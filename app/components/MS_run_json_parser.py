@@ -7,7 +7,7 @@ import zipfile
 from celery import shared_task
 from datetime import datetime
 from pathlib import Path
-from components.tools.utils import read_toml, normalize_key, dig_dict
+from components.tools.utils import read_toml, normalize_key
 from components import db_functions
 from celery_once import QueueOnce
 
@@ -60,31 +60,26 @@ def parse_json_files():
         'file_name',
         'file_size',
         'parsed_date',
-        'sample_id'
     ]
     instrument_to_main = [
         'inst_model',
         'inst_serial_no',
         'inst_name',
-        'extras'
+        #'extras'
     ]
     run_to_main = [
-        'processing_method',
-        'method_name',
-        'ms_method',
+        #'processing_method',
+        #'method_name',
+        #'ms_method',
         'run_date',
         'start_time',
         'end_time',
         'last_scan_number'
-    ]    
-    sample_to_main = [
-        'sample_name',
     ]
     headers = [ 'internal_run_id' ] + base_keys + [ 'file_name_clean' ]
-    headers.extend(['sample_' + c for c in sample_to_main])
     headers.extend(['run_' + c for c in run_to_main])
     headers.extend(['inst_' + c for c in instrument_to_main])
-    for rep in ['sample','run','inst']:
+    for rep in ['run','inst']:
         headers = [h.replace(f'{rep}_{rep}_', f'{rep}_') for h in headers]
     MS_rows = []
     trace_rows = []
@@ -105,29 +100,25 @@ def parse_json_files():
             if bk in dic:
                 new_row.append(dic[bk])
             else:
-                new_row.append('')
+                new_row.append('NA')
         new_row.append(normalize_key(dic['file_name']))
-        for bk in sample_to_main:
-            if bk in dic['sample']:
-                new_row.append(dic['sample'][bk])
-            else:
-                new_row.append('')
         for bk in run_to_main:
             if bk in dic['run']:
                 new_row.append(dic['run'][bk])
             else:
-                new_row.append('')
+                new_row.append('NA')
         for bk in instrument_to_main:
             if bk in dic['instrument']:
                 new_row.append(dic['instrument'][bk])
             else:
-                new_row.append('')
+                new_row.append('NA')
         trace_row = [ internal_run_ID ]
         if trace_keys is None:
             trace_keys = sorted(list(dic['traces']))
         for tk in trace_keys:
             if tk == 'internal_run_id': continue
             if tk not in dic['traces']:
+                print(f'{file} {tk} not in dic["traces"]')
                 trace_row.append('placeholder')
             else:
                 trace_row.append(dic['traces'][tk])

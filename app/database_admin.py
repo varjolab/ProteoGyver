@@ -164,12 +164,6 @@ def main():
     conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
 
     last_external_update_date = last_update(conn, 'external', api_update_interval, time_format)
-    print('\n'.join([
-        f'last snapshot: {last_update(conn, 'snapshot', snapshot_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=snapshot_interval))}',
-        f'last external: {last_external_update_date} since: {(datetime.now() - relativedelta(seconds=api_update_interval))}',
-        f'last main db: {last_update(conn, "main_db_update", update_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=update_interval))}',
-        f'last clean: {last_update(conn, 'clean', clean_interval, time_format)} since: {(datetime.now() - relativedelta(seconds=clean_interval))}',
-    ]))
     do_snapshot = need_full_update or (last_update(conn, 'snapshot', snapshot_interval, time_format) < (datetime.now() - relativedelta(seconds=snapshot_interval)))
     do_external_update = need_full_update or (last_update(conn, 'external', api_update_interval, time_format) < (datetime.now() - relativedelta(seconds=api_update_interval)))
     do_main_db_update = need_full_update or (last_update(conn, 'main_db_update', update_interval, time_format) < (datetime.now() - relativedelta(seconds=update_interval)))
