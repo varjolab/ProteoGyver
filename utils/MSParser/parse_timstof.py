@@ -65,26 +65,15 @@ def parse_file(root, run_name, run_id_regex):
         for _, row in pd.read_sql_query('SELECT * FROM GlobalMetadata', conn).iterrows():
             metadata[row['Key']] = row['Value']
 
-    sample_name = 'NONAMEFOUND'
     if os.path.isdir(timsfile):
         if 'SampleInfo.xml' in os.listdir(timsfile):
             try:
                 with open(os.path.join(timsfile,'SampleInfo.xml'),encoding='utf-16') as fil:
                     sampleinfo = fil.read()
                     sampleinfo = xmltodict.parse(sampleinfo)
-                    sample_name = sampleinfo['SampleTable']['Sample']['@SampleID']
             except:
-                sampleinfo = {'no sampleinfo': 'no sampleinfo'}
-    sample_id_number = 'NoID'
-    if run_name.startswith(sample_name):
-        # Some early cases where the ID number is at the very end of the folder name
-        sample_id_number = run_name.rsplit('_',maxsplit=1)[-1].replace('.d','')
-    else:
-        match = re.match(run_id_regex, run_name)
-        if match:
-            num_id, tomppa = match.groups()
-            result = num_id + (tomppa if tomppa else '')
-            sample_id_number = result
+                sampleinfo = {'SampleTable': {}, 'Sample': {}, 'No_sampletable': 'no sampletable'}
+
     fdic = {'file_name': run_name, 'file_path': timsfile}
     fdic['file_size'] = get_directory_size(timsfile)
     fdic['files'] = {}
@@ -122,16 +111,36 @@ def parse_file(root, run_name, run_id_regex):
         'number_of_scans': int(df_ms['Id'].max()),
         'method_name': metadata['MethodName'],
     }
-    for skey in ['@MS_Method','@Method']:
-        if skey in sampleinfo['SampleTable']['Sample']:
-            fdic['run']['ms_method'] = sampleinfo['SampleTable']['Sample']['@MS_Method'].rsplit('\\')[-1]
-            fdic['run']['full_method'] = sampleinfo['SampleTable']['Sample']['@Method']
-            fdic['run']['full_ms_method'] = sampleinfo['SampleTable']['Sample']['@MS_Method']
-
+    
+    infodict = sampleinfo['SampleTable']['Sample']
+    if '@MS_Method' in infodict:
+        fdic['run']['ms_method'] = infodict['@MS_Method'].rsplit('\\')[-1]
+        fdic['run']['full_ms_method'] = infodict['@MS_Method']
+    if '@Method' in infodict:
+        fdic['run']['full_method'] = infodict['@Method']
+    if '@SampleID' in infodict:
+        fdic['sample'] = {
+            'sample_id':  infodict['@SampleID'],
+            'sample_name': infodict['@SampleID'],
+        }
+        fdic['sample_id'] = fdic['sample']['sample_id']
+    else:
+        fdic['sample'] = {}
+    if '@DataPath' in infodict:
+        fdic['sample']['file_name'] = infodict['@DataPath'].rsplit('\\',maxsplit=1)[-1]
+    if '@Position' in infodict:
+        fdic['sample']['vial'] = infodict['@Position']
+    if '@Volume' in infodict:
+        fdic['sample']['injection_volume'] = infodict['@Volume']
+    if '@Line' in infodict:
+        fdic['sample']['row_number'] = infodict['@Line']
+    if '@Dilution' in infodict:
+        fdic['sample']['dilution_factor'] = infodict['@Dilution']
+    if '@DataPath' in infodict:
+        fdic['sample']['original_file_path'] = infodict['@DataPath']
     
     fdic['metadata'] = metadata
     fdic['data_type'] = datatype
-    fdic['sample_id'] = sample_id_number
     fdic['parsed_date'] = datetime.now().strftime('%Y.%m.%d')
     fdic['traces'] = get_traces(df_MS1, df_MS2)
     fdic['smooth_sigma'] = {
@@ -140,14 +149,4 @@ def parse_file(root, run_name, run_id_regex):
         'MSn': 2
     }
 
-    fdic['sample'] = {
-        'file_name': sampleinfo['SampleTable']['Sample']['@DataPath'].rsplit('\\',maxsplit=1)[-1],
-        'sample_name': sampleinfo['SampleTable']['Sample']['@SampleID'],
-        'sample_id': sampleinfo['SampleTable']['Sample']['@SampleID'],
-        'vial': sampleinfo['SampleTable']['Sample']['@Position'],
-        'injection_volume': sampleinfo['SampleTable']['Sample']['@Volume'],
-        'row_number': sampleinfo['SampleTable']['Sample']['@Line'],
-        'dilution_factor': sampleinfo['SampleTable']['Sample']['@Dilution'],
-        'original_file_path': sampleinfo['SampleTable']['Sample']['@DataPath']
-    }
     return fdic

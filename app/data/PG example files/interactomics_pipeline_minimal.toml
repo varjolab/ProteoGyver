@@ -1,0 +1,4 @@
+[general]
+workflow = "interactomics" 
+data = "Interactomics data file.tsv"
+"sample table" = "Interactomics sample table.tsv"

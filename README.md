@@ -48,9 +48,20 @@ Example files are downloadable from the sidebar of the main interface. These inc
     - Generic matrix format (one row = one protein, one column = one sample)
   - Proteomics:
     - FragPipe (combined_prot.tsv)
-    - DIA-NN (pg_matrix.tsv, report.tsv (discouraged due to size))
+    - DIA-NN (pg_matrix.tsv)
     - Generic matrix format (one row = one protein, one column = one sample)
-### Pipeline mode
+
+### PTM workflow
+Currently the PTM workflow is not ready for deployment. However, PTMs can be analyzed in a rudimentary way with the proteomics workflow. In this case, the input data table should be a generic matrix, where the first column is the ID column specifying the protein and modification site, and all other columns represent intensity values of e.g. the identified peptide or site. In this case, the first column could contain values such as Protein12-siteY32, or similar. As long as each entry is unique, PG will ingest the file happily. The workflow will then produce the same plots, e.g. counts, intensity distributions, missing values, volcano plots etc. 
+
+Alternatively, you can use e.g. the [DiaNN R package](https://github.com/vdemichev/diann-rpackage) to recalculate MaxLFQ on protein level based only on modified (e.g. phosphorylated) precursors. And then run the usual proteomics workflow. See the example R file in [utils/scripts/diann-phospho-requant.R](utils/scripts/diann-phospho-requant.R). Since the DiaNN R package is a bit out of date, you will first need to convert the .parquet report to .tsv. This can be done e.g. via python:
+> import pandas as pd
+> df  = pd.read_parquet('report.parquet')
+> df.to_csv('report.tsv',sep='\t')
+as long as pandas, pyarrow, and fastparquet are installed via e.g. pip. With large reports, you will need to read/write in chunks.
+The report.tsv is then ready for the script, and the resulting matrix ready for PG. Do keep in mind that R may change the column headers if special characters or spaces are present.
+
+
 The pipeline module features an ingest directory (see parameters.toml [Pipeline module.Input watch directory], by default data/Server_input/Pipeline_input ). While the Proteogyver container is running, a watcher script will detect newly created folders in this directory, and launch the analysis in the background for each.
 
 Each input folder should contain:
@@ -67,7 +78,45 @@ To trigger reanalysis, the input folder must not contain either the error file, 
 
 #### Pipeline input toml
 
-# TODO fill here
+The pipeline module is set to watch the /proteogyver/data/Server_input/Pipeline_input directory in the **container** by default. This should be mapped to a host path, where pipeline input files can be placed either automatically or manually. In the [docker compose](dockerfiles/proteogyver/docker-compose.yaml) the host directory /data/PG/input is mounted at /proteogyver/data/Server_input, so the pipeline module will watch /data/PG/input/Pipeline_input for new directories. 
+
+Each new directory represents a dataset to analyze. Each directory should contain three, optionally four, files:
+- data file
+- sample table
+- pipeline input toml
+- (proteomics comparisons)
+
+Examples of these are available in the [example files](app/data/PG%20example%20files/), or in the download zip that is obtained from the download example files button in the web GUI.
+
+Full available parameters can be seen in the [default files](app/data/Pipeline%20module%20default%20tomls/), which are split into common.toml, interactomics.toml, and proteomics.toml. The common has parameters available for all workflows, while the workflow specific ones deal with parameters for the workflows.
+
+The toml file contains three sections (file to see for full list of parameters):
+1) pipeline (common.toml)
+2) general (common.toml)
+3) workflow-specific (proteomics.toml/interactomics.toml)
+
+The **only** section that is **absolutely mandatory** is this:
+> [general]
+> workflow = "interactomics" # OR "proteomics"
+> data = "path/to/data/table.tsv"
+> "sample table" = "path/to/sample/table.tsv"
+
+The parameter file **needs** to be named something.toml. Preferably something_pipeline.toml.
+Note that the data and sample tables do not need to be in the same directory, but the path specified needs to be relative to the .toml file, and they need to be accessible for the docker container. For example, it might be clearer to put the tables into "data" directory in the input directory.
+
+At the end, this is an example of the file structure you should have on the HOST for PG to initiate the pipeline successfully:
+/data/PG/input/Pipeline_input/AnalysisDir/pipeline.toml
+/data/PG/input/Pipeline_input/AnalysisDir/data.tsv
+/data/PG/input/Pipeline_input/AnalysisDir/sample table.tsv
+
+and the pipeline.toml should contain:
+> [general]
+> workflow = "interactomics" 
+> data = "data.tsv"
+> "sample table" = "sample table.tsv"
+
+#### Parameters not in the input toml
+Since the input .toml can be very minimal, for all parameters that are NOT in it, PG will use values from the [default files](app/data/Pipeline%20module%20default%20tomls/). For this reason, it is advisable to always specify things like additional controls, control sample groups, and crapome sets for interactomics, and control groups for proteomics. 
 
 ## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs
@@ -144,7 +193,7 @@ It will parse the rawfile, and produce a .json file, which is understood by MS_r
 TODO: dockerhub/zenodo here.
 
 
-### Running the docker images
+#### Running the docker images
 
 Next modify docker-compose NOW to suit your local system if needed.
 
@@ -165,7 +214,7 @@ docker build -t pg_updater:1.5 -f dockerfiles/dockerfile_updater .
 cd dockerfiles/pg_updater && docker compose up
 ```
 
-#### Changing parameters
+##### Changing parameters
 In order to keep the parameters.toml in sync with PG and the updater container, it is copied into path specified in the docker-compose.yaml. The file needs to be edited in that location ONLY, in order for the updated parameters to be applied to existing docker container, and the updater (e.g. different database name, or modified update intervals). When pg_updater or proteogyver is run the first time, it will copy the default parameters.toml into config folder.
 
 #### Run the container
@@ -287,5 +336,5 @@ Other tools can access the database. Writes to the database should not require a
 
 ## Citation
 
-If you use Proteogyver or a part of it in your research, please cite:
+If you use ProteoGyver, a part of it, or tools based on it, please cite:
 [Add citation information here]

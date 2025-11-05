@@ -1,0 +1,4 @@
+[general]
+workflow = "proteomics" 
+data = "Proteomics data file.tsv"
+"sample table" = "Proteomics sample table.tsv"

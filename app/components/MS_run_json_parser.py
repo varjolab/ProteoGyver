@@ -60,12 +60,16 @@ def parse_json_files():
         'file_name',
         'file_size',
         'parsed_date',
+        'sample_id'
     ]
     instrument_to_main = [
         'inst_model',
         'inst_serial_no',
         'inst_name',
         #'extras'
+    ]
+    sample_to_main = [
+        'sample_name'
     ]
     run_to_main = [
         #'processing_method',
@@ -78,6 +82,7 @@ def parse_json_files():
     ]
     headers = [ 'internal_run_id' ] + base_keys + [ 'file_name_clean' ]
     headers.extend(['run_' + c for c in run_to_main])
+    headers.extend([c for c in sample_to_main])
     headers.extend(['inst_' + c for c in instrument_to_main])
     for rep in ['run','inst']:
         headers = [h.replace(f'{rep}_{rep}_', f'{rep}_') for h in headers]
@@ -105,6 +110,11 @@ def parse_json_files():
         for bk in run_to_main:
             if bk in dic['run']:
                 new_row.append(dic['run'][bk])
+            else:
+                new_row.append('NA')
+        for bk in sample_to_main:
+            if bk in dic['sample']:
+                new_row.append(dic['sample'][bk])
             else:
                 new_row.append('NA')
         for bk in instrument_to_main:

@@ -11,10 +11,10 @@ services:
       RESOURCE_LOG_INTERVAL_SECONDS: 5
       RESOURCE_LOG_KEEP_DAYS: 30
     volumes:
-      - /data/PG_containers/PG_revd/cache:/proteogyver/cache
-      - /data/PG_containers/PG_revd/db:/proteogyver/data/db
-      - /data/PG_containers/PG_revd/input:/proteogyver/data/Server_input
-      - /data/PG_containers/PG_revd/output:/proteogyver/data/Server_output
+      - /data/PG/cache:/proteogyver/cache
+      - /data/PG/db:/proteogyver/data/db
+      - /data/PG/input:/proteogyver/data/Server_input
+      - /data/PG/output:/proteogyver/data/Server_output
       # This is required for the updater to share one parameter file with the server.
-      - /data/PG_containers/PG_revd/config:/proteogyver/config
+      - /data/PG_revd/config:/proteogyver/config
     restart: unless-stopped

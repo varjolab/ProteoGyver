@@ -1,0 +1,21 @@
+[general]
+workflow = "proteomics" 
+data = "Proteomics data file.tsv"
+"sample table" = "Proteomics sample table.tsv"
+
+force_supervenn = true 
+
+remove_common_contaminants = true 
+rename_replicates = false 
+unique_only = false
+
+[proteomics]
+
+na_filter_percent = 70 
+na_filter_type = "sample-group"  
+normalization = "no_normalization"  
+imputation = "QRILC"  
+
+control_group = "SampleGroup1" 
+fc_threshold = 1
+p_threshold = 0.05 

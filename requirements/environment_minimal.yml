@@ -63,7 +63,6 @@ dependencies:
   - jupyter_client
 
   - pip:
-      - alphatims==1.0.8
       - dash-uploader==0.6.1
       - kaleido==0.2.1
       - nbib==0.3.2

@@ -125,17 +125,13 @@ CREATE TABLE ms_runs (
     sample_id TEXT,
     file_name_clean TEXT,
     sample_name TEXT,
-    run_processing_method TEXT,
-    run_method_name TEXT,
-    run_ms_method TEXT,
     run_date TEXT,
     run_start_time REAL,
     run_end_time REAL,
     run_last_scan_number INTEGER,
     inst_model TEXT,
     inst_serial_no TEXT,
-    inst_name TEXT,
-    inst_extras REAL
+    inst_name TEXT
 );
 
 CREATE TABLE ms_plots (

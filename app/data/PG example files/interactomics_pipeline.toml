@@ -1,0 +1,19 @@
+[general]
+workflow = "interactomics" 
+data = "Interactomics data files.tsv"
+"sample table" = "Interactomics sample table.tsv"
+
+force_supervenn = true 
+
+remove_common_contaminants = true 
+rename_replicates = false 
+unique_only = false
+
+[interactomics]
+
+additional_controls = ["VL GFP MAC3 10min AP", "VL GFP MAC2 18h AP"]
+crapome_sets = ["Nesvilab"]
+saint_bfdr_threshold = 0.05  
+crapome_percentage_threshold = 20  
+crapome_fc_threshold = 2  
+chosen_enrichments = ["Panther GOBP slim"]

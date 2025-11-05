@@ -255,6 +255,24 @@ def _clear_analyzing(dir_path: Path) -> None:
     except Exception:
         pass
 
+def _safe_write_end_of_processing(dir_path: Path, status: str) -> None:
+    """Write the end of processing status to a file.
+
+    :param dir_path: Directory to write to.
+    :param status: Status of the processing.
+    :returns: None.
+    """
+    try:
+        (dir_path / f'pipeline.{status}.txt').write_text(datetime.now().isoformat())
+    except Exception:
+        # Take a small break and try again in a different way - maybe something went wrong with the previous try or the file system.
+        time.sleep(2)
+        try:
+            with open(dir_path / f'pipeline.{status}.txt','w',encoding='utf-8') as fh:
+                fh.write(f'{status} at {datetime.now().isoformat()}')
+        except Exception:
+            # Give up. Something is seriously wrong.
+            pass
 
 def _safe_write_error(dir_path: Path, filename: str, message: str) -> None:
     """Append an error message to a file, with timestamp and fallback path.
@@ -445,6 +463,7 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
             error_message, result = _launch_pipeline(entry, toml_file)
             if error_message:
                 _safe_write_error(entry, ERRORS_FILENAME, error_message)
+                _safe_write_end_of_processing(entry, 'failure')
                 _debug(entry, "Execution error written to ERRORS.txt")
             else:
                 # Persist a lightweight run summary next to input folder
@@ -454,6 +473,9 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
                     # Write into PG output directory for easier discovery
                     _write_run_summary(output_dir, result)
                     _debug(entry, "run_summary.json written")
+                    _safe_write_end_of_processing(entry, 'success')
+                else:
+                    _safe_write_end_of_processing(entry, 'failure'
         finally:
             _clear_analyzing(entry)
             _debug(entry, "Cleared analyzing lock")
