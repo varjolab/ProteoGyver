@@ -1,7 +1,7 @@
 services:
   pg_revtest:
     image: pg:1.3d
-    container_name: pg-revd
+    container_name: pg13d
     ports:
       - "8050:8050"
     environment:
