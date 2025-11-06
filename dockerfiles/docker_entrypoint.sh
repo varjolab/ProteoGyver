@@ -37,6 +37,9 @@ killall celery || true
 echo "[INIT] Running embedded page updater..."
 python embedded_page_updater.py
 CPU_COUNT=$(python /proteogyver/resources/get_cpu_count.py /proteogyver/config/parameters.toml)
+# ---- Gunicorn (do the arithmetic properly)
+WORKERS=$(( CPU_COUNT * 2 + 1 ))
+THREADS=$(( CPU_COUNT ))  
 echo "[INIT] Starting Redis server..."
 redis-server --daemonize yes
 sleep 5  # Give Redis time to start
@@ -52,5 +55,13 @@ celery -A app.celery_app beat --loglevel=DEBUG --schedule "$SCHEDULE_FILE" & # F
 sleep 5  # Give Celery time to start
 
 # --- Start Dash app with Gunicorn ---
-echo "[INIT] Starting Dash app..."
-exec gunicorn -b 0.0.0.0:8050 app:server --log-level debug --timeout 1200 --workers $CPU_COUNT --threads $CPU_COUNT
+echo "[INIT] Starting Dash app... workers=${WORKERS} threads=${THREADS}"
+
+exec gunicorn app:server \
+  --bind 0.0.0.0:8050 \
+  --workers "${WORKERS}" \
+  --threads "${THREADS}" \
+  --timeout 1200 \
+  --graceful-timeout 30 \
+  --log-level debug \
+  --max-requests 2000 --max-requests-jitter 200

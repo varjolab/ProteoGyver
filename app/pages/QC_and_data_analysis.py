@@ -1577,12 +1577,17 @@ def prepare_for_download(
     :returns: Tuple of (export directory path, temporary loading indicators Div).
     """
     timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+
+    with open('debug/download','a') as fil:
+        fil.write(f'prepare_for_download {timestamp}\n')
     export_dir: str = os.path.join(*parameters['Data paths']['Cache dir'],  
                                  main_data['other']['session name'], 
                                  f'{timestamp} Proteogyver output')
     if os.path.isdir(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
+    with open('debug/download','a') as fil:
+        fil.write(f'prepare_for_download done {timestamp}\n')
     return export_dir, infra.temporary_download_button_loading_divs()
 
 @callback(
@@ -1600,10 +1605,16 @@ def save_input_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple[st
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_input_stores {timestamp}\n')
     logger.info(f'received download request save_input_stores at {start}')
     infra.write_README(export_dir, os.path.join('data','output_guide.md'))
     infra.save_data_stores(stores, export_dir)
     logger.info(f'done with download request save_input_stores, took {datetime.now()-start}')
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_input_stores done {timestamp}\n')
     return 'save_input_stores done', ''
 
 @callback(
@@ -1621,9 +1632,15 @@ def save_workflow_stores(export_dir: str, stores: List[Dict[str, Any]]) -> Tuple
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_workflow_stores {timestamp}\n')
     logger.info(f'received download request save_workflow_stores at {start}')
     infra.save_data_stores(stores, export_dir)
     logger.info(f'done with download request save_workflow_stores, took {datetime.now()-start}')
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_workflow_stores done {timestamp}\n')
     return 'save_workflow_stores done', ''
 
 @callback(
@@ -1653,6 +1670,9 @@ def save_qc_figures(
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_qc_figures {timestamp}\n')
     logger.info(f'received download request save_qc_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'qc-analysis-area')], 
@@ -1665,6 +1685,9 @@ def save_qc_figures(
         with open(os.path.join(export_dir, 'save_qc_figures_errors'),'w') as fil:
             fil.write(f'{e}')
     logger.info(f'done with download request save_qc_figures, took {datetime.now()-start}')
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_qc_figures done {timestamp}\n')
     return 'save_qc_figures done', ''
 
 @callback(
@@ -1684,9 +1707,15 @@ def save_input_information(export_dir: str, input_divs: List[html.Div], version_
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_input_information {timestamp}\n')
     logger.info(f'received download request save_input_information at {start}')
     infra.save_input_information(input_divs, version_data_store, export_dir)
     logger.info(f'done with download request save_input_information, took {datetime.now()-start}')
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_input_information done {timestamp}\n')
     return 'save_input_information done',''
 
 @callback(
@@ -1713,6 +1742,9 @@ def save_interactomics_figures(
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_interactomics_figures {timestamp}\n')
     logger.info(f'received download request save_interactomics_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-results-area')], export_dir,
@@ -1724,6 +1756,9 @@ def save_interactomics_figures(
         with open(os.path.join(export_dir, "save_interactomics_figures_errors.txt"), "w") as fil:
             fil.write(f"save_interactomics_figures failed: {e}\n{tb}")
     logger.info(f'done with download request save_interactomics_figures, took {datetime.now()-start}')
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_interactomics_figures done {timestamp}\n')
     return 'save_interactomics_figures done', ''
 
 @callback(
@@ -1750,6 +1785,9 @@ def save_interactomics_post_saint_figures(
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_interactomics_post_saint_figures {timestamp}\n')
     logger.info(f'received download request save_interactomics_post_saint_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'interactomics-analysis-post-saint-area')], 
@@ -1759,6 +1797,9 @@ def save_interactomics_post_saint_figures(
         with open(os.path.join(export_dir, 'save_interactomics_post_saint_figures_errors'),'w') as fil:
             fil.write(f'{e}')
     logger.info(f'done with download request save_interactomics_post_saint_figures, took {datetime.now()-start}')
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_interactomics_post_saint_figures done {timestamp}\n')
     return 'save_interactomics_post_saint_figures done', ''
 
 @callback(
@@ -1785,6 +1826,9 @@ def save_proteomics_figures(
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_proteomics_figures {timestamp}\n')
     logger.info(f'received download request save_proteomics_figures at {start}')
     try:
         infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'proteomics-analysis-results-area')], 
@@ -1794,6 +1838,9 @@ def save_proteomics_figures(
         with open(os.path.join(export_dir, 'save_proteomics_figures_errors'),'w') as fil:
             fil.write(f'{e}')
     logger.info(f'done with download request save_proteomics_figures, took {datetime.now()-start}')
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'save_proteomics_figures done {timestamp}\n')
     return 'save_proteomics_figures done', ''
     
 @callback(
@@ -1807,7 +1854,6 @@ def save_proteomics_figures(
     Input('download_temp5', 'children'),
     Input('download_temp6', 'children'),
     Input('download_temp7', 'children'),
-    Input('download_temp8', 'children'),
     prevent_initial_call=True
 )
 def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], Tuple[Any, Any]]:
@@ -1818,16 +1864,25 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
     :returns: Tuple of (send_bytes payload, updated button text) or no_update while incomplete.
     """
     # Verify all export steps are complete
-    for a in args:
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'send_data started {timestamp}\n')
+    
+    for i, a in enumerate(args):
         if not 'done' in a:
+            with open('debug/download','a') as fil:
+                fil.write(f'send_data not done {i} {a} {timestamp}\n')
             return no_update, no_update
             
     start = datetime.now()    
     timestamp = start.strftime("%Y-%m-%d %H-%M")
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'send_data continuing {timestamp}\n')
+        fil.write(f'export_dir: {export_dir}\n')
     zip_filename = f"{timestamp} ProteoGyver output.zip"
     logger.info(f'Started packing data at {start}')
     
-    print(export_dir)
     try:
         # Create ZIP archive
         with zipfile.ZipFile(os.path.join(export_dir, zip_filename), 'w') as zipf:
@@ -1851,6 +1906,9 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
         logger.warning(f"Error creating download package: {str(e)}")
         return no_update, no_update
 
+    with open('debug/download','a') as fil:
+        timestamp: str = datetime.now().strftime("%Y-%m-%d %H-%M")
+        fil.write(f'send_data done {timestamp}\n')
     return dcc.send_bytes(zip_data, zip_filename), 'Download all data'
 ##################################
 ##    End of export section     ##

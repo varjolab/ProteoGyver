@@ -453,6 +453,12 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
             elif header['type'].lower() == 'h5':  # Only used in enrichment plots and MS-microscopy plots
                 graph: dict = headers_and_figures[i+1]
                 legend: dict = headers_and_figures[i+2]
+                if not 'figure' in graph['props']:
+                    with open('debug/ERRORED','a') as fil:
+                        fil.write(f'{graph}\n')
+                        fil.write(f'{legend}\n')
+                        fil.write('==============================================\n')
+                    continue
                 figure: dict = graph['props']['figure']
                 figure_html: str = pio.to_html(
                     figure, config=graph['props']['config'])
@@ -633,7 +639,7 @@ def temporary_download_divs():
     """
     return html.Div(
         id='download-temporary-things',
-        children=[html.Div(id=f'download_temp{i}',children='') for i in range(1,9)]+ [html.Div(id='download-temp-dir-ready',children='')]
+        children=[html.Div(id=f'download_temp{i}',children='') for i in range(1,8)]+ [html.Div(id='download-temp-dir-ready',children='')]
     )
 
 def temporary_download_button_loading_divs():
