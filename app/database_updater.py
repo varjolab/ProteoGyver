@@ -280,12 +280,13 @@ def get_dataframe_differences(df1: pd.DataFrame, df2: pd.DataFrame, ignore_colum
 
     return list(new_or_modified), missing_rows
 
-def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
+def update_uniprot(conn, parameters, timestamp, versions: list, organisms: set|None = None):
     """Download and stage UniProt data, writing TSV updates if differences found.
 
     :param conn: SQLite database connection.
     :param parameters: Updater parameters (paths, ignore diffs, deletion policy).
     :param timestamp: Current update timestamp string.
+    :param versions: List of current versions of the UniProt database.
     :param organisms: Optional set of organism IDs to include.
     :returns: Set of UniProt IDs present in the fetched dataset.
     """
@@ -300,7 +301,7 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
         'Length': 'length',
         'Sequence': 'sequence',
     }
-    uniprot_df = uniprot.download_uniprot_for_database(organisms=organisms)
+    uniprot_df, new_versions = uniprot.download_uniprot_for_database(versions, organisms=organisms)
     #uniprot_df.to_csv('uniprot_df_full.tsv',sep='\t')
     #uniprot_df = pd.read_csv('uniprot_df_full.tsv', sep='\t', index_col=0)
     uniprot_df.index.name = 'uniprot_id'
@@ -357,7 +358,7 @@ def update_uniprot(conn, parameters, timestamp, organisms: set|None = None):
             os.makedirs(odir)
         modfile = os.path.join(odir, f'{timestamp}_proteins.tsv')
         uniprot_df.to_csv(modfile.replace(':','-'), sep='\t')
-    return uniprot_id_set
+    return uniprot_id_set, new_versions
 
 def merge_multiple_string_dataframes(dfs: list[pd.DataFrame]) -> pd.DataFrame:
     """Merge DataFrames with semicolon-separated string fields by union of values.
@@ -555,8 +556,56 @@ def handle_merg_chunk(existing:pd.DataFrame, organisms: set|None, timestamp: str
         handle_new(new_interactions, odir, timestamp, L)
     if len(check_for_mods) > 0:
         handle_mods(check_for_mods, existing, timestamp, L, parameters, odir)
-    
-def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date: datetime|None = None, ncpu: int = 1) -> None:
+
+def update_version_table(conn, dataset, timestamp, new_versions) -> None:
+    """Update the version table with the new versions.
+    """
+    cursor = conn.cursor()
+    # Ensure the table exists
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS data_versions (
+            dataset TEXT,
+            version TEXT,
+            last_update_check TEXT
+        )
+        """
+    )
+
+    if len(new_versions) > 0:
+        new_ver_df = pd.DataFrame(
+            data = [[dataset, v, timestamp] for v in new_versions],
+            columns = ['dataset', 'version', 'last_update_check']
+        )
+        if '::' in new_versions[0]:
+            # Fetch existing entries for this dataset into a DataFrame
+            existing_df = pd.read_sql(
+                "SELECT dataset, version FROM data_versions WHERE dataset = ?",
+                con=conn,
+                params=(dataset,),
+            )
+
+            rows_to_drop = []
+            incoming_organisms = {v.split('::')[0] for v in new_versions}
+            for index, row in existing_df.iterrows():
+                if row['dataset'].split('::')[0] in incoming_organisms:
+                    rows_to_drop.append(index)
+            if len(rows_to_drop) > 0:
+                existing_df.drop(index=rows_to_drop, inplace=True)
+            df_new = pd.concat(
+                [existing_df, new_ver_df]
+            )
+        else:
+            df_new = new_ver_df
+        # Write the new rows
+        if len(df_new) > 0:
+            cursor.execute("DELETE FROM data_versions WHERE dataset = ?", (dataset,))
+            df_new.to_sql('data_versions', conn, if_exists='append', index=False)
+
+    cursor.close()
+    conn.commit()
+
+def update_knowns(conn, parameters, timestamp, uniprots, organisms, versions: dict[str, list[str]|str], last_update_date: datetime|None = None, ncpu: int = 1) -> list[tuple[str, str]]:
     """Update known interaction TSVs in parallel by merging external sources.
 
     :param conn: SQLite connection for reading existing interactions.
@@ -564,12 +613,13 @@ def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_
     :param timestamp: Current update timestamp string.
     :param uniprots: Set of UniProt IDs to filter by.
     :param organisms: Optional set of organism IDs to include.
+    :param versions: Dictionary of versions for each external source.
     :param last_update_date: Cutoff datetime; ignore older remote entries.
     :param ncpu: Number of worker processes.
-    :returns: None.
+    :returns: List of new versions for each external source.
     """
-    biogrid.update(uniprots_to_get = uniprots, organisms=organisms)
-    intact.update(uniprots_to_get = uniprots, organisms=organisms)
+    biogrid_version = biogrid.update(version = versions['biogrid'], uniprots_to_get = uniprots, organisms=organisms)
+    intact_version = intact.update(version = versions['intact'], uniprots_to_get = uniprots, organisms=organisms)
     get_chunks = sorted(list(set(intact.get_available()) | set(biogrid.get_available())))
     num_cpus = ncpu
     odir = os.path.join(*parameters['Update files']['known_interactions'])
@@ -590,8 +640,9 @@ def update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_
             futures.append(executor.submit(handle_merg_chunk, existing, organisms, timestamp, L, last_update_date, odir, parameters))
         for future in as_completed(futures):
             future.result()
+    return [('biogrid', biogrid_version), ('intact', intact_version)]
 
-def update_external_data(conn, parameters, timestamp, organisms: set|None = None, last_update_date: datetime|None = None, ncpu: int = 1):
+def update_external_data(conn, parameters, timestamp, organisms: set|None = None, last_update_date: datetime|None = None, versions: dict|None = None, ncpu: int = 1):
     """Update external data tables (UniProt and known interactions).
 
     :param conn: SQLite database connection.
@@ -603,12 +654,17 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
     :returns: None.
     """ 
     print('Updating uniprot')
-    uniprots = update_uniprot(conn, parameters, timestamp, organisms)
+    if versions is None:
+        versions = { 'uniprot': ['no version'], 'biogrid': 'no version', 'intact': 'no version' }
+    uniprots, new_versions = update_uniprot(conn, parameters, timestamp, versions['uniprot'], organisms)
     print('Updating known interactions')
-    update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date, ncpu)
+    known_versions = update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date, ncpu)
+    update_version_table(conn, 'uniprot', timestamp, new_versions)
+    for dataset, version in known_versions:
+        update_version_table(conn, dataset, timestamp, version)
 
 def update_log_table(conn, inmod_names, inmod_vals, timestamp, uptype: str) -> None:
-    """Record database update statistics in a log table.
+    """Record database update info in a log table.
 
     :param conn: SQLite database connection.
     :param inmod_names: Names like 'table action' (e.g., 'proteins insertions').

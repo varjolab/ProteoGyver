@@ -88,6 +88,14 @@ def create_sqlite_from_schema(schema_file: str | Path,
 
     return db_path.resolve()
 
+def get_external_versions(conn: sqlite3.Connection, externals: list[str]) -> dict:
+    """Get the versions of the external databases.
+    """
+    versions = { }
+    for e in externals:
+        versions[e] = db_functions.get_last_update(conn, e)
+    return versions
+
 def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_format: str) -> datetime:
     """Return the last update time for a given update type or a default.
 
@@ -186,7 +194,8 @@ def main():
         database_updater.update_log_table(conn, ['snapshot snapshot'], [1], timestamp, 'snapshot')
     if force_full_update or do_external_update:
         print('Updating external data')
-        database_updater.update_external_data(conn, parameters, timestamp, organisms, last_external_update_date, ncpu)
+        versions = get_external_versions(conn, ['biogrid', 'intact', 'uniprot'])
+        database_updater.update_external_data(conn, parameters, timestamp, organisms, last_external_update_date, versions, ncpu)
         database_updater.update_log_table(conn, ['external update'], [1], timestamp, 'external')
     if force_full_update or do_main_db_update:
         print('Updating database')

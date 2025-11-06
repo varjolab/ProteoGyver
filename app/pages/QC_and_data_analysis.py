@@ -25,6 +25,7 @@ from components import parsing, qc_analysis, proteomics, interactomics, db_funct
 from components.figures.color_tools import get_assigned_colors, remove_unwanted_colors
 from components.figures import tic_graph
 from components.tools import utils
+from components.api_tools import biogrid, intact, uniprot
 import plotly.io as pio
 import logging
 from element_styles import CONTENT_STYLE
@@ -71,11 +72,14 @@ def clear_data_stores(begin_clicks: Optional[int]) -> tuple[str, Dict[str, Any]]
     :returns: Tuple of (empty string to clear notification, version dictionary).
     """
     version_dict = {
-        'Proteogyver version': __version__
+        'Proteogyver version': __version__,
     }
     for update_type, version in db_functions.get_database_versions(db_file).items():
-        version_dict[f'Database last {update_type} updated'] = version
-
+        version_dict[f'Database: {update_type}'] = version
+    conn = db_functions.create_connection(db_file, mode='ro')
+    for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
+        version_dict[dataset] = version
+    conn.close() # type: ignore
     #logger.info(
     #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
     return '', version_dict

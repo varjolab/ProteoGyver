@@ -417,12 +417,13 @@ def get_available() -> list[str]:
 
 
 #TODO: check uniprots in should_update bool check too, not just version. Also organisms should be checked too.
-def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
+def update(version: str, uniprots_to_get:set|None = None, organisms: set|None = None) -> str:
     """Update the local BioGRID cache if a newer release is available.
 
+    :param versions: List of current versions of the BioGRID database.
     :param uniprots_to_get: Optional set of UniProt accessions to retain.
     :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
-    :returns: None
+    :returns: New version string.
     """
     url = 'https://downloads.thebiogrid.org/BioGRID/Release-Archive'
     r = get(url).text.split('\n')
@@ -431,22 +432,12 @@ def update(uniprots_to_get:set|None = None, organisms: set|None = None) -> None:
     latest_zipname = f'{latest.replace(".org/",".org/Download/")}{latest.rsplit("/",maxsplit=2)[-2].replace("BIOGRID","BIOGRID-ALL")}.tab3.zip'
     uzip = latest_zipname.rsplit('/',maxsplit=1)[1]
     save_location:str = apitools.get_save_location('BioGRID')
-    current_file = apitools.get_newest_file(save_location)
-    if os.path.exists(os.path.join(save_location, current_file)):
-        should_update = uzip.rsplit('.',maxsplit=1)[0] != current_file
-    else:
-        should_update = True
-    if should_update:
+    if version != uzip.rsplit('.',maxsplit=1)[0]:
         print('Updating BioGRID')
         do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms, current_file)
-        
-def get_version_info() -> str:
-    """Return version info for the newest available BioGRID version.
-
-    :returns: Human-readable version string, e.g. ``Downloaded (YYYY-MM-DD)``.
-    """
-    nfile: str = apitools.get_newest_file(apitools.get_save_location('BioGRID'))
-    return f'Downloaded ({nfile.split("_")[0]})'
+        return uzip.rsplit('.',maxsplit=1)[0]
+    else:
+        return version
 
 def get_method_annotation() -> dict:
     """Return annotations for BioGRID interaction identification methods.
@@ -483,7 +474,6 @@ def methods_text() -> str:
     return '\n'.join([
         'BioGRID',
         f'Interactions were mapped with BioGRID (https://thebiogrid.org) {short}',
-        f'{get_version_info()}',
         pmid,
         long
     ])

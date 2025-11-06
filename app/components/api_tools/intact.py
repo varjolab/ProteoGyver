@@ -385,29 +385,30 @@ def do_update(save_file, uniprots_to_get: set|None, organisms: set|None) -> None
         download_intact_ftp(save_file)
     generate_pandas(save_file, save_file.replace('.zip','.tsv'),uniprots_to_get, organisms)
 
-def update(uniprots_to_get: set|None = None, organisms: set|None = None) -> None:
+def update(version:str, uniprots_to_get: set|None = None, organisms: set|None = None) -> str:
     """Update the local IntAct cache if a newer release is available.
 
+    :param version: Current version string.
     :param uniprots_to_get: Optional set of UniProt base accessions to retain.
     :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
-    :returns: None
+    :returns: New version string.
     """
     ftpurl: str = 'ftp.ebi.ac.uk'
     ftpdir: str = '/pub/databases/intact/current/'
     ftp: ftplib.FTP = ftplib.FTP(ftpurl)
     ftp.login()
     ftp.cwd(ftpdir)
-    latest = datetime.strptime(ftp.pwd().rsplit('/',maxsplit=1)[1], '%Y-%m-%d').date()
+    date_str = ftp.pwd().rsplit('/',maxsplit=1)[1]
     ftp.quit()
-    current_version: str = apitools.get_newest_file(apitools.get_save_location('IntAct'))   
-    should_update: bool = False
-    if os.path.exists(os.path.join(apitools.get_save_location('IntAct'), current_version)):
-        should_update = latest > apitools.parse_timestamp_from_str(current_version.split('_')[0])
-    else:
-        should_update = True
-    if should_update:
+    if version == 'no version':
+        version = '1970-01-01'
+
+    if datetime.strptime(date_str, '%Y-%m-%d').date() > apitools.parse_timestamp_from_str(version):
         print('Updating IntAct')
         do_update(os.path.join(apitools.get_save_location('IntAct'),f'{apitools.get_timestamp()}_intact.zip'), uniprots_to_get, organisms)
+        return date_str
+    else:
+        return version
 
 def read_file_chunks(filepath: str, organisms: set|None = None, subset_letter: str|None = None, since_date: datetime|None = None) -> pd.DataFrame:
     """Read a TSV shard in chunks and optionally filter by organism/date.
@@ -477,14 +478,6 @@ def get_available() -> list[str]:
     filepath: str = get_latest(name_only=True) # type: ignore
     return [f.split('.')[0] for f in os.listdir(filepath) if f.endswith('.tsv')]
 
-def get_version_info() -> str:
-    """Return version info for the newest available IntAct version.
-
-    :returns: Human-readable version string, e.g. ``Downloaded (YYYY-MM-DD)``.
-    """
-    nfile: str = apitools.get_newest_file(apitools.get_save_location('IntAct'))
-    return f'Downloaded ({nfile.split("_")[0]})'
-
 def methods_text() -> str:
     """Generate a plain-text description of the IntAct data used.
 
@@ -494,7 +487,6 @@ def methods_text() -> str:
     return '\n'.join([
         'IntAct',
         f'Interactions were mapped with IntAct (https://www.ebi.ac.uk/intact) {short}',
-        f'{get_version_info()}',
         pmid,
         long
     ])

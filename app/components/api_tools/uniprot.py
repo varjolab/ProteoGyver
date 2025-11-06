@@ -408,7 +408,17 @@ def __get_uniprot_next_link(headers) -> str|None:
             return match.group(1)
     return None
 
-def download_uniprot_for_database(organisms: set|None) -> pd.DataFrame:
+def download_uniprot_for_database(versions: list[str], organisms: set|None) -> tuple[pd.DataFrame, list[str]]:
+    """
+    Checks, whether an update for uniprot is available and downloads it if necessary for database use.
+
+    :param versions: List of current versions of the UniProt database.
+    :param organisms: Optional set of organism IDs to include.
+    :param progress: True, if progress should be printed.
+
+    :returns: Tuple of (DataFrame of UniProt data, List of new versions).
+    """
+    dfs = []
     db_fields = [
         "Entry",
         "Reviewed",
@@ -424,10 +434,21 @@ def download_uniprot_for_database(organisms: set|None) -> pd.DataFrame:
         organisms = {-1}
     else:
         organisms = {int(i) for i in organisms}
-    dfs = []
-    for organism_id in organisms:
-        dfs.append(download_uniprot_chunks(progress=True, organism=organism_id, fields = db_fields, reviewed_only=True))
-    return pd.concat(dfs)
+    org_versions = {}
+    for v in versions:
+        org, ver = v.split('::')
+        org_versions[org] = ver
+    ret_vers = []
+    for organism in organisms:
+        if organism in org_versions:
+            old_ver = org_versions[organism]
+        else:
+            old_ver = 'no version'
+        available, new_version = is_newer_available(old_ver, organism)
+        if available:
+            dfs.append(download_uniprot_chunks(progress=True, organism=organism, fields = db_fields, reviewed_only=True))
+        ret_vers.append(f'{organism}::{new_version}')
+    return pd.concat(dfs), ret_vers
 
 
 
@@ -632,7 +653,7 @@ def download_full_uniprot_for_organism(organism: int = None, # TODO: mark this a
         next_batch = ['Entry']
     return pd.concat(dfs_to_merge, axis=1)
 
-def update(organism = 9606,progress=False) -> None:
+def update(version: str, organism = 9606,progress=False) -> None:
     """
     Checks, whether an update for uniprot is available and downloads it if necessary.
 
@@ -640,7 +661,7 @@ def update(organism = 9606,progress=False) -> None:
     :param progress: True, if progress should be printed.
     """
     outdir: str = apitools.get_save_location('Uniprot')
-    if is_newer_available(apitools.get_newest_file(outdir, namefilter=str(organism))):
+    if is_newer_available(version, organism)[0]:
         today: str = apitools.get_timestamp()
         df: pd.DataFrame = download_full_uniprot_for_organism(organism=organism,progress=progress,overall_progress=progress)
         outfile: str = os.path.join(outdir, f'{today}_Uniprot_{organism}')
@@ -656,11 +677,11 @@ def update(organism = 9606,progress=False) -> None:
             json.dump(length_dict,fil)
 
 
-def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
+def is_newer_available(current_version: str, organism: int = 9606) -> tuple[bool, str]:
     """
     Checks whether newer uniprot version is available
 
-    :param newest_file: Path to the newest downloaded file
+    :param current_version: Current version of the uniprot database
     :param organism: which organism uniprot to check.
 
     :returns: True, if newer uniprot version is available.
@@ -669,32 +690,10 @@ def is_newer_available(newest_file: str, organism: int = 9606) -> bool:
         query=organism_id:{organism}&format=fasta"
     uniprot_response: requests.Response = requests.get(uniprot_url)
     newest_version:str = uniprot_response.headers['X-UniProt-Release'].replace('_','-')
-    vals: list =  newest_version.split('-')
-    newest_y: int = int(vals[0])
-    newest_m: int = int(vals[1])
-    vals =  newest_file.split('_',maxsplit=1)[0].split('-')
-    if len(vals) < 2:
-        vals = [-1,-1]
-    current_y: int = vals[0]
-    current_m: int = vals[1]
-    ret: bool = False
-    if current_y < newest_y:
-        ret = True
-    elif current_y == newest_y:
-        if current_m < newest_m:
-            ret = True
-    return ret
-
-def get_version_info(organism:int=9606) -> str:
-    """
-    Parses uniprot version from uniprot file
-
-    :param organism: which organism to check
-    
-    :returns: version information.
-    """
-    nfile: str = apitools.get_newest_file(apitools.get_save_location('Uniprot'), namefilter=str(organism))
-    return f'Downloaded ({nfile.split("_")[0]})'
+    if current_version != newest_version:
+        return (True, newest_version)
+    else:
+        return (False, current_version)
 
 def methods_text(organism=9606) -> tuple:
     """
@@ -708,7 +707,6 @@ def methods_text(organism=9606) -> tuple:
     short,long,pmid = apitools.get_pub_ref('uniprot')
     return '\n'.join([
         f'Protein annotations were mapped from UniProt (https://uniprot.org) {short}',
-        f'{get_version_info(organism)}',
         pmid,
         long
     ])
