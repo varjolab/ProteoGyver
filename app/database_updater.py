@@ -655,7 +655,12 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
     """ 
     print('Updating uniprot')
     if versions is None:
-        versions = { 'uniprot': ['no version'], 'biogrid': 'no version', 'intact': 'no version' }
+        versions = { }
+    if not 'uniprot' in versions:
+        versions['uniprot'] = ['no version']
+    for d in ['biogrid', 'intact']:
+        if not d in versions:
+            versions[d] = 'no version'
     uniprots, new_versions = update_uniprot(conn, parameters, timestamp, versions['uniprot'], organisms)
     print('Updating known interactions')
     known_versions = update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date, ncpu)
