@@ -584,6 +584,7 @@ def update_version_table(conn, dataset, timestamp, new_versions) -> None:
                 con=conn,
                 params=(dataset,),
             )
+            new_ver_df = new_ver_df[~new_ver_df['version'].str.startswith('-1::')]
 
             rows_to_drop = []
             incoming_organisms = {v.split('::')[0] for v in new_versions}
@@ -657,7 +658,7 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
     if versions is None:
         versions = { }
     if not 'uniprot' in versions:
-        versions['uniprot'] = ['no version']
+        versions['uniprot'] = ['-1::no version']
     for d in ['biogrid', 'intact']:
         if not d in versions:
             versions[d] = 'no version'
