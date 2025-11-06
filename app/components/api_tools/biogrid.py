@@ -57,8 +57,10 @@ def get_upid(upcol: pd.Series) -> pd.Series:
     """
     news = []
     for v in upcol:
-        for nullchar in ['-1','nan','none','-','0']:
+        for nullchar in ['-1','nan','none']:
             v = v.replace(nullchar,'')
+        if v == '0':
+            v = np.nan
         news.append(v)
     retser = pd.Series(news, index=upcol.index, name=upcol.name)
     retser.replace('', np.nan, inplace=True)
