@@ -18,6 +18,7 @@ import re
 import sys
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from pandas.errors import DatabaseError
 
 def clean_database(versions_to_keep_dict) -> None:
     """Remove old database directories, keeping a configured number of versions.
@@ -92,8 +93,11 @@ def get_external_versions(conn: sqlite3.Connection, externals: list[str]) -> dic
     """Get the versions of the external databases.
     """
     version_dict = { }
-    for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
-        version_dict[dataset] = version
+    try:
+        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
+            version_dict[dataset] = version
+    except DatabaseError:
+        version_dict = { }
     return version_dict
 
 def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_format: str) -> datetime:

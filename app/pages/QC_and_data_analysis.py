@@ -77,8 +77,11 @@ def clear_data_stores(begin_clicks: Optional[int]) -> tuple[str, Dict[str, Any]]
     for update_type, version in db_functions.get_database_versions(db_file).items():
         version_dict[f'Database: {update_type}'] = version
     conn = db_functions.create_connection(db_file, mode='ro')
-    for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
-        version_dict[dataset] = version
+    try:
+        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
+            version_dict[dataset] = version
+    except Exception as e:
+        logger.error(f'Error getting external versions: {e}')
     conn.close() # type: ignore
     #logger.info(
     #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
