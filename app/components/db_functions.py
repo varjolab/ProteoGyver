@@ -6,6 +6,27 @@ from datetime import datetime
 from typing import Iterable, Dict, Any, List, Optional, Tuple
 
 
+def get_database_versions(db_file_path: str) -> dict:
+    """Get the version of the database.
+    
+    :param db_file_path: Path to the database file.
+    :returns: Version of the database.
+    """
+    conn: sqlite3.Connection = create_connection(db_file_path)
+
+    cursor = conn.cursor()
+    cursor.execute('SELECT update_type FROM update_log')
+    update_types = set([
+        r[0] for r in cursor.fetchall()
+    ])
+    cursor.close()
+
+    versions = { }
+    for update_type in update_types:
+        versions[update_type] = get_last_update(conn, update_type)
+    conn.close()
+    return versions
+
 def map_protein_info(uniprot_ids: list, info: list | str = None, placeholder: list | str = None, db_file_path: str|None = None):
     """Map requested columns from the ``proteins`` table for UniProt IDs.
 

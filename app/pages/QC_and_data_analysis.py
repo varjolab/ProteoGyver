@@ -30,6 +30,7 @@ import logging
 from element_styles import CONTENT_STYLE
 from typing import Any, Dict, List, Tuple, Optional, Union
 import plotly.graph_objects as go
+from _version import __version__
 
 
 register_page(__name__, path='/')
@@ -57,20 +58,27 @@ layout: html.Div = html.Div([
     #  Output('workflow-stores', 'children'),
     # Output({'type': 'data-store', 'name': ALL}, 'clear_data'),
     Output('start-analysis-notifier', 'children'),
+    Output({'type': 'data-store', 'name': 'version-data-store'}, 'data'),
     Input('begin-analysis-button', 'n_clicks'),
     prevent_initial_call=True
 )
 #TODO: implement clearing.
 #TODO: Alternatively we could load the data store elements at this point, except for the ones needed to ingest files up to this point.
-def clear_data_stores(begin_clicks: Optional[int]) -> str:
-    """Clear all data stores before analysis begins.
+def clear_data_stores(begin_clicks: Optional[int]) -> tuple[str, Dict[str, Any]]:
+    """Clear all data stores before analysis begins. Also saves version information to the version data store.
 
     :param begin_clicks: Number of clicks on the begin analysis button.
-    :returns: Empty string to clear notification.
+    :returns: Tuple of (empty string to clear notification, version dictionary).
     """
+    version_dict = {
+        'Proteogyver version': __version__
+    }
+    for update_type, version in db_functions.get_database_versions(db_file).items():
+        version_dict[f'Database last {update_type} updated'] = version
+
     #logger.info(
     #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
-    return ''
+    return '', version_dict
 
 @callback(
     Output('upload-data-file-success', 'style'),
@@ -1663,8 +1671,8 @@ def save_qc_figures(
     Output('download_temp4', 'children'),
     Output('download_loading_temp4', 'children'),
     Input('download-temp-dir-ready','children'),
-    State({'type': 'data-store', 'name': 'version-data-store'}, 'data'),
     State({'type': 'input-div', 'id': ALL}, 'children'),
+    State({'type': 'data-store', 'name': 'version-data-store'}, 'data'),
     prevent_initial_call=True
 )
 def save_input_information(export_dir: str, input_divs: List[html.Div], version_data_store: Dict[str, Any]) -> Tuple[str, str]:
@@ -1819,6 +1827,7 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
     zip_filename = f"{timestamp} ProteoGyver output.zip"
     logger.info(f'Started packing data at {start}')
     
+    print(export_dir)
     try:
         # Create ZIP archive
         with zipfile.ZipFile(os.path.join(export_dir, zip_filename), 'w') as zipf:
@@ -1835,7 +1844,8 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
             zip_data = f.read()
         
         # Clean up temporary files
-        shutil.rmtree(export_dir)
+        print(export_dir)
+        #shutil.rmtree(export_dir)
     
     except Exception as e:
         logger.warning(f"Error creating download package: {str(e)}")
