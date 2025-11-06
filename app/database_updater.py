@@ -664,7 +664,7 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
             versions[d] = 'no version'
     uniprots, new_versions = update_uniprot(conn, parameters, timestamp, versions['uniprot'], organisms)
     print('Updating known interactions')
-    known_versions = update_knowns(conn, parameters, timestamp, uniprots, organisms, last_update_date, ncpu)
+    known_versions = update_knowns(conn, parameters, timestamp, uniprots, organisms, versions, last_update_date, ncpu)
     update_version_table(conn, 'uniprot', timestamp, new_versions)
     for dataset, version in known_versions:
         update_version_table(conn, dataset, timestamp, version)
