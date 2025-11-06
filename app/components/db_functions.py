@@ -6,10 +6,11 @@ from datetime import datetime
 from typing import Iterable, Dict, Any, List, Optional, Tuple
 
 
-def get_database_versions(db_file_path: str) -> dict:
+def get_database_versions(db_file_path: str, subset: list[str]|None = None) -> dict:
     """Get the version of the database.
     
     :param db_file_path: Path to the database file.
+    :param subset: Subset of update types to get versions for.
     :returns: Version of the database.
     """
     conn: sqlite3.Connection = create_connection(db_file_path)
@@ -20,10 +21,13 @@ def get_database_versions(db_file_path: str) -> dict:
         r[0] for r in cursor.fetchall()
     ])
     cursor.close()
-
+    if subset is not None:
+        update_types = update_types.intersection(subset)
     versions = { }
     for update_type in update_types:
-        versions[update_type] = get_last_update(conn, update_type)
+        last = get_last_update(conn, update_type)
+        if last != 'never':
+            versions[update_type] = last
     conn.close()
     return versions
 
@@ -267,7 +271,7 @@ def get_last_update(conn, uptype: str) -> str:
     cursor.execute("SELECT timestamp FROM update_log WHERE update_type = ? ORDER BY timestamp DESC LIMIT 1", (uptype,))
     last_update = cursor.fetchone()
     cursor.close()
-    return last_update[0]
+    return last_update[0] if last_update else 'never'
 
 def is_test_db(db_path: str) -> bool:
     """Check if an SQLite DB has metadata key ``is_test`` set to true.

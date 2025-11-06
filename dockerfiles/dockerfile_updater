@@ -14,11 +14,6 @@ RUN mkdir -p /proteogyver/data/Server_output /proteogyver/data/Server_input /pro
 COPY requirements/updater_requirements.txt requirements.txt
 COPY app/config/parameters.toml /proteogyver/parameters.toml
 COPY app/resources /proteogyver/resources
-# Main scripts
-COPY app/database_updater.py database_updater.py
-COPY app/database_admin.py database_admin.py
-
-# Note: avoid copying the entire app/data to keep image minimal
 
 # Python deps (wheels) — avoid apt build tools to keep image small
 RUN apt-get update \
@@ -35,6 +30,9 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
+# Main scripts
+COPY app/database_updater.py database_updater.py
+COPY app/database_admin.py database_admin.py
 # Needed extras
 COPY app/components/text_handling.py components/text_handling.py
 COPY app/components/db_functions.py components/db_functions.py

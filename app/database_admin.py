@@ -91,10 +91,10 @@ def create_sqlite_from_schema(schema_file: str | Path,
 def get_external_versions(conn: sqlite3.Connection, externals: list[str]) -> dict:
     """Get the versions of the external databases.
     """
-    versions = { }
-    for e in externals:
-        versions[e] = db_functions.get_last_update(conn, e)
-    return versions
+    version_dict = { }
+    for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
+        version_dict[dataset] = version
+    return version_dict
 
 def last_update(conn: sqlite3.Connection, uptype: str, interval: int, time_format: str) -> datetime:
     """Return the last update time for a given update type or a default.
