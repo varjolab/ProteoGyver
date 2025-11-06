@@ -171,7 +171,7 @@ def filter_chunk(df: pd.DataFrame, uniprots_to_get:set|None, organisms: set|None
     df.drop_duplicates(inplace=True)
     return df, normcols, swcols
 
-def get_final_df(chunk_df: pd.DataFrame, previous: pd.DataFrame|None = None,time_format: str = '%Y/%m/%d') -> pd.DataFrame:
+def get_final_df(chunk_df: pd.DataFrame,time_format: str = '%Y/%m/%d') -> pd.DataFrame:
     """Aggregate sharded chunk into a final deduplicated DataFrame.
 
     Combines semicolon-delimited values per interaction key, and manages
@@ -179,8 +179,6 @@ def get_final_df(chunk_df: pd.DataFrame, previous: pd.DataFrame|None = None,time
     version when values are unchanged.
 
     :param chunk_df: DataFrame assembled from shard files for a prefix.
-    :param previous: Optional DataFrame for the same prefix from an
-        older version to preserve creation dates.
     :param time_format: Output date format string.
     :returns: Final deduplicated DataFrame indexed by ``interaction``.
     """
@@ -195,19 +193,6 @@ def get_final_df(chunk_df: pd.DataFrame, previous: pd.DataFrame|None = None,time
     cols = list(findf.columns)
     findf["biogrid_creation_date"] = today_str
     findf["biogrid_updated_date"] = today_str
-
-    # Since biogrid does not supply the dates, we have to do it by ourselves.
-    if (previous is not None) and all(column in previous.columns for column in ['biogrid_creation_date', 'biogrid_updated_date']):
-        common_idx = findf.index.intersection(previous.index)
-        # Compare only matching rows
-        matches = (
-            findf.loc[common_idx, cols].astype(str)
-            == previous.loc[common_idx, cols].astype(str)
-        ).all(axis=1)
-
-        # For matching rows, assign df1['date']
-        findf.loc[common_idx, 'biogrid_creation_date'] = previous.loc[common_idx, 'biogrid_creation_date']
-        findf.loc[common_idx[matches], 'biogrid_updated_date'] = previous.loc[common_idx[matches], 'biogrid_updated_date']
 
     return findf
 
@@ -298,7 +283,7 @@ def split_and_save_by_prefix(df: pd.DataFrame, column: str, num_chars: int, outp
         result.to_csv(filename, mode='a', header=write_header, index=index, sep=sep)
 
 # super inefficient, but run rarely, so good enough.
-def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None = None, current_version: str|None = None) -> None:
+def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None = None) -> None:
     """Convert a BioGRID TAB3 file into normalized TSV shards on disk.
 
     The file is read in chunks, filtered and normalized, and then
@@ -308,13 +293,9 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
     :param file_path: Path to the downloaded ``.tab3.txt`` file.
     :param uniprots_to_get: Optional set of UniProt accessions to retain.
     :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
-    :param current_version: Path to current version directory for reuse
-        of creation/update dates during final merge.
     :returns: None
     """
     folder_path: str = file_path.replace('.txt','')
-    if not current_version:
-        current_version = ''
     for i, chunk in enumerate(pd.read_csv(file_path,sep='\t', chunksize=10000)):
         print(f'Processing BioGRID chunk: {i}')
         chunk, normcols, swcols = filter_chunk(chunk, uniprots_to_get, organisms)
@@ -324,14 +305,11 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
     
     for fname in os.listdir(folder_path):
         if fname.endswith('.tsv'):
-            previous = None
-            if os.path.exists(os.path.join(current_version, fname)):
-                previous = pd.read_csv(os.path.join(current_version, fname),sep='\t', index_col='interaction')
             chunk_df = pd.read_csv(os.path.join(folder_path, fname),sep='\t', index_col='interaction')
-            findf: pd.DataFrame = get_final_df(chunk_df, previous = previous)
+            findf: pd.DataFrame = get_final_df(chunk_df)
             findf.to_csv(os.path.join(folder_path, fname), index=True, sep='\t')
 
-def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set|None, organisms: set|None = None, current_version: str|None = None) -> None:
+def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_get:set|None, organisms: set|None = None) -> None:
     """Download, extract and convert the latest BioGRID archive.
 
     :param save_dir: Directory where the data files will be placed.
@@ -339,7 +317,6 @@ def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_
     :param latest_zip_url: URL for the BioGRID zip resource.
     :param uniprots_to_get: Optional set of UniProt accessions to retain.
     :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.
-    :param current_version: Current version directory for date propagation.
     :returns: None
     """
     print('Downloading BioGRID')
@@ -348,7 +325,7 @@ def do_update(save_dir:str, save_zipname: str, latest_zip_url: str, uniprots_to_
     if not os.path.exists(datafile_path):
         with ZipFile(os.path.join(save_dir, save_zipname), 'r') as zip_ref:
             zip_ref.extractall(save_dir)
-    generate_pandas(datafile_path, uniprots_to_get, organisms, current_version)
+    generate_pandas(datafile_path, uniprots_to_get, organisms)
     os.remove(os.path.join(save_dir, save_zipname))
     os.remove(datafile_path)
 
@@ -434,7 +411,7 @@ def update(version: str, uniprots_to_get:set|None = None, organisms: set|None = 
     save_location:str = apitools.get_save_location('BioGRID')
     if version != uzip.rsplit('.',maxsplit=1)[0]:
         print('Updating BioGRID')
-        do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms, current_file)
+        do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms)
         return uzip.rsplit('.',maxsplit=1)[0]
     else:
         return version
