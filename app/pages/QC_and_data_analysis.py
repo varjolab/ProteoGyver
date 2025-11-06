@@ -1663,19 +1663,21 @@ def save_qc_figures(
     Output('download_temp4', 'children'),
     Output('download_loading_temp4', 'children'),
     Input('download-temp-dir-ready','children'),
+    State({'type': 'data-store', 'name': 'version-data-store'}, 'data'),
     State({'type': 'input-div', 'id': ALL}, 'children'),
     prevent_initial_call=True
 )
-def save_input_information(export_dir: str, input_divs: List[html.Div]) -> Tuple[str, str]:
+def save_input_information(export_dir: str, input_divs: List[html.Div], version_data_store: Dict[str, Any]) -> Tuple[str, str]:
     """Save input information to export directory.
 
     :param export_dir: Destination directory.
     :param input_divs: Input div elements to inspect.
+    :param version_data_store: Version data store that contains version information about software and database versions.
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_input_information at {start}')
-    infra.save_input_information(input_divs, export_dir)
+    infra.save_input_information(input_divs, version_data_store, export_dir)
     logger.info(f'done with download request save_input_information, took {datetime.now()-start}')
     return 'save_input_information done',''
 
@@ -1785,42 +1787,6 @@ def save_proteomics_figures(
             fil.write(f'{e}')
     logger.info(f'done with download request save_proteomics_figures, took {datetime.now()-start}')
     return 'save_proteomics_figures done', ''
-
-@callback(
-    Output('download_temp8', 'children'),
-    Output('download_loading_temp8', 'children'),
-    Input('download-temp-dir-ready','children'),
-    State({'type': 'analysis-div', 'id': ALL}, 'children'),
-    State({'type': 'analysis-div', 'id': ALL}, 'id'),
-    State('workflow-dropdown', 'value'),
-    prevent_initial_call=True
-)
-def save_phosphoproteomics_figures(
-    export_dir: str, 
-    analysis_divs: List[html.Div], 
-    analysis_div_ids: List[Dict[str, str]], 
-    workflow: str
-) -> Tuple[str, str]:
-    """Save phosphoproteomics analysis figures to export directory.
-
-    :param export_dir: Destination directory.
-    :param analysis_divs: Analysis div elements.
-    :param analysis_div_ids: IDs of analysis divs.
-    :param workflow: Current workflow name.
-    :returns: Tuple of (completion message, loading indicator text).
-    """
-    start = datetime.now()
-    logger.info(f'received download request save_phosphoproteomics_figures at {start}')
-    try:
-        infra.save_figures([get_adiv_by_id(analysis_divs, analysis_div_ids, 'phosphoproteomics-analysis-area')], 
-                          export_dir, figure_output_formats, None, workflow)
-    except Exception as e:
-        logger.warning(f'save_phosphoproteomics_figures failed: {e}')
-        with open(os.path.join(export_dir, 'save_phosphoproteomics_figures_errors'),'w') as fil:
-            fil.write(f'{e}')
-    logger.info(f'done with download request save_phosphoproteomics_figures, took {datetime.now()-start}')
-    return 'save_phosphoproteomics_figures done', ''
-
     
 @callback(
     Output('download-all-data', 'data'),

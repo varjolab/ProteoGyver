@@ -344,7 +344,7 @@ def workflow_area(
 ) -> html.Div:
     """Create the appropriate workflow area based on workflow type.
 
-    :param workflow: Workflow type (``'Proteomics'``, ``'Interactomics'``, ``'Phosphoproteomics'``).
+    :param workflow: Workflow type (``'Proteomics'``, ``'Interactomics'``).
     :param workflow_specific_parameters: Parameters for each workflow type.
     :param data_dictionary: Data required for the workflow analysis.
     :returns: Workflow-specific component tree.
@@ -356,9 +356,6 @@ def workflow_area(
     elif workflow == 'Interactomics':
         ret = interactomics_area(
             workflow_specific_parameters['interactomics'], data_dictionary)
-    elif workflow == 'Phosphoproteomics':
-        ret = phosphoproteomics_area(
-            workflow_specific_parameters['phosphoproteomics'], data_dictionary)
     return ret # type: ignore
 
 
@@ -944,19 +941,6 @@ def interactomics_area(
             ]
         ),
     ]
-
-
-def phosphoproteomics_area(
-    parameters: Dict[str, Any], 
-    data_dictionary: Dict[str, Any]
-) -> list:
-    """Create the main phosphoproteomics analysis area (placeholder).
-
-    :param parameters: Phosphoproteomics-specific configuration parameters.
-    :param data_dictionary: Data required for phosphoproteomics analysis.
-    :returns: List with a placeholder Div for phosphoproteomics.
-    """
-    return [html.Div(id={'type': 'analysis-div', 'id': 'phosphoproteomics-analysis-area'})]
 
 
 def qc_area() -> html.Div:

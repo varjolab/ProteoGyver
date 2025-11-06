@@ -846,7 +846,7 @@ def format_data(session_uid: str, data_tables: Dict[str, str],
             i for i in intensity_table.index if i not in contaminants_to_remove]]
     spc_table = spc_table.replace(0, np.nan)
     intensity_table = intensity_table.replace(0, np.nan)
-    experiment_type = 'Proteomics/Phosphoproteomics'
+    experiment_type = 'Proteomics'
     if 'bait uniprot' in expdes_info:
         experiment_type = 'Interactomics'
     return_dict: dict = {
