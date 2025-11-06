@@ -454,10 +454,6 @@ def save_figures(analysis_divs, export_dir, output_formats, commonality_pdf_data
                 graph: dict = headers_and_figures[i+1]
                 legend: dict = headers_and_figures[i+2]
                 if not 'figure' in graph['props']:
-                    with open('debug/ERRORED','a') as fil:
-                        fil.write(f'{graph}\n')
-                        fil.write(f'{legend}\n')
-                        fil.write('==============================================\n')
                     continue
                 figure: dict = graph['props']['figure']
                 figure_html: str = pio.to_html(
