@@ -123,7 +123,7 @@ server = app.server
 
 # Register file upload API endpoint
 from components.file_upload_api import register_file_upload_api
-register_file_upload_api(server)
+register_file_upload_api(server, celery_app_instance=celery_app)
 
 if not os.path.isdir('logs'):
     os.makedirs('logs')

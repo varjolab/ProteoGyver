@@ -68,7 +68,6 @@ data_store_export_configuration: dict = {
     'proteomics-cv-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'qc-commonality-plot-visible-groups-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'tic-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
-    'version-data-store': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
 
     'uploaded-data-table-info-data-store': ['txt', 'Input data info', 'Data table', 'input-file'],
     'uploaded-sample-table-info-data-store': ['txt', 'Input data info', 'Sample table', 'input-file'],
@@ -86,6 +85,7 @@ data_store_export_configuration: dict = {
     'interactomics-volcano-data-store': ['tsv', 'Data', 'Differential abundance', 'volc-split'],
     
     'count-data-store': ['tsv', 'Data', ['Summary data', 'Protein counts'],''],
+    'version-data-store': ['tsv','Versions', ['Software and database versions'],'noindex'],
     'common-protein-data-store': ['tsv', 'Data', ['Summary data', 'Common proteins'],''],
     'coverage-data-store': ['tsv', 'Data', ['Summary data', 'Protein coverage'],''],
     'missing-data-store': ['tsv', 'Data', ['Summary data', 'Missing counts'],''],
@@ -539,7 +539,7 @@ def format_nested_list(input_list: list):
     return ', '.join(rlist)
 
 
-def save_input_information(input_divs, version_data_store, export_dir) -> None:
+def save_input_information(input_divs, export_dir) -> None:
     """Save user input parameters/settings to a TSV file.
 
     :param input_divs: Input container elements to scan.
@@ -594,10 +594,6 @@ def save_input_information(input_divs, version_data_store, export_dir) -> None:
             if len(val_str) == 0:
                 val_str = 'None'
             fil.write(f'{name}\t{val_str}\n')
-    with open(os.path.join(export_dir, 'Software and database versions.tsv'), 'w', encoding='utf-8') as fil:
-        fil.write('Entity\tVersion\n')
-        for name, version in version_data_store.items():
-            fil.write(f'{name}\t{version}\n')
     logger.info(f'saving input info - done: {datetime.now() - prev_time}')
 
 def upload_data_stores() -> html.Div:

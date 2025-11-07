@@ -27,6 +27,7 @@ The app is insecure as it is. It is intended to be run on a network that is not 
 
 - **Pipeline mode**
   - Any of the above workflows can be run in the background in automated fashion through the pipeline module.
+  - Accessible via API or folder watcher script
 
 ### Usage
 Example files are downloadable from the sidebar of the main interface. These include example data files and sample tables for interactomics, and proteomics workflows.
@@ -117,6 +118,50 @@ and the pipeline.toml should contain:
 
 #### Parameters not in the input toml
 Since the input .toml can be very minimal, for all parameters that are NOT in it, PG will use values from the [default files](app/data/Pipeline%20module%20default%20tomls/). For this reason, it is advisable to always specify things like additional controls, control sample groups, and crapome sets for interactomics, and control groups for proteomics. 
+
+#### Initiating pipeline analysis via API
+An alternative to direct file system access to the server is to use the API. The API is on the same port as the GUI, under /api/upload-pipeline-files. 
+Here is a complete usage example via python:
+>datafile = 'datafile.tsv'
+>sample_table = 'sampletable.tsv'
+>pipeline = 'pipeline.toml'
+>server_url = 'proteogyver.server.com'
+>server_port = 8050
+>
+>files = {
+>    'data_table': open(datafile, 'rb'),
+>    'sample_table': open(sample_table, 'rb'),
+>    'pipeline_toml': open(pipeline, 'rb'),
+>}
+>
+>response = requests.post(f"http://{server_url}:{server_port}/api/upload-pipeline-files", files=files)
+>upload_dir_name = response.json()['upload_directory_name']
+>----------------------------------------------
+># Check status later
+>status = requests.get(
+>    f"http://{server_url}:{server_port}/api/pipeline-status",
+>    params={'upload_directory_name': upload_dir_name}
+>).json()
+>print(f'Status: {status["status"]}, message: {status["message"]}')
+># The status also includes upload directory name
+>if status['status'] == 'error':
+>    print(f"Error: {status['error_message']}")
+>----------------------------------------------
+># Download the output zip file
+>response = requests.get(
+>    f"http://{server_url}:{server_port}/api/download-output",
+>    params={'upload_directory_name': upload_dir_name},
+>    stream=True
+>)
+>
+>if response.status_code == 200:
+>    # Save the zip file
+>    with open('PG output.zip', 'wb') as f:
+>        for chunk in response.iter_content(chunk_size=8192):
+>            f.write(chunk)
+>    print("Downloaded PG output.zip")
+>else:
+>    print(f"Error: {response.json()}")
 
 ## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs
@@ -301,7 +346,7 @@ PG updater is used to generate a database. A small test database is provided, an
 - IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data
   - Afterwards, you need to format the data into a format usable by pg_updater, see [Updating the database](#updating-the-database) for details
 
-#### Used API data
+#### Used external data
 During database building, PG downloads data from several sources:
 - Known interactions are downloaded from [IntACT](https://www.ebi.ac.uk/intact/home) and [BioGRID](https://thebiogrid.org/)
 - Protein data is downloaded from [UniProt](https://www.uniprot.org/)

@@ -16,6 +16,24 @@ def load_toml(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return tomlkit.parse(f.read())
 
+def read_toml(toml_file: Union[str, Path], baseify = ['Data paths'], check_exists = False, expand_paths_in_full_dict = True):
+    """Read a TOML file and optionally prefix/expand embedded paths.
+
+    :param toml_file: TOML file path.
+    :param baseify: Top-level keys whose values should get path prefixing.
+    :param check_exists: If ``True``, only replace with existing paths.
+    :param expand_paths_in_full_dict: If ``True``, expand ``params:`` references.
+    :returns: Parsed and transformed dictionary.
+    """
+    toml_path = Path(toml_file)
+    basepath = str(toml_path.parent.parent.resolve())
+    with toml_path.open('r', encoding='utf-8') as tf:
+        data = tomlkit.load(tf)
+    for key in baseify:
+        data[key] = prefix_relative_paths(data[key], basepath, check_exists)
+    if expand_paths_in_full_dict:
+        data = expand_paths(data, data)
+    return data
 def deep_merge(base: MutableMapping[str, Any], override: Mapping[str, Any]) -> MutableMapping[str, Any]:
     """Deep-merge ``override`` into ``base``.
 
@@ -136,24 +154,6 @@ def expand_paths(in_dict, param_dict):
             value = expand_paths(value, param_dict)
     return in_dict
 
-def read_toml(toml_file: Union[str, Path], baseify = ['Data paths'], check_exists = False, expand_paths_in_full_dict = True):
-    """Read a TOML file and optionally prefix/expand embedded paths.
-
-    :param toml_file: TOML file path.
-    :param baseify: Top-level keys whose values should get path prefixing.
-    :param check_exists: If ``True``, only replace with existing paths.
-    :param expand_paths_in_full_dict: If ``True``, expand ``params:`` references.
-    :returns: Parsed and transformed dictionary.
-    """
-    toml_path = Path(toml_file)
-    basepath = str(toml_path.parent.parent.resolve())
-    with toml_path.open('r', encoding='utf-8') as tf:
-        data = tomlkit.load(tf)
-    for key in baseify:
-        data[key] = prefix_relative_paths(data[key], basepath, check_exists)
-    if expand_paths_in_full_dict:
-        data = expand_paths(data, data)
-    return data
 
 def normalize_key(s: str) -> str:
     """Normalize a string for consistent matching.

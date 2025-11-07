@@ -28,6 +28,7 @@ from components.tools import utils
 from components.api_tools import biogrid, intact, uniprot
 import plotly.io as pio
 import logging
+import pandas as pd
 from element_styles import CONTENT_STYLE
 from typing import Any, Dict, List, Tuple, Optional, Union
 import plotly.graph_objects as go
@@ -83,9 +84,12 @@ def clear_data_stores(begin_clicks: Optional[int]) -> tuple[str, Dict[str, Any]]
     except Exception as e:
         logger.error(f'Error getting external versions: {e}')
     conn.close() # type: ignore
+
+    version_df = pd.DataFrame(version_dict.items(), columns=['Entity', 'Version'])
+    
     #logger.info(
     #    f'Data cleared. Start clicks: {begin_clicks}: {datetime.now()}')
-    return '', version_dict
+    return '', version_df.to_json(orient='split')
 
 @callback(
     Output('upload-data-file-success', 'style'),
@@ -1680,20 +1684,18 @@ def save_qc_figures(
     Output('download_loading_temp4', 'children'),
     Input('download-temp-dir-ready','children'),
     State({'type': 'input-div', 'id': ALL}, 'children'),
-    State({'type': 'data-store', 'name': 'version-data-store'}, 'data'),
     prevent_initial_call=True
 )
-def save_input_information(export_dir: str, input_divs: List[html.Div], version_data_store: Dict[str, Any]) -> Tuple[str, str]:
+def save_information(export_dir: str, input_divs: List[html.Div]) -> Tuple[str, str]:
     """Save input information to export directory.
 
     :param export_dir: Destination directory.
     :param input_divs: Input div elements to inspect.
-    :param version_data_store: Version data store that contains version information about software and database versions.
     :returns: Tuple of (completion message, loading indicator text).
     """
     start = datetime.now()
     logger.info(f'received download request save_input_information at {start}')
-    infra.save_input_information(input_divs, version_data_store, export_dir)
+    infra.save_input_information(input_divs, export_dir)
     logger.info(f'done with download request save_input_information, took {datetime.now()-start}')
     return 'save_input_information done',''
 

@@ -10,20 +10,21 @@ asynchronously by Celery workers.
 
 import os
 import logging
+import zipfile
+import tempfile
 from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 from werkzeug.utils import secure_filename
 from celery import shared_task
-from celery_once import QueueOnce
 from uuid import uuid4
-from components.tools.utils import load_toml, save_toml
+from components.tools.utils import save_toml, read_toml, load_toml
 
 logger = logging.getLogger("file_upload_api")
 
 
-@shared_task(base=QueueOnce, once={'graceful': True})
+@shared_task
 def save_uploaded_files(
     data_table_content: bytes,
     data_table_filename: str,
@@ -57,7 +58,7 @@ def save_uploaded_files(
     """
     try:
         # Load parameters to get default output directory if not provided
-        parameters = load_toml(Path('config/parameters.toml'))
+        parameters = read_toml(Path('config/parameters.toml'))
         
         if output_directory is None:
             pipeline_path = parameters.get('Pipeline module', {}).get('Input watch directory', [])
@@ -73,8 +74,8 @@ def save_uploaded_files(
         
         # Create timestamped subdirectory for this upload
         if upload_dir_name is None:
-            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            upload_dir_name = f'api_upload_{timestamp}_{uuid4()}'
+            timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+            upload_dir_name = f'{timestamp}--api_upload_{uuid4()}'
         
         upload_dir = os.path.join(output_directory, upload_dir_name)
         os.makedirs(upload_dir, exist_ok=True)
@@ -172,7 +173,7 @@ def save_uploaded_files(
         }
 
 
-def register_file_upload_api(server):
+def register_file_upload_api(server, celery_app_instance=None):
     """Register the file upload API endpoint with the Flask server.
 
     This function sets up a POST endpoint at '/api/upload-pipeline-files' that
@@ -185,8 +186,12 @@ def register_file_upload_api(server):
     Files are processed asynchronously via a Celery task.
 
     :param server: Flask server instance (typically app.server from Dash).
+    :param celery_app_instance: Optional Celery app instance to use for task execution.
     :returns: None
     """
+    # Store celery_app instance for use in the endpoint
+    celery_app_for_task = celery_app_instance
+    
     @server.route('/api/upload-pipeline-files', methods=['POST'])
     def upload_pipeline_files():
         """API endpoint for uploading pipeline input files.
@@ -263,31 +268,74 @@ def register_file_upload_api(server):
             
             # Generate upload directory name synchronously so we can return it immediately
             # This matches what the task will create
-            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            upload_dir_name = f'api_upload_{timestamp}_{uuid4()}'
+            timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+            upload_dir_name = f'{timestamp}--api_upload_{uuid4()}'
             
             # Trigger Celery task to save files
-            task = save_uploaded_files.delay(
-                data_table_content=data_table_content,
-                data_table_filename=data_table_file.filename,
-                sample_table_content=sample_table_content,
-                sample_table_filename=sample_table_file.filename,
-                pipeline_toml_content=pipeline_toml_content,
-                pipeline_toml_filename=pipeline_toml_file.filename,
-                proteomics_comparisons_content=proteomics_comparisons_content,
-                proteomics_comparisons_filename=proteomics_comparisons_filename,
-                output_directory=output_directory,
-                upload_dir_name=upload_dir_name
-            )
+            try:
+                # Use the celery_app instance if provided, otherwise try to import it
+                app_instance = celery_app_for_task
+                if app_instance is None:
+                    try:
+                        from app import celery_app
+                        app_instance = celery_app
+                    except ImportError:
+                        app_instance = None
+                
+                if app_instance is not None:
+                    # Use send_task with the configured celery_app instance
+                    task = app_instance.send_task(
+                        'components.file_upload_api.save_uploaded_files',
+                        args=[],
+                        kwargs={
+                            'data_table_content': data_table_content,
+                            'data_table_filename': data_table_file.filename,
+                            'sample_table_content': sample_table_content,
+                            'sample_table_filename': sample_table_file.filename,
+                            'pipeline_toml_content': pipeline_toml_content,
+                            'pipeline_toml_filename': pipeline_toml_file.filename,
+                            'proteomics_comparisons_content': proteomics_comparisons_content,
+                            'proteomics_comparisons_filename': proteomics_comparisons_filename,
+                            'output_directory': output_directory,
+                            'upload_dir_name': upload_dir_name
+                        }
+                    )
+                else:
+                    # Fallback to using shared_task directly
+                    task = save_uploaded_files.delay(
+                        data_table_content=data_table_content,
+                        data_table_filename=data_table_file.filename,
+                        sample_table_content=sample_table_content,
+                        sample_table_filename=sample_table_file.filename,
+                        pipeline_toml_content=pipeline_toml_content,
+                        pipeline_toml_filename=pipeline_toml_file.filename,
+                        proteomics_comparisons_content=proteomics_comparisons_content,
+                        proteomics_comparisons_filename=proteomics_comparisons_filename,
+                        output_directory=output_directory,
+                        upload_dir_name=upload_dir_name
+                    )
+                
+                logger.info(f"File upload task queued: {task.id}, upload directory: {upload_dir_name}")
+                
+                return jsonify({
+                    'status': 'accepted',
+                    'message': 'Files uploaded successfully, processing in background',
+                    'task_id': task.id,
+                    'upload_directory_name': upload_dir_name
+                }), 202
             
-            logger.info(f"File upload task queued: {task.id}, upload directory: {upload_dir_name}")
-            
-            return jsonify({
-                'status': 'accepted',
-                'message': 'Files uploaded successfully, processing in background',
-                'task_id': task.id,
-                'upload_directory_name': upload_dir_name
-            }), 202
+            except Exception as celery_error:
+                # Check if it's a Redis connection error
+                error_str = str(celery_error)
+                if 'Connection refused' in error_str or '111' in error_str or 'ConnectionError' in str(type(celery_error).__name__):
+                    logger.error(f"Celery/Redis connection error: {celery_error}", exc_info=True)
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Cannot connect to Celery/Redis. Please ensure Redis is running and Celery workers are started.'
+                    }), 503  # Service Unavailable
+                else:
+                    # Re-raise other errors to be caught by outer exception handler
+                    raise
         
         except Exception as e:
             error_msg = f"Error processing file upload request: {str(e)}"
@@ -325,7 +373,7 @@ def register_file_upload_api(server):
                 }), 400
             
             # Load parameters to get the base output directory
-            parameters = load_toml(Path('config/parameters.toml'))
+            parameters = read_toml(Path('config/parameters.toml'))
             pipeline_path = parameters.get('Pipeline module', {}).get('Input watch directory', [])
             
             if isinstance(pipeline_path, list):
@@ -349,6 +397,7 @@ def register_file_upload_api(server):
             
             # Check for status files
             lock_file = upload_dir_path / '.pg_analyzing.lock'
+            watcher_log = upload_dir_path / 'watcher.log'
             success_file = upload_dir_path / 'pipeline.success.txt'
             failure_file = upload_dir_path / 'pipeline.failure.txt'
             errors_file = upload_dir_path / 'ERRORS.txt'
@@ -362,7 +411,7 @@ def register_file_upload_api(server):
                     'upload_directory_name': upload_dir_name
                 }), 200
             
-            elif success_file.exists():
+            if success_file.exists():
                 # Pipeline completed successfully
                 return jsonify({
                     'status': 'success',
@@ -371,7 +420,7 @@ def register_file_upload_api(server):
                     'success_timestamp': success_file.read_text(encoding='utf-8').strip() if success_file.exists() else None
                 }), 200
             
-            elif failure_file.exists():
+            if failure_file.exists():
                 # Pipeline failed
                 error_content = None
                 if errors_file.exists():
@@ -389,16 +438,119 @@ def register_file_upload_api(server):
                     'failure_timestamp': failure_file.read_text(encoding='utf-8').strip() if failure_file.exists() else None
                 }), 200
             
-            else:
-                # No status files found - may not have started yet
+            # Pipeline being watched, not yet processing. watcher.log will remain after it's done, so we will check it last.
+            if watcher_log.exists():
                 return jsonify({
-                    'status': 'unknown',
-                    'message': 'No status files found. Pipeline may not have started yet.',
+                    'status': 'processing',
+                    'message': 'Pipeline is currently running',
                     'upload_directory_name': upload_dir_name
                 }), 200
-        
+
+            
+            return jsonify({
+                'status': 'unknown',
+                'message': 'No status files found. Pipeline may not have started yet.',
+                'upload_directory_name': upload_dir_name
+            }), 200
+    
         except Exception as e:
             error_msg = f"Error checking pipeline status: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            return jsonify({
+                'status': 'error',
+                'message': error_msg
+            }), 500
+    
+    @server.route('/api/download-output', methods=['GET'])
+    def download_output():
+        """API endpoint for downloading the PG output directory as a zip file.
+        
+        Accepts GET requests with query parameter:
+        - upload_directory_name (required): Name of the upload directory
+        
+        Returns the "PG output" directory as a zip file named "PG output.zip".
+        If the PG output directory doesn't exist, returns a 404 error.
+        
+        :returns: ZIP file download or error response.
+        """
+        try:
+            # Get upload directory name from query parameter
+            upload_dir_name = request.args.get('upload_directory_name')
+            if not upload_dir_name:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Missing required parameter: upload_directory_name'
+                }), 400
+            
+            # Load parameters to get the base output directory
+            parameters = read_toml(Path('config/parameters.toml'))
+            pipeline_path = parameters.get('Pipeline module', {}).get('Input watch directory', [])
+            
+            if isinstance(pipeline_path, list):
+                # Filter out None values and ensure all are strings
+                path_parts = [str(p) for p in pipeline_path if p is not None]
+                base_directory = os.path.join(*path_parts) if path_parts else str(pipeline_path)
+            else:
+                base_directory = str(pipeline_path)
+            
+            # Construct full path to upload directory
+            upload_dir = os.path.join(base_directory, upload_dir_name)
+            upload_dir_path = Path(upload_dir)
+            
+            # Check if directory exists
+            if not upload_dir_path.exists() or not upload_dir_path.is_dir():
+                return jsonify({
+                    'status': 'not_found',
+                    'message': f'Upload directory not found: {upload_dir_name}'
+                }), 404
+            
+            # Find PG output directory
+            pg_output_dir = upload_dir_path / 'PG output'
+            
+            if not pg_output_dir.exists() or not pg_output_dir.is_dir():
+                return jsonify({
+                    'status': 'not_found',
+                    'message': 'PG output directory not found. Pipeline may not have completed yet.'
+                }), 404
+            
+            # Create a temporary zip file
+            temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+            temp_zip_path = Path(temp_zip.name)
+            temp_zip.close()
+            
+            try:
+                # Create zip file
+                with zipfile.ZipFile(temp_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    # Walk through the PG output directory and add all files
+                    for root, dirs, files in os.walk(upload_dir_path):
+                        for file in files:
+                            file_path = Path(root) / file
+                            # Create archive name relative to PG output directory
+                            arcname = file_path.relative_to(upload_dir_path)
+                            zipf.write(file_path, arcname)
+                
+                logger.info(f"Created zip file for PG output: {temp_zip_path}")
+                
+                # Send the zip file
+                return send_file(
+                    str(temp_zip_path),
+                    mimetype='application/zip',
+                    as_attachment=True,
+                    download_name='PG output.zip'
+                )
+            
+            except Exception as zip_error:
+                # Clean up temp file on error
+                if temp_zip_path.exists():
+                    temp_zip_path.unlink()
+                logger.error(f"Error creating zip file: {zip_error}", exc_info=True)
+                return jsonify({
+                    'status': 'error',
+                    'message': f'Error creating zip file: {str(zip_error)}'
+                }), 500
+        
+        except Exception as e:
+            error_msg = f"Error downloading output: {str(e)}"
             logger.error(error_msg, exc_info=True)
             return jsonify({
                 'status': 'error',

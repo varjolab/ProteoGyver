@@ -98,7 +98,7 @@ ENV PATH="/opt/conda/envs/PG/bin:${PATH}"
 COPY utils/resource_monitoring.sh /proteogyver/utils/resource_monitoring.sh
 
 
-# Set the PRE_LOAD_CHROME env variable to True to prevent invoking get_chrome_sync() from METplotpy 
+# Set the PRE_LOAD_CHROME env variable to True to prevent invoking get_chrome_sync()
 ENV PRE_LOAD_CHROME='False'
 RUN echo "INFO: environment PRE_LOAD_CHROME set to ${PRE_LOAD_CHROME} ";
 

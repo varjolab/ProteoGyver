@@ -10,7 +10,6 @@ from components.tools.utils import read_toml
 
 logger = logging.getLogger("cleanup_tasks")
 
-
 @shared_task
 def cleanup_cache_folders():
     """Clean old cache folders and optionally archive them.
@@ -39,6 +38,8 @@ def cleanup_cache_folders():
         if isinstance(days_unused, str):
             if days_unused.upper() == 'NO CLEANUP':
                 continue
+        else:
+            days_unused = int(days_unused)
 
         now = time.time()
         cutoff = now - days_unused * 24 * 3600

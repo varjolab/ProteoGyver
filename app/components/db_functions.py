@@ -303,7 +303,7 @@ def export_snapshot(source_path: str, snapshot_dir: str, snapshots_to_keep: int)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     dbname = os.path.basename(source_path)
-    snapshot_filename = f"backup_{dbname}_{timestamp}.db"
+    snapshot_filename = f"backup_{dbname}_{timestamp}.sqlite3"
     snapshot_path = os.path.join(snapshot_dir, snapshot_filename)
 
     with sqlite3.connect(source_path) as source_conn:
@@ -314,7 +314,7 @@ def export_snapshot(source_path: str, snapshot_dir: str, snapshots_to_keep: int)
     # Cleanup
     if snapshots_to_keep is not None:
         backups = sorted(
-            (f for f in os.listdir(snapshot_dir) if f.startswith("backup_") and f.endswith(".db")),
+            (f for f in os.listdir(snapshot_dir) if f.startswith("backup_") and f.endswith(".sqlite3")),
             key=lambda f: os.path.getmtime(os.path.join(snapshot_dir, f))
         )
         excess = len(backups) - snapshots_to_keep
