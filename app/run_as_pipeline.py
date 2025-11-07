@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_batch_pipeline(toml_path: str) -> dict:
-    """Run the complete batch pipeline using GUI infrastructure.
+    """Run the complete batch pipeline.
 
     :param toml_path: Path to the TOML configuration file.
     :returns: Summary dict with execution details, export paths, and figures info.
@@ -95,9 +95,9 @@ def run_batch_pipeline(toml_path: str) -> dict:
             logger.error(f"Batch pipeline failed: {e}")
             raise
             
-            # Step 2: Build data stores and export using GUI infrastructure
+            # Step 2: Build data stores and export
         try:
-            logger.info("Step 2: Building data stores and exporting using GUI infrastructure...")
+            logger.info("Step 2: Building data stores and exporting...")
             
             # Detect workflow from config
             workflow = config.workflow
@@ -107,7 +107,7 @@ def run_batch_pipeline(toml_path: str) -> dict:
             logger.info(f"Built {len(data_stores)} data stores")
             
             data_export_result = infra.save_data_stores(data_stores, export_dir)
-            logger.info(f"Data export completed using GUI infrastructure")
+            logger.info(f"Data export completed")
             
         except Exception as e:
             logger.error(f"Data export failed: {e}")
@@ -115,7 +115,7 @@ def run_batch_pipeline(toml_path: str) -> dict:
         
         figure_summary = {}
         try:
-            logger.info("Step 3: Generating figures using GUI infrastructure...")
+            logger.info("Step 3: Generating figures...")
             figures_export_dir = export_dir
             
             figure_summary = batch_figure_builder_from_divs.save_batch_figures_using_saved_divs(
@@ -125,7 +125,7 @@ def run_batch_pipeline(toml_path: str) -> dict:
                 parameters=parameters,
                 output_formats=plot_formats
             )
-            logger.info(f"Figure generation completed using GUI infrastructure")
+            logger.info(f"Figure generation completed")
             
         except Exception as e:
             logger.error(f"Figure generation failed: {e}")
@@ -161,7 +161,7 @@ def main():
     :returns: None.
     """
     parser = argparse.ArgumentParser(
-        description="Run ProteoGyver batch pipeline using GUI infrastructure",
+        description="Run ProteoGyver batch pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 

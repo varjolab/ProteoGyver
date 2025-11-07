@@ -30,7 +30,8 @@ celery_app = Celery(
     include=[
         'components.MS_run_json_parser',
         'components.cleanup_tasks',
-        'pipeline_module.pipeline_input_watcher'
+        'pipeline_module.pipeline_input_watcher',
+        'components.file_upload_api'
     ]
 )
 background_callback_manager = CeleryManager(celery_app, expire=300)
@@ -119,6 +120,11 @@ def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
 
 parameters = utils.read_toml(Path('config/parameters.toml'))
 server = app.server
+
+# Register file upload API endpoint
+from components.file_upload_api import register_file_upload_api
+register_file_upload_api(server)
+
 if not os.path.isdir('logs'):
     os.makedirs('logs')
 

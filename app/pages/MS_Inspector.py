@@ -204,7 +204,6 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     :returns: Tuple of (tic fig, auc fig, mean fig, max fig, next index).
     """
     data_to_use: pd.DataFrame = pd.read_json(StringIO(plot_data),orient='split')
-    ticlist.sort()
     next_offset: int = 0
     if ctx.triggered_id == 'reset-animation-button':
         tic_index = 0
