@@ -33,7 +33,7 @@ def clean_database(versions_to_keep_dict) -> None:
         path = os.path.join(*versions_to_keep_dict[name + '_path'])
         regex = versions_to_keep_dict[name + '_regex']
         folders = os.listdir(path)
-        folders = [(re.match(regex, file).group(1), file) for file in folders]
+        folders = [(re.match(regex, directory).group(1), directory) for directory in folders]
         folders = sorted(folders, key=lambda x: x[0], reverse=True)
         for folder in folders[versions_to_keep_dict[name]:]:
             print('Removing', os.path.join(path, folder[1]))
@@ -172,6 +172,8 @@ def main():
     update_interval = int(parameters['Update interval minutes'])*60
     snapshot_interval = int(parameters['Database snapshot settings']['Snapshot interval days'])*24*60*60
     api_update_interval = int(parameters['External data update interval days'])*24*60*60
+    if api_update_interval < 0:
+        api_update_interval = 2000*365*24*60*60 # 2000 years.  So never. If set to < 0.
     clean_interval = int(parameters['Database clean interval days'])*24*60*60
     conn: sqlite3.Connection = db_functions.create_connection(db_path, mode='rw') # type: ignore
 

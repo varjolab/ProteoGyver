@@ -1,62 +1,102 @@
+# Order of pages in the navigation bar. Pages not listed here will be appended in alphabetical order.
 "Navbar page order" = ["qc and data analysis", "ms inspector", "windowmaker", "colocalizer"]
 
 [Config]
+# Local debug is used for development, and should not be enabled in production
 "Local debug" = false
+# Directory where application logs are stored. Used by logging system and log rotation tasks.
 LogDir = "logs"
+# Python logging level: 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL
 LogLevel = 20
+# Days after which log files are compressed into monthly zip archives. Reduces disk usage.
 "Log compress days" = 3
+# Days after which log files and archives are permanently deleted. Set to 0 to disable deletion.
 "Log keep days" = 365
-"R error file" = "R_errors.log"
+# File path for R script error logging (used by proteomics normalization and other R-based tools).
+"script error file" = "script_errors.log"
+# DateTime format string used throughout the application for timestamps and logging.
 "Time format" = "%Y-%m-%d %H:%M:%S"
-# Either integer or "ncpus". if ncpus, all CPUs will be used if possible. 
+# Parallel processing config. Either an integer (number of CPUs) or "ncpus" (use all available).
+# The CPU count here will be interpreted by the resources/get_cpu_count.py script
+# The script ensures that the cpu count limit will not be higher than the number of cores available.
 "CPU count limit" = "ncpus"
 
+
 ["Cytoscape layout parameters"]
+# Maximum time (ms) for force-directed layout simulation. Higher values = more stable layouts but slower rendering.
 maxSimulationTime = 12000
+# Minimum spacing between nodes in pixels. Prevents node overlap in network graphs.
 nodeSpacing = 15
+# Padding around the graph canvas in pixels.
 padding = 10
+# If true, randomizes initial node positions for better layout variation.
 randomize = true
 
+# Cleanup settings - automated maintenance tasks run by Celery beat scheduler
 ["Maintenance"."Cleanup"."Cache dir"]
-"Path" = "Data paths" # Either a list (e.g. ["/proteogyver", "cache"]), or if a string, the path must be found in "Data paths" below. e.g. in this case, "Cache dir" is a key both here and in "Data paths"
-"Clean unused interval days" = 4 # either integer or "NO CLEANUP"
-"Archive dir" = "" # If not empty, instead of deleting old cache dirs, they will be moved here instead
+# Path reference: Either a list (e.g. ["/proteogyver", "cache"]), or if a string, 
+# the path must be found in "Data paths" below. e.g. in this case, "Cache dir" is a key both here and in "Data paths"
+"Path" = "Data paths"
+# Days of inactivity before cache folders are cleaned. Set to "NO CLEANUP" to disable automatic cleanup.
+# Cache folders should not store much long term. Download files are deleted by default after the download is finished, however things can sometimes go wrong. Cleanup runs daily via Celery.
+"Clean unused interval days" = 4
+# If set, old cache dirs are archived (zipped) here instead of deleted. Empty string = delete instead of archive.
+"Archive dir" = ""
 ["Maintenance"."MS run parsing"]
+# Directory where MS run JSON files are monitored. Files are parsed and an input file is then generated for the pg_updater container, which adds the information into the database.
 "Input files" = ["params:Data paths.Data import and export.Data import dir", "MS runs jsons"]
-"Move done jsons into subdir" = "parsed_jsons" # If this is set to an empty string, the json files will be deleted after parsing.
+# Subdirectory where parsed JSON files are moved. Empty string = delete files after parsing instead of moving.
+"Move done jsons into subdir" = "parsed_jsons"
+# When number of parsed JSON files exceeds this count, they are compressed into a zip archive.
 "Compress done when filecount over" = 1000
 
+# Core file system paths. All paths are relative to the application root unless absolute paths are specified.
+# Paths are specified as lists that are joined with os.path.join(). Use "params:" prefix to reference other paths.
 ["Data paths"]
+# Temporary cache directory for analysis outputs, downloads, and intermediate files. Should be on fast storage (SSD/tmpfs).
 "Cache dir" = ["cache"]
+# This is the primary database used by the application. Should be on reliable storage with backups.
 "Database file" = ["data", "db", "proteogyver.sqlite3"]
+# SQL schema file used for initial database creation if the default minimal database is unavailable for some reason.
 "Schema file" = ["resources", "proteogyver_schema.sql"]
+# Fallback minimal database used if main database file doesn't exist. Contains essential data only, and will be used to generate the initial database.
 "Minimal database file" = ["data", "minimal_pg_db.sqlite3"]
+# Directory containing example data files and sample tables for user reference and testing.
 "Example files" = ["data", "PG example files"]
-"Example proteomics comparison file" = ["data", "example proteomics comparisons file.tsv"]
+# Example file demonstrating proteomics comparison table format for differential analysis.
+"Example proteomics comparison file" = ["data", "PG example files", "Proteomics comparisons file.tsv"]
+# Directory containing enrichment analysis modules (GO, pathway enrichment, etc.).
 "Enrichers" = ["components", "enrichment"]
-"DB build files" = ["data", "db build files"]
+# Directory for external tool executables and dependencies (e.g. SAINTexpress).
 "External" = ["external"]
+# Directory where API-downloaded data is cached (BioGRID, IntAct interaction databases).
 "Api data" = ["components", "api_tools", "data"]
+# General data directory root path.
 "Data dir" = ["data"]
 
 ["Data paths"."Data import and export"]
+# Input directory for MS run JSONs, database update TSVs, and pipeline input files.
+# Monitored by automated tasks for processing new data.
 "Data import dir" = ["data", "Server_input"]
+# Output directory for database snapshots, update templates, and possible other large exports.
 "Data export dir" = ["data", "Server_output"]
 
 # For data paths, the first entry of the path list can include paths from the parameters.toml file. these are prefixed with params: and contain the path in the config. 
 # E.g. ["params:Data paths.Example files", "more examples", "Example text.txt"] would evaluate to, by default, data/PG example files/more examples/Example text.txt
 
+# Pipeline module configuration - enables automated background analysis of datasets
 ["Pipeline module"]
+# Directory watched for new analysis jobs. Each subdirectory should contain pipeline.toml, data file, and sample table.
+# New folders trigger automated analysis via Celery task. Used for batch processing without web interface.
 "Input watch directory" = ["params:Data paths.Data import and export.Data import dir", "Pipeline_input"]
+# Directory containing default TOML configuration templates (common.toml, proteomics.toml, interactomics.toml).
 "Default toml files directory" = ["params:Data paths.Data dir", "Pipeline module default tomls"]
 
+# Database creation parameters - used during initial database setup and schema creation
 ["Database creation"]
-"Database build files directory" = ["params:Data paths.DB build files"]
-"Contaminants table" = "contaminant_list.tsv"
-"Control table" = "control table.tsv"
-"Crapome table" = "crapome table.tsv"
+# UniProt taxonomy IDs (NCBI) for organisms to include.
+# Only proteins from these organisms will be loaded from UniProt and known interaction databases during database creation.
 "Organisms to include in database" = [9606]
-"Sets not included in controls" = ["Nesvilab"]
 "Control and crapome db detailed columns" = [
     "protein_id",
     "identified_in",
@@ -77,56 +117,36 @@ randomize = true
     "INTEGER NOT NULL",
     "REAL NOT NULL"
 ]
-"Default control disabled regex list" = [".*[Mm][Aa][Cc]2.*"]
 
-["Database creation"."Control and crapome sets"]
-"VL GFP MAC3 10min AP" = ["VL GFP MAC3-N AP-MS"]
-"VL GFP MAC3 10min BioID" = ["VL GFP MAC3-N BioID"]
-"VL GFP MAC2 18h AP" = [
-    "VL GFP MAC2-C AP-MS",
-    "VL GFP MAC2-N AP-MS"
-]
-"VL GFP MAC2 18h BioID" = [
-    "VL GFP MAC2-C BioID",
-    "VL GFP MAC2-N BioID"
-]
-"VL GFP MAC 24h AP" = [
-    "VL GFP MAC-C AP-MS",
-    "VL GFP MAC-N AP-MS"
-]
-"VL GFP MAC 24h AP NLS" = [
-    "VL GFP MAC-MED-NLS AP-MS",
-    "VL GFP MAC-MYC-NLS AP-MS",
-    "VL GFP MAC-NLS AP-MS"
-]
-"VL GFP MAC 24h BioID" = [
-    "VL GFP MAC-C BioID",
-    "VL GFP MAC-N BioID"
-]
-"VL GFP MAC 24h BioID NLS" = [
-    "VL GFP MAC-MED-NLS BioID",
-    "VL GFP MAC-MYC-NLS BioID",
-    "VL GFP MAC-NLS BioID"
-]
-"Nesvilab" = ["nesvilab"]
-
-["Database creation"."Control and crapome column mapping"]
-"crapome" = ["params:Data paths.DB build files", "crapome sets.json"]
-"control" = ["params:Data paths.DB build files", "control sets.json"]
-
+# Database updater configuration - controls how database updates are performed from TSV files
 ["Database updater"]
+# Maximum number of columns that can be missing from update TSV files compared to database schema.
+# Prevents accidental schema mismatches while allowing minor variations.
 "Allowed missing columns" = 3
+# Maximum number of new columns that can be added to tables during updates.
+# New columns are automatically added with appropriate data types (TEXT or NUMERIC).
 "Allowed new columns" = 2
-"Log table" = "update_log"
-"Update interval minutes" = 5 # This is the minumum interval. the updater will only update, when it is run
+# Minimum minutes between database update attempts. Updater only runs when explicitly executed.
+# This is the minumum interval. the updater will only update, when it is run
+"Update interval minutes" = 5
+# Days between automatic updates of external data sources (BioGRID, IntAct, UniProt).
+# Set to a negative value to disable automatic external updates.
 "External data update interval days" = 30
+# Directory where TSV template files are generated for manual database updates.
+# Templates show required columns and formats for each database table.
 "Tsv templates directory" = ["params:Data paths.Data import and export.Data export dir", "db update tsv templates"]
+# Days between database cleanup operations (removing orphaned data, optimizing tables).
 "Database clean interval days" = 60
+# Whether to delete proteins/interactions that no longer exist in source databases during updates.
 # These specify whether we should delete data from the database that is no longer in uniprot or known databases during database update.
 # Uniprot especially should probably be left to false, as custom added proteins do exist in the database, e.g. tags and old crapome entries.
+# Set to false to preserve custom entries, true to keep database synchronized with external sources.
 "Delete old uniprots" = false
 "Delete old interactions" = true
+# Column names that are ignored when comparing existing vs. new data during database updates.
 # These columns are not compared when checking for differences between existing database and new incoming data from update tables.
+# Typically includes metadata columns (timestamps, versions) and frequently-changing annotation fields.
+# Changes to these columns won't trigger database updates, reducing unnecessary modifications.
 "Ignore diffs" = [ "biological_role_interactor_a", "annotation_interactor_a", "annotation_interactor_b", "biological_role_interactor_b", "is_latest", "contamination_source", "entry_source", "version_update_time", "prev_version", "update_time", "modification", "ontology_term_categories",    "intact_creation_date",    "intact_update_date",    "experimental_role_interactor_a",    "experimental_role_interactor_b",    "ontology_term_ids",    "ontology_term_names",    "ontology_term_qualifier_ids",    "ontology_term_qualifier_names",    "ontology_term_types",    "qualifications",    "tags",    "publication_count",    "throughput"]
 
 ["Database updater"."Database table primary keys"]
@@ -153,37 +173,61 @@ proteins = ["params:Data paths.Data import and export.Data import dir", "db_upda
 add_or_replace = ["params:Data paths.Data import and export.Data import dir", "db_updates", "add_or_replace"]
 remove_data = ["params:Data paths.Data import and export.Data import dir", "db_updates", "remove_data"]
 
+# Database snapshot/backup settings - automatic backups of the main database
 ["Database updater"."Database snapshot settings"]
+# Directory where database snapshots (backups) are stored. Should have sufficient disk space.
 "Snapshot dir" = ["params:Data paths.Data import and export.Data export dir", "db snapshots"]
+# Days between automatic database snapshots. Set to 0 to disable snapshots.
 "Snapshot interval days" = 30
+# Number of snapshots to retain. Older snapshots are automatically deleted.
 "Snapshots to keep" = 3
 
+# External API data version management - controls how many versions of downloaded data to retain
 ["Database updater"."Versions to keep"]
+# DBnames should not contain any underscores.
+# Each database should save its data into a directory, and the root directory should be specified with {db}_path, and a regex to extract latest version with {db}_regex via (re.match(regex, dirname).group(1)).
+# Directory paths where BioGRID and IntAct data are downloaded and cached.
 biogrid_path = ["params:Data paths.Api data", "BioGRID"]
 intact_path = ["params:Data paths.Api data", "IntAct"]
+# Number of previous versions to keep for each database. Older versions are deleted during cleanup. 
 biogrid = 3
 intact = 3
+# Regular expressions to extract version numbers from BioGRID and IntAct filenames.
+# Used to identify and manage multiple versions of downloaded interaction databases.
 biogrid_regex = "BIOGRID-ALL-(\\d+\\.\\d+\\.\\d+)"
 intact_regex = "^(\\d{4}-\\d{2}-\\d{2})_intact"
 
+# External tool configuration - paths for third-party executables and dependencies
 ["External tools"]
+# Directory for SAINTexpress tool  temporary files (used for interactomics SAINT analysis).
 "SAINT tempdir" = ["params:Data paths.External", "SAINTexpress"]
 
+# Default figure settings for Plotly visualizations - used throughout the application
 ["Figure defaults".full-height]
+# Figure width in pixels. Used for main analysis plots (volcano, PCA, heatmaps, etc.).
 width = 1000
+# Minimum width per e.g. bar in a plot. Currently a bit untested, mainly useful for large numbers of sample groups. Set to 0 or negative to disable.
 min_width_per = 20
+# Side margin width in pixels (left/right padding), used with the min_width_per parameter.
 side_width = 50
+# Figure height in pixels for full-height plots (main analysis visualizations).
 height = 800
 ["Figure defaults".full-height.config]
+# If false, enables interactive features (zoom, pan, hover). Set to true for static images only.
 staticPlot = false
+# If false, allows users to edit plot titles/axes via double-click. Set to true to disable editing.
 editable = false
+displaylogo = false
 ["Figure defaults".full-height.config.toImageButtonOptions]
+# Default export format for download button: "png", "svg", "jpeg", or "webp".
 format = "png"
 
+# Half-height figure settings for smaller supplementary plots
 ["Figure defaults".half-height]
 width = 1000
 min_width_per = 20
 side_width = 50
+# Reduced height for supplementary metrics and smaller visualizations.
 height = 400
 ["Figure defaults".half-height.config]
 staticPlot = false
@@ -191,24 +235,35 @@ editable = false
 ["Figure defaults".half-height.config.toImageButtonOptions]
 format = "png"
 
+# File loading and parsing configuration - controls how input data files are interpreted
 ["file loading"]
+# Column name variations recognized as bait/protein identifiers in interactomics sample tables.
+# Used to identify which column contains the UniProt ID of the bait protein in each sample.
 "Bait ID column names" = ["bait uniprot", "bait id", "bait identifier", "baitid", "bait up"]
+# List of terms/categories to exclude from enrichment analysis by default (e.g. "cellular_component").
 "Do not show in enrichment default" = []
+# Upper bound for PSM (Peptide Spectrum Match) counts. Used to identify whether a column represents spectral counts or intensities.
 "Maximum psm ever theoretically encountered" = 5000
 
+# Valid option lists - defines allowed values for dropdown menus and configuration options
 ["Possible values"]
+# Available Plotly figure templates for visualization themes.
 "Figure templates" = ["plotly_white", "simple_white", "plotly_dark"]
+# Supported image export formats for figure downloads.
 Figure-config-toImageButtonOptions-format = ["png", "svg", "jpeg", "webp"]
+# Currently implemented analysis workflows available in the application.
 "Implemented workflows" = ["Proteomics", "Interactomics"]
 
-["workflow parameters"]
-phosphoproteomics = "Not implemented"
+# Workflow-specific analysis parameters - default settings for each analysis type
 ["workflow parameters".interactomics]
+# Samples with these terms in their group names are offered as controls in the interactomics interface in the GUI.
 "control indicators" = ["ctrl", "gfp", "control"]
 
 ["workflow parameters".proteomics]
 na_filter_default_value = 60
+# Set the default imputation method
 "default imputation method" = "QRILC"
+# "no_normalization" preserves raw intensities; others normalize across samples.
 "default normalization method" = "no_normalization"
 
 ["workflow parameters".proteomics."imputation methods"]

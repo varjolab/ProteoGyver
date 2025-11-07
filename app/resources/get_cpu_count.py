@@ -20,7 +20,7 @@ try:
     else:
         try:
             cpu_count = int(cpu_limit)
-            cpu_count = max(1, min(cpu_count, multiprocessing.cpu_count() - 1))
+            cpu_count = max(1, min(cpu_count, multiprocessing.cpu_count()))
         except (ValueError, TypeError):
             cpu_count = multiprocessing.cpu_count() - 1
     

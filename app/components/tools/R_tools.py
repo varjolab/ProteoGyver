@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import uuid
 import pandas as pd
 import tempfile
@@ -31,18 +32,22 @@ def vsn(dataframe: pd.DataFrame, random_seed: int, errorfile: str) -> pd.DataFra
     ]
     return run_rscript(script, dataframe, tempname, errorfile, replace_dir = tempdir)
 
-def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_name: str, errorfile: str, replace_dir:str|None = None, input_df_has_index:bool = True):
+def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_name: str, errorfile: str|list, replace_dir:str|None = None, input_df_has_index:bool = True):
     """Execute an R script with a temp data file and return parsed output.
 
     :param r_script_contents: Lines of the R script; occurrences of ``replace_name`` are replaced with temp paths.
     :param r_script_data: DataFrame to write to temp file for R to read.
     :param replace_name: Placeholder token to be replaced with temp filename.
-    :param errorfile: Base path for error log on failure.
+    :param errorfile: Base path (e.g. 'logs/errors.log') or list of a file path (e.g. ['logs','errors.log']) for error log on failure.
     :param replace_dir: Optional directory placeholder to replace with temp dir.
     :param input_df_has_index: Whether to include index when writing CSV/TSV.
     :returns: DataFrame parsed from R output file.
     :raises Exception: Re-raises Rscript execution errors after logging.
     """
+
+    if isinstance(errorfile, list):
+        errorfile = os.path.join(*errorfile)
+
     with tempfile.TemporaryDirectory() as tmpdir:
         with tempfile.NamedTemporaryFile() as datafile:
             repwith = datafile.name
@@ -63,7 +68,7 @@ def run_rscript(r_script_contents:list, r_script_data: pd.DataFrame, replace_nam
                     sh.Rscript(scriptfile.name)
                 except Exception as e:
                     datestr = str(datetime.now()).split()[0] # quick n dirty way to get just the date without time
-                    with open(f'{errorfile}.txt','a') as fil:
+                    with open(f'{errorfile}','a') as fil:
                         fil.write(f'===================\n{datestr}\n\n{e}\n\n{str(e.stderr)}\n-----------------------\n')
                     raise e
                 with open(datafile.name, "r") as f:

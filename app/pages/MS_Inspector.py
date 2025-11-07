@@ -269,8 +269,8 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     )
     tic_figure.update_layout(
         #title=setname,
-        height=400,
-        width=1200,
+        height=800,
+      #  width='100%',
         xaxis_range=[0,max_x],
         yaxis_range=[0,max_y[datatype]],
         #template='plotly_dark',

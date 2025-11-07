@@ -337,7 +337,7 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
     normalization_div, normalized = proteomics.normalization(
         na_filtered, cfg.normalization,
         params["Figure defaults"]["full-height"],
-        params["Config"]["R error file"],
+        params["Config"]["script error file"],
     )
     _dump_json(cfg.outdir, "11_normalized", normalized)
     divs["normalization"] = normalization_div
@@ -351,7 +351,7 @@ def _run_proteomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any],
         imputation_div, imputed = proteomics.imputation(
             normalized, cfg.imputation,
             params["Figure defaults"]["full-height"],
-            params["Config"]["R error file"],
+            params["Config"]["script error file"],
             sample_groups_rev=data_dictionary["sample groups"]["rev"]
         )
         _dump_json(cfg.outdir, "12_imputed", imputed)

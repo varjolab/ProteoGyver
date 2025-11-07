@@ -743,7 +743,7 @@ def proteomics_normalization_plot(filtered_data: Optional[Dict[str, Any]], norma
     """
     if filtered_data is None:
         return no_update
-    return proteomics.normalization(filtered_data, normalization_option, parameters['Figure defaults']['full-height'], parameters['Config']['R error file'])
+    return proteomics.normalization(filtered_data, normalization_option, parameters['Figure defaults']['full-height'], parameters['Config']['script error file'])
 
 @callback(
     Output({'type': 'workflow-plot', 'id': 'proteomics-missing-in-other-plot-div'}, 'children'),
@@ -780,7 +780,7 @@ def proteomics_imputation_plot(normalized_data: Optional[Dict[str, Any]], imputa
         normalized_data,
         imputation_option,
         parameters['Figure defaults']['full-height'],
-        parameters['Config']['R error file'],
+        parameters['Config']['script error file'],
         sample_groups_rev=data_dictionary['sample groups']['rev']
         )
 

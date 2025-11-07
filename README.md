@@ -181,12 +181,12 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip3 install -r requirements.txt
 ```
-And then run it. MSParser expects three inputs: path to raw file, path to output **directory**, and path to an error file:
+And then run it. MSParser expects three inputs: path to a raw file (e.g. something.raw, or something.d), path to output **directory**, and path to an error file:
 ```
 python3 MSParser.py /path/to/rawfile.d /path/to/output_dir/for/jsons/ /path/to/errorfile.txt
 python3 MSParser.py /path/to/rawfile.raw /path/to/output_dir/for/jsons/ /path/to/errorfile.txt
 ```
-It will parse the rawfile, and produce a .json file, which is understood by MS_run_json_parser.py. The parser runs in the background, and will digest files in the directory specified in parameters at Maintenance.MS run parsing.Input files. By default, it will move the jsons afterwards to the directory specified in parameters at Maintenance.MS run parsing.Move done jsons into subdir. If the latter parameter is empty, files will be deleted after parsing. The parsed json files, if kept, will also be compressed (zip), when they accumulate.
+It will parse the rawfile, and produce a .json file in the output directory, which is understood by MS_run_json_parser.py (run on a schedule by the proteogyver main container). The parser runs in the background, and will digest files in the directory specified in parameters at Maintenance.MS run parsing.Input files. By default, it will move the jsons afterwards to the directory specified in parameters at Maintenance.MS run parsing.Move done jsons into subdir. If the latter parameter is empty, files will be deleted after parsing. The parsed json files, if kept, will also be compressed (zip), when they accumulate.
 
 ### Docker Installation (recommended)
 
@@ -203,15 +203,9 @@ For production use, the updater is required for external data to stay up to date
 Building the updater container should take around a minute. Running the updater can take a long time, especially on the first run.
 **All commands should be run from the proteogyver root folder**
 
-First run volume path checks to make sure all required paths exist:
-```
-bash utils/check_volume_paths.sh # This will print a summary
-bash utils/check_volume_paths.sh -c # This will create any missing paths.
-```
 
-Then build and run the updater to generate a database:
+Then run the updater to generate a database:
 ```
-docker build -t pg_updater:1.5 -f dockerfiles/dockerfile_updater .
 cd dockerfiles/pg_updater && docker compose up
 ```
 
@@ -319,6 +313,7 @@ Some are included in the files already.
 !!NOTE!! docker commands in particular may require superuser rights (sudo).
 This should take around 15 minutes, but can take much longer, mostly due to R requirements. 
 ```
+docker build -t pg_updater:1.5 -f dockerfiles/dockerfile_updater .
 docker build -t proteogyver:1.5 -f dockerfiles/dockerfile .
 ```
 

@@ -59,7 +59,10 @@ def get_upid(upcol: pd.Series) -> pd.Series:
     for v in upcol:
         for nullchar in ['-1','nan','none']:
             v = v.replace(nullchar,'')
+        v = v.strip()
         if v == '0':
+            v = np.nan
+        if v == '':
             v = np.nan
         news.append(v)
     retser = pd.Series(news, index=upcol.index, name=upcol.name)
@@ -305,6 +308,7 @@ def generate_pandas(file_path:str, uniprots_to_get:set|None, organisms: set|None
     
     for fname in os.listdir(folder_path):
         if fname.endswith('.tsv'):
+            print(f'Generating BioGRID final DataFrame for: {fname}')
             chunk_df = pd.read_csv(os.path.join(folder_path, fname),sep='\t', index_col='interaction')
             findf: pd.DataFrame = get_final_df(chunk_df)
             findf.to_csv(os.path.join(folder_path, fname), index=True, sep='\t')

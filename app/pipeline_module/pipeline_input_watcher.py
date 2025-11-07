@@ -277,7 +277,7 @@ def _safe_write_end_of_processing(dir_path: Path, status: str) -> None:
 def _safe_write_error(dir_path: Path, filename: str, message: str) -> None:
     """Append an error message to a file, with timestamp and fallback path.
 
-    :param dir_path: Base directory for error file.
+    :param dir_path: Base directory foscript error file.
     :param filename: Error filename (e.g., 'ERRORS.txt').
     :param message: Error message to append.
     :returns: None.

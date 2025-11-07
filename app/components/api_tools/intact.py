@@ -382,6 +382,7 @@ def do_update(save_file, uniprots_to_get: set|None, organisms: set|None) -> None
     :returns: None
     """
     if not os.path.exists(save_file):
+        print(f'Downloading IntAct')
         download_intact_ftp(save_file)
     generate_pandas(save_file, save_file.replace('.zip','.tsv'),uniprots_to_get, organisms)
 

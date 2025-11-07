@@ -37,7 +37,7 @@ killall celery || true
 echo "[INIT] Running embedded page updater..."
 python embedded_page_updater.py
 CPU_COUNT=$(python /proteogyver/resources/get_cpu_count.py /proteogyver/config/parameters.toml)
-# ---- Gunicorn (do the arithmetic properly)
+
 WORKERS=$(( CPU_COUNT * 2 + 1 ))
 THREADS=$(( CPU_COUNT ))  
 echo "[INIT] Starting Redis server..."
