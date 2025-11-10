@@ -5,6 +5,7 @@ cd /proteogyver
 # Ensure config/parameters.toml exists, copy from default if not
 if [ ! -f config/parameters.toml ]; then
     echo "[INIT] config/parameters.toml not found, copying default parameters.toml to config/parameters.toml"
+    mkdir -p config
     cp parameters.toml config/parameters.toml
 fi
 
