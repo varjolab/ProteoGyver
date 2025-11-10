@@ -77,20 +77,33 @@ RUN apt-get update && \
 WORKDIR /proteogyver
 COPY requirements/renv.lock .
 RUN R --vanilla -q -e "install.packages('renv', repos='https://cloud.r-project.org')" && \
-    R --vanilla -q -e "renv::restore(prompt = FALSE, clean = TRUE)"
+    R --vanilla -q -e "renv::restore(prompt = FALSE, clean = TRUE)" && \
+    rm -rf /opt/renv/cache/*.tar.gz /opt/renv/cache/*.zip 2>/dev/null || true
 
 # Install micromamba and create environment
 COPY requirements/environment.yml .
 RUN curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
     micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX} && \
     micromamba create -y -n PG -f environment.yml && \
-    micromamba clean -a -y
+    micromamba clean -a -y && \
+    find /opt/conda -type f -name "*.pyc" -delete && \
+    find /opt/conda -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find /opt/conda -type d -name "*.dist-info" -exec rm -rf {} + 2>/dev/null || true && \
+    find /opt/conda -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find /opt/conda -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
+    find /opt/conda -type f -name "*.a" -delete && \
+    find /opt/conda -type f -name "*.la" -delete
 
 # Copy app code (needed for SAINTexpress executables)
 COPY app /proteogyver/app
 
-# Create SAINTexpress symlinks
-RUN if [ -f /proteogyver/app/external/SAINTexpress/SAINTexpress-spc ]; then \
+# Clean up Python cache files and create SAINTexpress symlinks
+RUN find /proteogyver/app -type f -name "*.pyc" -delete && \
+    find /proteogyver/app -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find /proteogyver/app -type f -name "*.ipynb" -delete && \
+    find /proteogyver/app -type d -name "*.ipynb_checkpoints" -exec rm -rf {} + 2>/dev/null || true && \
+    rm -rf /proteogyver/app/cache /proteogyver/app/logs /proteogyver/app/debug && \
+    if [ -f /proteogyver/app/external/SAINTexpress/SAINTexpress-spc ]; then \
         chmod 777 /proteogyver/app/external/SAINTexpress/SAINTexpress-spc && \
         ln -s /proteogyver/app/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc; \
     fi && \
@@ -118,8 +131,17 @@ RUN apt-get update && \
         ca-certificates && \
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -yq --no-install-recommends nodejs && \
-    npm install -g configurable-http-proxy && \
-    rm -rf /var/lib/apt/lists/*
+    npm install -g --production configurable-http-proxy && \
+    npm cache clean --force && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.npm
+
+# Final cleanup in runtime stage
+RUN find /proteogyver -type f -name "*.pyc" -delete && \
+    find /proteogyver -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find /proteogyver -type f -name "*.ipynb" -delete && \
+    find /opt/conda -type f -name "*.pyc" -delete && \
+    find /opt/conda -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    rm -rf /proteogyver/app/cache /proteogyver/app/logs /proteogyver/app/debug /tmp/* /var/tmp/*
 
 # Set environment variables
 ENV PATH="/opt/conda/envs/PG/bin:/usr/local/bin:${PATH}" \
