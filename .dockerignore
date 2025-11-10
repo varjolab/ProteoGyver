@@ -51,8 +51,6 @@ Dockerfile*
 # Other
 *.md
 README.md
-LICENSE
-VERSION
 example use cases/
 build/
 
