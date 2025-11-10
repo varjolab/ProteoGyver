@@ -1,8 +1,8 @@
+
 # Stage 1: Build stage
 FROM ubuntu:24.04 as builder
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
 
-# Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
@@ -27,13 +27,28 @@ RUN apt-get update && \
         curl \
         python3 \
         python3-pip \
-        nodejs \
-        npm \
-        build-essential \
-        ca-certificates \
-        postgresql \
-        redis \
-        psmisc \
+        gnupg && \
+    locale-gen en_US.UTF-8 && \
+    update-locale LANG=en_US.UTF-8 && \
+    # Install Node.js 18.x (LTS) for compatibility
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -yq --no-install-recommends nodejs && \
+    # Add R repositories (force jammy for now)
+    echo "deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" > /etc/apt/sources.list.d/cran.list && \
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/cran.gpg && \
+    echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" > /etc/apt/sources.list.d/cranapt.list && \
+    wget -qO- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/cranapt.gpg && \
+    apt-get update && \
+    # Install Chrome and its dependencies
+    wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get install -yq --no-install-recommends ./google-chrome-stable_current_amd64.deb && \
+    rm -f google-chrome-stable_current_amd64.deb && \
+    # Install R and other dependencies
+    apt-get install -yq --no-install-recommends \
+        r-base \
+        r-base-dev \
+        r-recommended \
+        littler \
         libcurl4-openssl-dev \
         libxml2-dev \
         libblas-dev \
@@ -50,22 +65,13 @@ RUN apt-get update && \
         libssl-dev \
         libgit2-dev \
         libicu-dev \
-        r-base \
-        r-base-dev \
-        r-recommended \
-        littler \
-        gnupg && \
-    locale-gen en_US.UTF-8 && \
-    update-locale LANG=en_US.UTF-8 && \
-    wget -q -O- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
-    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
-    wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc && \
-    echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu jammy main" > /etc/apt/sources.list.d/cranapt.list && \
-    apt-get update && \
-    apt-get install -yq --no-install-recommends \
-        google-chrome-stable && \
+        postgresql \
+        redis \
+        psmisc \
+        ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     npm install -g configurable-http-proxy
+
 
 # Install R packages
 WORKDIR /proteogyver
