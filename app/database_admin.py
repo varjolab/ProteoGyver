@@ -124,8 +124,8 @@ def main():
     :returns: None.
     """
     force_full_update = False
-root_dir = Path(__file__).resolve().parents[1]
-parameters_path = os.path.join(root_dir, 'config','parameters.toml')
+    root_dir = Path(__file__).resolve().parents[1]
+    parameters_path = os.path.join(root_dir, 'config','parameters.toml')
     parameters = utils.read_toml(Path(parameters_path))
     time_format = parameters['Config']['Time format']
     if '--force-full-update' in sys.argv:
