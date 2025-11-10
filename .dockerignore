@@ -43,7 +43,8 @@ app/logs/
 .gitignore
 
 # Docker
-dockerfiles/
+dockerfiles/dockerfile_updater
+dockerfiles/dockerfile
 Dockerfile*
 .dockerignore
 
