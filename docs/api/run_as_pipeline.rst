@@ -1,7 +1,0 @@
-run\_as\_pipeline module
-========================
-
-.. automodule:: run_as_pipeline
-   :members:
-   :undoc-members:
-   :show-inheritance:

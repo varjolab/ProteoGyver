@@ -58,7 +58,9 @@ def save_uploaded_files(
     """
     try:
         # Load parameters to get default output directory if not provided
-        parameters = read_toml(Path('config/parameters.toml'))
+        root_dir = Path(__file__).resolve().parents[1]
+        parameters_path = os.path.join(root_dir, 'config','parameters.toml')
+        parameters = read_toml(Path(parameters_path))
         
         if output_directory is None:
             pipeline_path = parameters.get('Pipeline module', {}).get('Input watch directory', [])
@@ -373,7 +375,9 @@ def register_file_upload_api(server, celery_app_instance=None):
                 }), 400
             
             # Load parameters to get the base output directory
-            parameters = read_toml(Path('config/parameters.toml'))
+            root_dir = Path(__file__).resolve().parents[1]
+            parameters_path = os.path.join(root_dir, 'config','parameters.toml')
+            parameters = read_toml(Path(parameters_path))
             pipeline_path = parameters.get('Pipeline module', {}).get('Input watch directory', [])
             
             if isinstance(pipeline_path, list):
@@ -483,7 +487,9 @@ def register_file_upload_api(server, celery_app_instance=None):
                 }), 400
             
             # Load parameters to get the base output directory
-            parameters = read_toml(Path('config/parameters.toml'))
+            root_dir = Path(__file__).resolve().parents[1]
+            parameters_path = os.path.join(root_dir, 'config','parameters.toml')
+            parameters = read_toml(Path(parameters_path))
             pipeline_path = parameters.get('Pipeline module', {}).get('Input watch directory', [])
             
             if isinstance(pipeline_path, list):

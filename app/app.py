@@ -118,7 +118,9 @@ def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
         return not is_open
     return is_open
 
-parameters = utils.read_toml(Path('config/parameters.toml'))
+root_dir = Path(__file__).resolve().parents[0]
+parameters_path = os.path.join(root_dir, 'config','parameters.toml')
+parameters = utils.read_toml(Path(parameters_path))
 server = app.server
 
 # Register file upload API endpoint

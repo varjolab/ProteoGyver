@@ -1,7 +1,0 @@
-database\_admin module
-======================
-
-.. automodule:: database_admin
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -4,9 +4,10 @@ Proteogyver (PG) is a low-threshold, web-based platform for proteomics and inter
 
 ## Table of contents:
 
-## Security
+## Security and compatibility
 
 The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)
+ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, however should work just fine on other platforms as well. ARM-based systems may require a rebuild of the container.
 
 ## QC and quick analysis toolset
 
@@ -52,6 +53,11 @@ Example files are downloadable from the sidebar of the main interface. These inc
     - DIA-NN (pg_matrix.tsv)
     - Generic matrix format (one row = one protein, one column = one sample)
 
+### Algorithm details
+ProteoGyver relies mostly on proven software. However, some choices have been made:
+- p-values for differential abundance are adjusted with the Benjamini-Hochberg procedure
+- log2 fold chance thresholding is also used for the abundance in differential tests. This relies on "raw" log2 fold change (1 = 2-fold change).
+
 ### PTM workflow
 Currently the PTM workflow is not ready for deployment. However, PTMs can be analyzed in a rudimentary way with the proteomics workflow. In this case, the input data table should be a generic matrix, where the first column is the ID column specifying the protein and modification site, and all other columns represent intensity values of e.g. the identified peptide or site. In this case, the first column could contain values such as Protein12-siteY32, or similar. As long as each entry is unique, PG will ingest the file happily. The workflow will then produce the same plots, e.g. counts, intensity distributions, missing values, volcano plots etc. 
 
@@ -62,7 +68,7 @@ Alternatively, you can use e.g. the [DiaNN R package](https://github.com/vdemich
 as long as pandas, pyarrow, and fastparquet are installed via e.g. pip. With large reports, you will need to read/write in chunks.
 The report.tsv is then ready for the script, and the resulting matrix ready for PG. Do keep in mind that R may change the column headers if special characters or spaces are present.
 
-
+### Pipeline mode for automated processing
 The pipeline module features an ingest directory (see parameters.toml [Pipeline module.Input watch directory], by default data/Server_input/Pipeline_input ). While the Proteogyver container is running, a watcher script will detect newly created folders in this directory, and launch the analysis in the background for each.
 
 Each input folder should contain:
@@ -355,7 +361,7 @@ During database building, PG downloads data from several sources:
 Some are included in the files already.
 
 #### Build the main docker image.
-!!NOTE!! docker commands in particular may require superuser rights (sudo).
+**NOTE:** docker commands in particular may require superuser rights (sudo).
 This should take around 15 minutes, but can take much longer, mostly due to R requirements. 
 ```
 docker build -t pg_updater:1.5 -f dockerfiles/dockerfile_updater .
@@ -375,7 +381,7 @@ Adding custom tools to Proteogyver is supported as pages in the app/pages folder
 ### Accessing the database from other tools
 Other tools can access the database. Writes to the database should not require any specific precautions. However, please check that the database is not locked, and another transaction is not in progress. Other scenarios when one should not write to the database include if it is in the process of being backed up, or while the updater is actively running.
 
-## Citation
+## How to cite
 
 If you use ProteoGyver, a part of it, or tools based on it, please cite:
 [Add citation information here]

@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta, date
 import nbib
 import random
+from pathlib import Path
 import string
 __all__ = [
     'get_timestamp', 'parse_timestamp_from_str', 'is_newer',

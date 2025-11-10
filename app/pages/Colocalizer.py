@@ -9,6 +9,7 @@ This module provides functionality to:
 The app uses Dash callbacks to handle user interactions and update visualizations dynamically.
 """
 
+import os
 from dash import html, dcc, callback, MATCH, ctx, no_update, ALL, register_page
 import plotly.express as px
 from components.ui_components import upload_area
@@ -16,6 +17,7 @@ import logging
 import numpy as np
 import base64
 import tempfile
+from pathlib import Path
 from datetime import datetime
 from plotly import graph_objects as go
 from readlif.reader import LifFile
@@ -30,7 +32,9 @@ from element_styles import UPLOAD_INDICATOR_STYLE, UPLOAD_STYLE,GENERIC_PAGE
 
 
 register_page(__name__, path='/colocalizer')
-parameters = parse_parameters('config/parameters.toml')
+root_dir = Path(__file__).resolve().parents[1]
+parameters_path = os.path.join(root_dir, 'config','parameters.toml')
+parameters = parse_parameters(parameters_path)
 logger = logging.getLogger(__name__)
 logger.info(f'{__name__} loading')
 available_cmaps = 'blackbody blues icefire bugn bupu cividis electric greens hot ylorbr gnbu greens amp thermal ice dense pubugn purd purp algae hot gray greys inferno magma pubu oranges reds purples rdpu tempo teal'.split()

@@ -6,7 +6,7 @@ from plotly import io as pio
 import sqlite3
 from plotly import graph_objects as go
 import warnings
-import ms_name_identifier
+from . import ms_name_identifier
 
 def get_directory_size(directory_path):
     """Calculate the total size of all files in a directory recursively."""
@@ -23,6 +23,12 @@ def get_directory_size(directory_path):
     return total_size
 
 def get_traces(ms1_df, ms2_df):
+    """Get traces from a Timstof file.
+    
+    :param ms1_df: DataFrame containing the MS1 data.
+    :param ms2_df: DataFrame containing the MS2 data.
+    :returns: Dictionary containing the traces.
+    """
     bpc_df = ms1_df[['Time','MaxIntensity','SummedIntensities']]
     msn_df = ms2_df[['Time','MaxIntensity','SummedIntensities']]
     tic_data = []
@@ -49,6 +55,13 @@ def get_traces(ms1_df, ms2_df):
     return {'TIC': tic, 'BPC': bpc, 'MSn': MSn}
 
 def parse_file(root, run_name, run_id_regex):
+    """Parse a Timstof file.
+    
+    :param root: Root directory of the Timstof file.
+    :param run_name: Name of the run.
+    :param run_id_regex: Regular expression to match the run ID.
+    :returns: Dictionary containing the parsed data.
+    """
     warnings.simplefilter(action="ignore", category=FutureWarning)
     timsfile = os.path.join(root, run_name)
     with sqlite3.connect(os.path.join(timsfile, 'analysis.tdf')) as conn:

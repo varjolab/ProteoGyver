@@ -571,12 +571,15 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
     # 7) Enrichment analysis (if requested)
     enrichment_data = None
     enrichment_info = None
+    
+    root_dir = Path(__file__).resolve().parents[1]
+    parameters_path = os.path.join(root_dir, 'config','parameters.toml')
     if cfg.chosen_enrichments:
         enrichment_div, enrichment_data, enrichment_info = interactomics.enrich(
             filtered_saint,
             cfg.chosen_enrichments,
             params["Figure defaults"]["full-height"],
-            parameters_file="config/parameters.toml"
+            parameters_file=parameters_path
         )
         _dump_json(cfg.outdir, "26_enrichment_data", enrichment_data)
         _dump_json(cfg.outdir, "26_enrichment_info", enrichment_info)

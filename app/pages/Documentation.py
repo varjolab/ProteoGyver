@@ -1,6 +1,7 @@
 """Dash app for inspection and analysis of MS performance based on TIC graphs"""
 
 import os
+from pathlib import Path
 import dash
 from dash import dcc, html
 from element_styles import GENERIC_PAGE
@@ -19,7 +20,9 @@ def announcements():
     umstyle:dict = GENERIC_PAGE.copy()
     umstyle['max-width']='800px'
     umstyle['paddingTop'] = 80
-    with open(os.path.join('data','announcements.md')) as fil:
+    root_dir = Path(__file__).resolve().parents[1]
+    doc_path = os.path.join(root_dir, 'data','announcements.md')
+    with open(doc_path) as fil:
         announcements = fil.read()
     return html.Div([
         dcc.Markdown(
@@ -38,7 +41,9 @@ def other_tools():
     umstyle:dict = GENERIC_PAGE.copy()
     umstyle['max-width']='800px'
     umstyle['paddingTop'] = 80
-    with open(os.path.join('data','other_tools.md')) as fil:
+    root_dir = Path(__file__).resolve().parents[1]
+    doc_path = os.path.join(root_dir, 'data','other_tools.md')
+    with open(doc_path) as fil:
         manual_contents = fil.read()
     return html.Div([
         dcc.Markdown(
@@ -57,7 +62,9 @@ def user_manual():
     umstyle:dict = GENERIC_PAGE.copy()
     umstyle['max-width']='800px'
     umstyle['paddingTop'] = 80
-    with open(os.path.join('data','user_guide.md')) as fil:
+    root_dir = Path(__file__).resolve().parents[1]
+    doc_path = os.path.join(root_dir, 'data','user_guide.md')
+    with open(doc_path) as fil:
         manual_contents = fil.read()
     return html.Div([
         dcc.Markdown(

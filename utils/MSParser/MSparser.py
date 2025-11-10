@@ -4,8 +4,8 @@ import sys
 from typing import Optional, Dict
 import re
 import unidecode
-import parse_thermo
-import parse_timstof
+from . import parse_thermo
+from . import parse_timstof
 import traceback
 import pandas as pd
 from plotly import io as pio
@@ -14,11 +14,6 @@ import json
 from scipy.ndimage import gaussian_filter1d
 import tomlkit
 
-
-# Add the directory containing this script to the Python path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-if script_dir not in sys.path:
-    sys.path.insert(0, script_dir)
 
 def remove_accent_characters(text: str) -> str:
     """Replace accented characters with their unaccented equivalents.

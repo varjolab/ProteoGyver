@@ -1,7 +1,0 @@
-embedded\_page\_updater module
-==============================
-
-.. automodule:: embedded_page_updater
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,7 +1,0 @@
-element\_styles module
-======================
-
-.. automodule:: element_styles
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,9 +1,0 @@
-ProteoGyver documentation
-=========================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   readme
-   api/modules

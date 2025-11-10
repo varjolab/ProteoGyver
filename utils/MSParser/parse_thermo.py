@@ -6,13 +6,18 @@ from datetime import datetime
 from fisher_py.raw_file_reader import RawFileReaderAdapter, RawFileAccess
 from fisher_py.data.business import ChromatogramTraceSettings, TraceType, ChromatogramSignal
 from fisher_py.data import Device
-import ms_name_identifier
-import shutil
+from . import ms_name_identifier
 
-def roundup(x):
+def roundup(x: float) -> int:
+    """Round up a float to the nearest 100."""
     return int(math.ceil(x / 100.0)) * 100
 
-def get_traces(rawfile):
+def get_traces(rawfile: RawFileReaderAdapter) -> dict:
+    """Get traces from a raw file.
+    
+    :param rawfile: Raw file reader adapter.
+    :returns: Dictionary containing the traces.
+    """
     tic = {}
     bpc = {}
     msn = {}
@@ -34,7 +39,12 @@ def get_traces(rawfile):
         'MSn': pd.Series([sum(msn[stime]) for stime in sorted_keys], name = 'MSn').to_dict(),
     }
     
-def get_scantypes(rawfile):
+def get_scantypes(rawfile: RawFileReaderAdapter) -> dict:
+    """Get scantypes from a raw file.
+    
+    :param rawfile: Raw file reader adapter.
+    :returns: Dictionary containing the scantypes.
+    """
     scantypes = {}
     splitchrs = '[@'
     for i in range(1, rawfile.run_header_ex.last_spectrum+1):
@@ -60,11 +70,8 @@ def get_scantypes(rawfile):
 def deduplicate_nested_dicts(nest_dict: dict) -> dict:
     """Remove nested dicts based on inner dict values.
 
-    Args:
-        inst_dict (dict): Dictionary of dictionaries.
-
-    Returns:
-        dict: A new dictionary with duplicates removed (keeps first occurrence, by sorted keys).
+    :param nest_dict: Dictionary of dictionaries.
+    :returns: A new dictionary with duplicates removed (keeps first occurrence, by sorted keys).
     """
     seen = set()
     unique_dict = {}
@@ -79,6 +86,12 @@ def deduplicate_nested_dicts(nest_dict: dict) -> dict:
     return unique_dict
 
 def parse_file(data_path, filename) -> dict:
+    """Parse a raw file.
+    
+    :param data_path: Path to the data file.
+    :param filename: Name of the data file.
+    :returns: Dictionary containing the parsed data.
+    """
     before = set(os.listdir('.'))
     fdic = {'file_name': filename, 'file_path': os.path.join(data_path,filename)}
     raw_file = RawFileReaderAdapter.file_factory(fdic['file_path'])
