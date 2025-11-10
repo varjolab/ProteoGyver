@@ -4,11 +4,14 @@ This module reads a text file containing website names and URLs, then generates
 Dash pages that embed these websites using html.Embed.
 
 Limitations:
+
 - Not all sites can be embedded due to content security policies (CSP)
 - HTTPS support is untested but may help with embedding restrictions
 - Successfully tested only with:
+
   - Sites served from the same server
   - www.proteomics.fi
+
 - All testing has been done without HTTPS
 """
 

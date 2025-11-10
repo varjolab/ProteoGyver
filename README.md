@@ -55,7 +55,7 @@ Example files are downloadable from the sidebar of the main interface. These inc
 ### PTM workflow
 Currently the PTM workflow is not ready for deployment. However, PTMs can be analyzed in a rudimentary way with the proteomics workflow. In this case, the input data table should be a generic matrix, where the first column is the ID column specifying the protein and modification site, and all other columns represent intensity values of e.g. the identified peptide or site. In this case, the first column could contain values such as Protein12-siteY32, or similar. As long as each entry is unique, PG will ingest the file happily. The workflow will then produce the same plots, e.g. counts, intensity distributions, missing values, volcano plots etc. 
 
-Alternatively, you can use e.g. the [DiaNN R package](https://github.com/vdemichev/diann-rpackage) to recalculate MaxLFQ on protein level based only on modified (e.g. phosphorylated) precursors. And then run the usual proteomics workflow. See the example R file in [utils/scripts/diann-phospho-requant.R](utils/scripts/diann-phospho-requant.R). Since the DiaNN R package is a bit out of date, you will first need to convert the .parquet report to .tsv. This can be done e.g. via python:
+Alternatively, you can use e.g. the [DiaNN R package](https://github.com/vdemichev/diann-rpackage) to recalculate MaxLFQ on protein level based only on modified (e.g. phosphorylated) precursors. And then run the usual proteomics workflow. See the example R file in [utils/scripts/diann-phospho-requant.R](./utils/scripts/diann-phospho-requant.R). Since the DiaNN R package is a bit out of date, you will first need to convert the .parquet report to .tsv. This can be done e.g. via python:
 > import pandas as pd
 > df  = pd.read_parquet('report.parquet')
 > df.to_csv('report.tsv',sep='\t')
@@ -79,7 +79,7 @@ To trigger reanalysis, the input folder must not contain either the error file, 
 
 #### Pipeline input toml
 
-The pipeline module is set to watch the /proteogyver/data/Server_input/Pipeline_input directory in the **container** by default. This should be mapped to a host path, where pipeline input files can be placed either automatically or manually. In the [docker compose](dockerfiles/proteogyver/docker-compose.yaml) the host directory /data/PG/input is mounted at /proteogyver/data/Server_input, so the pipeline module will watch /data/PG/input/Pipeline_input for new directories. 
+The pipeline module is set to watch the /proteogyver/data/Server_input/Pipeline_input directory in the **container** by default. This should be mapped to a host path, where pipeline input files can be placed either automatically or manually. In the [docker compose](./dockerfiles/proteogyver/docker-compose.yaml) the host directory /data/PG/input is mounted at /proteogyver/data/Server_input, so the pipeline module will watch /data/PG/input/Pipeline_input for new directories. 
 
 Each new directory represents a dataset to analyze. Each directory should contain three, optionally four, files:
 - data file
@@ -87,9 +87,9 @@ Each new directory represents a dataset to analyze. Each directory should contai
 - pipeline input toml
 - (proteomics comparisons)
 
-Examples of these are available in the [example files](app/data/PG%20example%20files/), or in the download zip that is obtained from the download example files button in the web GUI.
+Examples of these are available in the [example files](./app/data/PG%20example%20files/), or in the download zip that is obtained from the download example files button in the web GUI.
 
-Full available parameters can be seen in the [default files](app/data/Pipeline%20module%20default%20tomls/), which are split into common.toml, interactomics.toml, and proteomics.toml. The common has parameters available for all workflows, while the workflow specific ones deal with parameters for the workflows.
+Full available parameters can be seen in the [default files](./app/data/Pipeline%20module%20default%20tomls/), which are split into common.toml, interactomics.toml, and proteomics.toml. The common has parameters available for all workflows, while the workflow specific ones deal with parameters for the workflows.
 
 The toml file contains three sections (file to see for full list of parameters):
 1) pipeline (common.toml)
@@ -117,7 +117,7 @@ and the pipeline.toml should contain:
 > "sample table" = "sample table.tsv"
 
 #### Parameters not in the input toml
-Since the input .toml can be very minimal, for all parameters that are NOT in it, PG will use values from the [default files](app/data/Pipeline%20module%20default%20tomls/). For this reason, it is advisable to always specify things like additional controls, control sample groups, and crapome sets for interactomics, and control groups for proteomics. 
+Since the input .toml can be very minimal, for all parameters that are NOT in it, PG will use values from the [default files](./app/data/Pipeline%20module%20default%20tomls/). For this reason, it is advisable to always specify things like additional controls, control sample groups, and crapome sets for interactomics, and control groups for proteomics. 
 
 #### Initiating pipeline analysis via API
 An alternative to direct file system access to the server is to use the API. The API is on the same port as the GUI, under /api/upload-pipeline-files. 
@@ -297,7 +297,7 @@ If the tools that provide the external data provide ANY new columns that do not 
 In some cases it is useful to force a full update of the database, even if the interval specified in the parameters.toml has not elapsed. In this case, add an environmental variable to the docker compose: FORCE_PG_DB_UPDATE: '1'
 
 ### Adding MS run data
-See [MS run data pre-analysis](#ms-run-data-pre-analysis) section of the install instructions.
+See the [MS run data pre-analysis](#ms-run-data-pre-analysis) section of the install instructions.
 
 ### Adding new crapome or control sets:
 Two files per set are needed:
@@ -344,7 +344,7 @@ PG updater is used to generate a database. A small test database is provided, an
     app/external/SAINTexpress/SAINTexpress-spc
   - These will be registered as executables and put into the path of the PG container during the container creation (see dockerfile)
 - IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data
-  - Afterwards, you need to format the data into a format usable by pg_updater, see [Updating the database](#updating-the-database) for details
+  - Afterwards, you need to format the data into a format usable by pg_updater, see [Creating and updating the database](#creating-and-updating-the-database) for details
 
 #### Used external data
 During database building, PG downloads data from several sources:
