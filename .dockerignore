@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+env/
+docs/
+.venv/
+
+# Jupyter Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Testing
+tests/
+test_*.py
+*_test.py
+pytest.ini
+
+# Documentation
+docs/_build/
+docs/_static/
+
+# Cache and logs
+app/cache/
+app/logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Docker
+dockerfiles/
+Dockerfile*
+.dockerignore
+
+# Other
+*.md
+README.md
+LICENSE
+VERSION
+example use cases/
+build/
+
