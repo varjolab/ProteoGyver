@@ -84,6 +84,8 @@ class EnrichmentAdmin:
         ret_dict: dict = {}
         for module_filename in os.listdir(self._handler_basedir):
             if module_filename.endswith('.py'):
+                if module_filename.startswith('__'):
+                    continue
                 filepath: str = os.path.join(self._handler_basedir, module_filename)
                 module_name: str = module_filename.rsplit('.',maxsplit=1)[0]
                 try:

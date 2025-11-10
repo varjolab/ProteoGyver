@@ -13,6 +13,7 @@ Attributes:
 import os
 import shutil
 import traceback
+from xxlimited import Str
 import zipfile
 from uuid import uuid4
 from datetime import datetime
@@ -32,6 +33,8 @@ import pandas as pd
 from element_styles import CONTENT_STYLE
 from typing import Any, Dict, List, Tuple, Optional, Union
 import plotly.graph_objects as go
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 from _version import __version__
 
 
@@ -56,6 +59,52 @@ layout: html.Div = html.Div([
     ],
     style=CONTENT_STYLE
 )
+
+def get_github_version(repo_url: str = "https://github.com/varjolab/Proteogyver", branch: str = "main") -> str | None:
+    """Fetch the version from the VERSION file in a GitHub repository.
+    
+    :param repo_url: GitHub repository URL.
+    :param branch: Branch name to fetch from (default: 'main').
+    :returns: Version string from GitHub, or None if fetch fails.
+    """
+    # Convert GitHub URL to raw content URL
+    # https://github.com/varjolab/Proteogyver -> https://raw.githubusercontent.com/varjolab/Proteogyver/main/VERSION
+    raw_url = repo_url.replace("github.com", "raw.githubusercontent.com") + f"/{branch}/VERSION"
+    
+    try:
+        with urlopen(raw_url, timeout=5) as response:
+            version = response.read().decode('utf-8').strip()
+            return version
+    except (URLError, HTTPError, TimeoutError) as e:
+        # Use logging module directly since logger might not be initialized yet
+        try:
+            logger.warning(f"Failed to fetch version from GitHub: {e}")
+        except NameError:
+            logging.warning(f"Failed to fetch version from GitHub: {e}")
+        return None
+
+@callback(
+    Output('version-check-div', 'children'),
+    Input('proteogyver-logo', 'src')
+)
+def version_check(_: str) -> html.Div:
+    """Create a version check div, which will be shown if there is a newer version available.
+    
+    :param _: trigger for the callback.
+    :returns: Version check div with update notification if newer version is available.
+    """
+    available_version = get_github_version()
+    div_contents = ''
+    compstyle = {'color': 'white', 'font-size': '12px'}
+    if available_version is None:
+        # Could not fetch version, don't show anything
+        div_contents = 'Could not check for new version.'
+    elif available_version != __version__:
+        # Newer version available
+        div_contents = f'New version available: {available_version} (current: {__version__})'    
+        compstyle['font-size'] = '20px'
+    return html.Div(div_contents, style=compstyle)
+
 
 @callback(
     #  Output('workflow-stores', 'children'),

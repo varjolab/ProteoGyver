@@ -43,7 +43,6 @@ app.title = f'ProteoGyver {__version__}'
 # Only enable dev tools when not running in Docker
 if not os.path.exists('/.dockerenv'):
     app.enable_dev_tools(debug=True)
-    
 
 def main() -> None:
     """Run the Dash application (main entry point)."""
@@ -84,6 +83,7 @@ def create_navbar(parameters: dict) -> dbc.Navbar:
     navbar = dbc.Navbar(
         dbc.Container(
             [
+                html.Div(id='version-check-div'),
                 html.Img(src=LOGO, height='100px',id='proteogyver-logo'),
                 dbc.NavbarBrand(f'Proteogyver {__version__} ', className='ms-2', style = {'paddingRight': '50px','font-size': '30px'} ),
                 dbc.NavbarToggler(id="proteogyver-navbar-toggler", n_clicks=0),
