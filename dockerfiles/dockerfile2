@@ -86,6 +86,19 @@ RUN curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C 
     micromamba create -y -n PG -f environment.yml && \
     micromamba clean -a -y
 
+# Copy app code (needed for SAINTexpress executables)
+COPY app /proteogyver/app
+
+# Create SAINTexpress symlinks
+RUN if [ -f /proteogyver/app/external/SAINTexpress/SAINTexpress-spc ]; then \
+        chmod 777 /proteogyver/app/external/SAINTexpress/SAINTexpress-spc && \
+        ln -s /proteogyver/app/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc; \
+    fi && \
+    if [ -f /proteogyver/app/external/SAINTexpress/SAINTexpress-int ]; then \
+        chmod 777 /proteogyver/app/external/SAINTexpress/SAINTexpress-int && \
+        ln -s /proteogyver/app/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt; \
+    fi
+
 # Stage 2: Runtime stage
 FROM ubuntu:24.04
 LABEL maintainer="Kari Salokas kari.salokas@helsinki.fi"
@@ -97,10 +110,19 @@ COPY --from=builder /proteogyver /proteogyver
 COPY --from=builder /usr/bin/google-chrome* /usr/bin/
 COPY --from=builder /usr/bin/SAINTexpressSpc /usr/bin/SAINTexpressSpc
 COPY --from=builder /usr/bin/SAINTexpressInt /usr/bin/SAINTexpressInt
-COPY --from=builder /usr/local/bin/configurable-http-proxy /usr/local/bin/configurable-http-proxy
+
+# Install Node.js and configurable-http-proxy in runtime stage
+RUN apt-get update && \
+    apt-get install -yq --no-install-recommends \
+        curl \
+        ca-certificates && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -yq --no-install-recommends nodejs && \
+    npm install -g configurable-http-proxy && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
-ENV PATH="/opt/conda/envs/PG/bin:${PATH}" \
+ENV PATH="/opt/conda/envs/PG/bin:/usr/local/bin:${PATH}" \
     DEBIAN_FRONTEND=noninteractive \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
