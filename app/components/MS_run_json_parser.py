@@ -47,15 +47,6 @@ def parse_json_files():
             f'{tt}_mean_intensity',
             f'{tt}_trace',
         ])
-    vals = [0]
-    with db_functions.create_connection(os.path.join(*parameters['Data paths']['Database file']), mode='ro') as conn:
-        try:
-            for v in db_functions.get_from_table(conn, 'ms_runs', select_col = 'internal_run_id'):
-                vals.append(int(v.rsplit('_',maxsplit=1)[-1]))
-        except TypeError:
-            pass # Means MS runs table is empty
-    run_index = max(vals) + 1
-    base_id = 'PG_runID_'
 
     base_keys = [
         'data_type',
@@ -99,8 +90,7 @@ def parse_json_files():
             continue
         with open(os.path.join(input_path, file)) as fil:
             dic = json.load(fil)
-        internal_run_ID = f'{base_id}{run_index}'
-        run_index += 1
+        internal_run_ID = f'REPLACE_WITH_INTERNAL_RUN_ID'
             
         new_row = [ internal_run_ID]
         for bk in base_keys:

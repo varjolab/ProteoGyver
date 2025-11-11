@@ -1,15 +1,11 @@
 # Example usecases for ProteoGyver using public datasets
 This guide documents the end to end QC analysis of a public proteomics dataset.
 
-## Software and data prerequisites
-- DIA-NN version 
-- Proteomics dataset :
-
-
-## Dia-NN searches
+## Software and data utilized
+- Proteomics dataset used was from a (rprevious publication)[https://doi.org/10.1113/JP288104], provided by the corresponding author for quality control demonstration use. 
+- 
 Since the goal is not to demo how to use Dia-NN, default workflows will be used, with minimal consideration given to e.g. parameters of different mass spectrometers. As long as the library used is from the same organism, we will identify enough proteins to demo PG. In a real use scenario, parameters in Dia-NN in particular should be set according to the MS settings. 
 
-Dia-NN was run on a windows 11 computer with settings in the proteomics_pipeline file in this directory.
 
 ## ProteoGyver
 1) Upload the pg_matrix.tsv as the data file

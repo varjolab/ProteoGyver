@@ -39,6 +39,16 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp,
 
     # Read the file
     df = pd.read_csv(file_path, sep='\t')
+    if table_name in ['ms_runs', 'ms_plots']:
+        try:
+            query = 'SELECT internal_run_id FROM ms_runs'
+            vals = [int(r[0].split('_',maxsplit=1)[-1]) for r in cursor.execute(query, ()).fetchall()]
+        except Exception:
+            vals = [0]
+        run_index = max(vals) + 1
+        base_id = 'PG_runID_'
+        df['internal_run_id'] = [f'{base_id}{i}' for i in range(run_index, run_index + len(df))]
+
     file_columns = set(df.columns)
 
     # Compare columns
