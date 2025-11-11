@@ -43,9 +43,9 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp,
         vals = [0]
         try:
             query = 'SELECT internal_run_id FROM ms_runs'
-            vals = [int(r[0].split('_',maxsplit=1)[-1]) for r in cursor.execute(query, ()).fetchall()]
+            vals.extend([int(r[0].split('_',maxsplit=1)[-1]) for r in cursor.execute(query, ()).fetchall()])
         except Exception:
-            vals = [0]
+            pass
         run_index = max(vals) + 1
         base_id = 'PG_runID_'
         df['internal_run_id'] = [f'{base_id}{i}' for i in range(run_index, run_index + len(df))]
