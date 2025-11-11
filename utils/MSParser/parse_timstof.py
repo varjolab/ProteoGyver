@@ -52,7 +52,7 @@ def get_traces(ms1_df, ms2_df):
     bpc = pd.Series(bpc_data,name='BPC').to_dict()
     tic = pd.Series(tic_data,name='TIC').to_dict()
     MSn = pd.Series(msn_data,name='MSn').to_dict()
-    return {'TIC': tic, 'BPC': bpc, 'MSn': MSn}
+    return {'TIC': tic, 'BPC': bpc, 'MS2': MSn}
 
 def parse_file(root, run_name, run_id_regex):
     """Parse a Timstof file.

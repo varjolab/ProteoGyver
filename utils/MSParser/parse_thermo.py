@@ -36,7 +36,7 @@ def get_traces(rawfile: RawFileReaderAdapter) -> dict:
     return {
         'TIC': pd.Series([sum(tic[stime]) for stime in sorted_keys], name = 'TIC').to_dict(),
         'BPC': pd.Series([max(bpc[stime]) for stime in sorted_keys], name = 'BPC').to_dict(),
-        'MSn': pd.Series([sum(msn[stime]) for stime in sorted_keys], name = 'MSn').to_dict(),
+        'MS2': pd.Series([sum(msn[stime]) for stime in sorted_keys], name = 'MSn').to_dict(),
     }
     
 def get_scantypes(rawfile: RawFileReaderAdapter) -> dict:

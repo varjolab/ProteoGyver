@@ -190,6 +190,7 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                                 cursor.execute(f"DELETE FROM {dbtable_name} WHERE {where_clause}", tuple(values))
                                 deletions += cursor.rowcount
                             delete_files.append(file_path)
+                        conn.commit()
             elif table_name == 'add_or_replace':
                 for file_name in os.listdir(folder_path):
                     if file_name.endswith('.tsv'):
@@ -221,6 +222,7 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                         delete_files.append(file_path)
                         if os.path.isfile(file_path.replace('.tsv','txt')):
                             delete_files.append(file_path.replace('.tsv','txt'))
+                        conn.commit()
             else:
                 dirfiles = os.listdir(folder_path)
                 for i, file_name in enumerate(dirfiles):
@@ -232,6 +234,7 @@ def update_database(conn, parameters, cc_cols, cc_types, timestamp):
                             add_info = f'{i}/{len(dirfiles)}'
                         insertions, modifications = update_table_with_file(cursor, table_name, file_path, parameters, timestamp, add_info)
                         delete_files.append(file_path)
+                        conn.commit()
         else:
             os.makedirs(folder_path)
             print(f"Created directory {folder_path}")

@@ -52,6 +52,7 @@ import numpy as np
 from element_styles import GENERIC_PAGE
 import json
 from io import StringIO
+from components.text_handling import replace_special_characters
 import logging
 import zipfile
 import uuid
@@ -118,10 +119,10 @@ def generate_control_card() -> html.Div:
                 multi=True,
             ),
             html.Br(),
-            html.H5('Or Input a list of run numbers'),
+            html.H5('Or Input a list of run file names.'),
             dcc.Textarea(
                 id='load-runs-from-runids',
-                placeholder='Enter run ID numbers. Numbers can be separated by space, tab, or any of these symbols: ,;:',
+                placeholder='Enter run names. File names can be separated by a tab or a newline.',
                 style={'width': '100%', 'height': 150},
             ),
             html.Br(),
@@ -327,13 +328,15 @@ def delim_runs(runs):
     :returns: Sorted list of run IDs (strings).
     """
     retruns = []
-    for run in sorted([
-                s for s in re.split('|'.join(['\n',' ','\t',',',';',':']), runs) if len(s.strip())>0
-            ]):
-        try:
-            retruns.append(run)
-        except ValueError:
-            continue
+    if len(runs) > 0:
+        runs = runs.split('\n')
+        for r in runs:
+            r = r.strip().split('\t')
+            for fname in r:
+                fname = fname.strip()
+                if len(fname) == 0:
+                    continue
+                retruns.append(replace_special_characters(fname, replacewith='_', allow_numbers=True))
     return retruns
     
 
@@ -344,7 +347,6 @@ def delim_runs(runs):
     Output('plot-max-y','data'),
     Output('load-runs-spinner-div','children'),
     Output('start-stop-btn','n_clicks'),
-    Output('run-ids-not-found','children'),
     Input('load-runs-button','n_clicks'),
     State('ms-select', 'value'),
     State('date-picker-select', 'start_date'),
@@ -363,10 +365,9 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
     :param data_types: Selected data types.
     :param run_id_list: Optional string of run IDs to load.
     :param button_text: Current button text.
-    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks, not_found_text].
+    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks].
     """
     db_conn = db_functions.create_connection(database_file)
-    not_found_ids = []
     if (run_id_list is None ) or (run_id_list.strip() == ''):
         start:str
         end: str
@@ -393,13 +394,10 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
             chosen_runs = chosen_runs.tail(RUN_LIMIT)
     else:
         run_ids = delim_runs(run_id_list)
-        # Filter run_ids to only those found in KNOWN_SAMPLES
-        not_found_ids = [rid for rid in run_ids if rid not in IDMAP]
-        run_ids = [IDMAP[i] for i in run_ids if i in IDMAP]
         chosen_runs = db_functions.get_from_table_by_list_criteria(
             db_conn, 
             'ms_runs',
-            'internal_run_id',
+            'file_name_clean',
             run_ids,
             select_col=', '.join(REQUIRED_MAINCOLS),
             pandas_index_col = 'internal_run_id'
@@ -413,9 +411,6 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
         pandas_index_col = 'internal_run_id'
     )
     db_conn.close() # type: ignore
-    not_found_text = None
-    if len(not_found_ids) > 0:
-        not_found_text: list[str] = ['IDs NOT FOUND IN DATABASE:']+not_found_ids+['\n']
     max_y = {}
     for t in trace_types:
         max_y[t] = run_plots[f'{t}_max_intensity'].max()
@@ -433,12 +428,15 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
                 d['line'] = {'color': trace_color,'width': 1}
                 d['opacity'] = (1/num_of_traces_visible)*(num_of_traces_visible - color_i)
                 trace_dict[runid][tracename][color_i] = pio.from_json(json.dumps(d))['data'][0]
-
+    nclicks = 1
+    if len(chosen_runs) == 0:
+        nclicks = 0
+    print(chosen_runs)
     return (
         sorted(list(chosen_runs.index)),
         trace_dict,
         run_plots.to_json(orient='split'),
-        max_y,button_text,1, not_found_text
+        max_y,button_text,nclicks
     )
 
 def ms_analytics_layout():

@@ -127,7 +127,7 @@ def parse_d(root, filename, run_id_regex):
 
 def handle_data(data_dict, oname):
     new_traces = {}
-    sample_id_number = data_dict['sample']['file_name']
+    sample_id_number = data_dict['sample']['file_name'].rsplit('/',maxsplit=1)[-1].rsplit('\\',maxsplit=1)[-1]
     data_dict['file_name_clean'] = replace_special_characters(remove_accent_characters(data_dict['sample']['file_name'].rsplit('.',maxsplit=1)[0]), replacewith='_', allow_numbers=True)
     
     for tracetype, tracedict in data_dict['traces'].items():

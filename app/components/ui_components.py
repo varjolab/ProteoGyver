@@ -32,7 +32,6 @@ HEADER_DICT: Dict[str, Dict[int, Any]] = {
     },
 }
 
-
 def checklist(
         label: str,
         options: List[str],

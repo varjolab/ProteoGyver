@@ -1903,8 +1903,7 @@ def send_data(export_dir: str, *args: str) -> Union[Tuple[Dict[str, Any], str], 
             zip_data = f.read()
         
         # Clean up temporary files
-        print(export_dir)
-        #shutil.rmtree(export_dir)
+        shutil.rmtree(export_dir)
     
     except Exception as e:
         logger.warning(f"Error creating download package: {str(e)}")
