@@ -1,0 +1,245 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.figures.network_plot &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.figures.network_plot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.figures.network_plot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Network visualization utilities using Dash Cytoscape.</span>
+
+<span class="sd">Creates Cytoscape elements and container for displaying bait–prey</span>
+<span class="sd">interaction networks with selectable layouts and styles.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">dcc</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="n">callback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_bootstrap_components</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dbc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_cytoscape</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cyto</span>
+<span class="c1"># Load extra layouts</span>
+<span class="n">cyto</span><span class="o">.</span><span class="n">load_extra_layouts</span><span class="p">()</span>
+
+<div class="viewcode-block" id="get_cytoscape_elements_and_ints">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.network_plot.get_cytoscape_elements_and_ints">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cytoscape_elements_and_ints</span><span class="p">(</span><span class="n">interaction_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert interaction table to Cytoscape elements and a dict index.</span>
+
+<span class="sd">    :param interaction_data: DataFrame with columns including ``Bait``, ``Prey``, ``PreyGene``, ``AvgSpec``.</span>
+<span class="sd">    :returns: Tuple ``(elements, interactions)`` where elements is a list of nodes/edges and interactions is a nested dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cy_edges</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cy_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">keepi</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">interaction_data</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">keepi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">interaction_data</span><span class="p">[</span><span class="n">interaction_data</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">b</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+    <span class="n">interaction_data</span> <span class="o">=</span> <span class="n">interaction_data</span><span class="p">[</span><span class="n">interaction_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">keepi</span><span class="p">)]</span>
+    <span class="n">interactions</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">added</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">interaction_data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">bname</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]</span>
+        <span class="n">pname</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Prey&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">interactions</span><span class="p">:</span>
+            <span class="n">interactions</span><span class="p">[</span><span class="n">bname</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">interactions</span><span class="p">[</span><span class="n">bname</span><span class="p">][</span><span class="n">pname</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;PreyGene&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;AvgSpec&#39;</span><span class="p">])</span>
+        <span class="n">cy_edge</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">bname</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="n">pname</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">bname</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">pname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}}</span>
+        <span class="n">pnode</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">pname</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;PreyGene&#39;</span><span class="p">]},</span> <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="s1">&#39;preyNode&#39;</span><span class="p">}</span>
+        <span class="n">bnode</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">bname</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">bname</span><span class="p">},</span> <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="s1">&#39;baitNode&#39;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">pname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">added</span><span class="p">:</span>
+            <span class="n">added</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pname</span><span class="p">)</span>
+            <span class="n">cy_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pnode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">added</span><span class="p">:</span>
+            <span class="n">added</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bname</span><span class="p">)</span>
+            <span class="n">cy_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bnode</span><span class="p">)</span>
+        <span class="n">cy_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cy_edge</span><span class="p">)</span>
+    <span class="n">created_elements</span> <span class="o">=</span> <span class="n">cy_nodes</span><span class="c1">#[genesis_node]</span>
+    <span class="n">created_elements</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cy_edges</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">created_elements</span><span class="p">,</span> <span class="n">interactions</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_stylesheet">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.network_plot.get_stylesheet">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_stylesheet</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the default Cytoscape stylesheet for bait/prey nodes.</span>
+
+<span class="sd">    :returns: List of stylesheet dictionaries.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;selector&quot;</span><span class="p">:</span> <span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mf">0.65</span><span class="p">,</span> <span class="s2">&quot;z-index&quot;</span><span class="p">:</span> <span class="mi">9999</span><span class="p">}},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;selector&quot;</span><span class="p">:</span> <span class="s2">&quot;edge&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;curve-style&quot;</span><span class="p">:</span> <span class="s2">&quot;bezier&quot;</span><span class="p">,</span> <span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mf">0.45</span><span class="p">,</span> <span class="s2">&quot;z-index&quot;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;selector&quot;</span><span class="p">:</span> <span class="s2">&quot;.preyNode&quot;</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;font-size&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s2">&quot;background-color&quot;</span><span class="p">:</span> <span class="s2">&quot;#0074D9&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;data(label)&quot;</span><span class="p">}},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;selector&quot;</span><span class="p">:</span> <span class="s2">&quot;.preyEdge&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;line-color&quot;</span><span class="p">:</span> <span class="s2">&quot;#0074D9&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;selector&quot;</span><span class="p">:</span> <span class="s2">&quot;.baitNode&quot;</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;font-size&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s2">&quot;background-color&quot;</span><span class="p">:</span> <span class="s2">&quot;#FF4136&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;data(label)&quot;</span><span class="p">}},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;selector&quot;</span><span class="p">:</span> <span class="s2">&quot;.baitEdge&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;line-color&quot;</span><span class="p">:</span> <span class="s2">&quot;#FF4136&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;selector&quot;</span><span class="p">:</span> <span class="s2">&quot;:selected&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;border-width&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s2">&quot;border-color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;border-opacity&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;font-size&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+                <span class="s2">&quot;z-index&quot;</span><span class="p">:</span> <span class="mi">9999</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="get_cytoscape_container">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.network_plot.get_cytoscape_container">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cytoscape_container</span><span class="p">(</span><span class="n">cyto_elements</span><span class="p">,</span> <span class="n">full_height</span><span class="p">):</span> 
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a Cytoscape container with controls and the graph component.</span>
+
+<span class="sd">    :param cyto_elements: List of Cytoscape nodes and edges.</span>
+<span class="sd">    :param full_height: CSS height string (e.g., ``&quot;600px&quot;``).</span>
+<span class="sd">    :returns: Dash ``html.Div`` containing the Cytoscape graph and layout selector.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_stylesheet</span> <span class="o">=</span> <span class="n">get_stylesheet</span><span class="p">()</span>
+    <span class="n">cyto_layouts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;grid&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;circle&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;concentric&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;breadthfirst&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cose&quot;</span><span class="p">,</span>
+        <span class="c1">#&quot;cose-bilkent&quot;, # Does not work for now, next version should fix.</span>
+        <span class="s2">&quot;dagre&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cola&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;klay&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;spread&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;euler&quot;</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+                <span class="n">cyto</span><span class="o">.</span><span class="n">Cytoscape</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;cytoscape&quot;</span><span class="p">,</span>
+                    <span class="n">elements</span><span class="o">=</span><span class="n">cyto_elements</span><span class="p">,</span>
+                    <span class="n">stylesheet</span><span class="o">=</span><span class="n">default_stylesheet</span><span class="p">,</span>
+                       <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">full_height</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;100%&quot;</span><span class="p">},</span>
+                <span class="p">)</span>
+            <span class="p">],</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;69%&#39;</span><span class="p">,</span> <span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-block&#39;</span><span class="p">}),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Layout:&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;margin-left&quot;</span><span class="p">:</span> <span class="s2">&quot;3px&quot;</span><span class="p">}),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;dropdown-layout&#39;</span><span class="p">,</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">val</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">}</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cyto_layouts</span>
+                    <span class="p">],</span>
+                    <span class="n">clearable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;cose&#39;</span>
+                <span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;nodedata-div&#39;</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;padding-top&#39;</span><span class="p">:</span> <span class="s1">&#39;15px&#39;</span><span class="p">})</span>
+            <span class="p">],</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;vertical-align&#39;</span><span class="p">:</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;30%&#39;</span><span class="p">,</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-block&#39;</span><span class="p">})</span>
+        <span class="p">],</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">full_height</span><span class="p">,</span>
+            <span class="c1">#&#39;overflow&#39;: &#39;auto&#39;,</span>
+            <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span>
+        <span class="p">})</span>
+    <span class="p">])</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

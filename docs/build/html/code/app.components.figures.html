@@ -1,0 +1,947 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.figures package &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="app.components.tools package" href="app.components.tools.html" />
+    <link rel="prev" title="app.components.enrichment package" href="app.components.enrichment.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">2025_ProteoGyver</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="app.html">app package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="app.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="app.components.html">app.components package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.pages.html">app.pages package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.pipeline_module.html">app.pipeline_module package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.resources.html">app.resources package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-app-module">app.app module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.database_updater">app.database_updater module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.element_styles">app.element_styles module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.embedded_page_updater">app.embedded_page_updater module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-run-as-pipeline-module">app.run_as_pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">2025_ProteoGyver</a></li>
+          <li class="breadcrumb-item"><a href="app.html">app package</a></li>
+          <li class="breadcrumb-item"><a href="app.components.html">app.components package</a></li>
+      <li class="breadcrumb-item active">app.components.figures package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/code/app.components.figures.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="app-components-figures-package">
+<h1>app.components.figures package<a class="headerlink" href="#app-components-figures-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-app.components.figures.bar_graph">
+<span id="app-components-figures-bar-graph-module"></span><h2>app.components.figures.bar_graph module<a class="headerlink" href="#module-app.components.figures.bar_graph" title="Link to this heading"></a></h2>
+<p>Bar graph utilities using Plotly Express and Dash.</p>
+<p>Provides a configurable bar plot builder and a Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> factory.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.bar_graph.bar_plot">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.bar_graph.</span></span><span class="sig-name descname"><span class="pre">bar_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barmode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relative'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hide_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_discrete_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_discrete_map_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/bar_graph.html#bar_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.bar_graph.bar_plot" title="Link to this definition"></a></dt>
+<dd><p>Draw a bar plot from the given input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionary of default values for the figure.</p></li>
+<li><p><strong>value_df</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – DataFrame containing the plot data.</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Title for the figure.</p></li>
+<li><p><strong>x_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column to use for x-axis; if <code class="docutils literal notranslate"><span class="pre">None</span></code>, index is reset and the new column is used.</p></li>
+<li><p><strong>x_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Axis label to use for X regardless of <code class="docutils literal notranslate"><span class="pre">x_name</span></code>.</p></li>
+<li><p><strong>sort_x</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code> ascending, <code class="docutils literal notranslate"><span class="pre">False</span></code> descending, <code class="docutils literal notranslate"><span class="pre">None</span></code> leaves default order.</p></li>
+<li><p><strong>y_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column to use for y-axis; if <code class="docutils literal notranslate"><span class="pre">None</span></code>, use <code class="docutils literal notranslate"><span class="pre">y_idx</span></code>.</p></li>
+<li><p><strong>y_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Axis label to use for Y regardless of <code class="docutils literal notranslate"><span class="pre">y_name</span></code>/<code class="docutils literal notranslate"><span class="pre">y_idx</span></code>.</p></li>
+<li><p><strong>y_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Index of the column to use for y-axis when <code class="docutils literal notranslate"><span class="pre">y_name</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>barmode</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Plotly Express bar <code class="docutils literal notranslate"><span class="pre">barmode</span></code>.</p></li>
+<li><p><strong>color</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, use column <code class="docutils literal notranslate"><span class="pre">Color</span></code> unless <code class="docutils literal notranslate"><span class="pre">color_col</span></code> is provided.</p></li>
+<li><p><strong>color_col</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Explicit name of color column.</p></li>
+<li><p><strong>hide_legend</strong> – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, hides the legend.</p></li>
+<li><p><strong>color_discrete_map</strong> – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, use <code class="docutils literal notranslate"><span class="pre">'identity'</span></code> mapping or a provided dict.</p></li>
+<li><p><strong>color_discrete_map_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Explicit map for colors.</p></li>
+<li><p><strong>width</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Figure width; if <code class="docutils literal notranslate"><span class="pre">None</span></code>, derived from defaults and min width policy.</p></li>
+<li><p><strong>height</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Figure height; if <code class="docutils literal notranslate"><span class="pre">None</span></code>, derived from defaults.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bar</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A Plotly Express bar figure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.bar_graph.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.bar_graph.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/bar_graph.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.bar_graph.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Create a Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> configured with a bar plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionary with <code class="docutils literal notranslate"><span class="pre">config</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code> and related settings.</p></li>
+<li><p><strong>dlname</strong> – Name for the downloaded figure file.</p></li>
+<li><p><strong>args</strong> – Positional arguments forwarded to <code class="docutils literal notranslate"><span class="pre">bar_plot</span></code>.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments forwarded to <code class="docutils literal notranslate"><span class="pre">bar_plot</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.before_after_plot">
+<span id="app-components-figures-before-after-plot-module"></span><h2>app.components.figures.before_after_plot module<a class="headerlink" href="#module-app.components.figures.before_after_plot" title="Link to this heading"></a></h2>
+<p>Before/After grouped bar plot for paired counts.</p>
+<p>Builds a simple grouped bar chart comparing two Series (before vs after)
+per sample, returning a Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> component.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.before_after_plot.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.before_after_plot.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/before_after_plot.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.before_after_plot.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Create a grouped bar chart comparing before vs after counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionary with <code class="docutils literal notranslate"><span class="pre">config</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code> and related settings.</p></li>
+<li><p><strong>before</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span>) – Series of counts before, indexed by sample.</p></li>
+<li><p><strong>after</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span>) – Series of counts after, indexed by sample.</p></li>
+<li><p><strong>graph_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
+<li><p><strong>dlname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name for the downloaded figure file.</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Optional chart title.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> instance containing the grouped bar plot.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.color_tools">
+<span id="app-components-figures-color-tools-module"></span><h2>app.components.figures.color_tools module<a class="headerlink" href="#module-app.components.figures.color_tools" title="Link to this heading"></a></h2>
+<p>Color utilities for Plotly/Dash figures.</p>
+<p>Includes helpers to translate color formats, darken colors, trim overly
+light template colors, and assign consistent group/sample colors.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.color_tools.darken">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.color_tools.</span></span><span class="sig-name descname"><span class="pre">darken</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/color_tools.html#darken"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.color_tools.darken" title="Link to this definition"></a></dt>
+<dd><p>Darken a given RGB(A) color by a percentage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Color as <code class="docutils literal notranslate"><span class="pre">&quot;rgb(r,g,b)&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;rgba(r,g,b,a)&quot;</span></code>.</p></li>
+<li><p><strong>percent</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Percentage to darken (0–100).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Darkened color string of the same type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.color_tools.get_assigned_colors">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.color_tools.</span></span><span class="sig-name descname"><span class="pre">get_assigned_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_group_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/color_tools.html#get_assigned_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.color_tools.get_assigned_colors" title="Link to this definition"></a></dt>
+<dd><p>Assign per-group and per-sample colors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sample_group_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping of group name to list of sample names.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(colors,</span> <span class="pre">colors_with_contaminant)</span></code> where both are dicts
+with keys <code class="docutils literal notranslate"><span class="pre">'samples'</span></code> and <code class="docutils literal notranslate"><span class="pre">'sample</span> <span class="pre">groups'</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.color_tools.get_cut_colors">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.color_tools.</span></span><span class="sig-name descname"><span class="pre">get_cut_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">colormapname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gist_ncar'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/color_tools.html#get_cut_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.color_tools.get_cut_colors" title="Link to this definition"></a></dt>
+<dd><p>Return a list of evenly spaced colors from a matplotlib colormap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>colormapname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Matplotlib colormap name.</p></li>
+<li><p><strong>number_of_colors</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of colors to sample.</p></li>
+<li><p><strong>cut</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Brightness adjustment mixed with white (0–1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of RGBA tuples in 0–1 range.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.color_tools.remove_unwanted_colors">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.color_tools.</span></span><span class="sig-name descname"><span class="pre">remove_unwanted_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure_template</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/color_tools.html#remove_unwanted_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.color_tools.remove_unwanted_colors" title="Link to this definition"></a></dt>
+<dd><p>Return a Plotly template with overly light colors darkened.</p>
+<p>The function reads the colorway from the named template and adjusts
+entries with high luminance to improve visibility on light
+backgrounds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>figure_template</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of a Plotly template (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;plotly&quot;</span></code>).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Modified template object with updated <code class="docutils literal notranslate"><span class="pre">layout.colorway</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.color_tools.rgba_to_hex">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.color_tools.</span></span><span class="sig-name descname"><span class="pre">rgba_to_hex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rgba</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/color_tools.html#rgba_to_hex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.color_tools.rgba_to_hex" title="Link to this definition"></a></dt>
+<dd><p>Convert an RGBA color string to hex.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rgba</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Input as <code class="docutils literal notranslate"><span class="pre">&quot;rgba(r,g,b,a)&quot;</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Hex color string, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;#RRGGBB&quot;</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.commonality_graph">
+<span id="app-components-figures-commonality-graph-module"></span><h2>app.components.figures.commonality_graph module<a class="headerlink" href="#module-app.components.figures.commonality_graph" title="Link to this heading"></a></h2>
+<p>Commonality visualizations for sample group overlaps.</p>
+<p>Provides two representations:
+- <code class="docutils literal notranslate"><span class="pre">supervenn</span></code>: Supervenn diagram for up to ~10 sets
+- <code class="docutils literal notranslate"><span class="pre">common_heatmap</span></code>: Jaccard-like overlap heatmap for larger numbers</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.common_heatmap">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">common_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#common_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.common_heatmap" title="Link to this definition"></a></dt>
+<dd><p>Create a heatmap of pairwise overlap ratios between groups.</p>
+<p>The value for groups <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> is <code class="docutils literal notranslate"><span class="pre">|A∩B|</span> <span class="pre">/</span> <span class="pre">|A∪B|</span></code> (Jaccard index).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group_sets</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping of group name to a set of identifiers.</p></li>
+<li><p><strong>id_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
+<li><p><strong>defaults</strong> – Figure defaults (expects <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(dash.dcc.Graph,</span> <span class="pre">'')</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_supervenn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Choose and build an overlap visualization based on group count.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group_sets</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping of group name to a set of identifiers.</p></li>
+<li><p><strong>id_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the output figure.</p></li>
+<li><p><strong>use_supervenn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, prefer Supervenn when feasible.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Figure defaults (expects <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of (component, aux_data) where aux_data may be a base64 PDF.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.supervenn">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">supervenn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#supervenn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.supervenn" title="Link to this definition"></a></dt>
+<dd><p>Render a Supervenn plot from named sets and return as a Dash image.</p>
+<p>See <a class="reference external" href="https://github.com/gecko984/supervenn">supervenn</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group_sets</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping of group name to a set of identifiers.</p></li>
+<li><p><strong>id_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the returned image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(dash.html.Img,</span> <span class="pre">pdf_data_base64)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.comparative_plot">
+<span id="app-components-figures-comparative-plot-module"></span><h2>app.components.figures.comparative_plot module<a class="headerlink" href="#module-app.components.figures.comparative_plot" title="Link to this heading"></a></h2>
+<p>Comparative violin/box plot for grouped data frames.</p>
+<p>Takes a list of DataFrames (columns = replicates), stacks values into a
+long format and renders either grouped violin or box plots.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.comparative_plot.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.comparative_plot.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replicate_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points_visible</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'outliers'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'violin'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/comparative_plot.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.comparative_plot.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Create a comparative violin/box plot from multiple DataFrames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>; default name used if <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>sets</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>) – List of DataFrames; each column is treated as a replicate.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionary with <code class="docutils literal notranslate"><span class="pre">config</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code> and related settings.</p></li>
+<li><p><strong>dlname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name for the downloaded figure file.</p></li>
+<li><p><strong>names</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>) – Optional list of labels for each DataFrame in <code class="docutils literal notranslate"><span class="pre">sets</span></code>.</p></li>
+<li><p><strong>replicate_colors</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping with <code class="docutils literal notranslate"><span class="pre">'sample</span> <span class="pre">groups'</span></code> color strings per name.</p></li>
+<li><p><strong>points_visible</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Violin/box points visibility (e.g., <code class="docutils literal notranslate"><span class="pre">'outliers'</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Optional title.</p></li>
+<li><p><strong>showbox</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – For violin, whether to show the internal box.</p></li>
+<li><p><strong>plot_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – <code class="docutils literal notranslate"><span class="pre">'violin'</span></code> or <code class="docutils literal notranslate"><span class="pre">'box'</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> instance with the figure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.cvplot">
+<span id="app-components-figures-cvplot-module"></span><h2>app.components.figures.cvplot module<a class="headerlink" href="#module-app.components.figures.cvplot" title="Link to this heading"></a></h2>
+<p>Coefficient of variation (CV) plot per sample group.</p>
+<p>Computes per-group mean, std and CV, and renders a violin plot with mean
+annotations for each group.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.cvplot.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.cvplot.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replicate_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/cvplot.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.cvplot.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Create a CV violin plot across sample groups.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raw_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – DataFrame of values; columns referenced by <code class="docutils literal notranslate"><span class="pre">sample_groups</span></code>.</p></li>
+<li><p><strong>sample_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping group -&gt; list of column names.</p></li>
+<li><p><strong>replicate_colors</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping with <code class="docutils literal notranslate"><span class="pre">'sample</span> <span class="pre">groups'</span></code> color strings per group.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionary with <code class="docutils literal notranslate"><span class="pre">config</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code> and related settings.</p></li>
+<li><p><strong>id_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
+<li><p><strong>dlname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name for the downloaded figure file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(Graph,</span> <span class="pre">out_data)</span></code> where out_data contains group stats.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.figure_legends">
+<span id="app-components-figures-figure-legends-module"></span><h2>app.components.figures.figure_legends module<a class="headerlink" href="#module-app.components.figures.figure_legends" title="Link to this heading"></a></h2>
+<p>Legend helpers for QC, proteomics, and interactomics figures.</p>
+<p>Provides prewritten legend paragraphs and small utilities for dynamic
+legend generation and templating.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.figure_legends.enrichment_legend">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.figure_legends.</span></span><span class="sig-name descname"><span class="pre">enrichment_legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clean_enrichment_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enrichment_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_value_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_threshold</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/figure_legends.html#enrichment_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.figure_legends.enrichment_legend" title="Link to this definition"></a></dt>
+<dd><p>Legend paragraph for enrichment plot settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clean_enrichment_name</strong> – Clean identifier for the element ID.</p></li>
+<li><p><strong>enrichment_name</strong> – Display name of the enrichment.</p></li>
+<li><p><strong>fc_col</strong> – Fold change column used for filtering.</p></li>
+<li><p><strong>fc_threshold</strong> – Fold change threshold value.</p></li>
+<li><p><strong>p_value_name</strong> – P-value column name used for filtering.</p></li>
+<li><p><strong>p_threshold</strong> – P-value threshold.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">dash.html.P</span></code> element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.figure_legends.leg_rep">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.figure_legends.</span></span><span class="sig-name descname"><span class="pre">leg_rep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">legend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rep_with</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/figure_legends.html#leg_rep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.figure_legends.leg_rep" title="Link to this definition"></a></dt>
+<dd><p>Replace text in an existing legend paragraph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>legend</strong> – Existing <code class="docutils literal notranslate"><span class="pre">dash.html.P</span></code> element.</p></li>
+<li><p><strong>replace</strong> – Substring to replace.</p></li>
+<li><p><strong>rep_with</strong> – Replacement string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">P</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New <code class="docutils literal notranslate"><span class="pre">P</span></code> element with modified text.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.figure_legends.saint_legend">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.figure_legends.</span></span><span class="sig-name descname"><span class="pre">saint_legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rescued</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/figure_legends.html#saint_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.figure_legends.saint_legend" title="Link to this definition"></a></dt>
+<dd><p>Legend for SAINT filtered counts with rescue flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rescued</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether preys were rescued across baits.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">P</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dash.html.P</span></code> element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.figure_legends.volcano_heatmap_legend">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.figure_legends.</span></span><span class="sig-name descname"><span class="pre">volcano_heatmap_legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/figure_legends.html#volcano_heatmap_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.figure_legends.volcano_heatmap_legend" title="Link to this definition"></a></dt>
+<dd><p>Legend paragraph for multi-comparison volcano heatmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>control</strong> – Control name used in comparisons.</p></li>
+<li><p><strong>id_prefix</strong> – Prefix for the element ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">P</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dash.html.P</span></code> element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.figure_legends.volcano_plot_legend">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.figure_legends.</span></span><span class="sig-name descname"><span class="pre">volcano_plot_legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/figure_legends.html#volcano_plot_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.figure_legends.volcano_plot_legend" title="Link to this definition"></a></dt>
+<dd><p>Create a legend paragraph for a volcano plot comparison.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample</strong> – Sample name.</p></li>
+<li><p><strong>control</strong> – Control name.</p></li>
+<li><p><strong>id_prefix</strong> – Prefix for the element ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">P</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dash.html.P</span></code> element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.heatmaps">
+<span id="app-components-figures-heatmaps-module"></span><h2>app.components.figures.heatmaps module<a class="headerlink" href="#module-app.components.figures.heatmaps" title="Link to this heading"></a></h2>
+<p>Heatmap utilities, including clustered correlation heatmaps.</p>
+<p>Provides a dendrogram-coupled clustergram builder and a simple imshow
+heatmap factory for numeric matrices.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.heatmaps.draw_clustergram">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.heatmaps.</span></span><span class="sig-name descname"><span class="pre">draw_clustergram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/heatmaps.html#draw_clustergram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.heatmaps.draw_clustergram" title="Link to this definition"></a></dt>
+<dd><p>Draw a clustered correlation heatmap with dendrograms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot_data</strong> – Square DataFrame-like correlation matrix (symmetric).</p></li>
+<li><p><strong>defaults</strong> – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">width</span></code>.</p></li>
+<li><p><strong>color_map</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Plotly colorscale list; defaults to white→red.</p></li>
+<li><p><strong>kwargs</strong> – Optional <code class="docutils literal notranslate"><span class="pre">zmin</span></code> and <code class="docutils literal notranslate"><span class="pre">zmax</span></code> overrides.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Plotly <code class="docutils literal notranslate"><span class="pre">Figure</span></code> containing the clustergram.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If input is not square.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.heatmaps.make_heatmap_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.heatmaps.</span></span><span class="sig-name descname"><span class="pre">make_heatmap_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autorange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetrical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/heatmaps.html#make_heatmap_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.heatmaps.make_heatmap_graph" title="Link to this definition"></a></dt>
+<dd><p>Create a simple heatmap as a Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix_df</strong> – DataFrame with numeric values to plot.</p></li>
+<li><p><strong>plot_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name suffix for component ID.</p></li>
+<li><p><strong>value_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Colorbar label.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>.</p></li>
+<li><p><strong>cmap</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Plotly continuous color scale name.</p></li>
+<li><p><strong>dlname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name for the downloaded figure file.</p></li>
+<li><p><strong>autorange</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, derive zmin from data with padding.</p></li>
+<li><p><strong>symmetrical</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, use symmetric min/max around zero.</p></li>
+<li><p><strong>cluster</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code>, apply clustering via <code class="docutils literal notranslate"><span class="pre">matrix_functions</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> component with the heatmap figure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.histogram">
+<span id="app-components-figures-histogram-module"></span><h2>app.components.figures.histogram module<a class="headerlink" href="#module-app.components.figures.histogram" title="Link to this heading"></a></h2>
+<p>Histogram figure utilities.</p>
+<p>Provides a simple wrapper around Plotly Express histogram construction
+with sensible defaults drawn from a <code class="docutils literal notranslate"><span class="pre">defaults</span></code> dictionary.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.histogram.make_figure">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.histogram.</span></span><span class="sig-name descname"><span class="pre">make_figure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/histogram.html#make_figure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.histogram.make_figure" title="Link to this definition"></a></dt>
+<dd><p>Create a histogram figure using Plotly Express.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_table</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Input DataFrame.</p></li>
+<li><p><strong>x_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column name to plot on the x-axis.</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Figure title.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">width</span></code>.</p></li>
+<li><p><strong>kwargs</strong> – Additional Plotly Express <code class="docutils literal notranslate"><span class="pre">histogram</span></code> kwargs; <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, and <code class="docutils literal notranslate"><span class="pre">nbins</span></code> defaulted if missing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Plotly <code class="docutils literal notranslate"><span class="pre">Figure</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.imputation_histogram">
+<span id="app-components-figures-imputation-histogram-module"></span><h2>app.components.figures.imputation_histogram module<a class="headerlink" href="#module-app.components.figures.imputation_histogram" title="Link to this heading"></a></h2>
+<p>Histogram comparing imputed vs non-imputed distributions.</p>
+<p>Builds a violin-marginal histogram and highlights imputed values for
+visual comparison of value distributions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.imputation_histogram.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.imputation_histogram.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">non_imputed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imputed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/imputation_histogram.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.imputation_histogram.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Create a histogram comparing imputed vs non-imputed values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>non_imputed</strong> – DataFrame before imputation.</p></li>
+<li><p><strong>imputed</strong> – DataFrame after imputation.</p></li>
+<li><p><strong>defaults</strong> – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>.</p></li>
+<li><p><strong>dlname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name for the downloaded figure file.</p></li>
+<li><p><strong>id_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Figure title.</p></li>
+<li><p><strong>kwargs</strong> – Additional keyword args forwarded to Plotly Express <code class="docutils literal notranslate"><span class="pre">histogram</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> containing the histogram figure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.network_plot">
+<span id="app-components-figures-network-plot-module"></span><h2>app.components.figures.network_plot module<a class="headerlink" href="#module-app.components.figures.network_plot" title="Link to this heading"></a></h2>
+<p>Network visualization utilities using Dash Cytoscape.</p>
+<p>Creates Cytoscape elements and container for displaying bait–prey
+interaction networks with selectable layouts and styles.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.network_plot.get_cytoscape_container">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.network_plot.</span></span><span class="sig-name descname"><span class="pre">get_cytoscape_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cyto_elements</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_height</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/network_plot.html#get_cytoscape_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.network_plot.get_cytoscape_container" title="Link to this definition"></a></dt>
+<dd><p>Build a Cytoscape container with controls and the graph component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cyto_elements</strong> – List of Cytoscape nodes and edges.</p></li>
+<li><p><strong>full_height</strong> – CSS height string (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;600px&quot;</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dash <code class="docutils literal notranslate"><span class="pre">html.Div</span></code> containing the Cytoscape graph and layout selector.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.network_plot.get_cytoscape_elements_and_ints">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.network_plot.</span></span><span class="sig-name descname"><span class="pre">get_cytoscape_elements_and_ints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interaction_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/network_plot.html#get_cytoscape_elements_and_ints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.network_plot.get_cytoscape_elements_and_ints" title="Link to this definition"></a></dt>
+<dd><p>Convert interaction table to Cytoscape elements and a dict index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>interaction_data</strong> – DataFrame with columns including <code class="docutils literal notranslate"><span class="pre">Bait</span></code>, <code class="docutils literal notranslate"><span class="pre">Prey</span></code>, <code class="docutils literal notranslate"><span class="pre">PreyGene</span></code>, <code class="docutils literal notranslate"><span class="pre">AvgSpec</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(elements,</span> <span class="pre">interactions)</span></code> where elements is a list of nodes/edges and interactions is a nested dict.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.network_plot.get_stylesheet">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.network_plot.</span></span><span class="sig-name descname"><span class="pre">get_stylesheet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/network_plot.html#get_stylesheet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.network_plot.get_stylesheet" title="Link to this definition"></a></dt>
+<dd><p>Return the default Cytoscape stylesheet for bait/prey nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of stylesheet dictionaries.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.reproducibility_graph">
+<span id="app-components-figures-reproducibility-graph-module"></span><h2>app.components.figures.reproducibility_graph module<a class="headerlink" href="#module-app.components.figures.reproducibility_graph" title="Link to this heading"></a></h2>
+<p>Reproducibility plots for deviations from sample-group means.</p>
+<p>Generates per-replicate histograms of deviations from group mean and
+lays them out in a grid for quick visual inspection.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.reproducibility_graph.get_max">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.reproducibility_graph.</span></span><span class="sig-name descname"><span class="pre">get_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/reproducibility_graph.html#get_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.reproducibility_graph.get_max" title="Link to this definition"></a></dt>
+<dd><p>Return the maximum absolute deviation across all replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Output from <code class="docutils literal notranslate"><span class="pre">get_reproducibility_dataframe</span></code>.</p></li>
+<li><p><strong>minval</strong> – Minimum value to enforce.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Integer maximum used for x-axis range sizing.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.reproducibility_graph.get_reproducibility_dataframe">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.reproducibility_graph.</span></span><span class="sig-name descname"><span class="pre">get_reproducibility_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_groups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/reproducibility_graph.html#get_reproducibility_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.reproducibility_graph.get_reproducibility_dataframe" title="Link to this definition"></a></dt>
+<dd><p>Compute per-replicate deviations from the group mean.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_table</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – DataFrame with sample columns.</p></li>
+<li><p><strong>sample_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping group -&gt; list of column names.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Nested dict <code class="docutils literal notranslate"><span class="pre">{group:</span> <span class="pre">{replicate:</span> <span class="pre">[deviations...]}}</span></code> suitable for plotting.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.reproducibility_graph.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.reproducibility_graph.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_per_row</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/reproducibility_graph.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.reproducibility_graph.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Create a grid of histograms of deviations from group mean.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>.</p></li>
+<li><p><strong>plot_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Nested dict from <code class="docutils literal notranslate"><span class="pre">get_reproducibility_dataframe</span></code>.</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Plot title.</p></li>
+<li><p><strong>table_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Label for x-axis description.</p></li>
+<li><p><strong>dlname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name for the downloaded figure file.</p></li>
+<li><p><strong>num_per_row</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of subplots per row.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> with the subplot figure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.scatter">
+<span id="app-components-figures-scatter-module"></span><h2>app.components.figures.scatter module<a class="headerlink" href="#module-app.components.figures.scatter" title="Link to this heading"></a></h2>
+<p>Scatter plot utilities with categorical coloring.</p>
+<p>Offers a figure factory that preserves input categorical color order and
+a Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> wrapper.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.scatter.make_figure">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.scatter.</span></span><span class="sig-name descname"><span class="pre">make_figure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">improve_text_pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/scatter.html#make_figure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.scatter.make_figure" title="Link to this definition"></a></dt>
+<dd><p>Create a scatter plot with per-category colors and labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>.</p></li>
+<li><p><strong>data_table</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Input DataFrame.</p></li>
+<li><p><strong>x</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column name for x-axis.</p></li>
+<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column name for y-axis.</p></li>
+<li><p><strong>color_col</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column containing color strings.</p></li>
+<li><p><strong>name_col</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column used for categories and hover names.</p></li>
+<li><p><strong>msize</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Marker size.</p></li>
+<li><p><strong>improve_text_pos</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, adjust text positions heuristically.</p></li>
+<li><p><strong>kwargs</strong> – Additional keyword args forwarded to Plotly Express <code class="docutils literal notranslate"><span class="pre">scatter</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Plotly <code class="docutils literal notranslate"><span class="pre">Figure</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.scatter.make_graph">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.scatter.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlname</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/scatter.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.scatter.make_graph" title="Link to this definition"></a></dt>
+<dd><p>Wrap the scatter figure in a Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id_name</strong> – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
+<li><p><strong>defaults</strong> – Dict including a <code class="docutils literal notranslate"><span class="pre">config</span></code> key passed to the component.</p></li>
+<li><p><strong>dlname</strong> – Name for the downloaded figure file.</p></li>
+<li><p><strong>args</strong> – Positional args passed to <code class="docutils literal notranslate"><span class="pre">make_figure</span></code>.</p></li>
+<li><p><strong>kwargs</strong> – Keyword args passed to <code class="docutils literal notranslate"><span class="pre">make_figure</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash <code class="docutils literal notranslate"><span class="pre">Graph</span></code> component.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.tic_graph">
+<span id="app-components-figures-tic-graph-module"></span><h2>app.components.figures.tic_graph module<a class="headerlink" href="#module-app.components.figures.tic_graph" title="Link to this heading"></a></h2>
+<p>Total ion chromatogram (TIC) and base peak figure utilities.</p>
+<p>Builds a Plotly figure from precomputed JSON traces with automatic sizing
+and hover behavior.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.tic_graph.tic_figure">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.tic_graph.</span></span><span class="sig-name descname"><span class="pre">tic_figure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'TIC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/tic_graph.html#tic_figure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.tic_graph.tic_figure" title="Link to this definition"></a></dt>
+<dd><p>Create a TIC/trace figure from serialized Plotly traces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">width</span></code> fallbacks.</p></li>
+<li><p><strong>traces</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict with keys for datatypes; each contains <code class="docutils literal notranslate"><span class="pre">max_x</span></code>, <code class="docutils literal notranslate"><span class="pre">max_y</span></code>, and a list of <code class="docutils literal notranslate"><span class="pre">traces</span></code> as Plotly JSON.</p></li>
+<li><p><strong>datatype</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Which trace set to render (e.g., <code class="docutils literal notranslate"><span class="pre">'TIC'</span></code>).</p></li>
+<li><p><strong>height</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Optional explicit height.</p></li>
+<li><p><strong>width</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Optional explicit width.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Plotly <code class="docutils literal notranslate"><span class="pre">Figure</span></code> with added traces and layout.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures.volcano_plot">
+<span id="app-components-figures-volcano-plot-module"></span><h2>app.components.figures.volcano_plot module<a class="headerlink" href="#module-app.components.figures.volcano_plot" title="Link to this heading"></a></h2>
+<p>Volcano plots and significant-difference heatmaps.</p>
+<p>Provides a Plotly volcano plot builder and utilities to generate a set
+of volcano graphs and an aggregate heatmap of significant changes.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.volcano_plot.generate_graphs">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.volcano_plot.</span></span><span class="sig-name descname"><span class="pre">generate_graphs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">significant_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_thr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_thr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_prefix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/volcano_plot.html#generate_graphs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.volcano_plot.generate_graphs" title="Link to this definition"></a></dt>
+<dd><p>Generate volcano plots and a heatmap for significant changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>significant_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Long-form DataFrame with at least <code class="docutils literal notranslate"><span class="pre">Sample</span></code>, <code class="docutils literal notranslate"><span class="pre">Control</span></code>, <code class="docutils literal notranslate"><span class="pre">fold_change</span></code>, <code class="docutils literal notranslate"><span class="pre">p_value_adj</span></code> columns.</p></li>
+<li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict with figure defaults and component config.</p></li>
+<li><p><strong>fc_thr</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Absolute log2 fold change threshold for significance.</p></li>
+<li><p><strong>p_thr</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Adjusted p-value threshold.</p></li>
+<li><p><strong>id_prefix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Prefix used for generated component IDs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Div</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">dash.html.Div</span></code> containing headers, plots, and legends.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.figures.volcano_plot.volcano_plot">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.volcano_plot.</span></span><span class="sig-name descname"><span class="pre">volcano_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_axis_min_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adj_p_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/volcano_plot.html#volcano_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.volcano_plot.volcano_plot" title="Link to this definition"></a></dt>
+<dd><p>Draw a volcano plot from a differential results table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_table</strong> – Data from <code class="docutils literal notranslate"><span class="pre">stats.differential</span></code>; only one comparison expected.</p></li>
+<li><p><strong>defaults</strong> – Dict with <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">width</span></code> for the figure.</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Figure title.</p></li>
+<li><p><strong>fc_axis_min_max</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Minimum absolute FC range to avoid narrow plots.</p></li>
+<li><p><strong>adj_p_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Adjusted p-value threshold (q-value).</p></li>
+<li><p><strong>fc_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Absolute log2 fold change threshold for significance.</p></li>
+<li><p><strong>highlight_only</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>) – Optional set/list; only significant points with names in this set are labeled.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Plotly <code class="docutils literal notranslate"><span class="pre">Figure</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.figures">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-app.components.figures" title="Link to this heading"></a></h2>
+<p>Figure generation subpackage.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app.components.enrichment.html" class="btn btn-neutral float-left" title="app.components.enrichment package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app.components.tools.html" class="btn btn-neutral float-right" title="app.components.tools package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

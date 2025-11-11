@@ -1,0 +1,628 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proteogyver &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2025_ProteoGyver" href="code/modules.html" />
+    <link rel="prev" title="ProteoGyver documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Proteogyver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of contents:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#security">Security</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#qc-and-quick-analysis-toolset">QC and quick analysis toolset</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#core-analysis-workflows">Core Analysis Workflows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#input-data-format">Input Data Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ptm-workflow">PTM workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipeline-input-toml">Pipeline input toml</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parameters-not-in-the-input-toml">Parameters not in the input toml</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#initiating-pipeline-analysis-via-api">Initiating pipeline analysis via API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-tools">Additional Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ms-inspector">MS Inspector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#microscopy-image-colocalizer">Microscopy Image Colocalizer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ms-run-data-pre-analysis">MS run data pre-analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-installation-recommended">Docker Installation (recommended)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#running-the-docker-images">Running the docker images</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-the-container">Run the container</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-and-updating-the-database">Creating and updating the database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#update-running-order">Update running order:</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#forcing-an-update">Forcing an update</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-ms-run-data">Adding MS run data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-new-crapome-or-control-sets">Adding new crapome or control sets:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-other-new-tables">Adding other new tables:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deleting-data">Deleting data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-logging">Update logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-docker-images">Building the docker images:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#build-the-docker-images-and-run-the-pg-updater">Build the Docker images and run the PG updater</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites:</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#used-external-data">Used external data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-the-main-docker-image">Build the main docker image.</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#rare-use-cases">Rare use cases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#embedding-other-websites-as-tabs-within-proteogyver">Embedding other websites as tabs within Proteogyver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-custom-tools-as-tabs-to-proteogyver">Adding custom tools as tabs to Proteogyver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-database-from-other-tools">Accessing the database from other tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-cite">How to cite</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Proteogyver</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/README.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="proteogyver">
+<h1>Proteogyver<a class="headerlink" href="#proteogyver" title="Link to this heading"></a></h1>
+<p>Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).</p>
+<section id="table-of-contents">
+<h2>Table of contents:<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
+</section>
+<section id="security">
+<h2>Security<a class="headerlink" href="#security" title="Link to this heading"></a></h2>
+<p>The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)</p>
+</section>
+<section id="qc-and-quick-analysis-toolset">
+<h2>QC and quick analysis toolset<a class="headerlink" href="#qc-and-quick-analysis-toolset" title="Link to this heading"></a></h2>
+<section id="core-analysis-workflows">
+<h3>Core Analysis Workflows<a class="headerlink" href="#core-analysis-workflows" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Proteomics Analysis</strong></p>
+<ul>
+<li><p>Missing value handling and imputation</p></li>
+<li><p>Data normalization</p></li>
+<li><p>Statistical analysis and visualization</p></li>
+<li><p>Differential abundance analysis with volcano plots</p></li>
+<li><p>Enrichment analysis</p></li>
+</ul>
+</li>
+<li><p><strong>Interactomics Analysis</strong></p>
+<ul>
+<li><p>SAINT analysis integration</p></li>
+<li><p>CRAPome filtering</p></li>
+<li><p>Protein-protein interaction network visualization</p></li>
+<li><p>MS-microscopy analysis</p></li>
+<li><p>Known interaction mapping</p></li>
+</ul>
+</li>
+<li><p><strong>Pipeline mode</strong></p>
+<ul>
+<li><p>Any of the above workflows can be run in the background in automated fashion through the pipeline module.</p></li>
+<li><p>Accessible via API or folder watcher script</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h3>
+<p>Example files are downloadable from the sidebar of the main interface. These include example data files and sample tables for interactomics, and proteomics workflows.</p>
+<ol class="arabic simple">
+<li><p>Access the web interface (host:port, e.g. localhost:8050, if running locally)</p></li>
+<li><p>Upload your data and sample tables</p></li>
+<li><p>Choose your workflow (Proteomics or Interactomics)</p></li>
+<li><p>Choose analysis parameters</p></li>
+<li><p>Export results in various formats (HTML, PNG, PDF, TSV)</p></li>
+</ol>
+</section>
+<section id="input-data-format">
+<h3>Input Data Format<a class="headerlink" href="#input-data-format" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Sample table must include:</p>
+<ul>
+<li><p>“Sample name” column</p></li>
+<li><p>“Sample group” column</p></li>
+<li><p>“Bait uniprot” column (for interactomics)</p></li>
+</ul>
+</li>
+<li><p>Supported data formats:</p>
+<ul>
+<li><p>Interactomics:</p>
+<ul>
+<li><p>FragPipe (combined_prot.tsv, reprint.spc)</p></li>
+<li><p>Generic matrix format (one row = one protein, one column = one sample)</p></li>
+</ul>
+</li>
+<li><p>Proteomics:</p>
+<ul>
+<li><p>FragPipe (combined_prot.tsv)</p></li>
+<li><p>DIA-NN (pg_matrix.tsv)</p></li>
+<li><p>Generic matrix format (one row = one protein, one column = one sample)</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="ptm-workflow">
+<h3>PTM workflow<a class="headerlink" href="#ptm-workflow" title="Link to this heading"></a></h3>
+<p>Currently the PTM workflow is not ready for deployment. However, PTMs can be analyzed in a rudimentary way with the proteomics workflow. In this case, the input data table should be a generic matrix, where the first column is the ID column specifying the protein and modification site, and all other columns represent intensity values of e.g. the identified peptide or site. In this case, the first column could contain values such as Protein12-siteY32, or similar. As long as each entry is unique, PG will ingest the file happily. The workflow will then produce the same plots, e.g. counts, intensity distributions, missing values, volcano plots etc.</p>
+<p>Alternatively, you can use e.g. the <a class="reference external" href="https://github.com/vdemichev/diann-rpackage">DiaNN R package</a> to recalculate MaxLFQ on protein level based only on modified (e.g. phosphorylated) precursors. And then run the usual proteomics workflow. See the example R file in <a class="reference internal" href="#./utils/scripts/diann-phospho-requant.R"><span class="xref myst">utils/scripts/diann-phospho-requant.R</span></a>. Since the DiaNN R package is a bit out of date, you will first need to convert the .parquet report to .tsv. This can be done e.g. via python:</p>
+<blockquote>
+<div><p>import pandas as pd
+df  = pd.read_parquet(‘report.parquet’)
+df.to_csv(‘report.tsv’,sep=’\t’)
+as long as pandas, pyarrow, and fastparquet are installed via e.g. pip. With large reports, you will need to read/write in chunks.
+The report.tsv is then ready for the script, and the resulting matrix ready for PG. Do keep in mind that R may change the column headers if special characters or spaces are present.</p>
+</div></blockquote>
+<p>The pipeline module features an ingest directory (see parameters.toml [Pipeline module.Input watch directory], by default data/Server_input/Pipeline_input ). While the Proteogyver container is running, a watcher script will detect newly created folders in this directory, and launch the analysis in the background for each.</p>
+<p>Each input folder should contain:</p>
+<ul class="simple">
+<li><p>pipeline.toml file</p></li>
+<li><p>Data table</p></li>
+<li><p>Sample table
+Of these, the data table and sample table can be in a subdirectory, if so specified in the toml file.</p></li>
+</ul>
+<p>For example files, see pipeline example inputs -directory</p>
+<p>Once the analysis is done, output will be generated in the same directory, as the input. IF errors occur, ERRORS.txt will be generated, and reanalysis will not be performed.</p>
+<p>To trigger reanalysis, the input folder must not contain either the error file, nor the “PG output” folder.</p>
+<section id="pipeline-input-toml">
+<h4>Pipeline input toml<a class="headerlink" href="#pipeline-input-toml" title="Link to this heading"></a></h4>
+<p>The pipeline module is set to watch the /proteogyver/data/Server_input/Pipeline_input directory in the <strong>container</strong> by default. This should be mapped to a host path, where pipeline input files can be placed either automatically or manually. In the <a class="reference internal" href="#./dockerfiles/proteogyver/docker-compose.yaml"><span class="xref myst">docker compose</span></a> the host directory /data/PG/input is mounted at /proteogyver/data/Server_input, so the pipeline module will watch /data/PG/input/Pipeline_input for new directories.</p>
+<p>Each new directory represents a dataset to analyze. Each directory should contain three, optionally four, files:</p>
+<ul class="simple">
+<li><p>data file</p></li>
+<li><p>sample table</p></li>
+<li><p>pipeline input toml</p></li>
+<li><p>(proteomics comparisons)</p></li>
+</ul>
+<p>Examples of these are available in the <a class="reference internal" href="#./app/data/PG%20example%20files/"><span class="xref myst">example files</span></a>, or in the download zip that is obtained from the download example files button in the web GUI.</p>
+<p>Full available parameters can be seen in the <a class="reference internal" href="#./app/data/Pipeline%20module%20default%20tomls/"><span class="xref myst">default files</span></a>, which are split into common.toml, interactomics.toml, and proteomics.toml. The common has parameters available for all workflows, while the workflow specific ones deal with parameters for the workflows.</p>
+<p>The toml file contains three sections (file to see for full list of parameters):</p>
+<ol class="arabic simple">
+<li><p>pipeline (common.toml)</p></li>
+<li><p>general (common.toml)</p></li>
+<li><p>workflow-specific (proteomics.toml/interactomics.toml)</p></li>
+</ol>
+<p>The <strong>only</strong> section that is <strong>absolutely mandatory</strong> is this:</p>
+<blockquote>
+<div><p>[general]
+workflow = “interactomics” # OR “proteomics”
+data = “path/to/data/table.tsv”
+“sample table” = “path/to/sample/table.tsv”</p>
+</div></blockquote>
+<p>The parameter file <strong>needs</strong> to be named something.toml. Preferably something_pipeline.toml.
+Note that the data and sample tables do not need to be in the same directory, but the path specified needs to be relative to the .toml file, and they need to be accessible for the docker container. For example, it might be clearer to put the tables into “data” directory in the input directory.</p>
+<p>At the end, this is an example of the file structure you should have on the HOST for PG to initiate the pipeline successfully:
+/data/PG/input/Pipeline_input/AnalysisDir/pipeline.toml
+/data/PG/input/Pipeline_input/AnalysisDir/data.tsv
+/data/PG/input/Pipeline_input/AnalysisDir/sample table.tsv</p>
+<p>and the pipeline.toml should contain:</p>
+<blockquote>
+<div><p>[general]
+workflow = “interactomics”
+data = “data.tsv”
+“sample table” = “sample table.tsv”</p>
+</div></blockquote>
+</section>
+<section id="parameters-not-in-the-input-toml">
+<h4>Parameters not in the input toml<a class="headerlink" href="#parameters-not-in-the-input-toml" title="Link to this heading"></a></h4>
+<p>Since the input .toml can be very minimal, for all parameters that are NOT in it, PG will use values from the <a class="reference internal" href="#./app/data/Pipeline%20module%20default%20tomls/"><span class="xref myst">default files</span></a>. For this reason, it is advisable to always specify things like additional controls, control sample groups, and crapome sets for interactomics, and control groups for proteomics.</p>
+</section>
+<section id="initiating-pipeline-analysis-via-api">
+<h4>Initiating pipeline analysis via API<a class="headerlink" href="#initiating-pipeline-analysis-via-api" title="Link to this heading"></a></h4>
+<p>An alternative to direct file system access to the server is to use the API. The API is on the same port as the GUI, under /api/upload-pipeline-files.
+Here is a complete usage example via python:</p>
+<blockquote>
+<div><p>datafile = ‘datafile.tsv’
+sample_table = ‘sampletable.tsv’
+pipeline = ‘pipeline.toml’
+server_url = ‘proteogyver.server.com’
+server_port = 8050</p>
+<p>files = {
+‘data_table’: open(datafile, ‘rb’),
+‘sample_table’: open(sample_table, ‘rb’),
+‘pipeline_toml’: open(pipeline, ‘rb’),
+}</p>
+<p class="rubric" id="response-requests-post-f-http-server-url-server-port-api-upload-pipeline-files-files-files-upload-dir-name-response-json-upload-directory-name">response = requests.post(f”http://{server_url}:{server_port}/api/upload-pipeline-files”, files=files)
+upload_dir_name = response.json()[‘upload_directory_name’]</p>
+<p class="rubric" id="check-status-later">Check status later</p>
+<p>status = requests.get(
+f”http://{server_url}:{server_port}/api/pipeline-status”,
+params={‘upload_directory_name’: upload_dir_name}
+).json()
+print(f’Status: {status[“status”]}, message: {status[“message”]}’)</p>
+<p class="rubric" id="the-status-also-includes-upload-directory-name">The status also includes upload directory name</p>
+<p class="rubric" id="if-status-status-error-print-f-error-status-error-message">if status[‘status’] == ‘error’:
+print(f”Error: {status[‘error_message’]}”)</p>
+<p class="rubric" id="download-the-output-zip-file">Download the output zip file</p>
+<p>response = requests.get(
+f”http://{server_url}:{server_port}/api/download-output”,
+params={‘upload_directory_name’: upload_dir_name},
+stream=True
+)</p>
+<p>if response.status_code == 200:</p>
+<p class="rubric" id="save-the-zip-file">Save the zip file</p>
+<p>with open(‘PG output.zip’, ‘wb’) as f:
+for chunk in response.iter_content(chunk_size=8192):
+f.write(chunk)
+print(“Downloaded PG output.zip”)
+else:
+print(f”Error: {response.json()}”)</p>
+</div></blockquote>
+</section>
+</section>
+</section>
+<section id="additional-tools">
+<h2>Additional Tools<a class="headerlink" href="#additional-tools" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>MS Inspector</strong>: Interactive visualization and analysis of MS performance through TIC graphs</p></li>
+<li><p><strong>Microscopy Image Colocalizer</strong>: Analysis tool for .lif image files</p></li>
+</ul>
+<section id="ms-inspector">
+<h3>MS Inspector<a class="headerlink" href="#ms-inspector" title="Link to this heading"></a></h3>
+<p>The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) performance through chromatogram graphs and related metrics.</p>
+<section id="features">
+<h4>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Interactive TIC visualization with animation controls</p></li>
+<li><p>Multiple trace types support (TIC, BPC)</p></li>
+<li><p>Supplementary metrics tracking:</p>
+<ul>
+<li><p>Area Under the Curve (AUC)</p></li>
+<li><p>Mean intensity</p></li>
+<li><p>Maximum intensity</p></li>
+</ul>
+</li>
+<li><p>Sample filtering by:</p>
+<ul>
+<li><p>Date range</p></li>
+<li><p>Sample type</p></li>
+<li><p>Run IDs</p></li>
+</ul>
+</li>
+<li><p>Data export in multiple formats:</p>
+<ul>
+<li><p>HTML interactive plots</p></li>
+<li><p>PNG images</p></li>
+<li><p>PDF documents</p></li>
+<li><p>TSV data files</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id1">
+<h4>Usage<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<ol class="arabic simple">
+<li><p>Select MS instrument from dropdown</p></li>
+<li><p>Choose analysis period</p></li>
+<li><p>Filter by sample type(s) or input specific run IDs</p></li>
+<li><p>Click “Load runs by selected parameters”</p></li>
+<li><p>Use animation controls to explore TIC graphs as a time series:</p>
+<ul class="simple">
+<li><p>Start/Stop: Toggle automatic progression</p></li>
+<li><p>Previous/Next: Manual navigation</p></li>
+<li><p>Reset: Return to first run</p></li>
+</ul>
+</li>
+<li><p>Switch between TIC and BPC metrics using dropdown</p></li>
+<li><p>Export visualizations and data using “Download Data”</p></li>
+</ol>
+</section>
+<section id="notes">
+<h4>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Unfortunately the proteogyver container needs a restart to detect new runs in the database in MS inspector. This limitation will be fixed in the next update.</p></li>
+<li><p>Maximum of 100 runs can be loaded at once</p></li>
+<li><p>Multiple traces are displayed with decreasing opacity for temporal comparison</p></li>
+<li><p>Supplementary metrics are synchronized with TIC visualization</p></li>
+<li><p>For switching to a different run set, reload the page to ensure clean state</p></li>
+<li><p>Prerequisite for the use of the tool, as well as chromatogram visualization in the QC workflow, is the pre-analysis of MS rawfiles and their inclusion into the PG database with the bundled database updater tool. See the “Updating the database” section for more information.</p></li>
+</ul>
+</section>
+</section>
+<section id="microscopy-image-colocalizer">
+<h3>Microscopy Image Colocalizer<a class="headerlink" href="#microscopy-image-colocalizer" title="Link to this heading"></a></h3>
+<p>The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format.</p>
+</section>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<section id="ms-run-data-pre-analysis">
+<h3>MS run data pre-analysis<a class="headerlink" href="#ms-run-data-pre-analysis" title="Link to this heading"></a></h3>
+<p>This is optional, but highly recommended. In order for the MS-inspector to have data to work with, or for QC to display chromatograms, information about MS runs needs to be included in the database.</p>
+<p>MS run data needs to be pre-analyzed. As it may not be desirable to present run files directly to the server PG is running on, PG assumes that rawfile pre-analysis .json files are present in the directory specified in parameters.toml at “Maintenance”.”MS run parsing”.”Input files”. The parser script is provided in utils folder (MSParser subdir), with its own venv requirements.txt file. MSParser.py can handle timsTOF and thermo data currently. Tested MS systems so far include the TimsTOF Pro, Pro2, QExactive, Orbitrap Elite, Astral, and Astral Zoom.</p>
+<p>to run, set up the MSParser venv:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">utils</span><span class="o">/</span><span class="n">MSParser</span>
+<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="o">.</span><span class="n">venv</span>
+<span class="n">source</span> <span class="o">.</span><span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>And then run it. MSParser expects three inputs: path to a raw file (e.g. something.raw, or something.d), path to output <strong>directory</strong>, and path to an error file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="n">MSParser</span><span class="o">.</span><span class="n">py</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">rawfile</span><span class="o">.</span><span class="n">d</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">output_dir</span><span class="o">/</span><span class="k">for</span><span class="o">/</span><span class="n">jsons</span><span class="o">/</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">errorfile</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">python3</span> <span class="n">MSParser</span><span class="o">.</span><span class="n">py</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">rawfile</span><span class="o">.</span><span class="n">raw</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">output_dir</span><span class="o">/</span><span class="k">for</span><span class="o">/</span><span class="n">jsons</span><span class="o">/</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">errorfile</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>It will parse the rawfile, and produce a .json file in the output directory, which is understood by MS_run_json_parser.py (run on a schedule by the proteogyver main container). The parser runs in the background, and will digest files in the directory specified in parameters at Maintenance.MS run parsing.Input files. By default, it will move the jsons afterwards to the directory specified in parameters at Maintenance.MS run parsing.Move done jsons into subdir. If the latter parameter is empty, files will be deleted after parsing. The parsed json files, if kept, will also be compressed (zip), when they accumulate.</p>
+</section>
+<section id="docker-installation-recommended">
+<h3>Docker Installation (recommended)<a class="headerlink" href="#docker-installation-recommended" title="Link to this heading"></a></h3>
+<p>TODO: dockerhub/zenodo here.</p>
+<section id="running-the-docker-images">
+<h4>Running the docker images<a class="headerlink" href="#running-the-docker-images" title="Link to this heading"></a></h4>
+<p>Next modify docker-compose NOW to suit your local system if needed.</p>
+<p>For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn’t yet exist.</p>
+<p>Building the updater container should take around a minute. Running the updater can take a long time, especially on the first run.
+<strong>All commands should be run from the proteogyver root folder</strong></p>
+<p>Then run the updater to generate a database:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">dockerfiles</span><span class="o">/</span><span class="n">pg_updater</span> <span class="o">&amp;&amp;</span> <span class="n">docker</span> <span class="n">compose</span> <span class="n">up</span>
+</pre></div>
+</div>
+<section id="changing-parameters">
+<h5>Changing parameters<a class="headerlink" href="#changing-parameters" title="Link to this heading"></a></h5>
+<p>In order to keep the parameters.toml in sync with PG and the updater container, it is copied into path specified in the docker-compose.yaml. The file needs to be edited in that location ONLY, in order for the updated parameters to be applied to existing docker container, and the updater (e.g. different database name, or modified update intervals). When pg_updater or proteogyver is run the first time, it will copy the default parameters.toml into config folder.</p>
+</section>
+</section>
+<section id="run-the-container">
+<h4>Run the container<a class="headerlink" href="#run-the-container" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Modify the dockerfiles/docker-compose.yaml file to suit your environment, and then deploy the container:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">dockerfiles</span><span class="o">/</span><span class="n">proteogyver</span> <span class="o">&amp;&amp;</span> <span class="n">docker</span> <span class="n">compose</span> <span class="n">up</span>
+</pre></div>
+</div>
+<section id="volume-paths">
+<h5>Volume paths<a class="headerlink" href="#volume-paths" title="Link to this heading"></a></h5>
+<p>PG will generate data on disk in the form of tempfiles when a dataset is requested for download, and when certain functions are used (e.g. imputation). As such, it is suggested that the cache folder (/proteogyver/cache) is mounted from e.g. tmpfs (/tmp on most linux distros) or similar, for speed and latency.</p>
+<p>/proteogyver/data/db is suggested to live on an externally mounted directory due to database size.
+/proteogyver/data/Server_input should contain the MS_rundata directory, which houses .json files for MS runs that should be included in the database by the updater.
+/proteogyver/data/Server_output currently has no use, but will in the future be used for larger exports.
+/proteogyver/cache Should live on a fast disk
+/proteogyver/config should also be an external mount to sync parameters between proteogyver and pg_updater</p>
+</section>
+</section>
+</section>
+</section>
+<section id="creating-and-updating-the-database">
+<h2>Creating and updating the database<a class="headerlink" href="#creating-and-updating-the-database" title="Link to this heading"></a></h2>
+<p>To update the database, use the updater container</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">dockerfiles</span><span class="o">/</span><span class="n">pg_updater</span> <span class="o">&amp;&amp;</span> <span class="n">docker</span> <span class="n">compose</span> <span class="n">up</span>
+</pre></div>
+</div>
+<p>On the first run, it will create a new database file in the specified db directory (specified in parameters.toml), if the file does not exist. In other cases, it will update the existing database. For updates, data will be added to existing tables from the update files directory (specified in parameters.toml). If it does not exist, the updater will create it, as well as example files for each database table. Crapome and control set table examples will not be created, because they would clutter up the output. For each of these tables, lines in them represent either new data rows, or modifications to existing rows. Deletions are handled differently, and are described below.</p>
+<p>IF the files handed to updater contain columns, that are not in the existing tables, the updater will add them. However, the column names will be sanitized to only contain lowercase letters, numbers, and underscores, and any consecutive underscores will be removed. E.g. “gene name” will be changed to “gene_name”. If a column starts with a number, “c” will be added to the beginning of the name. E.g. “1.2.3” will be changed to “c1_2_3”.</p>
+<p>When updating existing entries in the database, if the update file does not contain a column that is present in the database, or a row of the update file has no value for a column,the updater will impute values from the existing entries in the database.</p>
+<p>Keep in mind that the updater will delete the files from the db_updates directories after it has finished running.</p>
+<section id="update-running-order">
+<h3>Update running order:<a class="headerlink" href="#update-running-order" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>External data is updated first.</p></li>
+<li><p>Deletions are handled next.</p></li>
+<li><p>Additions and replacements are handled next.</p></li>
+<li><p>Finally other modifications are applied.</p></li>
+</ol>
+<p>If the tools that provide the external data provide ANY new columns that do not already exist in the database, the new columns will need to be manually added to the database FIRST. Otherwise the updater will throw an error.</p>
+<section id="forcing-an-update">
+<h4>Forcing an update<a class="headerlink" href="#forcing-an-update" title="Link to this heading"></a></h4>
+<p>In some cases it is useful to force a full update of the database, even if the interval specified in the parameters.toml has not elapsed. In this case, add an environmental variable to the docker compose: FORCE_PG_DB_UPDATE: ‘1’</p>
+</section>
+</section>
+<section id="adding-ms-run-data">
+<h3>Adding MS run data<a class="headerlink" href="#adding-ms-run-data" title="Link to this heading"></a></h3>
+<p>See the <a class="reference internal" href="#ms-run-data-pre-analysis"><span class="xref myst">MS run data pre-analysis</span></a> section of the install instructions.</p>
+</section>
+<section id="adding-new-crapome-or-control-sets">
+<h3>Adding new crapome or control sets:<a class="headerlink" href="#adding-new-crapome-or-control-sets" title="Link to this heading"></a></h3>
+<p>Two files per set are needed:</p>
+<ol class="arabic simple">
+<li><p>The crapome/control overall table needs an update, and for that the control_sets.tsv or crapome_sets.tsv example file can be added to, and then put into the db_updates/crapome_sets or db_updates/control_sets directory.</p></li>
+<li><p>The individual crapome/control set needs its own update file added to the db_updates/add_or_replace directory. The file should have the same columns, as existing crapome/control set tables (specified in parameters.toml at “database creation”.”control and crapome db detailed columns”). The column types can be found in “database creation”.”control and crapome db detailed types”.</p></li>
+</ol>
+</section>
+<section id="adding-other-new-tables">
+<h3>Adding other new tables:<a class="headerlink" href="#adding-other-new-tables" title="Link to this heading"></a></h3>
+<p>In order to add any other new tables, two updates and two files are needed:</p>
+<ol class="arabic simple">
+<li><p>.tsv file in the “add_or_replace” directory. Column names MUST NOT contain any spaces. Otherwise the updater will throw an error.</p></li>
+<li><p>.txt file in the “add_or_replace” directory with the exact same name as the .tsv file, except it MUST have a .txt extension. This file contains the column types for the new table. One line per column, in the same order as the columns in the .tsv file. It should contain only the types. For example, if the .tsv file has the following columns: “uniprot_id”, “gene_name”, “description”, “spectral_count”, the .txt file should have the following lines: “TEXT PRIMARY KEY”, “TEXT”, “TEXT”, “INTEGER”. Empty lines and lines starting with ‘#’ are ignored.</p></li>
+<li><p>The new table needs to be added to the [“Database updater”.”Update files”] list with the same name as the .tsv file, but without the .tsv extension.</p></li>
+<li><p>In order to generate an empty template file for future updates, the [“Database updater”.”Database table primary keys”] list in parameters.toml needs to be added to.</p></li>
+</ol>
+</section>
+<section id="deleting-data">
+<h3>Deleting data<a class="headerlink" href="#deleting-data" title="Link to this heading"></a></h3>
+<p>To delete data rows, the syntax is different. Each file in the remove_data -directory should be named exactly the same as the table it is deleting from + .tsv. E.g. to delete from table “proteins”, name the file proteins.tsv. One row should contain one criteria in the format of “column_name, value\tcolumn_name2, value2”, without quotes. The tab separates criterias from one another, and all criteria of a row will have to match for the deletion. E.g.
+uniprot_id, UPID1\tgene_name, GENE12
+will match the rows in the database where uniprot_id is UPID1 and gene_name is GENE12.</p>
+<p>Empty lines and lines starting with ‘#’ are ignored.</p>
+<p>Deleting columns from tables is not supported this way, nor is deleting entire tables. These need to be done manually. The database is sqlite3, and thus easy to work with. Please make a backup first.</p>
+<p>As an example, utils/database_control_set_purger_examplescript.py is provided.
+It will take as input the path to the database file, and delete ALL control sets from it.</p>
+</section>
+<section id="update-logging">
+<h3>Update logging<a class="headerlink" href="#update-logging" title="Link to this heading"></a></h3>
+<p>Updates will be logged to the update_log table.</p>
+</section>
+</section>
+<section id="building-the-docker-images">
+<h2>Building the docker images:<a class="headerlink" href="#building-the-docker-images" title="Link to this heading"></a></h2>
+<p>If you want to build the docker images locally, start by cloning the repo:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">varjolab</span><span class="o">/</span><span class="n">Proteogyver</span><span class="o">/</span>
+<span class="n">cd</span> <span class="n">Proteogyver</span>
+</pre></div>
+</div>
+<section id="build-the-docker-images-and-run-the-pg-updater">
+<h3>Build the Docker images and run the PG updater<a class="headerlink" href="#build-the-docker-images-and-run-the-pg-updater" title="Link to this heading"></a></h3>
+<p>These commands may need sudo depending on the system.
+PG updater is used to generate a database. A small test database is provided, and that works well with the example files that can be downloaded from the PG interface. The test database contains scrambled data, and is thus not recommended as a base for a production database. Proper database should be built before real use.</p>
+<section id="prerequisites">
+<h4>Prerequisites:<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Download SAINTexpress from https://saint-apms.sourceforge.net/Main.html and place the <strong>linux</strong> executables into app/external/SAINTexpress:</p>
+<ul>
+<li><p>Folder structure should contain:
+app/external/SAINTexpress/SAINTexpress-int
+app/external/SAINTexpress/SAINTexpress-spc</p></li>
+<li><p>These will be registered as executables and put into the path of the PG container during the container creation (see dockerfile)</p></li>
+</ul>
+</li>
+<li><p>IF you want to use the CRAPome repository data, download it from https://reprint-apms.org/?q=data</p>
+<ul>
+<li><p>Afterwards, you need to format the data into a format usable by pg_updater, see <a class="reference internal" href="#creating-and-updating-the-database"><span class="xref myst">Creating and updating the database</span></a> for details</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="used-external-data">
+<h4>Used external data<a class="headerlink" href="#used-external-data" title="Link to this heading"></a></h4>
+<p>During database building, PG downloads data from several sources:</p>
+<ul class="simple">
+<li><p>Known interactions are downloaded from <a class="reference external" href="https://www.ebi.ac.uk/intact/home">IntACT</a> and <a class="reference external" href="https://thebiogrid.org/">BioGRID</a></p></li>
+<li><p>Protein data is downloaded from <a class="reference external" href="https://www.uniprot.org/">UniProt</a></p></li>
+<li><p>Common contaminants are downloaded from <a class="reference external" href="https://thegpm.org/">Global proteome machine</a>, <a class="reference external" href="https://www.maxquant.org/">MaxQuant</a>, and a publication by Frankenfield et al., 2022 (PMID: 35793413).</p></li>
+<li><p>MS-microscopy data is from a previous publication (PMID: 29568061)
+Some are included in the files already.</p></li>
+</ul>
+</section>
+<section id="build-the-main-docker-image">
+<h4>Build the main docker image.<a class="headerlink" href="#build-the-main-docker-image" title="Link to this heading"></a></h4>
+<p><strong>NOTE:</strong> docker commands in particular may require superuser rights (sudo).
+This should take around 15 minutes, but can take much longer, mostly due to R requirements.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">pg_updater</span><span class="p">:</span><span class="mf">1.5</span> <span class="o">-</span><span class="n">f</span> <span class="n">dockerfiles</span><span class="o">/</span><span class="n">dockerfile_updater</span> <span class="o">.</span>
+<span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">proteogyver</span><span class="p">:</span><span class="mf">1.5</span> <span class="o">-</span><span class="n">f</span> <span class="n">dockerfiles</span><span class="o">/</span><span class="n">dockerfile</span> <span class="o">.</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="rare-use-cases">
+<h2>Rare use cases<a class="headerlink" href="#rare-use-cases" title="Link to this heading"></a></h2>
+<section id="embedding-other-websites-as-tabs-within-proteogyver">
+<h3>Embedding other websites as tabs within Proteogyver<a class="headerlink" href="#embedding-other-websites-as-tabs-within-proteogyver" title="Link to this heading"></a></h3>
+<p>To embed another website/tool within Proteogyver, add a line to embed_pages.tsv, and run the embedded_page_updater.py script. Preferably these will be things hosted on the same server, but this is not required. Current example is proteomics.fi (hosted externally). Keep in mind that most websites ban browsers from accessing if they are embedded in an html.Embed element.</p>
+</section>
+<section id="adding-custom-tools-as-tabs-to-proteogyver">
+<h3>Adding custom tools as tabs to Proteogyver<a class="headerlink" href="#adding-custom-tools-as-tabs-to-proteogyver" title="Link to this heading"></a></h3>
+<p>Adding custom tools to Proteogyver is supported as pages in the app/pages folder. Here the following rules should be followed:</p>
+<ul class="simple">
+<li><p>Use dash.register_page to register the page (register_page(<strong>name</strong>, path=’/YOUR_PAGE_NAME’) )</p></li>
+<li><p>Use GENERIC_PAGE from element_styles.py for styling starting point. Mostly required from this is the offset on top of the page to fit the navbar</p></li>
+</ul>
+</section>
+<section id="accessing-the-database-from-other-tools">
+<h3>Accessing the database from other tools<a class="headerlink" href="#accessing-the-database-from-other-tools" title="Link to this heading"></a></h3>
+<p>Other tools can access the database. Writes to the database should not require any specific precautions. However, please check that the database is not locked, and another transaction is not in progress. Other scenarios when one should not write to the database include if it is in the process of being backed up, or while the updater is actively running.</p>
+</section>
+</section>
+<section id="how-to-cite">
+<h2>How to cite<a class="headerlink" href="#how-to-cite" title="Link to this heading"></a></h2>
+<p>If you use ProteoGyver, a part of it, or tools based on it, please cite:
+[Add citation information here]</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="ProteoGyver documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="code/modules.html" class="btn btn-neutral float-right" title="2025_ProteoGyver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

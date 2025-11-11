@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.ms_microscopy &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.ms_microscopy</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.ms_microscopy</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">graph_objects</span> <span class="k">as</span> <span class="n">go</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash.dcc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">express</span> <span class="k">as</span> <span class="n">px</span>
+
+<div class="viewcode-block" id="generate_msmic_dataframes">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ms_microscopy.generate_msmic_dataframes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_msmic_dataframes</span><span class="p">(</span><span class="n">saint_data</span><span class="p">:</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">reference_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">plot_min</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">plot_max</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate MS microscopy localization score DataFrame.</span>
+
+<span class="sd">    :param saint_data: SAINT results with columns ``Bait``, ``Prey``, ``AvgSpec``.</span>
+<span class="sd">    :param reference_data: Reference localization data with columns ``Loc``, ``Prey`` and precomputed scores.</span>
+<span class="sd">    :param plot_min: Minimum plotting value (for normalization).</span>
+<span class="sd">    :param plot_max: Maximum plotting value (for normalization).</span>
+<span class="sd">    :returns: DataFrame of bait x localization integer scores (0..plot_max).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#baitnorm = []</span>
+    <span class="n">baitsumnorm</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1">#db_bait_max = {}</span>
+    <span class="n">db_bait_sum</span><span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">saint_data</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+    <span class="c1">#    db_bait_max[b] = max(saint_data[saint_data[&#39;Bait&#39;]==b][&#39;AvgSpec&#39;].values)</span>
+        <span class="n">db_bait_sum</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">saint_data</span><span class="p">[</span><span class="n">saint_data</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">b</span><span class="p">][</span><span class="s1">&#39;AvgSpec&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">saint_data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="c1">#    baitnorm.append(row[&#39;AvgSpec&#39;]/db_bait_max[row[&#39;Bait&#39;]])</span>
+        <span class="n">baitsumnorm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;AvgSpec&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">db_bait_sum</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]])</span>
+    <span class="c1">#saint_data[&#39;Bait norm&#39;] = baitnorm    </span>
+    <span class="n">saint_data</span><span class="p">[</span><span class="s1">&#39;Bait sumnorm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">baitsumnorm</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">saint_data</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">reference_data</span><span class="p">[</span><span class="s1">&#39;Loc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span>
+    <span class="c1">#data_rows = []</span>
+    <span class="n">data_rows_sum</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#loc_data = {c: {} for c in cols}</span>
+    <span class="n">loc_data_sum</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+        <span class="n">ld</span> <span class="o">=</span> <span class="n">reference_data</span><span class="p">[</span><span class="n">reference_data</span><span class="p">[</span><span class="s1">&#39;Loc&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">c</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">prey</span> <span class="ow">in</span> <span class="n">ld</span><span class="p">[</span><span class="s1">&#39;Prey&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+    <span class="c1">#        loc_data[c][prey] = ld[ld[&#39;Prey&#39;]==prey][&#39;Loc_norm&#39;].mean()</span>
+            <span class="n">loc_data_sum</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">prey</span><span class="p">]</span> <span class="o">=</span> <span class="n">ld</span><span class="p">[</span><span class="n">ld</span><span class="p">[</span><span class="s1">&#39;Prey&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">prey</span><span class="p">][</span><span class="s1">&#39;Loc_sumnorm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
+    <span class="c1">#    data_rows.append([])</span>
+        <span class="n">data_rows_sum</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">bait_data</span> <span class="o">=</span> <span class="n">saint_data</span><span class="p">[</span><span class="n">saint_data</span><span class="p">[</span><span class="s1">&#39;Bait&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">i</span><span class="p">]</span>
+    <span class="c1">#        loc_max = 0.0</span>
+            <span class="n">loc_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">bait_data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="c1">#if row[&#39;Prey&#39;] in loc_data[c]:</span>
+    <span class="c1">#                loc_max += loc_data[c][row[&#39;Prey&#39;]]*row[&#39;Bait norm&#39;]</span>
+                <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Prey&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">loc_data_sum</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span>
+                    <span class="n">loc_sum</span> <span class="o">+=</span> <span class="n">loc_data_sum</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Prey&#39;</span><span class="p">]]</span><span class="o">*</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Bait sumnorm&#39;</span><span class="p">]</span>
+    <span class="c1">#        data_rows[-1].append(loc_max)</span>
+            <span class="n">data_rows_sum</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loc_sum</span><span class="p">)</span>
+    <span class="c1">#bd_max = pd.DataFrame(index=index,columns=cols,data=data_rows)</span>
+    <span class="n">bd_sum</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">data_rows_sum</span><span class="p">)</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#bd_max = bd_max.div(bd_max.max(axis=1),axis=0)*plot_max</span>
+    <span class="n">bd_sum</span> <span class="o">=</span> <span class="n">bd_sum</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">bd_sum</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="n">plot_max</span>
+    <span class="n">bd_sum</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1">#bd_max.fillna(0,inplace=True)</span>
+    <span class="c1">#bd_max = bd_max.apply(round).astype(int)</span>
+    <span class="n">bd_sum</span> <span class="o">=</span> <span class="n">bd_sum</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">round</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1">#return bd_max</span>
+    <span class="k">return</span> <span class="n">bd_sum</span></div>
+
+    
+<div class="viewcode-block" id="tweak_fig_size_hw">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ms_microscopy.tweak_fig_size_hw">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tweak_fig_size_hw</span><span class="p">(</span><span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">desired_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;reduce&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adjust figure height/width to target aspect ratio.</span>
+
+<span class="sd">    :param height: Current height in pixels.</span>
+<span class="sd">    :param width: Current width in pixels.</span>
+<span class="sd">    :param desired_ratio: Target height/width ratio.</span>
+<span class="sd">    :param method: ``&#39;reduce&#39;`` to reduce the larger dimension, ``&#39;inflate&#39;`` to increase the smaller.</span>
+<span class="sd">    :returns: Tuple of (new_height, new_width) as ints.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">current_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">height</span><span class="o">/</span><span class="n">width</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;reduce&#39;</span><span class="p">:</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">desired_ratio</span><span class="o">/</span><span class="n">current_ratio</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;inflate&#39;</span><span class="p">:</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">current_ratio</span><span class="o">/</span><span class="n">desired_ratio</span><span class="p">)</span>    
+    <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="draw_localization_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ms_microscopy.draw_localization_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_localization_plot</span><span class="p">(</span><span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">datarow</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">]],</span> <span class="n">nsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">plot_min</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">plot_max</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a polar localization plot for a single bait row.</span>
+
+<span class="sd">    :param defaults: Dict containing ``height`` and ``width``.</span>
+<span class="sd">    :param datarow: Series of localization scores (columns=locations).</span>
+<span class="sd">    :param cmap: Two RGB triplets defining start and end colors.</span>
+<span class="sd">    :param nsteps: Number of discrete color steps between min and max.</span>
+<span class="sd">    :param plot_min: Minimum plotting value for radial axis.</span>
+<span class="sd">    :param plot_max: Maximum plotting value for radial axis.</span>
+<span class="sd">    :returns: Plotly Figure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">datarow</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">360</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">360</span><span class="p">,</span><span class="n">width</span><span class="p">))</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="n">color_vals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmap</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmap</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">step_v</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="n">nsteps</span>
+    <span class="n">step_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">plot_max</span><span class="o">-</span><span class="n">plot_min</span><span class="p">)</span><span class="o">/</span><span class="n">nsteps</span>
+    <span class="n">color_vals</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nb">round</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">step_width</span><span class="p">,</span><span class="mi">1</span><span class="p">):</span> <span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">step_v</span><span class="p">)</span> <span class="o">+</span> <span class="n">start</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsteps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> 
+    <span class="p">}</span>
+    <span class="n">color_vals</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="nb">hex</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">v</span>
+            <span class="p">])</span>
+        <span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">color_vals</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">]</span>
+    <span class="n">color_vals</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Tweak figure size to conform to the constraints of the ms-microscopy plot.</span>
+    <span class="n">polar_plot_ratio</span> <span class="o">=</span> <span class="mf">0.76</span>
+    <span class="n">fig_height</span><span class="p">,</span> <span class="n">fig_width</span> <span class="o">=</span> <span class="n">tweak_fig_size_hw</span><span class="p">(</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span> <span class="n">polar_plot_ratio</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">dvalue</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">limval</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">color_vals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dvalue</span> <span class="o">&lt;=</span> <span class="n">limval</span><span class="p">:</span>
+                <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+                <span class="k">break</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Barpolar</span><span class="p">(</span>
+        <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">,</span>
+        <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+        <span class="n">marker_color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+        <span class="n">marker_line_color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+        <span class="n">marker_line_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">))</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="n">template</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">polar</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">radialaxis</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="n">plot_min</span><span class="p">,</span> <span class="n">plot_max</span><span class="p">],</span> <span class="n">tickvals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">plot_min</span><span class="p">,</span> <span class="n">plot_max</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">step_width</span><span class="p">))),</span> <span class="n">showticklabels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">angularaxis</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">showticklabels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">tickmode</span><span class="o">=</span><span class="s1">&#39;array&#39;</span><span class="p">,</span> <span class="n">tickvals</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">ticktext</span> <span class="o">=</span> <span class="n">datarow</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">fig_height</span><span class="p">,</span> 
+        <span class="n">width</span> <span class="o">=</span> <span class="n">fig_width</span><span class="p">,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_polars</span><span class="p">(</span><span class="n">radialaxis_showline</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="localization_graph">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ms_microscopy.localization_graph">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">localization_graph</span><span class="p">(</span><span class="n">graph_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">baitname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Graph</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a Dash Graph for localization visualization.</span>
+
+<span class="sd">    :param graph_id: Component ID for the graph.</span>
+<span class="sd">    :param defaults: Dict with ``config``, ``height``, ``width``.</span>
+<span class="sd">    :param plot_type: ``&#39;polar&#39;`` or ``&#39;heatmap&#39;``.</span>
+<span class="sd">    :param baitname: Bait name for the naming of the downloadable figure file.</span>
+<span class="sd">    :param args: Positional args forwarded to the specific drawing function.</span>
+<span class="sd">    :param kwargs: Keyword args forwarded to the specific drawing function.</span>
+<span class="sd">    :returns: Dash Graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s1">&#39;polar&#39;</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">baitname</span><span class="si">}</span><span class="s1"> MS microscopy&#39;</span>
+        <span class="k">return</span> <span class="n">Graph</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">graph_id</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+            <span class="n">figure</span><span class="o">=</span><span class="n">draw_localization_plot</span><span class="p">(</span>
+                <span class="n">defaults</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s1">&#39;heatmap&#39;</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">baitname</span><span class="si">}</span><span class="s1"> MS microscopy&#39;</span>
+        <span class="k">return</span> <span class="n">Graph</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="n">graph_id</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">figure</span><span class="o">=</span><span class="n">draw_localization_heatmap</span><span class="p">(</span>
+                    <span class="n">defaults</span><span class="p">,</span>
+                    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;NOT A VALID MSMIC PLOT TYPE&#39;</span></div>
+
+
+<div class="viewcode-block" id="draw_localization_heatmap">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ms_microscopy.draw_localization_heatmap">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_localization_heatmap</span><span class="p">(</span><span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">localization_results</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a heatmap of localization scores (bait x localization).</span>
+
+<span class="sd">    :param defaults: Dict containing ``height`` and ``width``.</span>
+<span class="sd">    :param localization_results: DataFrame of scores (index=baits, columns=locs).</span>
+<span class="sd">    :returns: Plotly Figure heatmap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig_height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span>
+    <span class="n">fig_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">localization_results</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">fig_height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">fig_width</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">color_continuous_scale</span><span class="o">=</span><span class="s1">&#39;Blues&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span><span class="n">tickangle</span><span class="o">=</span><span class="mi">270</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

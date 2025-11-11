@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProteoGyver User Guide &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2025_ProteoGyver" href="code/modules.html" />
+    <link rel="prev" title="Example usecases for ProteoGyver using public datasets" href="Interactomics_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ProteoGyver User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#qc-and-data-analysis">QC and data analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-upload">Data upload</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sample-table">Sample table</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-table">Data table</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#running-proteogyver">Running ProteoGyver</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qc-results">QC results</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflow-specific-figures">Workflow specific figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflow-specific-input">Workflow-specific input</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ms-analytics-dashboard">MS Analytics dashboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#colocalizer">Colocalizer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ProteoGyver User Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/user_guide.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="proteogyver-user-guide">
+<h1>ProteoGyver User Guide<a class="headerlink" href="#proteogyver-user-guide" title="Link to this heading"></a></h1>
+<section id="qc-and-data-analysis">
+<h2>QC and data analysis<a class="headerlink" href="#qc-and-data-analysis" title="Link to this heading"></a></h2>
+<section id="data-upload">
+<h3>Data upload<a class="headerlink" href="#data-upload" title="Link to this heading"></a></h3>
+<p>Uploaded data consists of two files: the sample table, and the data table.</p>
+<section id="sample-table">
+<h4>Sample table<a class="headerlink" href="#sample-table" title="Link to this heading"></a></h4>
+<p>Sample table contains information about your experiments: which sample is a part of what sample group. The file needs to have two columns for proteomics, three for interactomics: “Sample name” and “Sample group” are required for any workflow, while interactomics also needs “Bait uniprot” -column. It is highly encouraged to avoid using sample group names beginning with a number, or especially consisting only of numbers, due to lack of testing.</p>
+<p>The bait uniprot column can have any name for the bait, but if a valid uniprot ID is supplied, it’s used for mapping known interactions automatically. It is also necessary in order to discard the bait from the identifications in the interactomics analysis. Otherwise enrichment etc. will have skewed results.</p>
+<section id="example-proteomics-sample-table">
+<h5>Example Proteomics sample table<a class="headerlink" href="#example-proteomics-sample-table" title="Link to this heading"></a></h5>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sample name</p></th>
+<th class="head"><p>Sample group</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>S1_replicate1</p></td>
+<td><p>S1</p></td>
+</tr>
+<tr class="row-odd"><td><p>S1_replicate2</p></td>
+<td><p>S1</p></td>
+</tr>
+<tr class="row-even"><td><p>S1_replicate3</p></td>
+<td><p>S1</p></td>
+</tr>
+<tr class="row-odd"><td><p>B1_replicate1</p></td>
+<td><p>B1</p></td>
+</tr>
+<tr class="row-even"><td><p>B1_replicate2</p></td>
+<td><p>B1</p></td>
+</tr>
+<tr class="row-odd"><td><p>B1_replicate3</p></td>
+<td><p>B1</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="example-interactomics-sample-table">
+<h5>Example Interactomics sample table<a class="headerlink" href="#example-interactomics-sample-table" title="Link to this heading"></a></h5>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sample name</p></th>
+<th class="head"><p>Sample group</p></th>
+<th class="head"><p>Bait uniprot</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>S1_replicate1</p></td>
+<td><p>S1</p></td>
+<td><p>UniprotID1</p></td>
+</tr>
+<tr class="row-odd"><td><p>S1_replicate2</p></td>
+<td><p>S1</p></td>
+<td><p>UniprotID1</p></td>
+</tr>
+<tr class="row-even"><td><p>S1_replicate3</p></td>
+<td><p>S1</p></td>
+<td><p>UniprotID1</p></td>
+</tr>
+<tr class="row-odd"><td><p>B1_replicate1</p></td>
+<td><p>B1</p></td>
+<td><p>UniprotID2</p></td>
+</tr>
+<tr class="row-even"><td><p>B1_replicate2</p></td>
+<td><p>B1</p></td>
+<td><p>UniprotID2</p></td>
+</tr>
+<tr class="row-odd"><td><p>B1_replicate3</p></td>
+<td><p>B1</p></td>
+<td><p>UniprotID2</p></td>
+</tr>
+</tbody>
+</table>
+<p>Sample names or column names may have the full path of the input raw file in them. Only the part after the last path separator will be utilized.</p>
+</section>
+</section>
+<section id="data-table">
+<h4>Data table<a class="headerlink" href="#data-table" title="Link to this heading"></a></h4>
+<p>Data table can be direct input from FragPipe or Dia-NN. From FragPipe the combined_prot.tsv table should be used, and from DIA-NN the pg_matrix.tsv table.</p>
+<p>Alternatively, you can use a generic matrix with either only spectral counts, or only intensities. In this case the columns should match the sample names (from sample table) exactly, and a column names “Protein.Group” should be in the table. If there is no Protein.Group -column, the first column of the data table is assumed to contain protein uniprot IDs.</p>
+<p>Protein length column for should also exist, and named either PROTLEN, Protein Length , or Protein.Length. This is especially important for interactomics, where any protein which does not have a length either in the table, or in the limited ProteoGyver database is <strong>discarded.</strong></p>
+<p>The data table should <strong>NOT</strong> contain any duplicate proteins. Duplicates should not exist if you run your FragPipe, Dia-NN etc. well. If duplicates are found, only one will be kept, and its value will be the <strong>SUM</strong> of all duplicates. This can lead to <strong>major data integrity problems</strong>.</p>
+</section>
+</section>
+<section id="running-proteogyver">
+<h3>Running ProteoGyver<a class="headerlink" href="#running-proteogyver" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Upload data and sample table files to their corresponding places (either drag and drop, or click on the area and choose)</p></li>
+<li><p>Choose workflow from the dropdown</p></li>
+<li><p>(optional) change figure theme, if you want</p></li>
+<li><p>(optional) disable contaminant removal, if you know why you’re doing that</p></li>
+<li><p>Press the button to start the analysis</p></li>
+</ol>
+<p>After initial QC plots have been generated, you may use the discard samples-button to get rid of any samples or groups of samples that you do not want to include in the final analysis.</p>
+<section id="qc-results">
+<h4>QC results<a class="headerlink" href="#qc-results" title="Link to this heading"></a></h4>
+<p>The first thing you will see is a bunch of QC plots. These describe sample quality, and may indicate problems with your runs. Figure legends will elaborate on each figure.</p>
+</section>
+<section id="workflow-specific-figures">
+<h4>Workflow specific figures<a class="headerlink" href="#workflow-specific-figures" title="Link to this heading"></a></h4>
+<p>These figures represent QC metrics specific to the workflow. In addition, some more specialized plots are described in the context of the appropriate workflow below.</p>
+</section>
+<section id="workflow-specific-input">
+<h4>Workflow-specific input<a class="headerlink" href="#workflow-specific-input" title="Link to this heading"></a></h4>
+<p>After checking through the QC results, the workflow specific results will appear. On the top of the page, there will be a new tab named after the workflow you chose.</p>
+<section id="proteomics">
+<h5>Proteomics<a class="headerlink" href="#proteomics" title="Link to this heading"></a></h5>
+<p>Proteomics-specific settings consist:</p>
+<ul class="simple">
+<li><p>Missing value slider</p></li>
+<li><p>Imputation choice</p></li>
+<li><p>Normalization choice</p></li>
+<li><p>Control sample dropdown or comparison table upload</p></li>
+<li><p>Fold change threshold</p></li>
+<li><p>Adjusted p-value threshold</p></li>
+</ul>
+<section id="missing-value-slider">
+<h6>Missing value slider<a class="headerlink" href="#missing-value-slider" title="Link to this heading"></a></h6>
+<p>On the top of the proteomics page, you can choose how to deal with missing values. Using the slider you can choose what percentage of samples of at least one sample group must have a value for a protein in order to keep it. The number of non-missing values per sample group required is the smallest whole number higher or equal to (sample group size * (percentage/100)).</p>
+<p>e.g. with a 60 % threshold, at least two out of three samples in at least one sample group needs to have a value for a protein. For example, if we have a protein A and two sample groups with three samples each, with a 60 % setting, protein A needs to be found in two samples in either sample group 1, or sample group 2, or both. If it is found in only one sample in both of the sample groups, it will be discarded as a low-quality identification, one-hit wonder, or a random contamination.</p>
+</section>
+<section id="example-with-60-filter-default">
+<h6>Example with 60 % filter (default):<a class="headerlink" href="#example-with-60-filter-default" title="Link to this heading"></a></h6>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>samples per group</p></th>
+<th class="head"><p>Minimum required to pass 60% filter</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p>4</p></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><p>6</p></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><p>6</p></td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><p>7</p></td>
+</tr>
+</tbody>
+</table>
+<p>Replicates should have more or less the same protein content, and therefore discarding one-hit-wonders ensures we only continue with the proteins we feel confident about identifying in the sample material, and not due to e.g. introduction into one replicate during the sample processing pipeline. Technical replicates should be nearly identical, and biological replicates extremely similar.</p>
+</section>
+<section id="imputation-choice">
+<h6>Imputation choice<a class="headerlink" href="#imputation-choice" title="Link to this heading"></a></h6>
+<p>Use QRILC. It’s currently the best imputation method available on PG. Only change this is you know why you’re doing it.</p>
+</section>
+<section id="normalization-choice">
+<h6>Normalization choice<a class="headerlink" href="#normalization-choice" title="Link to this heading"></a></h6>
+<p>Usually not needed, since MaxLFQ is already a normalized intensity value. However, median works well for most situations. If the post-normalization value distribution of your data looks like there are large differences between sample groups, try vsn or quantile.</p>
+</section>
+<section id="comparisons">
+<h6>Comparisons<a class="headerlink" href="#comparisons" title="Link to this heading"></a></h6>
+<p>From the control dropdown, you can choose, which of your sample groups is the control against which all the other ones will be compared as volcano plots on the bottom of the page. The second alternative is to upload a comparison file:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>sample group</p></th>
+<th class="head"><p>control group</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>S1</p></td>
+<td><p>B1</p></td>
+</tr>
+<tr class="row-odd"><td><p>S2</p></td>
+<td><p>B1</p></td>
+</tr>
+<tr class="row-even"><td><p>S1</p></td>
+<td><p>B2</p></td>
+</tr>
+<tr class="row-odd"><td><p>You can also both choose a control group, and upload a file.</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="thresholds">
+<h6>Thresholds<a class="headerlink" href="#thresholds" title="Link to this heading"></a></h6>
+<p>log2 fold change and adjusted p-value thresholds are usually fine with default values. If in volcano plots you see clouds of proteins near where thresholds intersect, consider tightening. Fold change threshold is presented on log2 scale, meaning a value of 1 means a two-fold increase compared to control, and -1 means halving the intensity compared to control.</p>
+<p>For p-value adjustment FDR method (using multipletests from python statsmodels.stats.multitest package, method fdr_bh).</p>
+</section>
+</section>
+<section id="interactomics">
+<h5>Interactomics<a class="headerlink" href="#interactomics" title="Link to this heading"></a></h5>
+<p>Input options consist of</p>
+<ul class="simple">
+<li><p>Controls from uploaded sample groups</p></li>
+<li><p>Inbuilt controls</p></li>
+<li><p>Crapomes</p></li>
+<li><p>Enrichments</p></li>
+<li><p>Rescue</p></li>
+<li><p>Nearest-n controls
+After running SAINTexpress, you will be presented with more options:</p></li>
+<li><p>Saint BFDR Threshold</p></li>
+<li><p>Crapome Filtering percentage</p></li>
+<li><p>SPC fold change vs crapome threshold for rescue</p></li>
+</ul>
+<section id="initial-input">
+<h6>Initial input<a class="headerlink" href="#initial-input" title="Link to this heading"></a></h6>
+<p>PG will attempt to identify controls from your sample groups. If any are found, it suggests to use them. Always double check. In addition, you may use inbuilt control sets, paying attention to the type of experiment, localization tag, etc. Crapomes offered are the same as control sets (same MS runs), but utilized differently for filtering of your data. Controls are used for SAINTexpress, while crapomes are utilized for crude filtering.</p>
+<p>Rescue option means that if enabled, any interactors that have passed the selected filters and thresholds with ANY bait are classified as high-confidence interactors with ALL baits with which they are detected.</p>
+<p>Choosing the nearest-n controls is currently not advisable.</p>
+</section>
+<section id="post-saintexpress-input">
+<h6>Post-SAINTexpress input<a class="headerlink" href="#post-saintexpress-input" title="Link to this heading"></a></h6>
+<p>Saint BFDR threshold can be thought of as a p-value threshold. 0.05 is the maximum you should consider, 0.01 is recommended. With 0.01 threshold, values of 0.01 or lower will be let through the filter.
+Crapome filtering is calculated for each crapome. Protein is considered junk, if it’s present in over the specified percentage of crapome samples <strong>unless</strong> the sample spectral count is higher than crapome average multiplied by the specified fold change.</p>
+<p>Interactors that pass all of the filters are considered high-confidence interactions.</p>
+<p>If bait uniprot is supplied, the bait is removed from the preys prior to any analysis. The bait will still be kept in the “Saint output” -sheet of the output excel.</p>
+</section>
+</section>
+</section>
+</section>
+</section>
+<section id="ms-analytics-dashboard">
+<h2>MS Analytics dashboard<a class="headerlink" href="#ms-analytics-dashboard" title="Link to this heading"></a></h2>
+<p>The analytics dashboard is meant for inspection of MS performance over a series of runs. You can choose runs based on dates and sample types, or input a list of run ID numbers (the number in the beginning of the name of each run file) (this feature will be implemented soon hopefully). The TIC graph is generally what you would be looking at, but MSn graphs can be useful as well. The supplementary metrics, AUC, mean, and max intensity, can be used to judge the progress of a sample series, and things like gradual changes in MS performance.</p>
+</section>
+<section id="colocalizer">
+<h2>Colocalizer<a class="headerlink" href="#colocalizer" title="Link to this heading"></a></h2>
+<p>Colocalizer is a tool for quickly generating colocalization heatmaps from confocal microscopy images. Currently only .LIF files are supported. Once a file is uploaded, you can choose which z-slice is utilized, and what channels should be used. The tool offers both multiplication and addition based generation of the colocalization image. For nearly all applications, multiplication is preferred. Using this mode, bright pixels in the resulting colocalization image = pixels that had a high value in both of the channel images of that z-slice.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Interactomics_example.html" class="btn btn-neutral float-left" title="Example usecases for ProteoGyver using public datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="code/modules.html" class="btn btn-neutral float-right" title="2025_ProteoGyver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

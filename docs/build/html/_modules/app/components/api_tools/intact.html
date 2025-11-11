@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.api_tools.intact &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../../app.html">app</a></li>
+      <li class="breadcrumb-item active">app.components.api_tools.intact</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.api_tools.intact</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">IntAct database interaction module for protein-protein interaction data.</span>
+
+<span class="sd">This module provides functionality to download, parse, and manage protein</span>
+<span class="sd">interaction data from the IntAct database (https://www.ebi.ac.uk/intact/).</span>
+<span class="sd">It handles:</span>
+
+<span class="sd">- Automated updates from IntAct&#39;s FTP server</span>
+<span class="sd">- Parsing of PSI-MITAB formatted files</span>
+<span class="sd">- Conversion to pandas DataFrames with standardized column names</span>
+<span class="sd">- Version tracking and data freshness checks</span>
+<span class="sd">- Methods text generation for citations</span>
+
+<span class="sd">Main entry points</span>
+<span class="sd">-----------------</span>
+<span class="sd">- ``update``: check for and download new IntAct releases</span>
+<span class="sd">- ``get_latest``: retrieve the most recent downloaded data as a DataFrame</span>
+<span class="sd">- ``methods_text``: generate citation text for the data source</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ftplib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">apitools</span>
+
+<div class="viewcode-block" id="get_ids">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.get_ids">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ids</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract UniProt accessions from PSI-MITAB identifier columns.</span>
+
+<span class="sd">    For each row, takes ``col1`` and ``col2`` (pipe-delimited alternates),</span>
+<span class="sd">    keeps only ``uniprotkb:`` identifiers, and optionally filters by a</span>
+<span class="sd">    provided set of UniProt base accessions.</span>
+
+<span class="sd">    :param df: Input DataFrame chunk.</span>
+<span class="sd">    :param col1: Primary ID column name.</span>
+<span class="sd">    :param col2: Alternate ID column name (pipe-delimited).</span>
+<span class="sd">    :param uniprots_to_get: Optional set of accessions to retain.</span>
+<span class="sd">    :returns: List of ``;``-joined UniProt IDs per row, or ``|DROP|`` when empty.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nvals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">itertuples</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">ids_a</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col1</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col2</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+        <span class="n">ids_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids_a</span> <span class="k">if</span> <span class="s1">&#39;uniprotkb&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">uniprots_to_get</span><span class="p">:</span>
+            <span class="n">ids_a</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids_a</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">uniprots_to_get</span><span class="p">]</span>
+        <span class="n">nvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ids_a</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">ids_a</span> <span class="k">else</span> <span class="s1">&#39;|DROP|&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nvals</span></div>
+
+
+<div class="viewcode-block" id="get_iso">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.get_iso">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_iso</span><span class="p">(</span><span class="n">ser</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert UniProt isoforms to base accessions for a Series.</span>
+
+<span class="sd">    :param ser: Series of ``;``-joined UniProt IDs.</span>
+<span class="sd">    :returns: List where each element is a ``;``-joined string with isoform suffixes removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">sv</span> <span class="ow">in</span> <span class="n">ser</span><span class="o">.</span><span class="n">values</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="split_and_save_by_prefix">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.split_and_save_by_prefix">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">split_and_save_by_prefix</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_chars</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shard a DataFrame by a column prefix and append to TSV files.</span>
+
+<span class="sd">    :param df: Input DataFrame.</span>
+<span class="sd">    :param column: Column whose prefix is used for grouping.</span>
+<span class="sd">    :param num_chars: Number of prefix characters to use.</span>
+<span class="sd">    :param output_dir: Target directory for TSV shards.</span>
+<span class="sd">    :param index: Whether to include the index in CSV output.</span>
+<span class="sd">    :param sep: Field separator for CSV output.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="p">[:</span><span class="n">num_chars</span><span class="p">]):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">.tsv&quot;</span><span class="p">)</span>
+        <span class="n">write_header</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">write_header</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_org">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.get_org">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_org</span><span class="p">(</span><span class="n">ser</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract and normalize organism TaxIDs from PSI-MITAB Taxid fields.</span>
+
+<span class="sd">    :param ser: Series with pipe-delimited Taxid entries (e.g., ``taxid:9606(human)``).</span>
+<span class="sd">    :returns: List of comma-joined unique TaxIDs per element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="nb">sorted</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">set</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ser</span>
+    <span class="p">]</span></div>
+
+    
+<div class="viewcode-block" id="filter_chunk">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.filter_chunk">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter IntAct PSI-MITAB chunk and derive helper columns.</span>
+
+<span class="sd">    Keeps rows involving UniProt IDs, removes negative interactions, builds</span>
+<span class="sd">    UniProt ID lists and isoform/base variants, derives organism fields, and</span>
+<span class="sd">    optionally filters by organisms.</span>
+
+<span class="sd">    :param chunk: Raw PSI-MITAB chunk as DataFrame.</span>
+<span class="sd">    :param uniprots_to_get: Optional set of UniProt base accessions to retain.</span>
+<span class="sd">    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.</span>
+<span class="sd">    :returns: Filtered and minimally normalized DataFrame chunk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;id1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;uniprotkb&#39;</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">|</span> \
+            <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;id1a&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;uniprotkb&#39;</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">|</span> \
+            <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;id2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;uniprotkb&#39;</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">|</span> \
+            <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;id2a&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;uniprotkb&#39;</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;Negative&#39;</span><span class="p">]</span><span class="o">==</span><span class="kc">False</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;idsa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_ids</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="s1">&#39;id1&#39;</span><span class="p">,</span> <span class="s1">&#39;id1a&#39;</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">)</span>
+        <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;idsb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_ids</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="s1">&#39;id2&#39;</span><span class="p">,</span> <span class="s1">&#39;id2a&#39;</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">)</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;idsa&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;|DROP|&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;idsb&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;|DROP|&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;noisoa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_iso</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;idsa&#39;</span><span class="p">])</span>
+        <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;noisob&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_iso</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;idsb&#39;</span><span class="p">])</span>
+        <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;organism_interactor_a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_org</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;Taxid interactor A&#39;</span><span class="p">])</span>
+        <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;organism_interactor_b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_org</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;Taxid interactor B&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">organisms</span><span class="p">:</span>
+            <span class="n">organisms</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">organisms</span><span class="p">}</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span>
+                <span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;organism_interactor_a&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">organisms</span><span class="p">))</span> <span class="o">|</span>
+                <span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;organism_interactor_b&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">organisms</span><span class="p">))</span>
+            <span class="p">]</span>
+        <span class="n">chunk</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;idsa&#39;</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">chunk</span></div>
+
+
+<div class="viewcode-block" id="handle_and_split_save">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.handle_and_split_save">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_and_split_save</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">temp_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand interactor pairs into symmetric rows and shard to disk.</span>
+
+<span class="sd">    Normalizes columns, pre-processes multi-value fields, expands all</span>
+<span class="sd">    interactor combinations A-&gt;B and B-&gt;A with isoform/base variants,</span>
+<span class="sd">    and writes sharded TSVs by interaction prefix.</span>
+
+<span class="sd">    :param df: Filtered and minimally normalized chunk.</span>
+<span class="sd">    :param temp_dir: Output directory for TSV shards.</span>
+<span class="sd">    :param sep: TSV separator.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">normcols</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Interaction type(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Interaction detection method(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Publication Identifier(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Confidence value(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;intact_creation_date&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;intact_update_date&#39;</span>
+    <span class="p">]</span>
+    <span class="n">swcols</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Biological role(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Annotation(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;organism_interactor_a&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Experimental role(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Biological role(s) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Annotation(s) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;organism_interactor_b&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Experimental role(s) interactor B&#39;</span>
+    <span class="p">]</span>
+
+    <span class="n">renames</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(s)&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">normcols</span><span class="o">+</span><span class="n">swcols</span><span class="p">}</span>
+    <span class="n">normcols</span> <span class="o">=</span> <span class="p">[</span><span class="n">renames</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">normcols</span><span class="p">]</span>
+    <span class="n">swcols</span> <span class="o">=</span> <span class="p">[</span><span class="n">renames</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">swcols</span><span class="p">]</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">renames</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;idsa_split&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;idsa&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;idsb_split&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;idsb&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;noisoa_split&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;noisoa&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;noisob_split&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;noisob&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Pre-process normcols data using vectorized operations</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">normcols</span><span class="p">:</span>
+        <span class="n">df</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1">_processed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)])</span>  <span class="c1"># flatten</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">vals</span><span class="p">:</span> <span class="p">[</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span>
+                <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            <span class="p">])</span>
+            <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">dfcols</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;uniprot_id_a&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;uniprot_id_b&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;uniprot_id_a_noiso&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;uniprot_id_b_noiso&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;isoform_a&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;isoform_b&#39;</span><span class="p">,</span>
+    <span class="p">]</span>  <span class="o">+</span> <span class="n">normcols</span> <span class="o">+</span> <span class="n">swcols</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;source_database&#39;</span><span class="p">,</span> <span class="s1">&#39;notes&#39;</span><span class="p">,</span> <span class="s1">&#39;update_time&#39;</span><span class="p">,</span> <span class="s1">&#39;interaction&#39;</span><span class="p">]</span>
+    <span class="n">datarows</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Use list comprehension instead of multiple append operations</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">itertuples</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">new_rows</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="n">id1</span><span class="p">,</span> <span class="c1"># uniprot_id_a</span>
+                <span class="n">id2</span><span class="p">,</span>  <span class="c1"># uniprot_id_b</span>
+                <span class="n">noiso1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>  <span class="c1"># uniprot_id_a_noiso</span>
+                <span class="n">noiso2</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>  <span class="c1"># uniprot_id_b_noiso</span>
+                <span class="n">id1</span><span class="p">,</span>  <span class="c1"># isoform_a</span>
+                <span class="n">id2</span><span class="p">,</span>  <span class="c1"># isoform_b</span>
+            <span class="p">]</span> <span class="o">+</span> 
+            <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1">_processed&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">normcols</span><span class="p">]</span> <span class="o">+</span>
+            <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">c</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}{</span><span class="n">n1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">swcols</span><span class="p">[:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">+</span>
+            <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">c</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}{</span><span class="n">n2</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">swcols</span><span class="p">[:</span><span class="mi">4</span><span class="p">]]</span> <span class="o">+</span>
+            <span class="p">[</span><span class="s1">&#39;IntAct&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;IntAct:</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">())</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">_-_</span><span class="si">{</span><span class="n">id2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">id1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;ids</span><span class="si">{</span><span class="n">n1</span><span class="si">}</span><span class="s1">_split&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">id2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;ids</span><span class="si">{</span><span class="n">n2</span><span class="si">}</span><span class="s1">_split&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">noiso1</span><span class="p">,</span> <span class="n">noiso2</span> <span class="ow">in</span> <span class="p">[(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;noiso</span><span class="si">{</span><span class="n">n1</span><span class="si">}</span><span class="s1">_split&#39;</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;noiso</span><span class="si">{</span><span class="n">n2</span><span class="si">}</span><span class="s1">_split&#39;</span><span class="p">))]</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">new_rows</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">n</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">dfcols</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">datarows</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="nb">set</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">keys</span><span class="p">):</span>
+                <span class="n">datarows</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span>
+    <span class="c1"># Create DataFrame in one go</span>
+    <span class="n">findf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="n">ind</span><span class="p">:</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ind_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span> <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">ind_dict</span> <span class="ow">in</span> <span class="n">datarows</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+    <span class="n">findf</span><span class="p">[</span><span class="s1">&#39;publication_identifier&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">findf</span><span class="p">[</span><span class="s1">&#39;publication_identifier&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">findf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;interaction&#39;</span>
+    <span class="c1"># Split save by prefix (3 first letters of interaction ID) to make deduplication later possible, and to conserver RAM.</span>
+    <span class="n">split_and_save_by_prefix</span><span class="p">(</span><span class="n">findf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(),</span> <span class="s1">&#39;interaction&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="only_latest_date">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.only_latest_date">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">only_latest_date</span><span class="p">(</span><span class="n">ser</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">time_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;%Y/%m/</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce semicolon-joined dates to their latest value.</span>
+
+<span class="sd">    :param ser: Series of date strings, possibly semicolon-joined.</span>
+<span class="sd">    :param time_format: Output date format string.</span>
+<span class="sd">    :returns: Series with only the latest date per element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ser</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;;&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dates</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dates</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">time_format</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">ser</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_final_df">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.get_final_df">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_final_df</span><span class="p">(</span><span class="n">df_filename</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deduplicate and finalize a shard file into a consistent DataFrame.</span>
+
+<span class="sd">    :param df_filename: Path to a shard TSV produced by the parser.</span>
+<span class="sd">    :returns: Final DataFrame indexed by ``interaction`` with dates reduced.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">non_str_cols</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">df_filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">dtype_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="nb">str</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">header</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">non_str_cols</span><span class="p">}</span> <span class="o">|</span> <span class="n">non_str_cols</span>
+    
+    <span class="n">chunk_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">df_filename</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;interaction&#39;</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype_dict</span><span class="p">)</span>
+    <span class="n">datarows</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">intname</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">chunk_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">datarows</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">intname</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="nb">set</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">chunk_df</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunk_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">datarows</span><span class="p">[</span><span class="n">intname</span><span class="p">][</span><span class="n">c</span><span class="p">]</span><span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span>
+    <span class="n">findf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="n">ind</span><span class="p">:</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ind_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span> <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">ind_dict</span> <span class="ow">in</span> <span class="n">datarows</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">timecol</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;intact_creation_date&#39;</span><span class="p">,</span> <span class="s1">&#39;intact_update_date&#39;</span><span class="p">]:</span>
+        <span class="n">findf</span><span class="p">[</span><span class="n">timecol</span><span class="p">]</span> <span class="o">=</span> <span class="n">only_latest_date</span><span class="p">(</span><span class="n">findf</span><span class="p">[</span><span class="n">timecol</span><span class="p">])</span>
+    <span class="n">findf</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;interaction&#39;</span>
+    <span class="k">return</span> <span class="n">findf</span></div>
+
+
+<span class="c1"># super inefficient, but run rarely, so good enough.</span>
+<div class="viewcode-block" id="generate_pandas">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.generate_pandas">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_pandas</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">output_name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">:</span><span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inefficiently generates a pandas dataframe from a given intact zip file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.</span>
+
+<span class="sd">    :param file_path: path to the downloaded zip file</span>
+<span class="sd">    :param output_name: path for the output file</span>
+<span class="sd">    :param uniprots_to_get: set of which uniprots should be included in the written .tsv file. If None, all uniprots will be included.</span>
+<span class="sd">    :param organisms: organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dropcols</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Checksum(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Checksum(s) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Expansion method(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Feature(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Feature(s) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Host organism(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Identification method participant A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Identification method participant B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Interaction Checksum(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Interaction Xref(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Interaction annotation(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Interaction identifier(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Interaction parameter(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Negative&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Publication 1st author(s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Stoichiometry(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Stoichiometry(s) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Taxid interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Taxid interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Type(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Type(s) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Xref(s) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Xref(s) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Alias(es) interactor A&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Alias(es) interactor B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Source database(s)&#39;</span>
+    <span class="p">]</span>
+    <span class="n">renames</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;#ID(s) interactor A&#39;</span><span class="p">:</span> <span class="s1">&#39;id1&#39;</span><span class="p">,</span><span class="s1">&#39;Alt. ID(s) interactor A&#39;</span><span class="p">:</span> <span class="s1">&#39;id1a&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ID(s) interactor B&#39;</span><span class="p">:</span> <span class="s1">&#39;id2&#39;</span><span class="p">,</span><span class="s1">&#39;Alt. ID(s) interactor B&#39;</span><span class="p">:</span> <span class="s1">&#39;id2a&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Creation date&#39;</span><span class="p">:</span> <span class="s1">&#39;intact_creation_date&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Update date&#39;</span><span class="p">:</span> <span class="s1">&#39;intact_update_date&#39;</span>
+    <span class="p">}</span>
+    <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">file_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.zip&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+   <span class="c1"># output_name = folder_path+&#39;.tsv&#39;</span>
+    <span class="n">unzipped_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span><span class="s1">&#39;intact.txt&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">unzipped_path</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
+            <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">file_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.zip&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">))</span>
+    
+    <span class="c1">#temp_dir = os.path.join(folder_path,&#39;parser_tmp&#39;)</span>
+    <span class="c1"># Handle in chunks to conserver RAM</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">unzipped_path</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">10000</span><span class="p">)):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Processing IntAct chunk: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">chunk</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">renames</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">filter_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">,</span> <span class="n">organisms</span><span class="p">)</span>
+        <span class="n">chunk</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">dropcols</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">chunk</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">handle_and_split_save</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
+    <span class="c1"># Final deduplication of the 3-letter prefix split files</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder_path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">):</span>
+            <span class="n">findf</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">get_final_df</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+            <span class="n">findf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">fname</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">unzipped_path</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">unzipped_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">,</span><span class="s1">&#39;_negative.txt&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="download_intact_ftp">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.download_intact_ftp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_intact_ftp</span><span class="p">(</span><span class="n">save_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">retry_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download the IntAct archive over FTP with retries.</span>
+
+<span class="sd">    :param save_file: Destination file path for the downloaded zip.</span>
+<span class="sd">    :param max_retries: Maximum number of retry attempts.</span>
+<span class="sd">    :param retry_delay: Delay between retries in seconds.</span>
+<span class="sd">    :returns: Path to the saved file on success, ``None`` otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Downloading IntAct&#39;</span><span class="p">)</span>
+    <span class="n">ftpurl</span> <span class="o">=</span> <span class="s1">&#39;ftp.ebi.ac.uk&#39;</span>
+    <span class="n">ftpdir</span> <span class="o">=</span> <span class="s1">&#39;/pub/databases/intact/current/psimitab&#39;</span>
+    <span class="n">ftpfilename</span> <span class="o">=</span> <span class="s1">&#39;intact.zip&#39;</span>
+
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_retries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="n">ftp</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span><span class="p">(</span><span class="n">ftpurl</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+            <span class="n">ftp</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+            <span class="n">ftp</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">ftpdir</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">save_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                <span class="n">ftp</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;RETR </span><span class="si">{</span><span class="n">ftpfilename</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
+
+            <span class="n">ftp</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;IntAct FTP download completed successfully: </span><span class="si">{</span><span class="n">save_file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">save_file</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="n">ftplib</span><span class="o">.</span><span class="n">error_temp</span><span class="p">,</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">error_perm</span><span class="p">,</span> <span class="ne">ConnectionResetError</span><span class="p">,</span> <span class="ne">TimeoutError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_retries</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;IntAct FTP download failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s1"> Retrying in </span><span class="si">{</span><span class="n">retry_delay</span><span class="si">}</span><span class="s1"> seconds...&#39;</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">retry_delay</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;IntAct FTP download failed after all retries: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="do_update">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.do_update">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">do_update</span><span class="p">(</span><span class="n">save_file</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download (if needed) and convert the IntAct archive to TSV shards.</span>
+
+<span class="sd">    :param save_file: Destination zip path (also used to derive output folder).</span>
+<span class="sd">    :param uniprots_to_get: Optional set of UniProt accessions to retain.</span>
+<span class="sd">    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">save_file</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Downloading IntAct&#39;</span><span class="p">)</span>
+        <span class="n">download_intact_ftp</span><span class="p">(</span><span class="n">save_file</span><span class="p">)</span>
+    <span class="n">generate_pandas</span><span class="p">(</span><span class="n">save_file</span><span class="p">,</span> <span class="n">save_file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.zip&#39;</span><span class="p">,</span><span class="s1">&#39;.tsv&#39;</span><span class="p">),</span><span class="n">uniprots_to_get</span><span class="p">,</span> <span class="n">organisms</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.update">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="n">version</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">uniprots_to_get</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the local IntAct cache if a newer release is available.</span>
+
+<span class="sd">    :param version: Current version string.</span>
+<span class="sd">    :param uniprots_to_get: Optional set of UniProt base accessions to retain.</span>
+<span class="sd">    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.</span>
+<span class="sd">    :returns: New version string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ftpurl</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;ftp.ebi.ac.uk&#39;</span>
+    <span class="n">ftpdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;/pub/databases/intact/current/&#39;</span>
+    <span class="n">ftp</span><span class="p">:</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span><span class="p">(</span><span class="n">ftpurl</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">ftpdir</span><span class="p">)</span>
+    <span class="n">date_str</span> <span class="o">=</span> <span class="n">ftp</span><span class="o">.</span><span class="n">pwd</span><span class="p">()</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">version</span> <span class="o">==</span> <span class="s1">&#39;no version&#39;</span><span class="p">:</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s1">&#39;1970-01-01&#39;</span>
+
+    <span class="k">if</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">date_str</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">apitools</span><span class="o">.</span><span class="n">parse_timestamp_from_str</span><span class="p">(</span><span class="n">version</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating IntAct&#39;</span><span class="p">)</span>
+        <span class="n">do_update</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">apitools</span><span class="o">.</span><span class="n">get_save_location</span><span class="p">(</span><span class="s1">&#39;IntAct&#39;</span><span class="p">),</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">apitools</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span><span class="si">}</span><span class="s1">_intact.zip&#39;</span><span class="p">),</span> <span class="n">uniprots_to_get</span><span class="p">,</span> <span class="n">organisms</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">date_str</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">version</span></div>
+
+
+<div class="viewcode-block" id="read_file_chunks">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.read_file_chunks">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_file_chunks</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">subset_letter</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">since_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a TSV shard in chunks and optionally filter by organism/date.</span>
+
+<span class="sd">    :param filepath: Path to shard TSV file.</span>
+<span class="sd">    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.</span>
+<span class="sd">    :param subset_letter: If provided, only rows whose interaction starts with this letter are retained.</span>
+<span class="sd">    :param since_date: Keep rows with creation or update date on/after this date.</span>
+<span class="sd">    :returns: Concatenated DataFrame of filtered shard content.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">iter_csv</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">iterator</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">df_parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">iter_csv</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">subset_letter</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;interaction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">subset_letter</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">organisms</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;organism_interactor_a&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">organisms</span><span class="p">)</span> <span class="o">|</span> <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;organism_interactor_b&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">organisms</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">since_date</span><span class="p">:</span>
+            <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;intact_update_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;intact_update_date&#39;</span><span class="p">])</span>
+            <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;intact_creation_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;intact_creation_date&#39;</span><span class="p">])</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;intact_update_date&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">since_date</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;intact_creation_date&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">since_date</span><span class="p">)]</span>
+        <span class="n">df_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df_parts</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_folder_chunks">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.read_folder_chunks">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_folder_chunks</span><span class="p">(</span><span class="n">folderpath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">subset_letter</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">since_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load all TSV shards in a folder, optionally restricting by prefix/date.</span>
+
+<span class="sd">    :param folderpath: Directory containing shard files.</span>
+<span class="sd">    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.</span>
+<span class="sd">    :param subset_letter: Restrict to files whose names start with this letter.</span>
+<span class="sd">    :param since_date: Keep rows with creation or update date on/after this date.</span>
+<span class="sd">    :returns: Concatenated DataFrame of matching shard contents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df_parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folderpath</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">subset_letter</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">subset_letter</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">df_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read_file_chunks</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folderpath</span><span class="p">,</span> <span class="n">file</span><span class="p">),</span> <span class="n">organisms</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">since_date</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df_parts</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_latest">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.get_latest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_latest</span><span class="p">(</span><span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">subset_letter</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">since_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">|</span><span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the latest IntAct data from the local cache.</span>
+
+<span class="sd">    :param organisms: Optional set of NCBI TaxIDs (as strings) to retain.</span>
+<span class="sd">    :param subset_letter: Restrict to shards whose filename starts with this letter.</span>
+<span class="sd">    :param name_only: If ``True``, return the latest folder path instead of loading data.</span>
+<span class="sd">    :param since_date: Keep rows with creation or update date on/after this date.</span>
+<span class="sd">    :returns: DataFrame of the latest IntAct data or a path string when ``name_only=True``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">current_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">apitools</span><span class="o">.</span><span class="n">get_newest_file</span><span class="p">(</span><span class="n">apitools</span><span class="o">.</span><span class="n">get_save_location</span><span class="p">(</span><span class="s1">&#39;IntAct&#39;</span><span class="p">))</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">apitools</span><span class="o">.</span><span class="n">get_save_location</span><span class="p">(</span><span class="s1">&#39;IntAct&#39;</span><span class="p">),</span> <span class="n">current_version</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name_only</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">filepath</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">read_folder_chunks</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">organisms</span><span class="p">,</span> <span class="n">subset_letter</span><span class="o">=</span><span class="n">subset_letter</span><span class="p">,</span> <span class="n">since_date</span><span class="o">=</span><span class="n">since_date</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="get_available">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.get_available">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_available</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List available interaction shard names for the latest IntAct version.</span>
+
+<span class="sd">    :returns: List of shard basenames without the ``.tsv`` suffix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">get_latest</span><span class="p">(</span><span class="n">name_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="methods_text">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.intact.methods_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">methods_text</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a plain-text description of the IntAct data used.</span>
+
+<span class="sd">    :returns: Multi-line string including source, version and citation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">short</span><span class="p">,</span><span class="n">long</span><span class="p">,</span><span class="n">pmid</span> <span class="o">=</span> <span class="n">apitools</span><span class="o">.</span><span class="n">get_pub_ref</span><span class="p">(</span><span class="s1">&#39;IntAct&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="s1">&#39;IntAct&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;Interactions were mapped with IntAct (https://www.ebi.ac.uk/intact) </span><span class="si">{</span><span class="n">short</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">pmid</span><span class="p">,</span>
+        <span class="n">long</span>
+    <span class="p">])</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

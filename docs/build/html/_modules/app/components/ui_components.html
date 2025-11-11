@@ -1,0 +1,1255 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.ui_components &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.ui_components</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.ui_components</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Components for the user interface.</span>
+
+<span class="sd">Reusable Dash/Bootstrap UI components for building the application</span>
+<span class="sd">interface, including checklists, range inputs, uploaders, sidebars,</span>
+<span class="sd">workflow containers, and navigation.</span>
+
+<span class="sd">Attributes</span>
+<span class="sd">----------</span>
+<span class="sd">HEADER_DICT : dict</span>
+<span class="sd">    Mapping of header levels to HTML header components.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_bootstrap_components</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dbc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">dcc</span><span class="p">,</span> <span class="n">html</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">element_styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">SIDEBAR_STYLE</span><span class="p">,</span> <span class="n">UPLOAD_A_STYLE</span><span class="p">,</span> <span class="n">UPLOAD_STYLE</span><span class="p">,</span> <span class="n">UPLOAD_BUTTON_STYLE</span><span class="p">,</span> <span class="n">CONTENT_STYLE</span><span class="p">,</span> <span class="n">SIDEBAR_LIST_STYLES</span><span class="p">,</span> <span class="n">UPLOAD_INDICATOR_STYLE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">tooltips</span><span class="p">,</span> <span class="n">text_handling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">log2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_uploader</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">du</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures.figure_legends</span><span class="w"> </span><span class="kn">import</span> <span class="n">INTERACTOMICS_LEGENDS</span> <span class="k">as</span> <span class="n">interactomics_legends</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures.figure_legends</span><span class="w"> </span><span class="kn">import</span> <span class="n">saint_legend</span>
+
+<span class="n">HEADER_DICT</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">H2</span><span class="p">,</span>
+        <span class="mi">3</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">H3</span><span class="p">,</span>
+        <span class="mi">4</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">,</span>
+        <span class="mi">5</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">,</span>
+        <span class="mi">6</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">H6</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="checklist">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.checklist">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">checklist</span><span class="p">(</span>
+        <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">options</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">default_choice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">disabled_options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">id_prefix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">id_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">prefix_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">postfix_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">clean_id</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">style_override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a Bootstrap checklist with customizable options.</span>
+
+<span class="sd">    :param label: Label text for the checklist.</span>
+<span class="sd">    :param options: Options to display in the checklist.</span>
+<span class="sd">    :param default_choice: Pre-selected options.</span>
+<span class="sd">    :param disabled_options: Options to disable.</span>
+<span class="sd">    :param id_prefix: Prefix for the component ID.</span>
+<span class="sd">    :param id_only: If ``True``, removes label from display.</span>
+<span class="sd">    :param prefix_list: Elements to prepend to the checklist.</span>
+<span class="sd">    :param postfix_list: Elements to append to the checklist.</span>
+<span class="sd">    :param clean_id: If ``True``, sanitize the ID string.</span>
+<span class="sd">    :param style_override: Custom CSS styles for the component.</span>
+<span class="sd">    :returns: List of components constituting the labeled checklist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">disabled_options</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">disabled</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">disabled</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">disabled_options</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">clean_id</span><span class="p">:</span>
+        <span class="n">checklist_id</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">checklist_id</span> <span class="o">=</span> <span class="n">text_handling</span><span class="o">.</span><span class="n">replace_special_characters</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_prefix</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">stripresult</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove_duplicates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">checklist_id</span> <span class="o">=</span> <span class="n">label</span>
+    <span class="k">if</span> <span class="n">id_only</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">prefix_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">prefix_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">postfix_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">postfix_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">retlist</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">label</span><span class="p">,</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">Checklist</span><span class="p">(</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">,</span> <span class="s1">&#39;disabled&#39;</span><span class="p">:</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">disabled</span>
+                <span class="p">}</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">options</span>
+            <span class="p">],</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">default_choice</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">checklist_id</span><span class="p">,</span>
+            <span class="n">switch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">style</span><span class="o">=</span><span class="n">style_override</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">prefix_list</span> <span class="o">+</span> <span class="n">retlist</span> <span class="o">+</span> <span class="n">postfix_list</span></div>
+
+
+
+<div class="viewcode-block" id="range_input">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.range_input">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">range_input</span><span class="p">(</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+    <span class="n">min_val</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+    <span class="n">max_val</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+    <span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+    <span class="n">typestr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;number&#39;</span><span class="p">,</span> 
+    <span class="n">style_float</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> 
+    <span class="n">stepsize</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a range input component with min and max fields.</span>
+
+<span class="sd">    :param label: Label text for the range input.</span>
+<span class="sd">    :param min_val: Initial minimum value.</span>
+<span class="sd">    :param max_val: Initial maximum value.</span>
+<span class="sd">    :param id_str: Base ID for the component.</span>
+<span class="sd">    :param typestr: Input type (``&#39;number&#39;``, ``&#39;text&#39;``, etc.).</span>
+<span class="sd">    :param style_float: CSS float for positioning.</span>
+<span class="sd">    :param stepsize: Step size for number inputs.</span>
+<span class="sd">    :returns: Div containing the range input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;0px 5px 0px 5px&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;margin-left&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;margin-right&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">pad</span><span class="o">|</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;50%&#39;</span><span class="p">}),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">-min&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">typestr</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="n">min_val</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="n">pad</span><span class="o">|</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;20%&#39;</span><span class="p">},</span><span class="n">step</span><span class="o">=</span><span class="n">stepsize</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">pad</span><span class="o">|</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;10%&#39;</span><span class="p">}),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">-max&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">typestr</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="n">max_val</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="n">pad</span><span class="o">|</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;20%&#39;</span><span class="p">},</span><span class="n">step</span><span class="o">=</span><span class="n">stepsize</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-flex&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;100%&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="s1">&#39;20px&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="n">style_float</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="s1">&#39;20px&#39;</span><span class="p">},</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">id_str</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_du_uploader">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.make_du_uploader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_du_uploader</span><span class="p">(</span><span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a dash-uploader component with a success indicator.</span>
+
+<span class="sd">    :param id_str: ID for the upload component.</span>
+<span class="sd">    :param message: Display message for the upload area.</span>
+<span class="sd">    :returns: Tuple of (upload component container, unique session ID).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">())</span>
+    <span class="n">asty</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">UPLOAD_INDICATOR_STYLE</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">asty</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;100px&#39;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="n">du</span><span class="o">.</span><span class="n">Upload</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="n">id_str</span><span class="p">,</span>
+                        <span class="n">text</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
+                        <span class="n">max_file_size</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>  <span class="c1"># 50 Mb</span>
+                        <span class="n">chunk_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>  <span class="c1"># 4 MB</span>
+                        <span class="n">upload_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>  <span class="c1"># Unique session id,</span>
+                        <span class="n">default_style</span> <span class="o">=</span> <span class="n">UPLOAD_STYLE</span>
+                <span class="p">),</span>
+                <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-block&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;75%&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="s1">&#39;25px&#39;</span><span class="p">},</span>
+                <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">-success&#39;</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="n">asty</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>  
+    <span class="p">),</span> <span class="n">session_id</span></div>
+
+
+<div class="viewcode-block" id="upload_area">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.upload_area">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">upload_area</span><span class="p">(</span><span class="n">id_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">upload_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">indicator</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a drag-and-drop upload area with optional success indicator.</span>
+
+<span class="sd">    :param id_text: ID for the upload component.</span>
+<span class="sd">    :param upload_id: Display text for the upload area.</span>
+<span class="sd">    :param indicator: Whether to show upload success indicator.</span>
+<span class="sd">    :returns: Div containing the upload area and optional success indicator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Upload</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="n">id_text</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+                        <span class="s1">&#39;Drag and drop or &#39;</span><span class="p">,</span>
+                        <span class="n">html</span><span class="o">.</span><span class="n">A</span><span class="p">(</span><span class="s1">&#39;select&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">UPLOAD_A_STYLE</span><span class="p">),</span>
+                        <span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">upload_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_text</span><span class="si">}</span><span class="s1">-spinner&#39;</span><span class="p">))</span>
+                    <span class="p">]</span>
+                    <span class="p">),</span>
+                    <span class="n">style</span><span class="o">=</span><span class="n">UPLOAD_STYLE</span><span class="p">,</span>
+                    <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
+            <span class="p">],</span>
+            <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-block&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;75%&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="s1">&#39;65px&#39;</span><span class="p">},</span>
+        <span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">indicator</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_text</span><span class="si">}</span><span class="s1">-success&#39;</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="n">UPLOAD_INDICATOR_STYLE</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main_sidebar">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.main_sidebar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main_sidebar</span><span class="p">(</span><span class="n">figure_templates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">implemented_workflows</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main sidebar component with input controls.</span>
+
+<span class="sd">    :param figure_templates: Available figure style templates.</span>
+<span class="sd">    :param implemented_workflows: Available workflow types.</span>
+<span class="sd">    :returns: Sidebar Div containing inputs, options, and downloads.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H2</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="s1">&#39;▼ Input&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;input-header&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;textAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">}),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Collapse</span><span class="p">([</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+                    <span class="s1">&#39;Download example files&#39;</span><span class="p">,</span>
+                    <span class="n">style</span><span class="o">=</span><span class="n">UPLOAD_BUTTON_STYLE</span><span class="p">,</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;button-download-example-files&#39;</span><span class="p">,</span>
+                    <span class="n">className</span><span class="o">=</span><span class="s1">&#39;btn-info&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Upload files:&#39;</span><span class="p">),</span>
+                <span class="n">upload_area</span><span class="p">(</span><span class="s1">&#39;upload-data-file&#39;</span><span class="p">,</span> <span class="s1">&#39;Data file&#39;</span><span class="p">),</span>
+                <span class="n">upload_area</span><span class="p">(</span><span class="s1">&#39;upload-sample_table-file&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample table&#39;</span><span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">html</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Options:&#39;</span><span class="p">),</span>
+                        <span class="n">dcc</span><span class="o">.</span><span class="n">Checklist</span><span class="p">(</span>
+                            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;sidebar-options&#39;</span><span class="p">,</span>
+                            <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Remove common contaminants&#39;</span><span class="p">,</span> <span class="s1">&#39;Rename replicates&#39;</span><span class="p">,</span> <span class="s1">&#39;Use unique proteins only (remove protein groups)&#39;</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Remove common contaminants&#39;</span><span class="p">],</span>
+                        <span class="p">)</span>
+                    <span class="p">],</span>
+                    <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-block&#39;</span><span class="p">}</span>
+                <span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Select workflow:&#39;</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span>
+                    <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                        <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">}</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">implemented_workflows</span>
+                    <span class="p">],</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;workflow-dropdown&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Select figure style:&#39;</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">figure_templates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                        <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">}</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">figure_templates</span>
+                    <span class="p">],</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;figure-theme-dropdown&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+                    <span class="s1">&#39;Begin analysis&#39;</span><span class="p">,</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;begin-analysis-button&#39;</span><span class="p">,</span>
+                    <span class="n">style</span><span class="o">=</span><span class="n">UPLOAD_BUTTON_STYLE</span><span class="p">,</span>
+                    <span class="n">className</span><span class="o">=</span><span class="s1">&#39;btn-info&#39;</span><span class="p">,</span>
+                    <span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">],</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;input-collapse&#39;</span><span class="p">,</span><span class="n">is_open</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;discard-samples-div&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+                        <span class="s1">&#39;Choose samples to discard&#39;</span><span class="p">,</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;discard-samples-button&#39;</span><span class="p">,</span>
+                        <span class="n">style</span><span class="o">=</span><span class="n">UPLOAD_BUTTON_STYLE</span><span class="p">,</span>
+                        <span class="n">className</span><span class="o">=</span><span class="s1">&#39;btn-warning&#39;</span><span class="p">,</span>
+                        <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span>
+                    <span class="p">),</span>
+                <span class="p">],</span>
+                <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+                <span class="n">children</span> <span class="o">=</span> <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;button-download-all-data-text&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Download all data&#39;</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">style</span><span class="o">=</span><span class="n">UPLOAD_BUTTON_STYLE</span><span class="p">,</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;button-download-all-data&#39;</span><span class="p">,</span>
+                <span class="n">className</span><span class="o">=</span><span class="s1">&#39;btn-info&#39;</span><span class="p">,</span>
+                <span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="c1"># top right bottom left</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;toc-div&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;0px 10px 10px 30px&#39;</span><span class="p">,</span> <span class="s1">&#39;overflow&#39;</span><span class="p">:</span> <span class="s1">&#39;scroll&#39;</span><span class="p">}),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Download</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-example-files&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Download</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-proteomics-comparison-example&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Download</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-all-data&#39;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">className</span><span class="o">=</span><span class="s1">&#39;card text-white bg-primary mb-3&#39;</span><span class="p">,</span>
+        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;input-div&#39;</span><span class="p">,</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;sidebar-input&#39;</span><span class="p">},</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">SIDEBAR_STYLE</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="modals">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.modals">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">modals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create modal dialogs for the application.</span>
+
+<span class="sd">    :returns: Div containing modal components (discard samples modal).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">Modal</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;discard-samples-modal&#39;</span><span class="p">,</span>
+            <span class="n">is_open</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">scrollable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="s1">&#39;xl&#39;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">ModalHeader</span><span class="p">(</span><span class="n">dbc</span><span class="o">.</span><span class="n">ModalTitle</span><span class="p">(</span>
+                        <span class="s1">&#39;Select samples to discard&#39;</span><span class="p">)),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">ModalBody</span><span class="p">(</span>
+                        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Discard samples&#39;</span><span class="p">,</span>
+                                       <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;done-discarding-button&#39;</span><span class="p">,</span> <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;discard-sample-checklist-container&#39;</span>
+                            <span class="p">),</span>
+                        <span class="p">]</span>
+                    <span class="p">),</span>
+                    <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="main_content_div">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.main_content_div">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main_content_div</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main content area for displaying analysis results.</span>
+
+<span class="sd">    :returns: Div with workflow-specific inputs and result areas.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;main-content-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;upload-warnings-div&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;font-weight&#39;</span><span class="p">:</span> <span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="s1">&#39;margin-bottom&#39;</span><span class="p">:</span> <span class="s1">&#39;10px&#39;</span><span class="p">},</span> <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;input-warnings-data-table-div&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;font-weight&#39;</span><span class="p">:</span> <span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="s1">&#39;margin-bottom&#39;</span><span class="p">:</span> <span class="s1">&#39;10px&#39;</span><span class="p">},</span> <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;input-warnings-sample-table-div&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;font-weight&#39;</span><span class="p">:</span> <span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="s1">&#39;margin-bottom&#39;</span><span class="p">:</span> <span class="s1">&#39;10px&#39;</span><span class="p">},</span> <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;workflow-specific-input-div&#39;</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;analysis-div&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-analysis-area&#39;</span><span class="p">},</span>
+                <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;workflow-specific-div&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="workflow_area">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.workflow_area">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">workflow_area</span><span class="p">(</span>
+    <span class="n">workflow</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+    <span class="n">workflow_specific_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+    <span class="n">data_dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the appropriate workflow area based on workflow type.</span>
+
+<span class="sd">    :param workflow: Workflow type (``&#39;Proteomics&#39;``, ``&#39;Interactomics&#39;``).</span>
+<span class="sd">    :param workflow_specific_parameters: Parameters for each workflow type.</span>
+<span class="sd">    :param data_dictionary: Data required for the workflow analysis.</span>
+<span class="sd">    :returns: Workflow-specific component tree.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="k">if</span> <span class="n">workflow</span> <span class="o">==</span> <span class="s1">&#39;Proteomics&#39;</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">proteomics_area</span><span class="p">(</span>
+            <span class="n">workflow_specific_parameters</span><span class="p">[</span><span class="s1">&#39;proteomics&#39;</span><span class="p">],</span> <span class="n">data_dictionary</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">workflow</span> <span class="o">==</span> <span class="s1">&#39;Interactomics&#39;</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">interactomics_area</span><span class="p">(</span>
+            <span class="n">workflow_specific_parameters</span><span class="p">[</span><span class="s1">&#39;interactomics&#39;</span><span class="p">],</span> <span class="n">data_dictionary</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span> <span class="c1"># type: ignore</span></div>
+
+
+
+<div class="viewcode-block" id="proteomics_input_card">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.proteomics_input_card">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">proteomics_input_card</span><span class="p">(</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+    <span class="n">data_dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Card</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a card containing proteomics analysis input controls.</span>
+
+<span class="sd">    :param parameters: Configuration parameters (NA filter default, imputation/normalization options and defaults).</span>
+<span class="sd">    :param data_dictionary: Data containing sample groups and normalization info.</span>
+<span class="sd">    :returns: Bootstrap Card with controls for filtering, imputation, normalization, and thresholds.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">control_dropdown_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+    <span class="n">control_dropdown_options</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Card</span><span class="p">(</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">CardBody</span><span class="p">([</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Card</span><span class="p">([</span>
+                        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Filter out proteins not present in at least:&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;filtering-label&#39;</span><span class="p">),</span>
+                            <span class="n">tooltips</span><span class="o">.</span><span class="n">na_tooltip</span><span class="p">()</span>
+                        <span class="p">]),</span>
+                        <span class="n">dcc</span><span class="o">.</span><span class="n">Slider</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> 
+                                <span class="n">step</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> 
+                                <span class="n">marks</span><span class="o">=</span><span class="p">{</span>
+                                    <span class="n">i</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">%&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+                                    <span class="p">},</span>
+                                <span class="n">value</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;na_filter_default_value&#39;</span><span class="p">],</span>
+                                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-filter-minimum-percentage&#39;</span><span class="p">),</span>
+                        <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;of:&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;filtering-label&#39;</span><span class="p">),</span>
+                        <span class="n">dbc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">(</span>
+                            <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                                <span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;One sample group&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s1">&#39;sample-group&#39;</span><span class="p">},</span>
+                                <span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Whole sample set&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s1">&#39;sample-set&#39;</span><span class="p">}</span>
+                            <span class="p">],</span>
+                            <span class="n">value</span><span class="o">=</span><span class="s1">&#39;sample-group&#39;</span><span class="p">,</span>
+                            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;proteomics-filter-type&quot;</span><span class="p">,</span>
+                        <span class="p">),</span>
+                    <span class="p">],</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;5px 5px 5px 5px&#39;</span><span class="p">}),</span> 
+                <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Imputation:&#39;</span><span class="p">),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">(</span>
+                        <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                            <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">i_opt</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">i_opt_val</span><span class="p">}</span>
+                            <span class="k">for</span> <span class="n">i_opt</span><span class="p">,</span> <span class="n">i_opt_val</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;imputation methods&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                        <span class="p">],</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;default imputation method&#39;</span><span class="p">],</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-imputation-radio-option&#39;</span>
+                    <span class="p">),</span>
+                <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Normalization:&#39;</span><span class="p">),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">(</span>
+                        <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                            <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">n_opt</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">n_opt_val</span><span class="p">}</span>
+                            <span class="k">for</span> <span class="n">n_opt</span><span class="p">,</span> <span class="n">n_opt_val</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;normalization methods&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                        <span class="p">],</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;default normalization method&#39;</span><span class="p">],</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-normalization-radio-option&#39;</span>
+                    <span class="p">),</span>
+                <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Select control group:&#39;</span><span class="p">),]),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                        <span class="n">dbc</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span>
+                            <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                                <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">sample_group</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">sample_group</span><span class="p">}</span> <span class="k">for</span> <span class="n">sample_group</span> <span class="ow">in</span>
+                                <span class="n">control_dropdown_options</span>
+                            <span class="p">],</span>
+                            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-control-dropdown&#39;</span><span class="p">,</span>
+                        <span class="p">),</span>
+                        <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Or&#39;</span><span class="p">),</span>
+                        <span class="c1"># &#39;padding&#39;: &#39;50% 0px 0px 0px&#39;} # top right bottom left</span>
+                        <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text-align&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="p">}</span>
+                    <span class="p">)</span>
+                <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                    <span class="n">upload_area</span><span class="p">(</span><span class="s1">&#39;proteomics-comparison-table-upload&#39;</span><span class="p">,</span>
+                                <span class="s1">&#39;Comparison file&#39;</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                    <span class="n">width</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Download example comparison file&#39;</span><span class="p">,</span>
+                               <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-proteomics-comparison-example-button&#39;</span><span class="p">),</span>
+                    <span class="n">width</span><span class="o">=</span><span class="mi">2</span>
+                <span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                    <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="n">width</span><span class="o">=</span><span class="mi">1</span>
+                <span class="p">)</span>
+            <span class="p">],</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;display&quot;</span><span class="p">:</span> <span class="s2">&quot;flex&quot;</span><span class="p">,</span> <span class="s2">&quot;align-items&quot;</span><span class="p">:</span> <span class="s2">&quot;bottom&quot;</span><span class="p">},),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;log2 fold change threshold for comparisons:&#39;</span><span class="p">),</span>
+                    <span class="n">dcc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">([</span>
+                        <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">log2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s1">-fold change)&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">log2</span><span class="p">(</span><span class="n">x</span><span class="p">)}</span>
+                        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                    <span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-fc-value-threshold&#39;</span><span class="p">),</span>
+                <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Adjusted p-value threshold for comparisons:&#39;</span><span class="p">),</span>
+                    <span class="n">dcc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">([</span><span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">],</span> <span class="mf">0.01</span><span class="p">,</span>
+                                   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-p-value-threshold&#39;</span><span class="p">),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Test type for comparisons:&#39;</span><span class="p">),</span>
+                    <span class="n">dcc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">([</span><span class="s1">&#39;independent&#39;</span><span class="p">,</span><span class="s1">&#39;paired&#39;</span><span class="p">],</span> <span class="s1">&#39;independent&#39;</span><span class="p">,</span>
+                                   <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-test-type&#39;</span><span class="p">),</span>
+                    <span class="n">tooltips</span><span class="o">.</span><span class="n">test_type_tooltip</span><span class="p">(),</span>
+                <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+                
+            <span class="p">]),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Run proteomics analysis&#39;</span><span class="p">,</span>
+                               <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-run-button&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">])</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="proteomics_area">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.proteomics_area">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">proteomics_area</span><span class="p">(</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+    <span class="n">data_dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main proteomics analysis area and results container.</span>
+
+<span class="sd">    :param parameters: Proteomics-specific configuration parameters.</span>
+<span class="sd">    :param data_dictionary: Data required for proteomics analysis.</span>
+<span class="sd">    :returns: List containing input and results sections with loading indicators for NA filtering, normalization, missing values, imputation, CV, PCA, clustermap, and volcano plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;input-div&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-analysis-area&#39;</span><span class="p">},</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">(</span><span class="s1">&#39;Proteomics-specific input options&#39;</span><span class="p">),</span>
+                <span class="n">proteomics_input_card</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Hr</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;analysis-div&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-analysis-results-area&#39;</span><span class="p">},</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-result-header&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Proteomics&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-filtering&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-na-filtered-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-normalization&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-normalization-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-missing-in-other&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-missing-in-other-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-imputation&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-imputation-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-cv&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-cv-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-pca&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-pca-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-clustermap&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-clustermap-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-pertubation-volcano&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-pertubation-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-loading-volcano&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-volcano-plot-div&#39;</span><span class="p">}),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+                <span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="discard_samples_checklist">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.discard_samples_checklist">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">discard_samples_checklist</span><span class="p">(</span>
+    <span class="n">count_plot</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">,</span> 
+    <span class="n">list_of_samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a checklist UI for selecting samples to discard.</span>
+
+<span class="sd">    :param count_plot: Plot component showing sample counts.</span>
+<span class="sd">    :param list_of_samples: List of sample names that can be discarded.</span>
+<span class="sd">    :returns: List of components containing the count plot and checklist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">count_plot</span><span class="p">,</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Select samples to discard&#39;</span><span class="p">,</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="n">list_of_samples</span><span class="p">,</span>
+                <span class="n">default_choice</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;checklist&#39;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="interactomics_control_col">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.interactomics_control_col">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactomics_control_col</span><span class="p">(</span>
+    <span class="n">all_sample_groups</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
+    <span class="n">chosen</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a column with controls for selecting uploaded control samples.</span>
+
+<span class="sd">    :param all_sample_groups: All available sample groups.</span>
+<span class="sd">    :param chosen: Pre-selected sample groups.</span>
+<span class="sd">    :returns: Column with a &quot;Select all&quot; checkbox and a checklist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="s1">&#39;select all uploaded&#39;</span><span class="p">,</span>
+                <span class="p">[</span><span class="s1">&#39;Select all uploaded&#39;</span><span class="p">],</span>
+                <span class="p">[],</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="s1">&#39;Choose uploaded controls:&#39;</span><span class="p">,</span>
+                <span class="n">all_sample_groups</span><span class="p">,</span>
+                <span class="n">chosen</span><span class="p">,</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span><span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Choose uploaded controls:&#39;</span><span class="p">)]</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="p">)</span>
+    <span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="interactomics_inbuilt_control_col">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.interactomics_inbuilt_control_col">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactomics_inbuilt_control_col</span><span class="p">(</span><span class="n">controls_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a column for selecting built-in control sets.</span>
+
+<span class="sd">    :param controls_dict: Dict with ``available``, ``default``, and ``disabled`` lists.</span>
+<span class="sd">    :returns: Column containing a select-all control and checklist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="s1">&#39;select all inbuilt controls&#39;</span><span class="p">,</span>
+                <span class="p">[</span><span class="s1">&#39;Select all inbuilt controls&#39;</span><span class="p">],</span>
+                <span class="p">[],</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="s1">&#39;Choose additional control sets:&#39;</span><span class="p">,</span>
+                <span class="n">controls_dict</span><span class="p">[</span><span class="s1">&#39;available&#39;</span><span class="p">],</span>
+                <span class="n">controls_dict</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+                <span class="n">disabled_options</span><span class="o">=</span><span class="n">controls_dict</span><span class="p">[</span><span class="s1">&#39;disabled&#39;</span><span class="p">],</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span><span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Choose additional control sets:&#39;</span><span class="p">)]</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="interactomics_crapome_col">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.interactomics_crapome_col">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactomics_crapome_col</span><span class="p">(</span><span class="n">crapome_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a column for selecting CRAPome control sets.</span>
+
+<span class="sd">    :param crapome_dict: Dict with ``available``, ``default``, and ``disabled`` lists.</span>
+<span class="sd">    :returns: Column with select-all and checklist for CRAPome sets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="s1">&#39;select all crapomes&#39;</span><span class="p">,</span>
+                <span class="p">[</span><span class="s1">&#39;Select all crapomes&#39;</span><span class="p">],</span>
+                <span class="p">[],</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="s1">&#39;Choose Crapome sets:&#39;</span><span class="p">,</span>
+                <span class="n">crapome_dict</span><span class="p">[</span><span class="s1">&#39;available&#39;</span><span class="p">],</span>
+                <span class="n">crapome_dict</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+                <span class="n">disabled_options</span><span class="o">=</span><span class="n">crapome_dict</span><span class="p">[</span><span class="s1">&#39;disabled&#39;</span><span class="p">],</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span><span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Choose Crapome sets:&#39;</span><span class="p">)]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="interactomics_enrichment_col">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.interactomics_enrichment_col">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactomics_enrichment_col</span><span class="p">(</span><span class="n">enrichment_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a column for selecting enrichment analysis options.</span>
+
+<span class="sd">    :param enrichment_dict: Dict with ``available``, ``default``, and ``disabled`` lists.</span>
+<span class="sd">    :returns: Column with a deselect-all button and checklist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="s1">&#39;Choose enrichments:&#39;</span><span class="p">,</span>
+                <span class="n">enrichment_dict</span><span class="p">[</span><span class="s1">&#39;available&#39;</span><span class="p">],</span>
+                <span class="n">enrichment_dict</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+                <span class="n">disabled_options</span><span class="o">=</span><span class="n">enrichment_dict</span><span class="p">[</span><span class="s1">&#39;disabled&#39;</span><span class="p">],</span>
+                <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Deselect all enrichments&#39;</span><span class="p">,</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-select-none-enrichments&#39;</span><span class="p">),</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Choose enrichments:&#39;</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="interactomics_input_card">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.interactomics_input_card">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactomics_input_card</span><span class="p">(</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+    <span class="n">data_dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main input card for interactomics configuration.</span>
+
+<span class="sd">    :param parameters: Dict with ``controls``, ``crapome``, and ``enrichment`` options.</span>
+<span class="sd">    :param data_dictionary: Dict with normalized sample groups and guessed controls.</span>
+<span class="sd">    :returns: Div containing control selection columns and filtering options.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_sample_groups</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sample_groups</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;guessed control samples&#39;</span> <span class="ow">in</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">]:</span>
+        <span class="n">guessed_controls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;guessed control samples&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">guessed_controls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">sample_groups</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">guessed_controls</span><span class="p">:</span>
+            <span class="n">all_sample_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="n">all_sample_groups</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">guessed_controls</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_sample_groups</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                        <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                            <span class="p">[</span>
+                                <span class="n">interactomics_control_col</span><span class="p">(</span>
+                                    <span class="n">all_sample_groups</span><span class="p">,</span> <span class="n">guessed_controls</span><span class="p">),</span>
+                                <span class="n">interactomics_inbuilt_control_col</span><span class="p">(</span>
+                                    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;controls&#39;</span><span class="p">]),</span>
+                                <span class="n">interactomics_crapome_col</span><span class="p">(</span>
+                                    <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;crapome&#39;</span><span class="p">]),</span>
+                            <span class="p">]</span>
+                        <span class="p">),</span>
+                        <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                                <span class="n">children</span> <span class="o">=</span> <span class="n">checklist</span><span class="p">(</span>
+                                        <span class="s1">&#39;Rescue filtered out&#39;</span><span class="p">,</span>
+                                        <span class="p">[</span><span class="s1">&#39;Rescue interactions that pass filter in any sample group&#39;</span><span class="p">],</span>
+                                        <span class="p">[],</span>
+                                        <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                        <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+                                        <span class="n">style_override</span><span class="o">=</span><span class="p">{</span>
+                                            <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span><span class="p">,</span> <span class="s1">&#39;verticalAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span>
+                                        <span class="p">},</span>
+                                        <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span>
+                                            <span class="n">tooltips</span><span class="o">.</span><span class="n">rescue_tooltip</span><span class="p">()</span>
+                                        <span class="p">]</span>
+                                    <span class="p">),</span>
+                                <span class="n">width</span><span class="o">=</span><span class="mi">4</span>
+                            <span class="p">),</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                                    <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+                                        <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                                                <span class="n">checklist</span><span class="p">(</span>
+                                                    <span class="s1">&#39;Nearest control filtering&#39;</span><span class="p">,</span>
+                                                    <span class="p">[</span><span class="s1">&#39;Select&#39;</span><span class="p">],</span>
+                                                    <span class="p">[],</span>
+                                                    <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                    <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
+                                                    <span class="n">style_override</span><span class="o">=</span><span class="p">{</span>
+                                                        <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span><span class="p">,</span> <span class="s1">&#39;verticalAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span>
+                                                    <span class="p">},</span>
+                                                    <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span>
+                                                        <span class="n">tooltips</span><span class="o">.</span><span class="n">nearest_tooltip</span><span class="p">()</span>
+                                                    <span class="p">]</span>
+                                                <span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">3</span>
+                                            <span class="p">),</span>
+                                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                                                <span class="n">dbc</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span>
+                                                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-num-controls&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;number&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                                                    <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span><span class="p">,</span> <span class="s1">&#39;verticalAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span><span class="p">}</span>
+                                                <span class="p">),</span>
+                                                <span class="n">tooltips</span><span class="o">.</span><span class="n">interactomics_select_top_controls_tooltip</span><span class="p">()</span>
+                                            <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+                                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                                                <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s1">&#39;most similar inbuilt control runs&#39;</span><span class="p">,</span>
+                                                    <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span><span class="p">,</span> <span class="s1">&#39;verticalAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span><span class="p">}),</span>
+                                                <span class="n">width</span><span class="o">=</span><span class="mi">6</span>
+                                            <span class="p">)</span>
+                                        <span class="p">])</span>
+                                    <span class="p">],</span>
+                                    <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-nearest-controls-div&#39;</span>
+                                <span class="p">)</span>
+                            <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">),</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="p">])</span>
+                    <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">9</span><span class="p">),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                        <span class="n">interactomics_enrichment_col</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;enrichment&#39;</span><span class="p">]),</span>
+                        <span class="n">width</span><span class="o">=</span><span class="mi">3</span>
+                    <span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Run SAINT analysis&#39;</span><span class="p">,</span>
+                               <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;button-run-saint-analysis&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="saint_filtering_container">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.saint_filtering_container">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">saint_filtering_container</span><span class="p">(</span>
+    <span class="n">defaults</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+    <span class="n">rescue</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">saint_found</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the SAINT filtering controls and visualization container.</span>
+
+<span class="sd">    :param defaults: Default configuration (expects ``config``).</span>
+<span class="sd">    :param rescue: Whether rescue filtering is enabled.</span>
+<span class="sd">    :param saint_found: Whether SAINT executable was found (controls warning visibility).</span>
+<span class="sd">    :returns: Div with SAINT histogram, thresholds, and controls.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bfdr_config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">bfdr_config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bfdr_config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">bfdr_config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Saint BFDR histogram&#39;</span>
+    <span class="n">count_config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">count_config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count_config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">count_config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Saint filtered counts&#39;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;input-div&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-saint-filtering-area&#39;</span><span class="p">},</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-has-error&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                        <span class="s1">&#39;SAINT EXECUTABLE WAS NOT FOUND, SCORING DATA IS RANDOMIZED&#39;</span><span class="p">,</span>
+                        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s1">&#39;fontSize&#39;</span><span class="p">:</span> <span class="s1">&#39;24px&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;fontWeight&#39;</span><span class="p">:</span> <span class="s1">&#39;bold&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;textDecoration&#39;</span><span class="p">:</span> <span class="s1">&#39;underline&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;backgroundColor&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;10px&#39;</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">),</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="s1">&#39;If this is the demo version, this is expected behavior. Otherwise, you need to rebuild the docker image with SAINTExpress available in the expected folder (see README), or you need to add SAINTexpress as executable to the container itself, and make sure it</span><span class="se">\&#39;</span><span class="s1">s in PATH.&#39;</span><span class="p">)</span>
+                <span class="p">],</span>
+                <span class="n">hidden</span> <span class="o">=</span> <span class="n">saint_found</span><span class="p">,</span> 
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-histo-header&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="s1">&#39;SAINT BFDR value distribution&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-bfdr-histogram&#39;</span><span class="p">,</span>
+                      <span class="n">config</span><span class="o">=</span><span class="n">bfdr_config</span><span class="p">),</span>
+            <span class="n">interactomics_legends</span><span class="p">[</span><span class="s1">&#39;saint-histo&#39;</span><span class="p">],</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-filtered-counts-header&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Filtered Prey counts per bait&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-graph&#39;</span><span class="p">,</span>
+                      <span class="n">config</span><span class="o">=</span><span class="n">count_config</span><span class="p">),</span>
+            <span class="n">saint_legend</span><span class="p">(</span><span class="n">rescue</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Saint BFDR threshold:&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Slider</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                       <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-bfdr-filter-threshold&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Crapome filtering percentage:&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Slider</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                       <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-crapome-frequency-threshold&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;SPC fold change vs crapome threshold for rescue&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Slider</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                       <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-crapome-rescue-threshold&#39;</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Done filtering&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-button-done-filtering&#39;</span><span class="p">)])</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="post_saint_container">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.post_saint_container">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">post_saint_container</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a container for post-SAINT analysis visualizations.</span>
+
+<span class="sd">    :returns: List containing a Div with loading indicators for post-SAINT plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-area&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomcis-count-plot-div&#39;</span><span class="p">},</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-known-loading&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-common-loading&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-pca-loading&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-network-loading&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-volcano-loading&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-msmic-loading&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-enrichment-loading&#39;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="interactomics_area">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.interactomics_area">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactomics_area</span><span class="p">(</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+    <span class="n">data_dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main interactomics analysis area and results container.</span>
+
+<span class="sd">    :param parameters: Interactomics configuration parameters.</span>
+<span class="sd">    :param data_dictionary: Data required for interactomics analysis.</span>
+<span class="sd">    :returns: List with input and results sections for interactomics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;input-div&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-analysis-area&#39;</span><span class="p">},</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">(</span><span class="s1">&#39;Interactomics-specific input options&#39;</span><span class="p">),</span>
+                <span class="n">interactomics_input_card</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Hr</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;analysis-div&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-analysis-results-area&#39;</span><span class="p">},</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-main-header&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Interactomics&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-container-loading&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;workflow-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-saint-container&#39;</span><span class="p">})),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-running-loading&#39;</span><span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;analysis-div&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-analysis-post-saint-area&#39;</span><span class="p">},)</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="qc_area">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.qc_area">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">qc_area</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the quality control analysis area with multiple plots.</span>
+
+<span class="sd">    :returns: Div containing loading indicators and containers for QC plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-area&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-main-header&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Quality control&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-tic&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;tic-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-count&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;count-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-common-protein&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;common-protein-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-coverage&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;coverage-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-reproducibility&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;reproducibility-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-missing&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;missing-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-sum&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;sum-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-mean&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;mean-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-loading-distribution&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;distribution-plot-div&#39;</span><span class="p">}),</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;qc-plot&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;commonality-plot-div&#39;</span><span class="p">})</span>
+        <span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="navbar">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.navbar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">navbar</span><span class="p">(</span><span class="n">navbar_pages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">dbc</span><span class="o">.</span><span class="n">NavbarSimple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main navigation bar for the application.</span>
+
+<span class="sd">    :param navbar_pages: List of tuples of (name, link) for navigation items.</span>
+<span class="sd">    :returns: Bootstrap NavbarSimple with navigation items and branding.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">navbar_items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">dbc</span><span class="o">.</span><span class="n">NavItem</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">NavItem</span><span class="p">(</span><span class="n">dbc</span><span class="o">.</span><span class="n">NavLink</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">href</span><span class="o">=</span><span class="n">link</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">navbar_pages</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">NavbarSimple</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;main-navbar&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="n">navbar_items</span><span class="p">,</span>
+        <span class="n">brand</span><span class="o">=</span><span class="s1">&#39;Quick analysis&#39;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;primary&#39;</span><span class="p">,</span>
+        <span class="n">dark</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="table_of_contents">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.table_of_contents">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">table_of_contents</span><span class="p">(</span>
+    <span class="n">main_div_children</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> 
+    <span class="n">itern</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively generate a table of contents from header elements.</span>
+
+<span class="sd">    :param main_div_children: List of HTML component-like dicts to process.</span>
+<span class="sd">    :param itern: Current recursion depth.</span>
+<span class="sd">    :returns: List of HTML components representing the table of contents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">itern</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">H3</span><span class="p">(</span><span class="s1">&#39;Table of contents&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">main_div_children</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ret</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">main_div_children</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">table_of_contents</span><span class="p">(</span>
+            <span class="n">main_div_children</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">itern</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># type: ignore</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">main_div_children</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">kids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">element</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">ctype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">element</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kids</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">table_of_contents</span><span class="p">(</span><span class="n">kids</span><span class="p">,</span> <span class="n">itern</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ctype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">):</span>
+                    <span class="n">level</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ctype</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span>
+                        <span class="n">level</span> <span class="o">=</span> <span class="mi">6</span>
+                    <span class="n">html_component</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">HEADER_DICT</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">][</span><span class="n">level</span><span class="p">]</span>
+                    <span class="n">list_component</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span>
+                    <span class="n">style</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">SIDEBAR_LIST_STYLES</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;padding-left&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0%&#39;</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">idstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">element</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">list_component</span><span class="p">(</span>
+                            <span class="n">html_component</span><span class="p">(</span>
+                                <span class="n">html</span><span class="o">.</span><span class="n">A</span><span class="p">(</span>
+                                    <span class="n">href</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;#</span><span class="si">{</span><span class="n">idstr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                    <span class="n">children</span><span class="o">=</span><span class="n">kids</span><span class="p">,</span>
+                                <span class="p">),</span>
+                                <span class="n">style</span><span class="o">=</span><span class="n">style</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kids</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">table_of_contents</span><span class="p">(</span>
+                    <span class="n">kids</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">itern</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

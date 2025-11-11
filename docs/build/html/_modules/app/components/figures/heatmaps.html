@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.figures.heatmaps &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.figures.heatmaps</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.figures.heatmaps</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Heatmap utilities, including clustered correlation heatmaps.</span>
+
+<span class="sd">Provides a dendrogram-coupled clustergram builder and a simple imshow</span>
+<span class="sd">heatmap factory for numeric matrices.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash.dcc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">graph_objects</span> <span class="k">as</span> <span class="n">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">express</span> <span class="k">as</span> <span class="n">px</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">matrix_functions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">ceil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.figure_factory</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ff</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly.subplots</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_subplots</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">squareform</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.cluster.hierarchy</span><span class="w"> </span><span class="kn">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">leaves_list</span>
+
+
+
+<div class="viewcode-block" id="draw_clustergram">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.heatmaps.draw_clustergram">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_clustergram</span><span class="p">(</span><span class="n">plot_data</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">color_map</span><span class="p">:</span><span class="nb">list</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a clustered correlation heatmap with dendrograms.</span>
+
+<span class="sd">    :param plot_data: Square DataFrame-like correlation matrix (symmetric).</span>
+<span class="sd">    :param defaults: Dict with ``height`` and ``width``.</span>
+<span class="sd">    :param color_map: Plotly colorscale list; defaults to white→red.</span>
+<span class="sd">    :param kwargs: Optional ``zmin`` and ``zmax`` overrides.</span>
+<span class="sd">    :returns: Plotly ``Figure`` containing the clustergram.</span>
+<span class="sd">    :raises ValueError: If input is not square.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;average&quot;</span>
+    <span class="k">if</span> <span class="n">color_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">color_map</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;#FFFFFF&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;#EF553B&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+    <span class="n">zmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">zmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">if</span> <span class="s1">&#39;zmin&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">zmin</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;zmin&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;zmax&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">zmax</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;zmax&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">plot_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">plot_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;plot_data must be square (n x n) correlation matrix.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">plot_data</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">plot_data</span> <span class="o">=</span> <span class="n">plot_data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">plot_data</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">plot_data</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">plot_data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+    <span class="n">C</span> <span class="o">=</span> <span class="n">plot_data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="p">(</span><span class="n">C</span> <span class="o">+</span> <span class="n">C</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="n">D</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">C</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">D</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">condensed</span> <span class="o">=</span> <span class="n">squareform</span><span class="p">(</span><span class="n">D</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">checks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">col_link</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">condensed</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+    <span class="n">row_link</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">condensed</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+    <span class="n">col_order</span> <span class="o">=</span> <span class="n">leaves_list</span><span class="p">(</span><span class="n">col_link</span><span class="p">)</span>
+    <span class="n">row_order</span> <span class="o">=</span> <span class="n">leaves_list</span><span class="p">(</span><span class="n">row_link</span><span class="p">)</span>
+
+    <span class="n">corr_reordered</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">row_order</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="n">col_order</span><span class="p">]</span>
+    <span class="n">row_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">row_order</span><span class="p">]</span>
+    <span class="n">col_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">col_order</span><span class="p">]</span>
+
+    <span class="n">dendro_top</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">create_dendrogram</span><span class="p">(</span>
+        <span class="n">corr_reordered</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">col_labels</span><span class="p">,</span>
+        <span class="n">linkagefun</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">col_link</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">dendro_top</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+        <span class="n">t</span><span class="p">[</span><span class="s1">&#39;yaxis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;y2&#39;</span>
+
+    <span class="n">dendro_left</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">create_dendrogram</span><span class="p">(</span>
+        <span class="n">corr_reordered</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">row_labels</span><span class="p">,</span>
+        <span class="n">linkagefun</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">row_link</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">dendro_left</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+        <span class="n">t</span><span class="p">[</span><span class="s1">&#39;xaxis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;x2&#39;</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">make_subplots</span><span class="p">(</span>
+        <span class="n">rows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">row_heights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.18</span><span class="p">,</span> <span class="mf">0.82</span><span class="p">],</span>
+        <span class="n">column_widths</span><span class="o">=</span><span class="p">[</span><span class="mf">0.20</span><span class="p">,</span> <span class="mf">0.80</span><span class="p">],</span>   <span class="c1"># left dendro column, heatmap column</span>
+        <span class="n">specs</span><span class="o">=</span><span class="p">[[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;xy&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;xy&quot;</span><span class="p">}],</span>
+               <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;xy&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;heatmap&quot;</span><span class="p">}]],</span>
+        <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+        <span class="n">vertical_spacing</span><span class="o">=</span><span class="mf">0.004</span><span class="p">,</span>
+        <span class="n">shared_xaxes</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">dendro_top</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">dendro_left</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">top_tickvals</span> <span class="o">=</span> <span class="n">dendro_top</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;xaxis&#39;</span><span class="p">][</span><span class="s1">&#39;tickvals&#39;</span><span class="p">]</span>
+    <span class="n">top_ticktext</span> <span class="o">=</span> <span class="n">dendro_top</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;xaxis&#39;</span><span class="p">][</span><span class="s1">&#39;ticktext&#39;</span><span class="p">]</span>
+    <span class="n">left_tickvals</span> <span class="o">=</span> <span class="n">dendro_left</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;yaxis&#39;</span><span class="p">][</span><span class="s1">&#39;tickvals&#39;</span><span class="p">]</span>
+    <span class="n">left_ticktext</span> <span class="o">=</span> <span class="n">dendro_left</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;yaxis&#39;</span><span class="p">][</span><span class="s1">&#39;ticktext&#39;</span><span class="p">]</span>
+
+    <span class="n">color_map</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;#FFFFFF&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;#EF553B&#39;</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="n">heatmap</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Heatmap</span><span class="p">(</span>
+        <span class="n">z</span><span class="o">=</span><span class="n">corr_reordered</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">top_tickvals</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">left_tickvals</span><span class="p">,</span>
+        <span class="n">colorscale</span><span class="o">=</span><span class="n">color_map</span><span class="p">,</span>
+        <span class="n">zmin</span><span class="o">=</span><span class="n">zmin</span><span class="p">,</span>
+        <span class="n">zmax</span><span class="o">=</span><span class="n">zmax</span><span class="p">,</span>
+        <span class="n">xgap</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ygap</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>                   <span class="c1"># ← must be here</span>
+        <span class="n">colorbar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hovertemplate</span><span class="o">=</span><span class="s2">&quot;row: %</span><span class="si">{customdata[0]}</span><span class="s2">&lt;br&gt;col: %</span><span class="si">{customdata[1]}</span><span class="s2">&lt;br&gt;r: %</span><span class="si">{z:.3f}</span><span class="s2">&lt;extra&gt;&lt;/extra&gt;&quot;</span><span class="p">,</span>
+        <span class="n">customdata</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dstack</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">left_ticktext</span><span class="p">,</span> <span class="n">top_ticktext</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">heatmap</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Axes for the heatmap</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">tickmode</span><span class="o">=</span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+        <span class="n">tickvals</span><span class="o">=</span><span class="n">top_tickvals</span><span class="p">,</span>
+        <span class="n">ticktext</span><span class="o">=</span><span class="n">top_ticktext</span><span class="p">,</span>
+        <span class="n">side</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span>
+        <span class="n">tickangle</span><span class="o">=</span><span class="mi">90</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">tickmode</span><span class="o">=</span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+        <span class="n">tickvals</span><span class="o">=</span><span class="n">left_tickvals</span><span class="p">,</span>
+        <span class="n">ticktext</span><span class="o">=</span><span class="n">left_ticktext</span><span class="p">,</span>
+        <span class="n">autorange</span><span class="o">=</span><span class="s2">&quot;reversed&quot;</span><span class="p">,</span>
+        <span class="n">side</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>        <span class="c1"># ← labels on the RIGHT</span>
+        <span class="n">automargin</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>     <span class="c1"># ← allocate margin for long labels on the right</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Hide tick labels on dendrogram axes</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
+        <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">paper_bgcolor</span><span class="o">=</span><span class="s2">&quot;rgba(0,0,0,0)&quot;</span><span class="p">,</span>
+        <span class="n">plot_bgcolor</span><span class="o">=</span><span class="s2">&quot;rgba(0,0,0,0)&quot;</span><span class="p">,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">showgrid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">zeroline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">showgrid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">zeroline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="make_heatmap_graph">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.heatmaps.make_heatmap_graph">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_heatmap_graph</span><span class="p">(</span><span class="n">matrix_df</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">value_name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dlname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">autorange</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">symmetrical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">cluster</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Graph</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a simple heatmap as a Dash ``Graph``.</span>
+
+<span class="sd">    :param matrix_df: DataFrame with numeric values to plot.</span>
+<span class="sd">    :param plot_name: Name suffix for component ID.</span>
+<span class="sd">    :param value_name: Colorbar label.</span>
+<span class="sd">    :param defaults: Dict with ``height``, ``width``, ``config``.</span>
+<span class="sd">    :param cmap: Plotly continuous color scale name.</span>
+<span class="sd">    :param dlname: Name for the downloaded figure file.</span>
+<span class="sd">    :param autorange: If ``True``, derive zmin from data with padding.</span>
+<span class="sd">    :param symmetrical: If ``True``, use symmetric min/max around zero.</span>
+<span class="sd">    :param cluster: If not ``None``, apply clustering via ``matrix_functions``.</span>
+<span class="sd">    :returns: Dash ``Graph`` component with the heatmap figure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">zmi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">autorange</span><span class="p">:</span>
+        <span class="n">zmi</span> <span class="o">=</span> <span class="n">matrix_df</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">zmi</span> <span class="o">=</span> <span class="n">zmi</span> <span class="o">-</span> <span class="n">zmi</span><span class="o">*</span><span class="mf">0.1</span>
+    <span class="c1">#    zmi = -ceil(abs(zmi))</span>
+    <span class="n">zma</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">matrix_df</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">cluster</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">matrix_df</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">hierarchical_clustering</span><span class="p">(</span><span class="n">matrix_df</span><span class="p">,</span><span class="n">cluster</span><span class="o">=</span><span class="n">cluster</span><span class="p">)</span>
+    <span class="n">zma</span> <span class="o">=</span> <span class="n">zma</span> <span class="o">+</span> <span class="n">zma</span><span class="o">*</span><span class="mf">0.1</span>
+    <span class="n">zma</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">zma</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">symmetrical</span><span class="p">:</span>
+        <span class="n">zma</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">zma</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">zmi</span><span class="p">))</span>
+        <span class="n">zmi</span> <span class="o">=</span> <span class="o">-</span><span class="n">zma</span>
+    <span class="n">figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+        <span class="n">matrix_df</span><span class="p">,</span>
+        <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+        <span class="n">labels</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">matrix_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">matrix_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">value_name</span>
+        <span class="p">),</span>
+        <span class="n">color_continuous_scale</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
+        <span class="n">zmin</span> <span class="o">=</span> <span class="n">zmi</span><span class="p">,</span>
+        <span class="n">zmax</span> <span class="o">=</span> <span class="n">zma</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlname</span>
+    <span class="k">return</span> <span class="n">Graph</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;heatmap-</span><span class="si">{</span><span class="n">plot_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

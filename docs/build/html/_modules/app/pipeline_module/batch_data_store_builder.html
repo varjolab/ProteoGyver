@@ -1,0 +1,618 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.pipeline_module.batch_data_store_builder &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.pipeline_module.batch_data_store_builder</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.pipeline_module.batch_data_store_builder</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Batch Data Store Builder for ProteoGyver</span>
+
+<span class="sd">This module constructs data stores in the exact format expected by the GUI,</span>
+<span class="sd">allowing the batch pipeline to use the same infra.save_data_stores function</span>
+<span class="sd">as the interactive GUI.</span>
+
+<span class="sd">The module converts batch pipeline results into Dash Store components that</span>
+<span class="sd">match the structure and content expected by the GUI export system.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_data_store_component">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.create_data_store_component">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_data_store_component</span><span class="p">(</span><span class="n">store_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a Dash data store component.</span>
+
+<span class="sd">    :param store_id: Data store ID (e.g., &#39;proteomics-volcano-data-store&#39;).</span>
+<span class="sd">    :param data: Data to store (dict/JSON string/etc.).</span>
+<span class="sd">    :param timestamp: Optional milliseconds since epoch; uses current time if None.</span>
+<span class="sd">    :returns: Dash Store component dict structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># Convert to milliseconds</span>
+        
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;data-store&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">store_id</span><span class="p">},</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+            <span class="s1">&#39;modified_timestamp&#39;</span><span class="p">:</span> <span class="n">timestamp</span>
+        <span class="p">},</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Store&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;namespace&#39;</span><span class="p">:</span> <span class="s1">&#39;dash_core_components&#39;</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="build_upload_data_store">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_upload_data_store">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_upload_data_store</span><span class="p">(</span><span class="n">data_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the main upload data store from batch data dictionary.</span>
+
+<span class="sd">    :param data_dict: Data dictionary from batch output.</span>
+<span class="sd">    :returns: Data store component for &#39;upload-data-store&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">upload_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;sample groups&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;data tables&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;file info&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;other&#39;</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">}</span>
+    
+    <span class="c1"># Extract data tables</span>
+    <span class="k">if</span> <span class="s1">&#39;data tables&#39;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">upload_data</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">]</span>
+    
+    <span class="c1"># Extract sample groups</span>
+    <span class="k">if</span> <span class="s1">&#39;sample groups&#39;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">upload_data</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">]</span>
+        
+    <span class="c1"># Extract other information</span>
+    <span class="k">if</span> <span class="s1">&#39;workflow&#39;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">upload_data</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;workflow&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;workflow&#39;</span><span class="p">]</span>
+        
+    <span class="k">return</span> <span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;upload-data-store&#39;</span><span class="p">,</span> <span class="n">upload_data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_replicate_colors_stores">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_replicate_colors_stores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_replicate_colors_stores</span><span class="p">(</span><span class="n">data_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build replicate color data stores.</span>
+
+<span class="sd">    :param data_dict: Data dictionary from batch output.</span>
+<span class="sd">    :returns: List containing replicate color data store components.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># Regular replicate colors</span>
+    <span class="k">if</span> <span class="s1">&#39;sample colors&#39;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">color_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;sample colors&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;sample groups&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sample group colors&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="p">}</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;replicate-colors-data-store&#39;</span><span class="p">,</span> <span class="n">color_data</span><span class="p">))</span>
+    
+    <span class="c1"># With contaminants colors (if available)</span>
+    <span class="k">if</span> <span class="s1">&#39;sample colors with contaminants&#39;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">color_data_cont</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;sample colors with contaminants&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;sample groups&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sample group colors&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="p">}</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;replicate-colors-with-contaminants-data-store&#39;</span><span class="p">,</span> <span class="n">color_data_cont</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">stores</span></div>
+
+
+
+<div class="viewcode-block" id="build_qc_data_stores">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_qc_data_stores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_qc_data_stores</span><span class="p">(</span><span class="n">qc_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build QC-related data stores.</span>
+
+<span class="sd">    :param qc_data: QC artifacts from batch output.</span>
+<span class="sd">    :returns: List of QC data store components.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># TIC data store</span>
+    <span class="k">if</span> <span class="s1">&#39;tic&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;tic-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;tic&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Count data store</span>
+    <span class="k">if</span> <span class="s1">&#39;counts&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;count-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;counts&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Common protein data store</span>
+    <span class="k">if</span> <span class="s1">&#39;common_proteins&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;common-protein-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;common_proteins&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Coverage data store</span>
+    <span class="k">if</span> <span class="s1">&#39;coverage&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;coverage-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;coverage&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Reproducibility data store</span>
+    <span class="k">if</span> <span class="s1">&#39;reproducibility&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;reproducibility-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;reproducibility&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Missing data store</span>
+    <span class="k">if</span> <span class="s1">&#39;missing&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;missing-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;missing&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Sum data store</span>
+    <span class="k">if</span> <span class="s1">&#39;sum&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;sum-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Mean data store</span>
+    <span class="k">if</span> <span class="s1">&#39;mean&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;mean-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Distribution data store</span>
+    <span class="k">if</span> <span class="s1">&#39;distribution&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;distribution-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;distribution&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Common proteins</span>
+    <span class="k">if</span> <span class="s1">&#39;common_proteins&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;common-protein-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;common_proteins&#39;</span><span class="p">]))</span>
+    
+    <span class="c1"># Commonality data store (for supervenn plots)</span>
+    <span class="k">if</span> <span class="s1">&#39;commonality&#39;</span> <span class="ow">in</span> <span class="n">qc_data</span><span class="p">:</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;commonality-data-store&#39;</span><span class="p">,</span> <span class="n">qc_data</span><span class="p">[</span><span class="s1">&#39;commonality&#39;</span><span class="p">]))</span>
+    
+    <span class="k">return</span> <span class="n">stores</span></div>
+
+
+
+<div class="viewcode-block" id="build_proteomics_data_stores">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_proteomics_data_stores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_proteomics_data_stores</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build proteomics-specific data stores from batch output.</span>
+
+<span class="sd">    :param batch_output_dir: Directory containing batch output JSON files.</span>
+<span class="sd">    :returns: List of proteomics data store components.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># NA filtered data store</span>
+        <span class="n">na_filtered_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/10_na_filtered.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">na_filtered_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">na_filtered_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-na-filtered-data-store&#39;</span><span class="p">,</span> <span class="n">na_filtered_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NA filtered data not found: </span><span class="si">{</span><span class="n">na_filtered_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Normalized data store</span>
+        <span class="n">normalized_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/11_normalized.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">normalized_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">normalized_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-normalization-data-store&#39;</span><span class="p">,</span> <span class="n">normalized_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Normalized data not found: </span><span class="si">{</span><span class="n">normalized_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Imputed data store</span>
+        <span class="n">imputed_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/12_imputed.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">imputed_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">imputed_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-imputation-data-store&#39;</span><span class="p">,</span> <span class="n">imputed_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Imputed data not found: </span><span class="si">{</span><span class="n">imputed_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># PCA data store</span>
+        <span class="n">pca_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/13_pca.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pca_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">pca_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-pca-data-store&#39;</span><span class="p">,</span> <span class="n">pca_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCA data not found: </span><span class="si">{</span><span class="n">pca_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Volcano data store</span>
+        <span class="n">volcano_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/14_volcano.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">volcano_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">volcano_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-volcano-data-store&#39;</span><span class="p">,</span> <span class="n">volcano_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volcano data not found: </span><span class="si">{</span><span class="n">volcano_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+        <span class="c1"># CV data store</span>
+        <span class="n">cv_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/13_cv.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cv_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">cv_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-cv-data-store&#39;</span><span class="p">,</span> <span class="n">cv_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CV data not found: </span><span class="si">{</span><span class="n">cv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+        <span class="c1"># Clustermap data store</span>
+        <span class="n">clustermap_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/13_clustermap.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">clustermap_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">clustermap_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-clustermap-data-store&#39;</span><span class="p">,</span> <span class="n">clustermap_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Clustermap data not found: </span><span class="si">{</span><span class="n">clustermap_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+        <span class="c1"># Perturbation data store (if available)</span>
+        <span class="n">perturbation_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/13_perturbation.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">perturbation_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">perturbation_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;proteomics-pertubation-data-store&#39;</span><span class="p">,</span> <span class="n">perturbation_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Perturbation data not found: </span><span class="si">{</span><span class="n">perturbation_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error building proteomics data stores: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">stores</span></div>
+
+
+
+<div class="viewcode-block" id="build_interactomics_data_stores">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_interactomics_data_stores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_interactomics_data_stores</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build interactomics-specific data stores from batch output.</span>
+
+<span class="sd">    :param batch_output_dir: Directory containing batch output JSON files.</span>
+<span class="sd">    :returns: List of interactomics data store components.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># CRAPome data store</span>
+        <span class="n">crapome_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/20_crapome_data.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">crapome_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">crapome_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-saint-crapome-data-store&#39;</span><span class="p">,</span> <span class="n">crapome_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CRAPome data not found: </span><span class="si">{</span><span class="n">crapome_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># SAINT input data store</span>
+        <span class="n">saint_dict_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/20_saint_dict.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">saint_dict_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">saint_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-saint-input-data-store&#39;</span><span class="p">,</span> <span class="n">saint_dict</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SAINT dict not found: </span><span class="si">{</span><span class="n">saint_dict_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># SAINT raw output data store</span>
+        <span class="n">saint_raw_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/21_saint_output_raw.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">saint_raw_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">saint_raw</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-saint-output-data-store&#39;</span><span class="p">,</span> <span class="n">saint_raw</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SAINT raw output not found: </span><span class="si">{</span><span class="n">saint_raw_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># SAINT with CRAPome data store</span>
+        <span class="n">saint_crapome_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/22_saint_with_crapome.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">saint_crapome_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">saint_crapome</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-saint-final-output-data-store&#39;</span><span class="p">,</span> <span class="n">saint_crapome</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SAINT with CRAPome not found: </span><span class="si">{</span><span class="n">saint_crapome_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># SAINT filtered data store</span>
+        <span class="n">saint_filtered_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/23_saint_filtered.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">saint_filtered_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">saint_filtered</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-saint-filtered-output-data-store&#39;</span><span class="p">,</span> <span class="n">saint_filtered</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SAINT filtered not found: </span><span class="si">{</span><span class="n">saint_filtered_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># SAINT filtered and intensity mapped data store</span>
+        <span class="n">saint_filtered_and_intensity_mapped_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/23_saint_filtered_and_intensity_mapped.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">saint_filtered_and_intensity_mapped_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">saint_filtered_and_intensity_mapped</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-saint-filtered-and-intensity-mapped-output-data-store&#39;</span><span class="p">,</span> <span class="n">saint_filtered_and_intensity_mapped</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SAINT filtered and intensity mapped not found: </span><span class="si">{</span><span class="n">saint_filtered_and_intensity_mapped_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># SAINT filtered and intensity mapped with knowns data store</span>
+        <span class="n">saint_filtered_and_intensity_mapped_with_knowns_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/23_saint_filtered_and_intensity_mapped_with_knowns.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">saint_filtered_and_intensity_mapped_with_knowns_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">saint_filtered_and_intensity_mapped_with_knowns</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-saint-filt-int-known-data-store&#39;</span><span class="p">,</span> <span class="n">saint_filtered_and_intensity_mapped_with_knowns</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SAINT filtered and intensity mapped with knowns not found: </span><span class="si">{</span><span class="n">saint_filtered_and_intensity_mapped_with_knowns_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Network interactions data store</span>
+        <span class="n">interactions_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/24_interactions.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">interactions_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">interactions</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-network-interactions-data-store&#39;</span><span class="p">,</span> <span class="n">interactions</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Interactions not found: </span><span class="si">{</span><span class="n">interactions_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Network elements data store</span>
+        <span class="n">network_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/24_network_elements.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">network_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">network_elements</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-network-data-store&#39;</span><span class="p">,</span> <span class="n">network_elements</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Network elements not found: </span><span class="si">{</span><span class="n">network_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># PCA data store</span>
+        <span class="n">pca_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/25_pca.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pca_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">pca_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-pca-data-store&#39;</span><span class="p">,</span> <span class="n">pca_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Interactomics PCA not found: </span><span class="si">{</span><span class="n">pca_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Enrichment data store</span>
+        <span class="n">enrichment_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/26_enrichment_data.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">enrichment_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">enrichment_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-enrichment-data-store&#39;</span><span class="p">,</span> <span class="n">enrichment_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enrichment data not found: </span><span class="si">{</span><span class="n">enrichment_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Enrichment information data store</span>
+        <span class="n">enrichment_info_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/26_enrichment_info.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">enrichment_info_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">enrichment_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-enrichment-information-data-store&#39;</span><span class="p">,</span> <span class="n">enrichment_info</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enrichment info not found: </span><span class="si">{</span><span class="n">enrichment_info_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># MS microscopy data store (if available)</span>
+        <span class="n">msmic_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/27_msmic_data.json&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">msmic_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">msmic_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;interactomics-msmic-data-store&#39;</span><span class="p">,</span> <span class="n">msmic_data</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MS microscopy data not found: </span><span class="si">{</span><span class="n">msmic_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error building interactomics data stores: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">stores</span></div>
+
+
+
+<div class="viewcode-block" id="build_data_stores_from_batch_output">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_data_stores_from_batch_output">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_data_stores_from_batch_output</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">workflow</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the complete list of data stores from batch output directory.</span>
+
+<span class="sd">    :param batch_output_dir: Directory containing batch output JSON files.</span>
+<span class="sd">    :param workflow: Workflow name (&#39;proteomics&#39; or &#39;interactomics&#39;).</span>
+<span class="sd">    :returns: Complete list of data store components ready for infra.save_data_stores.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_stores</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Load core data</span>
+        <span class="n">data_dict_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/01_data_dictionary.json&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_dict_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="n">qc_data_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">/03_qc_artifacts.json&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">qc_data_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">qc_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="c1"># Build common data stores</span>
+        <span class="n">data_stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_upload_data_store</span><span class="p">(</span><span class="n">data_dict</span><span class="p">))</span>
+        <span class="n">data_stores</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">build_replicate_colors_stores</span><span class="p">(</span><span class="n">data_dict</span><span class="p">))</span>
+        <span class="n">data_stores</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">build_qc_data_stores</span><span class="p">(</span><span class="n">qc_data</span><span class="p">))</span>
+        
+        <span class="c1"># Add uploaded data table stores expected by the GUI</span>
+        <span class="k">if</span> <span class="s1">&#39;input_data_tables&#39;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+            <span class="c1"># Create upload split format for data tables</span>
+            <span class="n">upload_tables</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1">#skip_tables = [&#39;experimental design&#39;, &#39;table to use&#39;, &#39;with-contaminants&#39;]</span>
+            <span class="k">for</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">table_data</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;input_data_tables&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+             <span class="c1">#   if table_name not in skip_tables and isinstance(table_data, str):</span>
+                <span class="n">upload_tables</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">table_data</span>
+            
+            <span class="k">if</span> <span class="n">upload_tables</span><span class="p">:</span>
+                <span class="n">data_stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;uploaded-data-table-data-store&#39;</span><span class="p">,</span> <span class="n">upload_tables</span><span class="p">))</span>
+            
+            <span class="c1"># Sample table store</span>
+            <span class="k">if</span> <span class="s1">&#39;input_sample_table&#39;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+                <span class="n">data_stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;uploaded-sample-table-data-store&#39;</span><span class="p">,</span> 
+                                                             <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;input_sample_table&#39;</span><span class="p">]))</span>
+        
+        <span class="c1"># Build workflow-specific data stores</span>
+        <span class="k">if</span> <span class="n">workflow</span> <span class="o">==</span> <span class="s1">&#39;proteomics&#39;</span><span class="p">:</span>
+            <span class="n">data_stores</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">build_proteomics_data_stores</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">workflow</span> <span class="o">==</span> <span class="s1">&#39;interactomics&#39;</span><span class="p">:</span>
+            <span class="n">data_stores</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">build_interactomics_data_stores</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">))</span>
+        
+        <span class="c1"># Add info data stores</span>
+        <span class="n">data_stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;uploaded-data-table-info-data-store&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;Modified time&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;file info&#39;</span><span class="p">][</span><span class="s1">&#39;Data&#39;</span><span class="p">][</span><span class="s1">&#39;File modified&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;File name&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;file info&#39;</span><span class="p">][</span><span class="s1">&#39;Data&#39;</span><span class="p">][</span><span class="s1">&#39;File name&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;Data type&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;Data type&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;Data source guess&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">][</span><span class="s1">&#39;Data source guess&#39;</span><span class="p">]</span>
+        <span class="p">}))</span>
+        <span class="n">data_stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">create_data_store_component</span><span class="p">(</span><span class="s1">&#39;uploaded-sample-table-info-data-store&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;Modified time&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;file info&#39;</span><span class="p">][</span><span class="s1">&#39;Sample table&#39;</span><span class="p">][</span><span class="s1">&#39;File modified&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;File name&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;file info&#39;</span><span class="p">][</span><span class="s1">&#39;Sample table&#39;</span><span class="p">][</span><span class="s1">&#39;File name&#39;</span><span class="p">]</span>
+        <span class="p">}))</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Built </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data_stores</span><span class="p">)</span><span class="si">}</span><span class="s2"> data stores for </span><span class="si">{</span><span class="n">workflow</span><span class="si">}</span><span class="s2"> workflow&quot;</span><span class="p">)</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error building data stores: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span>
+    
+    <span class="k">return</span> <span class="n">data_stores</span></div>
+
+
+
+<div class="viewcode-block" id="save_batch_data_using_infra">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.save_batch_data_using_infra">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_batch_data_using_infra</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">workflow</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save batch data using the GUI&#39;s infra.save_data_stores function.</span>
+
+<span class="sd">    :param batch_output_dir: Directory containing batch output JSON files.</span>
+<span class="sd">    :param export_dir: Directory to save exported data.</span>
+<span class="sd">    :param workflow: Workflow name (&#39;proteomics&#39; or &#39;interactomics&#39;).</span>
+<span class="sd">    :returns: Summary dict of the export operation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Build data stores from batch output</span>
+    <span class="n">data_stores</span> <span class="o">=</span> <span class="n">build_data_stores_from_batch_output</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">,</span> <span class="n">workflow</span><span class="p">)</span>
+    
+    <span class="c1"># Use GUI&#39;s save function</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">infra</span><span class="o">.</span><span class="n">save_data_stores</span><span class="p">(</span><span class="n">data_stores</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;data_stores_count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_stores</span><span class="p">),</span>
+        <span class="s1">&#39;export_directory&#39;</span><span class="p">:</span> <span class="n">export_dir</span><span class="p">,</span>
+        <span class="s1">&#39;workflow&#39;</span><span class="p">:</span> <span class="n">workflow</span><span class="p">,</span>
+        <span class="s1">&#39;infra_result&#39;</span><span class="p">:</span> <span class="n">result</span>
+    <span class="p">}</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    
+    <span class="c1"># Add app directory to path</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+    
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Build data stores from batch output and export using GUI infrastructure&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;batch_dir&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory containing batch output JSON files&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;export_dir&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory to save exported data&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;proteomics&#39;</span><span class="p">,</span> <span class="s1">&#39;interactomics&#39;</span><span class="p">],</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Workflow type&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">,</span> <span class="s2">&quot;-v&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable verbose logging&quot;</span><span class="p">)</span>
+    
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    
+    <span class="c1"># Configure logging</span>
+    <span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">save_batch_data_using_infra</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">batch_dir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">export_dir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">workflow</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully exported </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;data_stores_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> data stores&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Export directory: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;export_directory&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Export failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

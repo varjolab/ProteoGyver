@@ -1,0 +1,711 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.pages.Colocalizer &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.pages.Colocalizer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.pages.Colocalizer</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Dash app for visualization and analysis of microscopy images.</span>
+
+<span class="sd">This module provides functionality to:</span>
+<span class="sd">1. Load and parse .lif microscopy files</span>
+<span class="sd">2. Display individual channels with customizable colormaps</span>
+<span class="sd">3. Generate merged views of selected channels</span>
+<span class="sd">4. Allow synchronized zooming across all views</span>
+
+<span class="sd">The app uses Dash callbacks to handle user interactions and update visualizations dynamically.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">html</span><span class="p">,</span> <span class="n">dcc</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">MATCH</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">no_update</span><span class="p">,</span> <span class="n">ALL</span><span class="p">,</span> <span class="n">register_page</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">px</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.ui_components</span><span class="w"> </span><span class="kn">import</span> <span class="n">upload_area</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">graph_objects</span> <span class="k">as</span> <span class="n">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">readlif.reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">LifFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.parsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_parameters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_bootstrap_components</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dbc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">px</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_uploader</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">du</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash.dependencies</span><span class="w"> </span><span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Output</span><span class="p">,</span> <span class="n">State</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">element_styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPLOAD_INDICATOR_STYLE</span><span class="p">,</span> <span class="n">UPLOAD_STYLE</span><span class="p">,</span><span class="n">GENERIC_PAGE</span>
+
+
+<span class="n">register_page</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/colocalizer&#39;</span><span class="p">)</span>
+<span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+<span class="n">parameters</span> <span class="o">=</span> <span class="n">parse_parameters</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> loading&#39;</span><span class="p">)</span>
+<span class="n">available_cmaps</span> <span class="o">=</span> <span class="s1">&#39;blackbody blues icefire bugn bupu cividis electric greens hot ylorbr gnbu greens amp thermal ice dense pubugn purd purp algae hot gray greys inferno magma pubu oranges reds purples rdpu tempo teal&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+<span class="n">available_cmaps</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="s1">&#39;Blackbody Bluered Blues Cividis Earth Electric Greens Greys Hot Jet Picnic Portland Rainbow RdBu Reds Viridis YlGnBu YlOrRd&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+<span class="n">available_cmaps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">available_cmaps</span><span class="p">)))</span><span class="c1">#[u for u in usable if u.lower() in available_cmaps]</span>
+
+
+<div class="viewcode-block" id="handle_uploaded_data_table">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.handle_uploaded_data_table">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;image-data-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;microscopy-image-metainfo&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;microscopy-uploader-success&#39;</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;microscopy-uploader&#39;</span><span class="p">,</span> <span class="s1">&#39;contents&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;microscopy-uploader&#39;</span><span class="p">,</span> <span class="s1">&#39;filename&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;microscopy-uploader&#39;</span><span class="p">,</span> <span class="s1">&#39;last_modified&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;microscopy-uploader-success&#39;</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_uploaded_data_table</span><span class="p">(</span><span class="n">file_contents</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">mod_date</span><span class="p">,</span> <span class="n">current_upload_style</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle uploaded microscopy file and update UI elements.</span>
+
+<span class="sd">    :param file_contents: Base64 encoded file contents.</span>
+<span class="sd">    :param file_name: Name of uploaded file.</span>
+<span class="sd">    :param mod_date: Modification timestamp (epoch seconds).</span>
+<span class="sd">    :param current_upload_style: Current style dict for upload indicator.</span>
+<span class="sd">    :returns: Tuple of (parsed image data, file info elements, updated style).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">file_contents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">current_upload_style</span><span class="p">[</span><span class="s1">&#39;background-color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
+        <span class="n">mod_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">mod_date</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">load_image</span><span class="p">(</span><span class="n">file_contents</span><span class="p">),</span>
+            <span class="p">[</span>
+                <span class="sa">f</span><span class="s1">&#39;Name: </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+                <span class="sa">f</span><span class="s1">&#39;Modified: </span><span class="si">{</span><span class="n">mod_date</span><span class="si">}</span><span class="s1"> (UTC)&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">current_upload_style</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">no_update</span><span class="p">,</span><span class="n">no_update</span><span class="p">,</span><span class="n">no_update</span></div>
+
+
+<div class="viewcode-block" id="load_image">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.load_image">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_image</span><span class="p">(</span><span class="n">image_data</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a base64-encoded .lif file into nested image arrays.</span>
+
+<span class="sd">    :param image_data: Base64-encoded contents of a Leica .lif file.</span>
+<span class="sd">    :returns: Dict image_name -&gt; timepoint -&gt; z_level -&gt; stacked channel array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">content_string</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">content_string</span> <span class="o">=</span> <span class="n">image_data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">decoded_content</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">content_string</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">imagefile</span><span class="p">:</span>
+        <span class="n">imagefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">decoded_content</span><span class="p">)</span>
+        <span class="n">imagefile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">lif_obj</span> <span class="o">=</span> <span class="n">LifFile</span><span class="p">(</span><span class="n">imagefile</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">images</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">img</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lif_obj</span><span class="o">.</span><span class="n">get_iter_image</span><span class="p">()):</span>
+            <span class="n">dims</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">dims_n</span>
+            <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">z_stack</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="mi">3</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
+                <span class="n">z_stack</span> <span class="o">=</span> <span class="n">dims</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">if</span> <span class="mi">4</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
+                <span class="n">time</span> <span class="o">=</span> <span class="n">dims</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">image_assembly</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+                <span class="n">stack</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">get_frame</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">ch</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">channels</span><span class="p">)])</span>
+                    <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">z_stack</span><span class="p">)</span>
+                <span class="p">}</span>
+                <span class="n">image_assembly</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack</span>
+            <span class="n">images</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_assembly</span>
+    <span class="k">return</span> <span class="n">images</span></div>
+
+
+<div class="viewcode-block" id="load_names_options">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.load_names_options">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;names-radio&#39;</span><span class="p">,</span> <span class="s1">&#39;options&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;names-radio&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;image-metadata-only-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_names_options</span><span class="p">(</span><span class="n">image_metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate radio options for available image series names.</span>
+
+<span class="sd">    :param image_metadata: Dictionary containing image metadata.</span>
+<span class="sd">    :returns: Tuple of (options list, default value).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vals</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">image_metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">{</span> 
+                <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">o</span>
+            <span class="p">}</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">vals</span>
+        <span class="p">],</span>
+        <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_timepoint_options">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.load_timepoint_options">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;timepoint-radio&#39;</span><span class="p">,</span> <span class="s1">&#39;options&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;timepoint-radio&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;image-metadata-only-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;names-radio&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_timepoint_options</span><span class="p">(</span><span class="n">image_metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">img_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate timepoint options for the selected image.</span>
+
+<span class="sd">    :param image_metadata: Dictionary containing image metadata.</span>
+<span class="sd">    :param img_name: Selected image series name.</span>
+<span class="sd">    :returns: Tuple of (options list, default value).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">image_metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># TODO: check if this still happens;; There is no reason why this gets triggered with a none value in metadata, but it does. Even with prevent_initial_call.</span>
+        <span class="k">return</span> <span class="n">no_update</span>
+    <span class="n">vals</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">image_metadata</span><span class="p">[</span><span class="n">img_name</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">o</span>
+            <span class="p">}</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">vals</span>
+        <span class="p">],</span>
+        <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_zleveloptions">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.load_zleveloptions">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;zlevel-radio&#39;</span><span class="p">,</span> <span class="s1">&#39;options&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;zlevel-radio&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;image-metadata-only-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;names-radio&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;timepoint-radio&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_zleveloptions</span><span class="p">(</span><span class="n">image_metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">img_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate Z-level options for the selected image/timepoint.</span>
+
+<span class="sd">    :param image_metadata: Dictionary containing image metadata.</span>
+<span class="sd">    :param img_name: Selected image series name.</span>
+<span class="sd">    :param timepoint: Selected timepoint index.</span>
+<span class="sd">    :returns: Tuple of (options list, default middle Z-level).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vals</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">image_metadata</span><span class="p">[</span><span class="n">img_name</span><span class="p">][</span><span class="n">timepoint</span><span class="p">]</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">o</span>
+        <span class="p">}</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">vals</span>
+    <span class="p">],</span> <span class="n">default</span></div>
+
+
+<div class="viewcode-block" id="update_cmap">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.update_cmap">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">MATCH</span><span class="p">},</span> <span class="s1">&#39;figure&#39;</span><span class="p">,</span><span class="n">allow_duplicate</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-cmap-chooser&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">MATCH</span><span class="p">},</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-cmap-reverser&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">MATCH</span><span class="p">},</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">MATCH</span><span class="p">},</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_cmap</span><span class="p">(</span><span class="n">channel_cmap</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">reverse</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update colormap settings for a channel visualization.</span>
+
+<span class="sd">    :param channel_cmap: Colormap name.</span>
+<span class="sd">    :param reverse: Whether to reverse the colormap.</span>
+<span class="sd">    :param fig: Current figure object.</span>
+<span class="sd">    :returns: Updated Plotly Figure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_coloraxes</span><span class="p">(</span><span class="n">colorscale</span><span class="o">=</span><span class="n">channel_cmap</span><span class="p">,</span><span class="n">reversescale</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+
+<div class="viewcode-block" id="load_image_slice">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.load_image_slice">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;selected-image-data-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;image-data-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;names-radio&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;timepoint-radio&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;zlevel-radio&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_image_slice</span><span class="p">(</span><span class="n">image_data</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a specific image slice based on selected parameters.</span>
+
+<span class="sd">    :param image_data: Full image dataset.</span>
+<span class="sd">    :param name: Selected image series name.</span>
+<span class="sd">    :param t: Selected timepoint.</span>
+<span class="sd">    :param z: Selected Z-level.</span>
+<span class="sd">    :returns: Numpy array for the selected slice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">image_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span> <span class="c1"># TODO: check if this still happens;; This also gets called when app loads, even with prevent</span>
+        <span class="k">return</span> <span class="n">no_update</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">image_data</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">z</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="generate_figures">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.generate_figures">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;channels-row&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;colocalization-row&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;selected-image-data-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_figures</span><span class="p">(</span><span class="n">image_data</span><span class="p">:</span><span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate channel figures and merged view UI.</span>
+
+<span class="sd">    :param image_data: List of channel image data arrays.</span>
+<span class="sd">    :returns: Tuple of (list of channel figure columns, merged view components).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">image_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">no_update</span>
+    <span class="n">channel_figs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ch_np_stack</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_data</span><span class="p">):</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">ch_np_stack</span><span class="p">,</span>
+            <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">color_continuous_scale</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">300</span>
+        <span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pad&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">channel_figs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-cmap-chooser&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Channel-</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">},</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">available_cmaps</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">cmap</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Switch</span><span class="p">(</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Reverse cmap&#39;</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-cmap-reverser&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Channel-</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
+                <span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Channel-</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">},</span>
+                    <span class="n">figure</span> <span class="o">=</span> <span class="n">fig</span>
+                <span class="p">)]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">merge_area</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;overview-cmap-tool&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Chooser&#39;</span><span class="p">},</span>
+                <span class="n">options</span> <span class="o">=</span> <span class="n">available_cmaps</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="s1">&#39;electric&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Switch</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Reverse cmap&#39;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;overview-cmap-tool&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Reverse&#39;</span><span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Select two channels to inspect:&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Checklist</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;channel-selection&#39;</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                    <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">}</span>
+                    <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_data</span><span class="p">))</span>
+                <span class="p">],</span>
+                <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">switch</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;method-radio&#39;</span><span class="p">,</span>
+                <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">o</span><span class="p">}</span>
+                    <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Multiply&#39;</span><span class="p">,</span><span class="s1">&#39;Add&#39;</span><span class="p">]</span>
+                <span class="p">],</span>
+                <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Multiply&#39;</span><span class="p">,</span>
+                <span class="n">labelCheckedClassName</span><span class="o">=</span><span class="s2">&quot;text-success&quot;</span><span class="p">,</span>
+                <span class="n">inputCheckedClassName</span><span class="o">=</span><span class="s2">&quot;border border-success bg-success&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Overview&#39;</span><span class="p">},</span>
+                <span class="n">figure</span> <span class="o">=</span> <span class="n">fig</span>
+            <span class="p">),</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">10</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c1"># Draw figures</span>
+    <span class="k">return</span> <span class="n">channel_figs</span><span class="p">,</span> <span class="n">merge_area</span></div>
+
+
+<div class="viewcode-block" id="parse_metadata">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.parse_metadata">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;image-metadata-only-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;image-data-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_metadata</span><span class="p">(</span><span class="n">image_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract metadata from the nested image data structure.</span>
+
+<span class="sd">    :param image_data: Full image dataset.</span>
+<span class="sd">    :returns: Dict of image_name -&gt; timepoint -&gt; list of Z-levels.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">image_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">no_update</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">imagename</span><span class="p">,</span> <span class="n">img_data</span> <span class="ow">in</span> <span class="n">image_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="n">imagename</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">time_stack</span> <span class="ow">in</span> <span class="n">img_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="n">imagename</span><span class="p">][</span><span class="n">timepoint</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">time_stack</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">metadata</span></div>
+
+
+<div class="viewcode-block" id="update_channel_selection">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.update_channel_selection">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;channel-selection&#39;</span><span class="p">,</span> <span class="s1">&#39;options&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;channel-selection&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;channel-selection&#39;</span><span class="p">,</span><span class="s1">&#39;options&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_channel_selection</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update checklist options to enforce selection of two channels.</span>
+
+<span class="sd">    :param value: Currently selected channel indices.</span>
+<span class="sd">    :param options: All checklist option dicts.</span>
+<span class="sd">    :returns: Updated options with disabled states applied.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">option</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">option</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;disabled&#39;</span><span class="p">:</span> <span class="n">option</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;disabled&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">options</span></div>
+
+
+<div class="viewcode-block" id="LinkedZoom">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.LinkedZoom">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ALL</span><span class="p">},</span> <span class="s1">&#39;relayoutData&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ALL</span><span class="p">},</span> <span class="s1">&#39;figure&#39;</span><span class="p">,</span><span class="n">allow_duplicate</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ALL</span><span class="p">},</span> <span class="s1">&#39;relayoutData&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ALL</span><span class="p">},</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">LinkedZoom</span><span class="p">(</span><span class="n">relayout_data</span><span class="p">,</span> <span class="n">figure_states</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Synchronize zoom/pan across all channel views.</span>
+
+<span class="sd">    :param relayout_data: List of per-figure relayout dicts.</span>
+<span class="sd">    :param figure_states: List of figure dicts to update.</span>
+<span class="sd">    :returns: Tuple of (broadcast relayout dicts, updated figures).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unique_data</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">relayout_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">relayout_data</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">unique_data</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="n">unique_data</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">figure_state</span> <span class="ow">in</span> <span class="n">figure_states</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">unique_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;xaxis.autorange&#39;</span><span class="p">):</span>
+                <span class="n">figure_state</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;xaxis&#39;</span><span class="p">][</span><span class="s1">&#39;autorange&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">figure_state</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;yaxis&#39;</span><span class="p">][</span><span class="s1">&#39;autorange&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;xaxis.range[0]&#39;</span> <span class="ow">in</span> <span class="n">unique_data</span><span class="p">:</span>
+                    <span class="n">figure_state</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;xaxis&#39;</span><span class="p">][</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">unique_data</span><span class="p">[</span><span class="s1">&#39;xaxis.range[0]&#39;</span><span class="p">],</span> <span class="n">unique_data</span><span class="p">[</span><span class="s1">&#39;xaxis.range[1]&#39;</span><span class="p">]</span>
+                    <span class="p">]</span>
+                <span class="n">figure_state</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;xaxis&#39;</span><span class="p">][</span><span class="s1">&#39;autorange&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="s1">&#39;yaxis.range[0]&#39;</span> <span class="ow">in</span> <span class="n">unique_data</span><span class="p">:</span>
+                    <span class="n">figure_state</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;yaxis&#39;</span><span class="p">][</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">unique_data</span><span class="p">[</span><span class="s1">&#39;yaxis.range[0]&#39;</span><span class="p">],</span> <span class="n">unique_data</span><span class="p">[</span><span class="s1">&#39;yaxis.range[1]&#39;</span><span class="p">]</span>
+                    <span class="p">]</span>
+                <span class="n">figure_state</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">][</span><span class="s1">&#39;yaxis&#39;</span><span class="p">][</span><span class="s1">&#39;autorange&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">unique_data</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">relayout_data</span><span class="p">),</span> <span class="n">figure_states</span>
+    <span class="k">return</span> <span class="n">relayout_data</span><span class="p">,</span> <span class="n">figure_states</span></div>
+
+ 
+<div class="viewcode-block" id="load_merge">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.load_merge">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Overview&#39;</span><span class="p">},</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;selected-image-data-store&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;channel-selection&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;method-radio&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;overview-cmap-tool&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Chooser&#39;</span><span class="p">},</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;overview-cmap-tool&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Reverse&#39;</span><span class="p">},</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;channel-image&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Overview&#39;</span><span class="p">},</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_merge</span><span class="p">(</span><span class="n">image_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">channel_selection</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">channel_cmap</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">reverse</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate merged view of selected channels.</span>
+
+<span class="sd">    :param image_data: List of channel image data arrays.</span>
+<span class="sd">    :param channel_selection: Two selected channel indices.</span>
+<span class="sd">    :param method: Merge method (``&#39;Multiply&#39;`` or ``&#39;Add&#39;``).</span>
+<span class="sd">    :param channel_cmap: Colormap for merged view.</span>
+<span class="sd">    :param reverse: Whether to reverse the colormap.</span>
+<span class="sd">    :param fig: Current figure object.</span>
+<span class="sd">    :returns: Updated Plotly Figure for the merged view.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">trigger</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">triggered_id</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trigger</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">trigger</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;overview-cmap-tool&#39;</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">update_coloraxes</span><span class="p">(</span><span class="n">colorscale</span><span class="o">=</span><span class="n">channel_cmap</span><span class="p">,</span><span class="n">reversescale</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">fig</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">no_update</span>
+    <span class="k">if</span> <span class="n">image_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">no_update</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">channel_selection</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">no_update</span>
+    <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
+        <span class="n">channel_cmap</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">channel_cmap</span><span class="si">}</span><span class="s1">_r&#39;</span>
+    <span class="n">np_matrices</span> <span class="o">=</span> <span class="p">[</span><span class="n">image_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">channel_selection</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;Multiply&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+        <span class="n">merged</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="o">*</span><span class="n">np_matrices</span><span class="p">)</span>
+        <span class="n">zmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np_matrices</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np_matrices</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;Add&#39;</span><span class="p">:</span>
+        <span class="n">merged</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">np_matrices</span><span class="p">)</span>
+        <span class="n">zmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np_matrices</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np_matrices</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">merged</span> <span class="o">=</span> <span class="n">np_matrices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">zmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np_matrices</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+        <span class="n">merged</span><span class="p">,</span>
+        <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Merged: </span><span class="si">{</span><span class="n">channel_selection</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">color_continuous_scale</span><span class="o">=</span><span class="n">channel_cmap</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+        <span class="n">zmax</span><span class="o">=</span><span class="n">zmax</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pad&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+
+<div class="viewcode-block" id="microscopy_content_div">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.microscopy_content_div">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">microscopy_content_div</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main content area for microscopy images.</span>
+
+<span class="sd">    :returns: Column containing rows for channel images and colocalization analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;channels-row&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;useless-spacer&#39;</span><span class="p">,</span><span class="n">children</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;colocalization-row&#39;</span><span class="p">)</span>
+        <span class="p">],</span><span class="n">width</span><span class="o">=</span><span class="mi">9</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="utils">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.utils">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">utils</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create hidden utility components for storing application state.</span>
+
+<span class="sd">    :returns: Div with Store components for raw data, metadata, and selection.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+        <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;image-data-store&#39;</span><span class="p">),</span><span class="c1">#,data=load_image(os.path.join(&#39;..&#39;,&#39;..&#39;,&#39;..&#39;,&#39;202410 PG microscopy/SP8/EFN1-GLI3-STAV.lif&#39;))),</span>
+        <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;image-metadata-only-store&#39;</span><span class="p">),</span>
+        <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;selected-image-data-store&#39;</span><span class="p">)</span>
+    <span class="p">],</span><span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_du_uploader">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.make_du_uploader">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_du_uploader</span><span class="p">(</span><span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a dash-uploader component with success indicator.</span>
+
+<span class="sd">    :param id_str: ID for the uploader component.</span>
+<span class="sd">    :param message: Display text for the upload area.</span>
+<span class="sd">    :returns: Tuple of (uploader Div, session_id).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">())</span>
+    <span class="n">asty</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">UPLOAD_INDICATOR_STYLE</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">asty</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;100px&#39;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="n">du</span><span class="o">.</span><span class="n">Upload</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="n">id_str</span><span class="p">,</span>
+                        <span class="n">text</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
+                        <span class="n">max_file_size</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>  <span class="c1"># 50 Mb</span>
+                        <span class="n">chunk_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>  <span class="c1"># 4 MB</span>
+                        <span class="n">upload_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>  <span class="c1"># Unique session id,</span>
+                        <span class="n">default_style</span> <span class="o">=</span> <span class="n">UPLOAD_STYLE</span>
+                <span class="p">),</span>
+                <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-block&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;75%&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="s1">&#39;25px&#39;</span><span class="p">},</span>
+                <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">-success&#39;</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="n">asty</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>  
+    <span class="p">),</span> <span class="n">session_id</span></div>
+
+
+<div class="viewcode-block" id="sidebar">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.Colocalizer.sidebar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sidebar</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create sidebar with upload and image selection controls.</span>
+
+<span class="sd">    :returns: Column with upload area, metadata, and selection inputs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="n">upload_area</span><span class="p">(</span><span class="s1">&#39;microscopy-uploader&#39;</span><span class="p">,</span><span class="s1">&#39;LIF file&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">),</span>
+                <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;100%&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;inline-block&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="s1">&#39;25px&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;padding-top&#39;</span><span class="p">:</span> <span class="s1">&#39;10px&#39;</span>
+                        <span class="c1">#&#39;padding&#39;: &#39;10px 10px 10px 10px&#39;</span>
+                    <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;microscopy-image-metainfo&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;padding-top&#39;</span><span class="p">:</span> <span class="s1">&#39;45px&#39;</span><span class="p">}),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Select series:&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;names-radio&#39;</span><span class="p">,</span>
+                <span class="n">labelCheckedClassName</span><span class="o">=</span><span class="s2">&quot;text-success&quot;</span><span class="p">,</span>
+                <span class="n">inputCheckedClassName</span><span class="o">=</span><span class="s2">&quot;border border-success bg-success&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Select timepoint:&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;timepoint-radio&#39;</span><span class="p">,</span>
+                <span class="n">labelCheckedClassName</span><span class="o">=</span><span class="s2">&quot;text-success&quot;</span><span class="p">,</span>
+                <span class="n">inputCheckedClassName</span><span class="o">=</span><span class="s2">&quot;border border-success bg-success&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">&#39;Select Z-level:&#39;</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">RadioItems</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;zlevel-radio&#39;</span><span class="p">,</span>
+                <span class="n">labelCheckedClassName</span><span class="o">=</span><span class="s2">&quot;text-success&quot;</span><span class="p">,</span>
+                <span class="n">inputCheckedClassName</span><span class="o">=</span><span class="s2">&quot;border border-success bg-success&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;0px 0px 0px 15px&#39;</span><span class="p">}</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+            <span class="n">sidebar</span><span class="p">(),</span>
+            <span class="n">microscopy_content_div</span><span class="p">(),</span>
+        <span class="p">]),</span>
+        <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span><span class="n">utils</span><span class="p">())</span>
+        
+    <span class="p">],</span><span class="n">style</span><span class="o">=</span><span class="n">GENERIC_PAGE</span>
+<span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

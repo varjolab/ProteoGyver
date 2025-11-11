@@ -1,0 +1,45 @@
+MSParser package
+================
+
+Submodules
+----------
+
+MSParser.MSparser module
+------------------------
+
+.. automodule:: MSParser.MSparser
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+MSParser.ms\_name\_identifier module
+------------------------------------
+
+.. automodule:: MSParser.ms_name_identifier
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+MSParser.parse\_thermo module
+-----------------------------
+
+.. automodule:: MSParser.parse_thermo
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+MSParser.parse\_timstof module
+------------------------------
+
+.. automodule:: MSParser.parse_timstof
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: MSParser
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,530 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.enrichment.pantherdb &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../../app.html">app</a></li>
+      <li class="breadcrumb-item active">app.components.enrichment.pantherdb</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.enrichment.pantherdb</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">PANTHER DB enrichment utilities.</span>
+
+<span class="sd">This module integrates with the PANTHER overrepresentation API and</span>
+<span class="sd">dataset listings to support enrichment analysis workflows in</span>
+<span class="sd">ProteoGyver.</span>
+
+<span class="sd">Main entry points</span>
+<span class="sd">-----------------</span>
+<span class="sd">- ``handler``: stateful helper exposing dataset discovery and enrichment</span>
+<span class="sd">- ``handler.enrich``: runs overrepresentation across configured datasets</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">quote</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;handler&#39;</span><span class="p">,</span> <span class="s1">&#39;get_available&#39;</span><span class="p">,</span> <span class="s1">&#39;get_pantherdb_datasets&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;retrieve_pantherdb_gene_classification&#39;</span><span class="p">,</span> <span class="s1">&#39;get_default_panel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panel_to_usable&#39;</span><span class="p">,</span> <span class="s1">&#39;enrich&#39;</span><span class="p">,</span> <span class="s1">&#39;run_panther_overrepresentation_analysis&#39;</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="handler">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">handler</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stateful PANTHER enrichment helper.</span>
+
+<span class="sd">    Provides dataset discovery, file retrieval utilities, and convenience</span>
+<span class="sd">    wrappers to run PANTHER overrepresentation analysis and assemble</span>
+<span class="sd">    results for downstream visualization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_defaults</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Panther Reactome pathways&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GOBP slim&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GOMF slim&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GOCC slim&#39;</span>
+    <span class="p">]</span>
+    <span class="n">_available</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_names</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Panther GO molecular function&#39;</span><span class="p">:</span> <span class="s1">&#39;GO:0003674&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GO biological process&#39;</span><span class="p">:</span> <span class="s1">&#39;GO:0008150&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GO cellular component&#39;</span><span class="p">:</span> <span class="s1">&#39;GO:0005575&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GOMF slim&#39;</span><span class="p">:</span> <span class="s1">&#39;ANNOT_TYPE_ID_PANTHER_GO_SLIM_MF&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GOBP slim&#39;</span><span class="p">:</span> <span class="s1">&#39;ANNOT_TYPE_ID_PANTHER_GO_SLIM_BP&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther GOCC slim&#39;</span><span class="p">:</span> <span class="s1">&#39;ANNOT_TYPE_ID_PANTHER_GO_SLIM_CC&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther protein class&#39;</span><span class="p">:</span> <span class="s1">&#39;ANNOT_TYPE_ID_PANTHER_PC&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther pathway&#39;</span><span class="p">:</span> <span class="s1">&#39;ANNOT_TYPE_ID_PANTHER_PATHWAY&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Panther Reactome pathways&#39;</span><span class="p">:</span> <span class="s1">&#39;ANNOT_TYPE_ID_REACTOME_PATHWAY&#39;</span>
+    <span class="p">}</span>
+
+    <span class="n">_datasets</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_nice_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;PantherDB&#39;</span>
+    <span class="n">_names_rev</span><span class="p">:</span> <span class="nb">dict</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nice_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nice_name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_datasets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_available</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_names_rev</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">get_datasets</span><span class="p">:</span>
+            <span class="n">datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pantherdb_datasets</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">datasets</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;GO:0003674&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;molecular_function&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Gene Ontology Molecular Function annotations including both manually curated and electronic annotations.&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;GO:0008150&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;biological_process&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Gene Ontology Biological Process annotations including both manually curated and electronic annotations.&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;GO:0005575&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;cellular_component&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Gene Ontology Cellular Component annotations including both manually curated and electronic annotations.&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;ANNOT_TYPE_ID_PANTHER_GO_SLIM_MF&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;PANTHER GO Slim Molecular Function&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;A molecular process that can be carried out by the action of a single macromolecular machine, usually via direct physical interactions with other molecular entities. Function in this sense denotes an action, or activity, that a gene product (or a complex) performs. These actions are described from two distinct but related perspectives: (1) biochemical activity, and (2) role as a component in a larger system/process.&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;ANNOT_TYPE_ID_PANTHER_GO_SLIM_BP&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;PANTHER GO Slim Biological Process&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;A biological process represents a specific objective that the organism is genetically programmed to achieve. Biological processes are often described by their outcome or ending state, e.g., the biological process of cell division results in the creation of two daughter cells (a divided cell) from a single parent cell. A biological process is accomplished by a particular set of molecular functions carried out by specific gene products (or macromolecular complexes), often in a highly regulated manner and in a particular temporal sequence.&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;ANNOT_TYPE_ID_PANTHER_GO_SLIM_CC&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;PANTHER GO Slim Cellular Location&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;A location, relative to cellular compartments and structures, occupied by a macromolecular machine when it carries out a molecular function. There are two ways in which the gene ontology describes locations of gene products: (1) relative to cellular structures (e.g., cytoplasmic side of plasma membrane) or compartments (e.g., mitochondrion), and (2) the stable macromolecular complexes of which they are parts (e.g., the ribosome).&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;ANNOT_TYPE_ID_PANTHER_PC&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;protein class&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;ANNOT_TYPE_ID_PANTHER_PATHWAY&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;ANNOT_TYPE_PANTHER_PATHWAY&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Panther Pathways&quot;</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;ANNOT_TYPE_ID_REACTOME_PATHWAY&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;ANNOT_TYPE_REACTOME_PATHWAY&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Reactome Pathways&quot;</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="k">for</span> <span class="n">annotation</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span> <span class="ow">in</span> <span class="n">datasets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">realname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names_rev</span><span class="p">[</span><span class="n">annotation</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">[</span><span class="n">realname</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">annotation</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">]</span>
+            
+<div class="viewcode-block" id="handler.get_available">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.get_available">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return display names of available datasets.</span>
+
+<span class="sd">        :returns: Sorted list of dataset names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_available</span></div>
+
+
+<div class="viewcode-block" id="handler.get_pantherdb_datasets">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.get_pantherdb_datasets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pantherdb_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve available PANTHER datasets from the service.</span>
+
+<span class="sd">        :returns: Mapping from annotation ID to tuple of (name, description).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">success</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">request</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s1">&#39;http://pantherdb.org/services/oai/pantherdb/supportedannotdatasets&#39;</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="o">=</span><span class="n">i</span>
+                <span class="p">)</span>
+                <span class="n">types</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ReadTimeout</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="n">datasets</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">types</span><span class="p">[</span><span class="s1">&#39;search&#39;</span><span class="p">][</span><span class="s1">&#39;annotation_data_sets&#39;</span><span class="p">][</span><span class="s1">&#39;annotation_data_type&#39;</span><span class="p">]:</span>
+            <span class="n">annotation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+            <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+            <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+            <span class="n">datasets</span><span class="p">[</span><span class="n">annotation</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">datasets</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_species_from_panther_datafiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">species_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse selected species datafiles from a PANTHER index request.</span>
+
+<span class="sd">        :param request: Raw HTML/text listing response.</span>
+<span class="sd">        :param species_list: List of species filters, or ``[&#39;all&#39;]`` to keep all.</span>
+<span class="sd">        :returns: Filtered list of datafile names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">datafilelist</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span>
+                        <span class="n">request</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)]</span>
+        <span class="n">datafilelist</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">datafilelist</span> <span class="k">if</span> <span class="s1">&#39;PTHR&#39;</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">species_list</span><span class="p">:</span>
+            <span class="n">species_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;human&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">species_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">ndat</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">datafile</span> <span class="ow">in</span> <span class="n">datafilelist</span><span class="p">:</span>
+                <span class="n">add</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">datafile</span><span class="p">:</span>
+                        <span class="n">add</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
+                    <span class="n">ndat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">datafile</span><span class="p">)</span>
+            <span class="n">datafilelist</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">ndat</span>
+        <span class="k">return</span> <span class="n">datafilelist</span>
+
+<div class="viewcode-block" id="handler.retrieve_pantherdb_gene_classification">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.retrieve_pantherdb_gene_classification">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">retrieve_pantherdb_gene_classification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                               <span class="n">savepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;PANTHER datafiles&#39;</span><span class="p">,</span>
+                                               <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Download PANTHER gene classification files for desired organisms.</span>
+
+<span class="sd">        Will not download when files with the same name already exist in</span>
+<span class="sd">        the save directory.</span>
+
+<span class="sd">        :param species: List of species to download. If ``None``, downloads human only.</span>
+<span class="sd">            If ``&#39;all&#39;``, downloads all species files.</span>
+<span class="sd">        :param savepath: Directory in which to save the files.</span>
+<span class="sd">        :param progress: If ``True``, print progress information.</span>
+<span class="sd">        :returns: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pantherpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;http://data.pantherdb.org/ftp/sequence_classifications/current_release/</span><span class="se">\</span>
+<span class="s1">            PANTHER_Sequence_Classification_files/&#39;</span>
+        <span class="n">request</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pantherpath</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">datafilelist</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_species_from_panther_datafiles</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">savepath</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">savepath</span><span class="p">)</span>
+        <span class="n">already_have</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">savepath</span><span class="p">))</span>
+        <span class="n">panther_headers</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="s1">&#39;FASTA header, UniProt, gene name, PTHR, Protein family, </span><span class="se">\</span>
+<span class="s1">            protein relation smh, Panther GOMF_slim, Panther GOBP_slim, Panther GOCC_slim, </span><span class="se">\</span>
+<span class="s1">                pathways, pathways2&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">datafilelist</span><span class="p">):</span>
+            <span class="k">if</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s1">.tsv&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already_have</span><span class="p">:</span>
+                <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;http://data.pantherdb.org/ftp/sequence_classifications/</span><span class="se">\</span>
+<span class="s1">                    current_release/PANTHER_Sequence_Classification_files/</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="n">request_2</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="n">filepath</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+                <span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                    <span class="n">StringIO</span><span class="p">(</span><span class="n">request_2</span><span class="o">.</span><span class="n">text</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">panther_headers</span><span class="p">)</span>
+                <span class="n">dataframe</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">savepath</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s1">.tsv&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="c1"># with open(os.path.join(savepath,f&#39;{line}.tsv&#39;),&#39;w&#39;) as fil:</span>
+                <span class="c1">#   fil.write(r2.text)</span>
+            <span class="k">if</span> <span class="n">progress</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s1"> done, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">datafilelist</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s1"> left&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handler.get_default_panel">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.get_default_panel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the default set of dataset display names.</span>
+
+<span class="sd">        :returns: List of default dataset names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span></div>
+
+
+<div class="viewcode-block" id="handler.panel_to_usable">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.panel_to_usable">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">panel_to_usable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert display names/IDs to internal dataset metadata.</span>
+
+<span class="sd">        :param entries: List of dataset display names or IDs.</span>
+<span class="sd">        :returns: List of triples [annotation_id, display_name, (annotation_id, name, description)].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">]</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="n">started</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">:</span>
+                <span class="n">new_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">[</span><span class="n">e</span><span class="p">],</span> <span class="n">e</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names_rev</span><span class="p">:</span>
+                <span class="n">new_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names_rev</span><span class="p">[</span><span class="n">e</span><span class="p">]])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_list</span><span class="p">)</span><span class="o">&gt;</span><span class="n">started</span><span class="p">:</span>
+                <span class="n">new_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">[</span><span class="n">new_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">new_list</span></div>
+
+
+<div class="viewcode-block" id="handler.enrich">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.enrich">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enrich</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_lists</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filter_out_negative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run PANTHER overrepresentation for multiple bait lists.</span>
+
+<span class="sd">        :param data_lists: List of pairs ``(bait_name, prey_list)``.</span>
+<span class="sd">        :param options: ``&#39;defaults&#39;`` to use default panel, or semicolon-delimited dataset names.</span>
+<span class="sd">        :param filter_out_negative: If ``True``, filter rows with non-positive fold enrichment.</span>
+<span class="sd">        :returns: Tuple of (result_names, result_dataframes, result_legends) suitable for plotting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">options</span> <span class="o">==</span> <span class="s1">&#39;defaults&#39;</span><span class="p">:</span>
+            <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_panel</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">datasets</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+        <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">]</span>
+        <span class="n">results</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">legends</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Enrich: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bait</span><span class="p">,</span> <span class="n">preylist</span> <span class="ow">in</span> <span class="n">data_lists</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Enrich for </span><span class="si">{</span><span class="n">bait</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">preylist</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">data_type_key</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_panther_overrepresentation_analysis</span><span class="p">(</span><span class="n">datasets</span><span class="p">,</span> <span class="n">preylist</span><span class="p">,</span> <span class="n">bait</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">results_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Results&#39;</span><span class="p">]</span>
+                <span class="n">results_df</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Bait&#39;</span><span class="p">,</span> <span class="n">bait</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">filter_out_negative</span><span class="p">:</span>
+                    <span class="n">results_df</span> <span class="o">=</span> <span class="n">results_df</span><span class="p">[</span><span class="n">results_df</span><span class="p">[</span><span class="s1">&#39;fold_enrichment&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">data_type_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                    <span class="n">results</span><span class="p">[</span><span class="n">data_type_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">legends</span><span class="p">[</span><span class="n">data_type_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">results</span><span class="p">[</span><span class="n">data_type_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results_df</span><span class="p">)</span>
+                <span class="n">legends</span><span class="p">[</span><span class="n">data_type_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;Reference information&#39;</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Enrich for </span><span class="si">{</span><span class="n">bait</span><span class="si">}</span><span class="s1">: done&#39;</span><span class="p">)</span>
+        <span class="n">result_names</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">result_dataframes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">result_legends</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">annokey</span><span class="p">,</span> <span class="n">result_dfs</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annokey</span><span class="p">)</span>
+            <span class="n">result_dataframes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span><span class="s1">&#39;fold_enrichment&#39;</span><span class="p">,</span> <span class="s1">&#39;fdr&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">result_dfs</span><span class="p">)))</span>
+            <span class="n">result_legends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">annokey</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">legends</span><span class="p">[</span><span class="n">annokey</span><span class="p">])))))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Enrich done&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">result_names</span><span class="p">,</span> <span class="n">result_dataframes</span><span class="p">,</span> <span class="n">result_legends</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handler.run_panther_overrepresentation_analysis">
+<a class="viewcode-back" href="../../../../code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.run_panther_overrepresentation_analysis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_panther_overrepresentation_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">protein_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">data_set_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                                <span class="n">background_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                                <span class="n">organism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">9606</span><span class="p">,</span>
+                                                <span class="n">test_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;FISHER&#39;</span><span class="p">,</span>
+                                                <span class="n">correction_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;FDR&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run PANTHER overrepresentation analysis for a protein list.</span>
+
+<span class="sd">        The returned dictionary contains:</span>
+
+<span class="sd">        - ``Name``: name of the enrichment database</span>
+<span class="sd">        - ``Description``: description of the database</span>
+<span class="sd">        - ``Reference information``: information about tool, database, and analysis</span>
+<span class="sd">        - ``Results``: pandas DataFrame with the full enrichment results</span>
+
+<span class="sd">        :param datasets: Datasets to run against; see ``get_pantherdb_datasets``.</span>
+<span class="sd">        :param protein_list: List of identified proteins (UniProt accessions).</span>
+<span class="sd">        :param data_set_name: Label for the incoming dataset; if ``None``, a date-stamped name is used.</span>
+<span class="sd">        :param background_list: Optional background proteins; if ``None``, entire annotation DB is used.</span>
+<span class="sd">        :param organism: NCBI TaxID of the organism (e.g., human is 9606).</span>
+<span class="sd">        :param test_type: Statistical test type, see PANTHER docs.</span>
+<span class="sd">        :param correction_type: Multiple testing correction.</span>
+<span class="sd">        :returns: Mapping from dataset key to result bundle.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">baseurl</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;http://pantherdb.org/services/oai/pantherdb/enrich/overrep?&#39;</span>
+        <span class="n">ret</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">data_set_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data_set_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">_proteinlist&#39;</span>
+        <span class="k">for</span> <span class="n">annotation</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;organism&#39;</span><span class="p">:</span> <span class="n">organism</span><span class="p">,</span>
+                <span class="s1">&#39;refOrganism&#39;</span><span class="p">:</span> <span class="n">organism</span><span class="p">,</span>
+                <span class="s1">&#39;annotDataSet&#39;</span><span class="p">:</span> <span class="n">quote</span><span class="p">(</span><span class="n">annotation</span><span class="p">),</span>
+                <span class="s1">&#39;enrichmentTestType&#39;</span><span class="p">:</span> <span class="n">test_type</span><span class="p">,</span>
+                <span class="s1">&#39;correction&#39;</span><span class="p">:</span> <span class="n">correction_type</span><span class="p">,</span>
+                <span class="s1">&#39;geneInputList&#39;</span><span class="p">:</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">protein_list</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="n">background_list</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;refInputList&#39;</span><span class="p">:</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">background_list</span><span class="p">)})</span>
+
+            <span class="n">final_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">baseurl</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">final_url</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">=</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&amp;&#39;</span>
+            <span class="n">final_url</span> <span class="o">=</span> <span class="n">final_url</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">)</span>
+            <span class="n">reference_string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;PANTHER overrepresentation analysis for </span><span class="si">{</span><span class="n">data_set_name</span><span class="si">}</span><span class="s1"> with </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s1">----------</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">success</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Run enrichment: </span><span class="si">{</span><span class="n">data_set_name</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">req_json</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">request</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+                        <span class="n">final_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">req_json</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    <span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Run enrichment: success&#39;</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ReadTimeout</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Run enrichment: fail-ReadTimeOut - </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Run enrichment: fail-ConnectionError - </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;results&#39;</span> <span class="ow">in</span> <span class="n">req_json</span><span class="p">:</span>
+                <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+                <span class="n">ret</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_names_rev</span><span class="p">[</span><span class="n">annotation</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;Description&#39;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span> <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(),</span>
+                                                    <span class="s1">&#39;Reference information&#39;</span><span class="p">:</span> <span class="s1">&#39;PANTHER failed.&#39;</span><span class="p">,</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span> <span class="n">req_json</span><span class="p">}</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reference_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;PANTHERDB reference information:</span><span class="se">\n</span><span class="s1">Tool release date: </span><span class="se">\</span>
+<span class="s1">                    </span><span class="si">{</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;tool_release_date&quot;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">Analysis run: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Run enrichment: fail-KeyError - </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Enrichment test type: &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;enrichment_test_type&quot;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;Correction: </span><span class="si">{</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;correction&quot;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;Annotation: </span><span class="si">{</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;annotDataSet&quot;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Annotation version release date: &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;annot_version_release_date&quot;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;Database: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s1">Description: </span><span class="si">{</span><span class="n">description</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="s1">&#39;-----</span><span class="se">\n</span><span class="s1">Search:</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">req_json</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;search&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">reference_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="s1">&#39;-----</span><span class="se">\n</span><span class="s1">Reference:</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">req_json</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;reference&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">reference_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="s1">&#39;-----</span><span class="se">\n</span><span class="s1">Input:&#39;</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">req_json</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;input_list&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;mapped_ids&#39;</span><span class="p">,</span> <span class="s1">&#39;unmapped_ids&#39;</span><span class="p">}:</span>
+                    <span class="n">reference_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="s1">&#39;-----</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">if</span> <span class="s1">&#39;unmapped_ids&#39;</span> <span class="ow">in</span> <span class="n">req_json</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;input_list&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;input_list&quot;</span><span class="p">][</span><span class="s2">&quot;unmapped_ids&quot;</span><span class="p">],</span><span class="nb">str</span><span class="p">):</span>
+                    <span class="n">unmapped_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;input_list&quot;</span><span class="p">][</span><span class="s2">&quot;unmapped_ids&quot;</span><span class="p">]]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">unmapped_ids</span> <span class="o">=</span> <span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;input_list&quot;</span><span class="p">][</span><span class="s2">&quot;unmapped_ids&quot;</span><span class="p">]</span>
+                <span class="n">reference_string</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Unmapped IDs: &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unmapped_ids</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="s1">&#39;-----</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Mapped IDs: &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">req_json</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="s2">&quot;input_list&quot;</span><span class="p">][</span><span class="s2">&quot;mapped_ids&quot;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="n">reference_string</span> <span class="o">+=</span> <span class="s1">&#39;-----</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">results</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">req_json</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;result&#39;</span><span class="p">])</span>  <span class="c1"># .keys()</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;term&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)))</span><span class="o">.</span>\
+                <span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;term&#39;</span><span class="p">])</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;DB&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names_rev</span><span class="p">[</span><span class="n">annotation</span><span class="p">]</span>
+            <span class="n">order</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;DB&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;log2_fold_enrichment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;fold_enrichment&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;log2_fold_enrichment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ERR&#39;</span>
+            <span class="n">order</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">order</span><span class="p">])</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+
+            <span class="n">ret</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_names_rev</span><span class="p">[</span><span class="n">annotation</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;Description&#39;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span> <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="n">results</span><span class="p">,</span>
+                                                <span class="s1">&#39;Reference information&#39;</span><span class="p">:</span> <span class="n">reference_string</span><span class="p">,</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span> <span class="n">req_json</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

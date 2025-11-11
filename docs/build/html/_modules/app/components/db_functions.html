@@ -1,0 +1,917 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.db_functions &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.db_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.db_functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<div class="viewcode-block" id="get_database_versions">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_database_versions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_database_versions</span><span class="p">(</span><span class="n">db_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the version of the database.</span>
+<span class="sd">    </span>
+<span class="sd">    :param db_file_path: Path to the database file.</span>
+<span class="sd">    :param subset: Subset of update types to get versions for.</span>
+<span class="sd">    :returns: Version of the database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span> <span class="o">=</span> <span class="n">create_connection</span><span class="p">(</span><span class="n">db_file_path</span><span class="p">)</span>
+
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT update_type FROM update_log&#39;</span><span class="p">)</span>
+    <span class="n">update_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+        <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="p">])</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">subset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">update_types</span> <span class="o">=</span> <span class="n">update_types</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span>
+    <span class="n">versions</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="k">for</span> <span class="n">update_type</span> <span class="ow">in</span> <span class="n">update_types</span><span class="p">:</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">get_last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">update_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">last</span> <span class="o">!=</span> <span class="s1">&#39;never&#39;</span><span class="p">:</span>
+            <span class="n">versions</span><span class="p">[</span><span class="n">update_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">versions</span></div>
+
+
+<div class="viewcode-block" id="map_protein_info">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.map_protein_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_protein_info</span><span class="p">(</span><span class="n">uniprot_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">placeholder</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">db_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map requested columns from the ``proteins`` table for UniProt IDs.</span>
+
+<span class="sd">    :param uniprot_ids: UniProt IDs to map; order is preserved in result.</span>
+<span class="sd">    :param info: Column name or list of column names to return (default ``&#39;gene_name&#39;``).</span>
+<span class="sd">    :param placeholder: Placeholder(s) for missing IDs; str or list aligned to ``info``.</span>
+<span class="sd">    :param db_file_path: SQLite DB path; if None, all IDs are treated as missing.</span>
+<span class="sd">    :returns: List (or list of lists) with mapped values per input ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret_info</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="s1">&#39;gene_name&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">[</span><span class="n">info</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">placeholder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">placeholder</span> <span class="o">=</span> <span class="s1">&#39;PLACEHOLDER_IS_INPUT_UPID&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">placeholder</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">placeholder</span> <span class="o">=</span> <span class="p">[</span><span class="n">placeholder</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">info</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniprot_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">return_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">db_file_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">uniprot_ids</span><span class="p">:</span>
+            <span class="n">return_mapping</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Not in database&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">info</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">get_from_table_by_list_criteria</span><span class="p">(</span>
+                <span class="n">create_connection</span><span class="p">(</span><span class="n">db_file_path</span><span class="p">),</span>
+                <span class="s1">&#39;proteins&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;uniprot_id&#39;</span><span class="p">,</span>
+                <span class="n">uniprot_ids</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">return_mapping</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;uniprot_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">ic</span><span class="p">]</span> <span class="k">for</span> <span class="n">ic</span> <span class="ow">in</span> <span class="n">info</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">uniprot_id</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">uniprot_ids</span><span class="p">)</span><span class="o">-</span><span class="nb">set</span><span class="p">(</span><span class="n">return_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+        <span class="n">return_mapping</span><span class="p">[</span><span class="n">uniprot_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">uniprot_id</span> <span class="k">if</span> <span class="n">placeholder</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;PLACEHOLDER_IS_INPUT_UPID&#39;</span> <span class="k">else</span> <span class="n">placeholder</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))</span>
+        <span class="p">]</span>
+    <span class="n">retlist</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">return_mapping</span><span class="p">[</span><span class="n">upid</span><span class="p">]</span> 
+        <span class="k">for</span> <span class="n">upid</span> <span class="ow">in</span> <span class="n">uniprot_ids</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">retlist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">retlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">retlist</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">retlist</span></div>
+
+    
+<div class="viewcode-block" id="get_from_table_match_with_priority">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_from_table_match_with_priority">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_from_table_match_with_priority</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span>
+    <span class="n">criteria_list</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">criteria_cols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">case_insensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">key_col</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">extra_tiebreak</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># e.g. [(&quot;acq_time&quot;,&quot;DESC&quot;)]</span>
+    <span class="n">return_cols</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># default: all columns in table</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the best-matching row per value using priority columns.</span>
+
+<span class="sd">    :param conn: SQLite connection.</span>
+<span class="sd">    :param criteria_list: Values to match.</span>
+<span class="sd">    :param table: Table name.</span>
+<span class="sd">    :param criteria_cols: Columns to try in priority order.</span>
+<span class="sd">    :param case_insensitive: If ``True``, match case-insensitively.</span>
+<span class="sd">    :param key_col: Column ensuring deterministic ordering; defaults to ``rowid``.</span>
+<span class="sd">    :param extra_tiebreak: Extra (column, direction) order terms.</span>
+<span class="sd">    :param return_cols: Columns to return (default all).</span>
+<span class="sd">    :returns: Mapping value -&gt; row dict (or None if no match).</span>
+<span class="sd">    :raises ValueError: For invalid table/columns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c1"># --- validate table &amp; columns</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39; AND name=?;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">table</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Table not found: </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PRAGMA table_info(&quot;</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1">&quot;)&#39;</span><span class="p">)</span>
+    <span class="n">table_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+
+    <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">criteria_cols</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_cols</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns not in </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">return_cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ret_cols</span> <span class="o">=</span> <span class="n">table_cols</span><span class="p">[:]</span>  <span class="c1"># all</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">return_cols</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_cols</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bad</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;return_cols not in </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">bad</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ret_cols</span> <span class="o">=</span> <span class="n">return_cols</span><span class="p">[:]</span>  <span class="c1"># may be empty!</span>
+
+    <span class="k">if</span> <span class="n">key_col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">key_col</span> <span class="o">=</span> <span class="s2">&quot;rowid&quot;</span>
+    <span class="k">elif</span> <span class="n">key_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_cols</span> <span class="ow">and</span> <span class="n">key_col</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;rowid&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;key_col &#39;</span><span class="si">{</span><span class="n">key_col</span><span class="si">}</span><span class="s2">&#39; not in </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> (or rowid)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --- create helpful indexes (idempotent)</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">criteria_cols</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;CREATE INDEX IF NOT EXISTS &quot;idx_</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s1">&quot; ON &quot;</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1">&quot;(&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s1">&quot;);&#39;</span><span class="p">)</span>
+
+    <span class="c1"># --- temp input table</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;DROP TABLE IF EXISTS temp.criteria_list;&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE TEMP TABLE temp.criteria_list(val TEXT PRIMARY KEY)&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT OR IGNORE INTO temp.criteria_list(val) VALUES (?)&quot;</span><span class="p">,</span>
+                    <span class="p">((</span><span class="n">v</span><span class="p">,)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">criteria_list</span><span class="p">))</span>
+
+    <span class="c1"># --- build the UNION ALL (keyed) with a robust select list</span>
+    <span class="c1"># Always include: pri, the match key, plus any columns needed for ordering (key_col, extra_tiebreak cols)</span>
+    <span class="n">needed_for_order</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">key_col</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;rowid&quot;</span><span class="p">:</span>
+        <span class="n">needed_for_order</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key_col</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">extra_tiebreak</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">extra_tiebreak</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_cols</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;extra_tiebreak column not in </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">direction</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ASC&quot;</span><span class="p">,</span> <span class="s2">&quot;DESC&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;extra_tiebreak direction must be &#39;ASC&#39; or &#39;DESC&#39;&quot;</span><span class="p">)</span>
+            <span class="n">needed_for_order</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="c1"># The columns we actually SELECT in the CTE:</span>
+    <span class="c1"># - the requested return columns (may be empty), PLUS</span>
+    <span class="c1"># - the needed ordering columns (so ORDER BY works), deduped.</span>
+    <span class="n">select_payload_cols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ret_cols</span> <span class="o">+</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">needed_for_order</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ret_cols</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;rowid&quot;</span><span class="p">:</span>  <span class="c1"># rowid is implicit; we won’t list it here</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">select_payload_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="n">collate</span> <span class="o">=</span> <span class="s2">&quot; COLLATE NOCASE&quot;</span> <span class="k">if</span> <span class="n">case_insensitive</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">unions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pri</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">criteria_cols</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># Base select list</span>
+        <span class="n">select_bits</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s1">&quot; AS key&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pri</span><span class="si">}</span><span class="s2"> AS pri&quot;</span><span class="p">]</span>
+
+        <span class="c1"># key_col for ordering (as a stable alias) – include rowid explicitly if used</span>
+        <span class="k">if</span> <span class="n">key_col</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;rowid&quot;</span><span class="p">:</span>
+            <span class="n">select_bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;rowid AS __ord_key&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">select_bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">key_col</span><span class="si">}</span><span class="s1">&quot; AS __ord_key&#39;</span><span class="p">)</span>
+
+        <span class="c1"># extra tie-break columns (if any)</span>
+        <span class="k">for</span> <span class="n">tcol</span> <span class="ow">in</span> <span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">needed_for_order</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="n">key_col</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;rowid&quot;</span><span class="p">):</span>
+            <span class="n">select_bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">tcol</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># return columns (may be empty) – avoid duplicating ones we already added</span>
+        <span class="k">for</span> <span class="n">rc</span> <span class="ow">in</span> <span class="n">ret_cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rc</span> <span class="o">==</span> <span class="n">key_col</span> <span class="ow">or</span> <span class="n">rc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;rowid&quot;</span> <span class="ow">or</span> <span class="n">rc</span> <span class="ow">in</span> <span class="n">needed_for_order</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">select_bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">rc</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+        <span class="n">select_list_sql</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">select_bits</span><span class="p">)</span>
+
+        <span class="n">unions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;SELECT </span><span class="si">{</span><span class="n">select_list_sql</span><span class="si">}</span><span class="s1"> FROM &quot;</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1">&quot; WHERE &quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s1">&quot; IS NOT NULL&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">union_sql</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">UNION ALL</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unions</span><span class="p">)</span>
+
+    <span class="c1"># --- ORDER BY for ranking</span>
+    <span class="n">order_terms</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;k.pri&quot;</span><span class="p">,</span> <span class="s2">&quot;k.__ord_key&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">extra_tiebreak</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">extra_tiebreak</span><span class="p">:</span>
+            <span class="n">order_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;k.&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s1">&quot; </span><span class="si">{</span><span class="n">direction</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">order_by</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">order_terms</span><span class="p">)</span>
+
+    <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    WITH keyed AS (</span>
+<span class="s2">      </span><span class="si">{</span><span class="n">union_sql</span><span class="si">}</span>
+<span class="s2">    ),</span>
+<span class="s2">    ranked AS (</span>
+<span class="s2">      SELECT</span>
+<span class="s2">        cl.val AS query_val,</span>
+<span class="s2">        k.*,</span>
+<span class="s2">        ROW_NUMBER() OVER (</span>
+<span class="s2">          PARTITION BY cl.val</span>
+<span class="s2">          ORDER BY </span><span class="si">{</span><span class="n">order_by</span><span class="si">}</span>
+<span class="s2">        ) AS rnk</span>
+<span class="s2">      FROM temp.criteria_list cl</span>
+<span class="s2">      LEFT JOIN keyed k</span>
+<span class="s2">        ON k.key</span><span class="si">{</span><span class="n">collate</span><span class="si">}</span><span class="s2"> = cl.val</span><span class="si">{</span><span class="n">collate</span><span class="si">}</span>
+<span class="s2">    )</span>
+<span class="s2">    SELECT * FROM ranked WHERE rnk = 1;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Execute &amp; build results</span>
+    <span class="n">results</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;query_val&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;pri&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Return only requested columns (defaulted earlier), not the helper fields</span>
+            <span class="n">out</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ret_cols</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+            <span class="c1"># If caller passed return_cols=[], return {} for matches</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span>
+
+    <span class="c1"># Ensure all inputs present</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT val FROM temp.criteria_list;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+
+
+<div class="viewcode-block" id="get_full_table_as_pd">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_full_table_as_pd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_full_table_as_pd</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">index_col</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">filter_col</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">startswith</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an entire table into a pandas DataFrame with optional prefix filter.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param table_name: Table name to read.</span>
+<span class="sd">    :param index_col: Column to set as index.</span>
+<span class="sd">    :param filter_col: Column to apply ``LIKE &#39;startswith%&#39;`` on.</span>
+<span class="sd">    :param startswith: Prefix for the filter.</span>
+<span class="sd">    :returns: DataFrame converted to pandas nullable dtypes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
+    
+    <span class="k">if</span> <span class="n">filter_col</span> <span class="ow">and</span> <span class="n">startswith</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; WHERE </span><span class="si">{</span><span class="n">filter_col</span><span class="si">}</span><span class="s2"> LIKE &#39;</span><span class="si">{</span><span class="n">startswith</span><span class="si">}</span><span class="s2">%&#39;&quot;</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">db_conn</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">index_col</span><span class="p">)</span><span class="o">.</span><span class="n">convert_dtypes</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_last_update">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_last_update">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">uptype</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the last update timestamp of a given type from ``update_log``.</span>
+
+<span class="sd">    :param conn: SQLite connection.</span>
+<span class="sd">    :param uptype: Update type value to filter on.</span>
+<span class="sd">    :returns: Latest timestamp string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT timestamp FROM update_log WHERE update_type = ? ORDER BY timestamp DESC LIMIT 1&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">uptype</span><span class="p">,))</span>
+    <span class="n">last_update</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">last_update</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">last_update</span> <span class="k">else</span> <span class="s1">&#39;never&#39;</span></div>
+
+
+<div class="viewcode-block" id="is_test_db">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.is_test_db">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_test_db</span><span class="p">(</span><span class="n">db_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if an SQLite DB has metadata key ``is_test`` set to true.</span>
+
+<span class="sd">    :param db_path: Path to database file.</span>
+<span class="sd">    :returns: ``True`` if DB indicates test, else ``False``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">create_connection</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT value FROM metadata WHERE key=&#39;is_test&#39;&quot;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="export_snapshot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.export_snapshot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">export_snapshot</span><span class="p">(</span><span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">snapshot_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">snapshots_to_keep</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a timestamped SQLite snapshot and prune old backups.</span>
+
+<span class="sd">    :param source_path: Source DB path.</span>
+<span class="sd">    :param snapshot_dir: Directory to store backups.</span>
+<span class="sd">    :param snapshots_to_keep: Keep at most this many snapshots (None to skip pruning).</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises FileNotFoundError: If source DB does not exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">source_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Source DB file not found: </span><span class="si">{</span><span class="n">source_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">snapshot_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">source_path</span><span class="p">)</span>
+    <span class="n">snapshot_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;backup_</span><span class="si">{</span><span class="n">dbname</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.sqlite3&quot;</span>
+    <span class="n">snapshot_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snapshot_dir</span><span class="p">,</span> <span class="n">snapshot_filename</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">source_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">source_conn</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">snapshot_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">snapshot_conn</span><span class="p">:</span>
+            <span class="n">source_conn</span><span class="o">.</span><span class="n">backup</span><span class="p">(</span><span class="n">snapshot_conn</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot created: </span><span class="si">{</span><span class="n">snapshot_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Cleanup</span>
+    <span class="k">if</span> <span class="n">snapshots_to_keep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">backups</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">snapshot_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;backup_&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.sqlite3&quot;</span><span class="p">)),</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snapshot_dir</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">excess</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">backups</span><span class="p">)</span> <span class="o">-</span> <span class="n">snapshots_to_keep</span>
+        <span class="k">for</span> <span class="n">old_file</span> <span class="ow">in</span> <span class="n">backups</span><span class="p">[:</span><span class="n">excess</span><span class="p">]:</span>
+            <span class="n">old_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snapshot_dir</span><span class="p">,</span> <span class="n">old_file</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">old_path</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Deleted old backup: </span><span class="si">{</span><span class="n">old_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to delete </span><span class="si">{</span><span class="n">old_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dump_full_database_to_csv">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.dump_full_database_to_csv">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dump_full_database_to_csv</span><span class="p">(</span><span class="n">database_file</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dump all tables to TSV files in an output directory.</span>
+
+<span class="sd">    :param database_file: Path to database file.</span>
+<span class="sd">    :param output_directory: Destination directory.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span> <span class="o">=</span> <span class="n">create_connection</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+    <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;;&quot;</span><span class="p">)</span>
+    <span class="n">tables</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+        <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">table_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">get_full_table_as_pd</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">.tsv&#39;</span><span class="p">),</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index_label</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="list_tables">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.list_tables">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_tables</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List table names in an SQLite database.</span>
+
+<span class="sd">    :param database_file: Path to database file.</span>
+<span class="sd">    :returns: List of table names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;;&quot;</span><span class="p">)</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="add_column">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.add_column">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_column</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">coltype</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a column to a table.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param tablename: Target table name.</span>
+<span class="sd">    :param colname: New column name.</span>
+<span class="sd">    :param coltype: Column type string.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises sqlite3.Error: On SQL failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sql_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        ALTER TABLE </span><span class="si">{</span><span class="n">tablename</span><span class="si">}</span><span class="s2"> </span>
+<span class="s2">        ADD COLUMN </span><span class="si">{</span><span class="n">colname</span><span class="si">}</span><span class="s2"> &#39;</span><span class="si">{</span><span class="n">coltype</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_str</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to add column to sqlite table&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">sql_str</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="modify_multiple_records">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.modify_multiple_records">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">modify_multiple_records</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">updates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Modify multiple records according to update specs.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param table: Table name.</span>
+<span class="sd">    :param updates: List of dicts with keys ``criteria_col``, ``criteria``, ``columns``, ``values``.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises sqlite3.Error: On SQL failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">update</span> <span class="ow">in</span> <span class="n">updates</span><span class="p">:</span>
+            <span class="n">add_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;UPDATE </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1"> SET </span><span class="si">{</span><span class="s2">&quot; = ?, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s2">&quot;columns&quot;</span><span class="p">])</span><span class="si">}</span><span class="s1"> = ? WHERE </span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s2">&quot;criteria_col&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> = ?&#39;</span>
+            <span class="n">add_data</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">add_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s2">&quot;criteria&quot;</span><span class="p">])</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">add_str</span><span class="p">,</span> <span class="n">add_data</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to modify sqlite table&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="c1"># Original function maintained for backwards compatibility</span>
+<div class="viewcode-block" id="modify_record">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.modify_record">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">modify_record</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">criteria_col</span><span class="p">,</span> <span class="n">criteria</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Modify a single record convenience wrapper.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param table: Table name.</span>
+<span class="sd">    :param criteria_col: WHERE column.</span>
+<span class="sd">    :param criteria: WHERE value.</span>
+<span class="sd">    :param columns: Columns to update.</span>
+<span class="sd">    :param values: Values to set.</span>
+<span class="sd">    :returns: Executed SQL template string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">update</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;criteria_col&quot;</span><span class="p">:</span> <span class="n">criteria_col</span><span class="p">,</span>
+        <span class="s2">&quot;criteria&quot;</span><span class="p">:</span> <span class="n">criteria</span><span class="p">,</span>
+        <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="n">columns</span><span class="p">,</span>
+        <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">values</span>
+    <span class="p">}</span>
+    <span class="n">modify_multiple_records</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="p">[</span><span class="n">update</span><span class="p">])</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;UPDATE </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s1"> SET </span><span class="si">{</span><span class="s2">&quot; = ?, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s1"> = ? WHERE </span><span class="si">{</span><span class="n">criteria_col</span><span class="si">}</span><span class="s1"> = ?&#39;</span></div>
+
+
+<div class="viewcode-block" id="remove_column">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.remove_column">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_column</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colname</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove a column from a table.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param tablename: Table name.</span>
+<span class="sd">    :param colname: Column name to drop.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises sqlite3.Error: On SQL failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sql_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        ALTER TABLE </span><span class="si">{</span><span class="n">tablename</span><span class="si">}</span><span class="s2"> </span>
+<span class="s2">        DROP COLUMN </span><span class="si">{</span><span class="n">colname</span><span class="si">}</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Create a cursor object</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_str</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to remove column from sqlite table&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">sql_str</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="rename_column">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.rename_column">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rename_column</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">old_col</span><span class="p">,</span> <span class="n">new_col</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rename a column.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param tablename: Table name.</span>
+<span class="sd">    :param old_col: Existing column name.</span>
+<span class="sd">    :param new_col: New column name.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises sqlite3.Error: On SQL failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sql_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;ALTER TABLE </span><span class="si">{</span><span class="n">tablename</span><span class="si">}</span><span class="s1"> RENAME COLUMN </span><span class="si">{</span><span class="n">old_col</span><span class="si">}</span><span class="s1"> TO </span><span class="si">{</span><span class="n">new_col</span><span class="si">}</span><span class="s1">;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_str</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to rename column in sqlite table. Error: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sql_str</span><span class="p">)</span>
+        <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="delete_multiple_records">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.delete_multiple_records">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_multiple_records</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">deletes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete multiple records per delete spec.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param table: Table name.</span>
+<span class="sd">    :param deletes: List of dicts with keys ``criteria_col`` and ``criteria``.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises sqlite3.Error: On SQL failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">delete</span> <span class="ow">in</span> <span class="n">deletes</span><span class="p">:</span>
+            <span class="n">sql_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;DELETE from </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> where </span><span class="si">{</span><span class="n">delete</span><span class="p">[</span><span class="s2">&quot;criteria_col&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> = ?&quot;&quot;&quot;</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_str</span><span class="p">,</span> <span class="p">[</span><span class="n">delete</span><span class="p">[</span><span class="s2">&quot;criteria&quot;</span><span class="p">]])</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to delete records from sqlite table&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="delete_record">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.delete_record">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_record</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">criteria_col</span><span class="p">,</span> <span class="n">criteria</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete a single record convenience wrapper.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param tablename: Table name.</span>
+<span class="sd">    :param criteria_col: WHERE column.</span>
+<span class="sd">    :param criteria: WHERE value.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">delete</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;criteria_col&quot;</span><span class="p">:</span> <span class="n">criteria_col</span><span class="p">,</span>
+        <span class="s2">&quot;criteria&quot;</span><span class="p">:</span> <span class="n">criteria</span>
+    <span class="p">}</span>
+    <span class="n">delete_multiple_records</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="p">[</span><span class="n">delete</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="add_record">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.add_record">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_record</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">column_names</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert a single record into a table.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param tablename: Table name.</span>
+<span class="sd">    :param column_names: List of column names.</span>
+<span class="sd">    :param values: List of values.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises sqlite3.Error: On SQL failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sql_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        INSERT INTO </span><span class="si">{</span><span class="n">tablename</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">column_names</span><span class="p">)</span><span class="si">}</span><span class="s2">) VALUES (</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;?&quot;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">column_names</span><span class="p">])</span><span class="si">}</span><span class="s2">)</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_str</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to add record to sqlite table&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">sql_str</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="add_multiple_records">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.add_multiple_records">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_multiple_records</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">column_names</span><span class="p">,</span> <span class="n">list_of_values</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert multiple records into a table.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param tablename: Table name.</span>
+<span class="sd">    :param column_names: List of column names.</span>
+<span class="sd">    :param list_of_values: Iterable of row value sequences.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :raises sqlite3.Error: On SQL failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sql_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        INSERT INTO </span><span class="si">{</span><span class="n">tablename</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">column_names</span><span class="p">)</span><span class="si">}</span><span class="s2">) VALUES (</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;?&quot;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">column_names</span><span class="p">])</span><span class="si">}</span><span class="s2">)</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="n">sql_str</span><span class="p">,</span> <span class="n">list_of_values</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to add multiple records to sqlite table&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">sql_str</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+        
+<div class="viewcode-block" id="create_connection">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.create_connection">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_connection</span><span class="p">(</span><span class="n">db_file</span><span class="p">,</span> <span class="n">error_file</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;ro&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a database connection to an SQLite file.</span>
+
+<span class="sd">    :param db_file: Database file path; returns None if file doesn&#39;t exist.</span>
+<span class="sd">    :param error_file: Optional path to append exception messages.</span>
+<span class="sd">    :param mode: ``&#39;ro&#39;`` for read-only (default) or any other for read-write.</span>
+<span class="sd">    :returns: Connection object or None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">db_file</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;ro&#39;</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;file:</span><span class="si">{</span><span class="n">db_file</span><span class="si">}</span><span class="s1">?mode=ro&#39;</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">error_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">error_file</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">conn</span></div>
+
+
+<div class="viewcode-block" id="generate_database_table_templates_as_tsvs">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.generate_database_table_templates_as_tsvs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_database_table_templates_as_tsvs</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">primary_keys</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate TSV templates (headers only) for selected tables.</span>
+
+<span class="sd">    :param db_conn: SQLite connection (not closed by this function).</span>
+<span class="sd">    :param output_dir: Directory to write TSV files.</span>
+<span class="sd">    :param primary_keys: Mapping table -&gt; primary key column name to place first.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Connect to the SQLite database</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c1"># Get the list of tables in the database</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;;&quot;</span><span class="p">)</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+    <span class="c1"># Discard tables that are not in the parameter file</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span> <span class="k">if</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">primary_keys</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tables</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No tables found in the database.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+        <span class="c1"># Get column names for the table</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRAGMA table_info(</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Table &#39;</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&#39; has no columns.&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">primary_key</span> <span class="o">=</span> <span class="n">primary_keys</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">primary_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Primary key &#39;</span><span class="si">{</span><span class="n">primary_key</span><span class="si">}</span><span class="s2">&#39; specified for table &#39;</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&#39; is not a valid column.&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">columns</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">primary_key</span><span class="p">)</span>  <span class="c1"># Ensure the primary key is the first column</span>
+        <span class="n">tsv_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">.tsv&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tsv_file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tsv_file</span><span class="p">:</span>
+            <span class="n">tsv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">tsv_file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">tsv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template generated for table &#39;</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&#39; at &#39;</span><span class="si">{</span><span class="n">tsv_file_path</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_from_table">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_from_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_from_table</span><span class="p">(</span>
+        <span class="n">conn</span><span class="p">:</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span>
+        <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">criteria_col</span><span class="p">:</span><span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">criteria</span><span class="p">:</span><span class="nb">str</span><span class="o">|</span><span class="nb">tuple</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">select_col</span><span class="p">:</span><span class="nb">str</span><span class="o">|</span><span class="nb">list</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">as_pandas</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">pandas_index_col</span><span class="p">:</span><span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">operator</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;=&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Query a table with optional WHERE and return list or DataFrame.</span>
+
+<span class="sd">    :param conn: SQLite connection.</span>
+<span class="sd">    :param table_name: Table name.</span>
+<span class="sd">    :param criteria_col: Optional WHERE column.</span>
+<span class="sd">    :param criteria: WHERE value or tuple for two-parameter condition.</span>
+<span class="sd">    :param select_col: Column(s) to select (default all).</span>
+<span class="sd">    :param as_pandas: If ``True``, return DataFrame; else list.</span>
+<span class="sd">    :param pandas_index_col: Index column for DataFrame.</span>
+<span class="sd">    :param operator: SQL operator to use (default ``=``).</span>
+<span class="sd">    :returns: DataFrame or list of values (first column) depending on ``as_pandas``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="p">(((</span><span class="n">criteria</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">criteria_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">))</span> <span class="o">|</span>\
+             <span class="p">((</span><span class="n">criteria</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">criteria_col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">))),</span>\
+             <span class="s1">&#39;Both criteria and criteria_col must be supplied, or both need to be none.&#39;</span>
+    
+    <span class="k">if</span> <span class="n">select_col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">select_col</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">select_col</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">select_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">select_col</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="n">criteria_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">placeholder</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">criteria</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">criteria</span>
+            <span class="n">placeholder</span> <span class="o">=</span> <span class="s1">&#39;? AND ?&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">criteria</span><span class="p">,)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SELECT </span><span class="si">{</span><span class="n">select_col</span><span class="si">}</span><span class="s2"> FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">criteria_col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">operator</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">placeholder</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SELECT </span><span class="si">{</span><span class="n">select_col</span><span class="si">}</span><span class="s2"> FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">as_pandas</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">pandas_index_col</span><span class="p">)</span><span class="o">.</span><span class="n">convert_dtypes</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="p">]</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="get_from_table_by_list_criteria">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_from_table_by_list_criteria">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_from_table_by_list_criteria</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">:</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span>
+    <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+    <span class="n">criteria_col</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> 
+    <span class="n">criteria</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span>
+    <span class="n">as_pandas</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+    <span class="n">select_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pandas_index_col</span><span class="p">:</span><span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Query rows where a column matches any of the given values.</span>
+
+<span class="sd">    :param conn: SQLite connection.</span>
+<span class="sd">    :param table_name: Table name.</span>
+<span class="sd">    :param criteria_col: Column name for the IN clause.</span>
+<span class="sd">    :param criteria: List of values for the IN clause.</span>
+<span class="sd">    :param as_pandas: If ``True``, return DataFrame; else list of tuples.</span>
+<span class="sd">    :param select_col: Column(s) to select (default all).</span>
+<span class="sd">    :param pandas_index_col: Optional index column for DataFrame.</span>
+<span class="sd">    :returns: DataFrame or list depending on ``as_pandas``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">select_col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">select_col</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">select_col</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">select_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">select_col</span><span class="p">)</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;SELECT </span><span class="si">{</span><span class="n">select_col</span><span class="si">}</span><span class="s1"> FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1"> WHERE </span><span class="si">{</span><span class="n">criteria_col</span><span class="si">}</span><span class="s1"> IN (</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;?&quot;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">criteria</span><span class="p">])</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="k">if</span> <span class="n">as_pandas</span><span class="p">:</span>
+        <span class="n">ret</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">con</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">criteria</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="n">pandas_index_col</span><span class="p">)</span><span class="o">.</span><span class="n">convert_dtypes</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">criteria</span><span class="p">)</span>
+        <span class="n">ret</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="get_contaminants">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_contaminants">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_contaminants</span><span class="p">(</span><span class="n">db_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">protein_list</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">error_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve contaminant UniProt IDs from the ``contaminants`` table.</span>
+
+<span class="sd">    :param db_file: Database file path.</span>
+<span class="sd">    :param protein_list: If provided, intersect results with this list.</span>
+<span class="sd">    :param error_file: Optional error log path for connection errors.</span>
+<span class="sd">    :returns: List of contaminant UniProt IDs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span> <span class="o">=</span> <span class="n">create_connection</span><span class="p">(</span><span class="n">db_file</span><span class="p">,</span> <span class="n">error_file</span><span class="p">)</span>
+    <span class="n">ret_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">get_from_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;contaminants&#39;</span><span class="p">,</span> <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;uniprot_id&#39;</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ret_list</span></div>
+
+
+<div class="viewcode-block" id="drop_table">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.drop_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">drop_table</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drop a table from the database if it exists.</span>
+
+<span class="sd">    :param conn: SQLite connection.</span>
+<span class="sd">    :param table_name: Table name to drop.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sql_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;DROP TABLE IF EXISTS </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">cursor</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_str</span><span class="p">)</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_table_column_names">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.db_functions.get_table_column_names">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_table_column_names</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get column names for a table.</span>
+
+<span class="sd">    :param db_conn: SQLite connection.</span>
+<span class="sd">    :param table_name: Table name.</span>
+<span class="sd">    :returns: List of column names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Connect to the SQLite database</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c1"># Get the list of tables in the database</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRAGMA table_info(</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">columns</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

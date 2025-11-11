@@ -1,0 +1,515 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.proteomics &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.proteomics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.proteomics</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Proteomics analysis figure builders.</span>
+
+<span class="sd">Implements plots and computations for missing value filtering,</span>
+<span class="sd">normalization, distributions, imputation, PCA, clustermap, CV plots, and</span>
+<span class="sd">volcano analyses used by the proteomics workflow.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">html</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash.dcc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures</span><span class="w"> </span><span class="kn">import</span> <span class="n">bar_graph</span><span class="p">,</span> <span class="n">before_after_plot</span><span class="p">,</span> <span class="n">comparative_plot</span><span class="p">,</span> <span class="n">imputation_histogram</span><span class="p">,</span> <span class="n">scatter</span><span class="p">,</span> <span class="n">heatmaps</span><span class="p">,</span> <span class="n">volcano_plot</span><span class="p">,</span> <span class="n">histogram</span><span class="p">,</span> <span class="n">cvplot</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">matrix_functions</span><span class="p">,</span> <span class="n">quick_stats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures.figure_legends</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROTEOMICS_LEGENDS</span> <span class="k">as</span> <span class="n">legends</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures.figure_legends</span><span class="w"> </span><span class="kn">import</span> <span class="n">leg_rep</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash_bootstrap_components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Card</span><span class="p">,</span> <span class="n">CardBody</span><span class="p">,</span> <span class="n">Tab</span><span class="p">,</span> <span class="n">Tabs</span><span class="p">,</span> <span class="n">Col</span><span class="p">,</span> <span class="n">Row</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="na_filter">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.na_filter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">na_filter</span><span class="p">(</span><span class="n">input_data_dict</span><span class="p">,</span> <span class="n">filtering_percentage</span><span class="p">,</span> <span class="n">figure_defaults</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sample-group&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply NA filtering and visualize before/after counts.</span>
+
+<span class="sd">    :param input_data_dict: Data dictionary containing intensity tables and sample groups.</span>
+<span class="sd">    :param filtering_percentage: Threshold percentage for presence filtering.</span>
+<span class="sd">    :param figure_defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional plot title.</span>
+<span class="sd">    :param filter_type: ``&#39;sample-group&#39;`` or ``&#39;sample-set&#39;``.</span>
+<span class="sd">    :returns: Tuple of (graph div, filtered data JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;nafilter - start: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span>
+        <span class="n">StringIO</span><span class="p">(</span><span class="n">input_data_dict</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="s1">&#39;intensity&#39;</span><span class="p">]),</span>
+        <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span>
+    <span class="p">)</span>
+    <span class="n">original_counts</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">count_per_sample</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span> <span class="n">input_data_dict</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;rev&#39;</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;nafilter - counts per sample: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">filtered_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">filter_missing</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span>
+        <span class="n">input_data_dict</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;norm&#39;</span><span class="p">],</span>
+        <span class="n">filter_type</span><span class="p">,</span>
+        <span class="n">filtering_percentage</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;nafilter - filtering done: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">filtered_counts</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">count_per_sample</span><span class="p">(</span>
+        <span class="n">filtered_data</span><span class="p">,</span> <span class="n">input_data_dict</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;rev&#39;</span><span class="p">])</span>
+    <span class="n">figure_legend</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;na_filter&#39;</span><span class="p">]</span>
+    <span class="n">figure_legend</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">figure_legend</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+        <span class="s1">&#39;FILTERPERC&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">filtering_percentage</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;nafilter - only plot left: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;Missing value filtering&#39;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-na-filter-plot-div&#39;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-na-filter-header&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="n">figtitle</span><span class="p">),</span>
+                <span class="n">before_after_plot</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                    <span class="n">figure_defaults</span><span class="p">,</span> <span class="n">original_counts</span><span class="p">,</span> <span class="n">filtered_counts</span><span class="p">,</span> <span class="s1">&#39;proteomics-na-filter-plot&#39;</span><span class="p">,</span> <span class="n">figtitle</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">),</span>
+                <span class="n">figure_legend</span>
+            <span class="p">],</span>
+            <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+        <span class="n">filtered_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="normalization">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.normalization">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalization</span><span class="p">(</span><span class="n">filtered_data_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">normalization_option</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize filtered data and show distributions before/after.</span>
+
+<span class="sd">    :param filtered_data_json: Filtered data in JSON split format.</span>
+<span class="sd">    :param normalization_option: Normalization method name.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param errorfile: Path for logging/diagnostics from normalization.</span>
+<span class="sd">    :param title: Optional plot title.</span>
+<span class="sd">    :returns: Tuple of (graph div, normalized table JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;normalization - start: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">filtered_data_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">normalized_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span> <span class="n">normalization_option</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;normalization - normalized: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">sample_groups_rev</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">column_name</span><span class="p">:</span> <span class="s1">&#39;Before normalization&#39;</span> <span class="k">for</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span>
+    <span class="p">}</span>
+    <span class="n">sample_groups_rev</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="sa">f</span><span class="s1">&#39;Normalized </span><span class="si">{</span><span class="n">column_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;After normalization&#39;</span> <span class="k">for</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span>
+    <span class="p">})</span>
+    <span class="n">norm_cols_rename</span> <span class="o">=</span> <span class="p">{</span><span class="n">column_name</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Normalized </span><span class="si">{</span><span class="n">column_name</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+    <span class="n">data_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data_table</span><span class="p">,</span> <span class="n">normalized_table</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">norm_cols_rename</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;normalization - normalized applied: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">names</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">comparative_data</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="n">names</span><span class="p">,</span> <span class="n">comparative_data</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_comparative_data</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span> <span class="n">sample_groups_rev</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;normalization - comparative data generated, only plotting left: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">plot_colors</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;sample groups&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;Before normalization&#39;</span><span class="p">:</span> <span class="s1">&#39;rgb(235,100,50)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;After normalization&#39;</span><span class="p">:</span> <span class="s1">&#39;rgb(50,100,235)&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">plot</span><span class="p">:</span> <span class="n">Graph</span> <span class="o">=</span> <span class="n">comparative_plot</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+        <span class="s1">&#39;proteomics-normalization-plot&#39;</span><span class="p">,</span>
+        <span class="n">comparative_data</span><span class="p">,</span>
+        <span class="n">defaults</span><span class="p">,</span>
+        <span class="s1">&#39;Normalization&#39;</span><span class="p">,</span>
+        <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+        <span class="n">replicate_colors</span><span class="o">=</span><span class="n">plot_colors</span><span class="p">,</span>
+        <span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;box&#39;</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;normalization - graph done, writing: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;normalization - graph done, returning: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-normalization-plot-div&#39;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-normalization-header&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Normalization&#39;</span><span class="p">),</span>
+                <span class="n">plot</span><span class="p">,</span>
+                <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;normalization&#39;</span><span class="p">]</span>
+            <span class="p">],</span>
+            <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+        <span class="n">normalized_table</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="missing_values_in_other_samples">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.missing_values_in_other_samples">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">missing_values_in_other_samples</span><span class="p">(</span><span class="n">filtered_data_json</span><span class="p">,</span><span class="n">defaults</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Histogram comparing intensities of proteins with/without missing values.</span>
+
+<span class="sd">    :param filtered_data_json: Filtered data in JSON split format.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :returns: Div containing the histogram and legend.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">filtered_data_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">missing_series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data_table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data_table</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">valid_series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data_table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data_table</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">missing_series</span> <span class="o">=</span> <span class="n">missing_series</span><span class="p">[</span><span class="n">missing_series</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span>
+    <span class="n">missing_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;Protein intensity in all samples&#39;</span><span class="p">:</span> <span class="n">missing_series</span><span class="p">})</span>
+    <span class="n">valid_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;Protein intensity in all samples&#39;</span><span class="p">:</span> <span class="n">valid_series</span><span class="p">})</span>
+    <span class="n">plot_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">missing_data</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">],</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plot_data</span><span class="p">[</span><span class="s1">&#39;Protein&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;has missing values&#39;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">missing_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;present in all samples&#39;</span> \
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">plot_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">]</span>
+    <span class="n">plot_data</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;Protein&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">figure</span> <span class="o">=</span> <span class="n">histogram</span><span class="o">.</span><span class="n">make_figure</span><span class="p">(</span>
+        <span class="n">plot_data</span><span class="p">,</span>
+        <span class="n">x_column</span> <span class="o">=</span> <span class="s1">&#39;Protein intensity in all samples&#39;</span><span class="p">,</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;Protein&#39;</span><span class="p">,</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="n">defaults</span>
+    <span class="p">)</span>
+    <span class="n">figure</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="n">barmode</span><span class="o">=</span><span class="s1">&#39;overlay&#39;</span>
+    <span class="p">)</span>
+    <span class="n">figure</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
+    <span class="n">dlname</span> <span class="o">=</span> <span class="s1">&#39;Intensity of proteins with missing values in other samples&#39;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlname</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-missing-in-other-samples-graph-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-missing-in-other-samples-header&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">dlname</span>
+            <span class="p">),</span>
+            <span class="n">Graph</span><span class="p">(</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-missing-in-other-samples-graph&#39;</span><span class="p">,</span>
+                <span class="n">figure</span><span class="o">=</span><span class="n">figure</span>
+            <span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;missing-in-other-samples&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="perc_cvplot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.perc_cvplot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">perc_cvplot</span><span class="p">(</span><span class="n">raw_int_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">na_filtered_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute and plot coefficient of variation per group.</span>
+
+<span class="sd">    :param raw_int_data: Raw intensity data in JSON split format.</span>
+<span class="sd">    :param na_filtered_data: NA-filtered intensity data in JSON split format.</span>
+<span class="sd">    :param sample_groups: Mapping group -&gt; list of columns.</span>
+<span class="sd">    :param replicate_colors: Mapping for group colors.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :returns: Tuple of (graph div, stats JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">raw_int_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">raw_int_data</span><span class="p">),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">na_filtered_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">na_filtered_data</span><span class="p">),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="c1"># Drop rows that are no longer present in filtered data</span>
+    <span class="n">raw_int_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">raw_int_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">-</span><span class="nb">set</span><span class="p">(</span><span class="n">na_filtered_df</span><span class="o">.</span><span class="n">index</span><span class="p">)),</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dlname</span> <span class="o">=</span> <span class="s1">&#39;Coefficients of variation&#39;</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">cvplot</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span><span class="n">raw_int_df</span><span class="p">,</span><span class="n">sample_groups</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="s1">&#39;proteomics-cv-plot&#39;</span><span class="p">,</span> <span class="n">dlname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;proteomics-cv-div&#39;</span><span class="p">,</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-cv-header&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">dlname</span><span class="p">),</span>
+                <span class="n">graph</span><span class="p">,</span>
+                <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;cv&#39;</span><span class="p">]</span>
+            <span class="p">],</span>
+            <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+        <span class="n">data</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="imputation">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.imputation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">imputation</span><span class="p">(</span><span class="n">filtered_data_json</span><span class="p">,</span> <span class="n">imputation_option</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">sample_groups_rev</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Impute missing values and render distribution comparison.</span>
+
+<span class="sd">    :param filtered_data_json: Filtered data in JSON split format.</span>
+<span class="sd">    :param imputation_option: Imputation method name.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param errorfile: Path for logging/diagnostics from imputation.</span>
+<span class="sd">    :param sample_groups_rev: Mapping sample -&gt; group (used by imputation).</span>
+<span class="sd">    :param title: Optional plot title.</span>
+<span class="sd">    :returns: Tuple of (graph div, imputed table JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;imputation - start: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">filtered_data_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">imputed_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">impute</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">,</span> <span class="n">imputation_option</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="o">=</span><span class="n">sample_groups_rev</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;imputation - imputed, only plot left: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">dlname</span> <span class="o">=</span> <span class="s1">&#39;Imputation&#39;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-imputation-plot-div&#39;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-imputation-header&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="n">dlname</span><span class="p">),</span>
+                <span class="n">imputation_histogram</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                    <span class="n">data_table</span><span class="p">,</span>
+                    <span class="n">imputed_table</span><span class="p">,</span>
+                    <span class="n">defaults</span><span class="p">,</span>
+                    <span class="n">dlname</span><span class="p">,</span>
+                    <span class="n">id_name</span><span class="o">=</span><span class="s1">&#39;proteomics-imputation-plot&#39;</span><span class="p">,</span>
+                    <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+
+                <span class="p">),</span>
+                <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;imputation&#39;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">imputed_table</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="pca">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.pca">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pca</span><span class="p">(</span><span class="n">imputed_data_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sample_groups_rev</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute PCA and plot the first two components.</span>
+
+<span class="sd">    :param imputed_data_json: Imputed data in JSON split format.</span>
+<span class="sd">    :param sample_groups_rev: Mapping sample -&gt; group.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param replicate_colors: Mapping for group colors.</span>
+<span class="sd">    :returns: Tuple of (graph div, PCA result JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PCA - start: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">imputed_data_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">pc1</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">pc2</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">pca_result</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="c1"># Compute PCA of the data</span>
+    <span class="n">pc1</span><span class="p">,</span> <span class="n">pc2</span><span class="p">,</span> <span class="n">pca_result</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">do_pca</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span> <span class="n">sample_groups_rev</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">pca_result</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">pc1</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;PCA - done, only plotting left: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">pca_result</span><span class="p">[</span><span class="s1">&#39;Sample group color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">replicate_colors</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="n">grp</span><span class="p">]</span> <span class="k">for</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">pca_result</span><span class="p">[</span><span class="s1">&#39;Sample group&#39;</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-pca-plot-div&#39;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-pca-header&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;PCA&#39;</span><span class="p">),</span>
+                <span class="n">scatter</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                    <span class="s1">&#39;proteomics-pca-plot&#39;</span><span class="p">,</span>
+                    <span class="n">defaults</span><span class="p">,</span>
+                    <span class="s1">&#39;PCA&#39;</span><span class="p">,</span>
+                    <span class="n">pca_result</span><span class="p">,</span>
+                    <span class="n">pc1</span><span class="p">,</span>
+                    <span class="n">pc2</span><span class="p">,</span>
+                    <span class="s1">&#39;Sample group color&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Sample group&#39;</span><span class="p">,</span>
+                    <span class="n">hover_data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Sample group&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample name&#39;</span><span class="p">]</span>
+                <span class="p">),</span>
+                <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;pca&#39;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">pca_result</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="clustermap">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.clustermap">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clustermap</span><span class="p">(</span><span class="n">imputed_data_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draws a correltion clustergram figure from the given data_table.</span>
+
+<span class="sd">    :param imputed_data_json: Imputed data in JSON split format.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :returns: Tuple of (graph div, correlation matrix JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">corrdata</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span>
+        <span class="n">StringIO</span><span class="p">(</span><span class="n">imputed_data_json</span><span class="p">),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;clustermap - only plotting left: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">dlname</span> <span class="o">=</span> <span class="s1">&#39;Sample correlation clustering&#39;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlname</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-clustermap-plot-div&#39;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-clustermap-header&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="n">dlname</span><span class="p">),</span>
+                <span class="n">Graph</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-clustermap-plot&#39;</span><span class="p">,</span>
+                    <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                    <span class="n">figure</span><span class="o">=</span><span class="n">heatmaps</span><span class="o">.</span><span class="n">draw_clustergram</span><span class="p">(</span>
+                        <span class="n">corrdata</span><span class="p">,</span> <span class="n">defaults</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;clustermap&#39;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">corrdata</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="differential_abundance">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.proteomics.differential_abundance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">differential_abundance</span><span class="p">(</span><span class="n">imputed_data_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">comparisons</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fc_thr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">p_thr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">test_type</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;independent&#39;</span><span class="p">,</span> <span class="n">db_file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run differential analysis and generate volcano plots.</span>
+
+<span class="sd">    :param imputed_data_json: Imputed data in JSON split format.</span>
+<span class="sd">    :param sample_groups: Mapping group -&gt; list of columns.</span>
+<span class="sd">    :param comparisons: List of ``(sample, control)`` group pairs.</span>
+<span class="sd">    :param fc_thr: Absolute log2 fold change threshold.</span>
+<span class="sd">    :param p_thr: Adjusted p-value threshold.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param test_type: ``&#39;independent&#39;`` or ``&#39;paired&#39;``.</span>
+<span class="sd">    :param db_file_path: Optional DB path for gene mapping.</span>
+<span class="sd">    :returns: Tuple of (components, significant data JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;volcano - start: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">imputed_data_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">significant_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">differential</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">,</span> <span class="n">comparisons</span><span class="p">,</span> <span class="n">fc_thr</span><span class="o">=</span><span class="n">fc_thr</span><span class="p">,</span> <span class="n">adj_p_thr</span><span class="o">=</span><span class="n">p_thr</span><span class="p">,</span> <span class="n">test_type</span> <span class="o">=</span> <span class="n">test_type</span><span class="p">,</span> <span class="n">db_file_path</span> <span class="o">=</span> <span class="n">db_file_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">significant_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;volcano - significants calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">graphs_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">volcano_plot</span><span class="o">.</span><span class="n">generate_graphs</span><span class="p">(</span>
+        <span class="n">significant_data</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">fc_thr</span><span class="p">,</span> <span class="n">p_thr</span><span class="p">,</span> <span class="s1">&#39;proteomics&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;volcano - volcanoes generated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H3</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;proteomics-volcano-header&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Differential abundance&#39;</span><span class="p">),</span>
+            <span class="n">graphs_div</span>
+        <span class="p">],</span>
+        <span class="n">significant_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

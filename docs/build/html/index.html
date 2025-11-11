@@ -1,0 +1,710 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProteoGyver documentation &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Proteogyver" href="README.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ProteoGyver documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="proteogyver-documentation">
+<h1>ProteoGyver documentation<a class="headerlink" href="#proteogyver-documentation" title="Link to this heading"></a></h1>
+<p>Welcome to the ProteoGyver documentation. This documentation includes:</p>
+<ul class="simple">
+<li><p>User guide and installation instructions</p></li>
+<li><p>API reference for all modules</p></li>
+<li><p>Code examples and usage patterns</p></li>
+</ul>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="README.html#table-of-contents">Table of contents:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#security">Security</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#qc-and-quick-analysis-toolset">QC and quick analysis toolset</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#core-analysis-workflows">Core Analysis Workflows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#input-data-format">Input Data Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#ptm-workflow">PTM workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="README.html#pipeline-input-toml">Pipeline input toml</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#parameters-not-in-the-input-toml">Parameters not in the input toml</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#initiating-pipeline-analysis-via-api">Initiating pipeline analysis via API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#additional-tools">Additional Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#ms-inspector">MS Inspector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="README.html#features">Features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#id1">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#microscopy-image-colocalizer">Microscopy Image Colocalizer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#ms-run-data-pre-analysis">MS run data pre-analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#docker-installation-recommended">Docker Installation (recommended)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="README.html#running-the-docker-images">Running the docker images</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="README.html#changing-parameters">Changing parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#run-the-container">Run the container</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="README.html#volume-paths">Volume paths</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#creating-and-updating-the-database">Creating and updating the database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#update-running-order">Update running order:</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="README.html#forcing-an-update">Forcing an update</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#adding-ms-run-data">Adding MS run data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#adding-new-crapome-or-control-sets">Adding new crapome or control sets:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#adding-other-new-tables">Adding other new tables:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#deleting-data">Deleting data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#update-logging">Update logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#building-the-docker-images">Building the docker images:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#build-the-docker-images-and-run-the-pg-updater">Build the Docker images and run the PG updater</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="README.html#prerequisites">Prerequisites:</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#used-external-data">Used external data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#build-the-main-docker-image">Build the main docker image.</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#rare-use-cases">Rare use cases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#embedding-other-websites-as-tabs-within-proteogyver">Embedding other websites as tabs within Proteogyver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#adding-custom-tools-as-tabs-to-proteogyver">Adding custom tools as tabs to Proteogyver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#accessing-the-database-from-other-tools">Accessing the database from other tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#how-to-cite">How to cite</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#software-and-data-prerequisites">Software and data prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#dia-nn-searches">Dia-NN searches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#proteogyver">ProteoGyver</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Interactomics_example.html#software-and-data-prerequisites">Software and data prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Interactomics_example.html#fragpipe-searches">Fragpipe searches</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#qc-and-data-analysis">QC and data analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#data-upload">Data upload</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user_guide.html#sample-table">Sample table</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="user_guide.html#example-proteomics-sample-table">Example Proteomics sample table</a></li>
+<li class="toctree-l5"><a class="reference internal" href="user_guide.html#example-interactomics-sample-table">Example Interactomics sample table</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="user_guide.html#data-table">Data table</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#running-proteogyver">Running ProteoGyver</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user_guide.html#qc-results">QC results</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user_guide.html#workflow-specific-figures">Workflow specific figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user_guide.html#workflow-specific-input">Workflow-specific input</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="user_guide.html#proteomics">Proteomics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#missing-value-slider">Missing value slider</a></li>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#example-with-60-filter-default">Example with 60 % filter (default):</a></li>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#imputation-choice">Imputation choice</a></li>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#normalization-choice">Normalization choice</a></li>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#comparisons">Comparisons</a></li>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#thresholds">Thresholds</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="user_guide.html#interactomics">Interactomics</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#initial-input">Initial input</a></li>
+<li class="toctree-l6"><a class="reference internal" href="user_guide.html#post-saintexpress-input">Post-SAINTexpress input</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#ms-analytics-dashboard">MS Analytics dashboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#colocalizer">Colocalizer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="code/app.html">app package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/app.components.html">app.components package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.api_tools.html">app.components.api_tools package</a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.enrichment.html">app.components.enrichment package</a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.figures.html">app.components.figures package</a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.tools.html">app.components.tools package</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.EnrichmentAdmin">app.components.EnrichmentAdmin module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin"><code class="docutils literal notranslate"><span class="pre">EnrichmentAdmin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.MS_run_json_parser">app.components.MS_run_json_parser module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.cleanup_tasks">app.components.cleanup_tasks module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.db_functions">app.components.db_functions module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.add_column"><code class="docutils literal notranslate"><span class="pre">add_column()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.add_multiple_records"><code class="docutils literal notranslate"><span class="pre">add_multiple_records()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.add_record"><code class="docutils literal notranslate"><span class="pre">add_record()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.create_connection"><code class="docutils literal notranslate"><span class="pre">create_connection()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.delete_multiple_records"><code class="docutils literal notranslate"><span class="pre">delete_multiple_records()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.delete_record"><code class="docutils literal notranslate"><span class="pre">delete_record()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.drop_table"><code class="docutils literal notranslate"><span class="pre">drop_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.dump_full_database_to_csv"><code class="docutils literal notranslate"><span class="pre">dump_full_database_to_csv()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.export_snapshot"><code class="docutils literal notranslate"><span class="pre">export_snapshot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.generate_database_table_templates_as_tsvs"><code class="docutils literal notranslate"><span class="pre">generate_database_table_templates_as_tsvs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_contaminants"><code class="docutils literal notranslate"><span class="pre">get_contaminants()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_database_versions"><code class="docutils literal notranslate"><span class="pre">get_database_versions()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_from_table"><code class="docutils literal notranslate"><span class="pre">get_from_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_from_table_by_list_criteria"><code class="docutils literal notranslate"><span class="pre">get_from_table_by_list_criteria()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_from_table_match_with_priority"><code class="docutils literal notranslate"><span class="pre">get_from_table_match_with_priority()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_full_table_as_pd"><code class="docutils literal notranslate"><span class="pre">get_full_table_as_pd()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_last_update"><code class="docutils literal notranslate"><span class="pre">get_last_update()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.get_table_column_names"><code class="docutils literal notranslate"><span class="pre">get_table_column_names()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.is_test_db"><code class="docutils literal notranslate"><span class="pre">is_test_db()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.list_tables"><code class="docutils literal notranslate"><span class="pre">list_tables()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.map_protein_info"><code class="docutils literal notranslate"><span class="pre">map_protein_info()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.modify_multiple_records"><code class="docutils literal notranslate"><span class="pre">modify_multiple_records()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.modify_record"><code class="docutils literal notranslate"><span class="pre">modify_record()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.remove_column"><code class="docutils literal notranslate"><span class="pre">remove_column()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.db_functions.rename_column"><code class="docutils literal notranslate"><span class="pre">rename_column()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.figure_functions">app.components.figure_functions module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.figure_functions.improve_text_position"><code class="docutils literal notranslate"><span class="pre">improve_text_position()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.file_upload_api">app.components.file_upload_api module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.file_upload_api.register_file_upload_api"><code class="docutils literal notranslate"><span class="pre">register_file_upload_api()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.infra">app.components.infra module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#functions">Functions</a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#constants">Constants</a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.format_nested_list"><code class="docutils literal notranslate"><span class="pre">format_nested_list()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.get_all_props"><code class="docutils literal notranslate"><span class="pre">get_all_props()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.get_all_types"><code class="docutils literal notranslate"><span class="pre">get_all_types()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.invisible_utilities"><code class="docutils literal notranslate"><span class="pre">invisible_utilities()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.notifiers"><code class="docutils literal notranslate"><span class="pre">notifiers()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.save_data_stores"><code class="docutils literal notranslate"><span class="pre">save_data_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.save_figures"><code class="docutils literal notranslate"><span class="pre">save_figures()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.save_input_information"><code class="docutils literal notranslate"><span class="pre">save_input_information()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.temporary_download_button_loading_divs"><code class="docutils literal notranslate"><span class="pre">temporary_download_button_loading_divs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.temporary_download_divs"><code class="docutils literal notranslate"><span class="pre">temporary_download_divs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.upload_data_stores"><code class="docutils literal notranslate"><span class="pre">upload_data_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.working_data_stores"><code class="docutils literal notranslate"><span class="pre">working_data_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.write_README"><code class="docutils literal notranslate"><span class="pre">write_README()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.interactomics">app.components.interactomics module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.logger"><code class="docutils literal notranslate"><span class="pre">logger</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.add_bait_column"><code class="docutils literal notranslate"><span class="pre">add_bait_column()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.add_crapome"><code class="docutils literal notranslate"><span class="pre">add_crapome()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.count_knowns"><code class="docutils literal notranslate"><span class="pre">count_knowns()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.create_dummy_list_txt"><code class="docutils literal notranslate"><span class="pre">create_dummy_list_txt()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.do_ms_microscopy"><code class="docutils literal notranslate"><span class="pre">do_ms_microscopy()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.do_network"><code class="docutils literal notranslate"><span class="pre">do_network()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.enrich"><code class="docutils literal notranslate"><span class="pre">enrich()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.filter_controls_by_similarity"><code class="docutils literal notranslate"><span class="pre">filter_controls_by_similarity()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.generate_saint_container"><code class="docutils literal notranslate"><span class="pre">generate_saint_container()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.get_saint_matrix"><code class="docutils literal notranslate"><span class="pre">get_saint_matrix()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.known_plot"><code class="docutils literal notranslate"><span class="pre">known_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.make_saint_dict"><code class="docutils literal notranslate"><span class="pre">make_saint_dict()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.map_intensity"><code class="docutils literal notranslate"><span class="pre">map_intensity()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.network_display_data"><code class="docutils literal notranslate"><span class="pre">network_display_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.pca"><code class="docutils literal notranslate"><span class="pre">pca()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.prepare_controls"><code class="docutils literal notranslate"><span class="pre">prepare_controls()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.prepare_crapome"><code class="docutils literal notranslate"><span class="pre">prepare_crapome()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.run_saint"><code class="docutils literal notranslate"><span class="pre">run_saint()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.saint_cmd"><code class="docutils literal notranslate"><span class="pre">saint_cmd()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.saint_counts"><code class="docutils literal notranslate"><span class="pre">saint_counts()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.saint_filtering"><code class="docutils literal notranslate"><span class="pre">saint_filtering()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.interactomics.saint_histogram"><code class="docutils literal notranslate"><span class="pre">saint_histogram()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.mathparser">app.components.mathparser module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.mathparser.MathParser"><code class="docutils literal notranslate"><span class="pre">MathParser</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.matrix_functions">app.components.matrix_functions module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.compute_zscore"><code class="docutils literal notranslate"><span class="pre">compute_zscore()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.compute_zscore_based_deviation_from_control"><code class="docutils literal notranslate"><span class="pre">compute_zscore_based_deviation_from_control()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.count_per_sample"><code class="docutils literal notranslate"><span class="pre">count_per_sample()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.do_pca"><code class="docutils literal notranslate"><span class="pre">do_pca()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.filter_missing"><code class="docutils literal notranslate"><span class="pre">filter_missing()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.hierarchical_clustering"><code class="docutils literal notranslate"><span class="pre">hierarchical_clustering()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.impute"><code class="docutils literal notranslate"><span class="pre">impute()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.impute_gaussian"><code class="docutils literal notranslate"><span class="pre">impute_gaussian()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.impute_minprob"><code class="docutils literal notranslate"><span class="pre">impute_minprob()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.impute_minprob_df"><code class="docutils literal notranslate"><span class="pre">impute_minprob_df()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.impute_minval"><code class="docutils literal notranslate"><span class="pre">impute_minval()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.median_normalize"><code class="docutils literal notranslate"><span class="pre">median_normalize()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.normalize"><code class="docutils literal notranslate"><span class="pre">normalize()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.quantile_normalize"><code class="docutils literal notranslate"><span class="pre">quantile_normalize()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.ranked_dist"><code class="docutils literal notranslate"><span class="pre">ranked_dist()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.ranked_dist_n_per_run"><code class="docutils literal notranslate"><span class="pre">ranked_dist_n_per_run()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.matrix_functions.reverse_log2"><code class="docutils literal notranslate"><span class="pre">reverse_log2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.ms_microscopy">app.components.ms_microscopy module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ms_microscopy.draw_localization_heatmap"><code class="docutils literal notranslate"><span class="pre">draw_localization_heatmap()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ms_microscopy.draw_localization_plot"><code class="docutils literal notranslate"><span class="pre">draw_localization_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ms_microscopy.generate_msmic_dataframes"><code class="docutils literal notranslate"><span class="pre">generate_msmic_dataframes()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ms_microscopy.localization_graph"><code class="docutils literal notranslate"><span class="pre">localization_graph()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ms_microscopy.tweak_fig_size_hw"><code class="docutils literal notranslate"><span class="pre">tweak_fig_size_hw()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.parsing">app.components.parsing module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.check_bait"><code class="docutils literal notranslate"><span class="pre">check_bait()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.check_comparison_file"><code class="docutils literal notranslate"><span class="pre">check_comparison_file()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.check_numeric"><code class="docutils literal notranslate"><span class="pre">check_numeric()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.check_required_columns"><code class="docutils literal notranslate"><span class="pre">check_required_columns()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.check_sample_table_column"><code class="docutils literal notranslate"><span class="pre">check_sample_table_column()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.clean_column_name"><code class="docutils literal notranslate"><span class="pre">clean_column_name()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.clean_sample_names"><code class="docutils literal notranslate"><span class="pre">clean_sample_names()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.delete_samples"><code class="docutils literal notranslate"><span class="pre">delete_samples()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.format_data"><code class="docutils literal notranslate"><span class="pre">format_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.format_sample_group_name"><code class="docutils literal notranslate"><span class="pre">format_sample_group_name()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.generate_replicate_name"><code class="docutils literal notranslate"><span class="pre">generate_replicate_name()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.get_distribution_title"><code class="docutils literal notranslate"><span class="pre">get_distribution_title()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.guess_controls"><code class="docutils literal notranslate"><span class="pre">guess_controls()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.parse_comparisons"><code class="docutils literal notranslate"><span class="pre">parse_comparisons()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.parse_data_file"><code class="docutils literal notranslate"><span class="pre">parse_data_file()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.parse_parameters"><code class="docutils literal notranslate"><span class="pre">parse_parameters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.parse_sample_table"><code class="docutils literal notranslate"><span class="pre">parse_sample_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.read_data_from_content"><code class="docutils literal notranslate"><span class="pre">read_data_from_content()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.read_df_from_content"><code class="docutils literal notranslate"><span class="pre">read_df_from_content()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.read_dia_nn"><code class="docutils literal notranslate"><span class="pre">read_dia_nn()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.read_fragpipe"><code class="docutils literal notranslate"><span class="pre">read_fragpipe()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.read_matrix"><code class="docutils literal notranslate"><span class="pre">read_matrix()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_all_na"><code class="docutils literal notranslate"><span class="pre">remove_all_na()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_duplicate_protein_groups"><code class="docutils literal notranslate"><span class="pre">remove_duplicate_protein_groups()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_from_table"><code class="docutils literal notranslate"><span class="pre">remove_from_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.rename_columns_and_update_expdesign"><code class="docutils literal notranslate"><span class="pre">rename_columns_and_update_expdesign()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.unmix_dtypes"><code class="docutils literal notranslate"><span class="pre">unmix_dtypes()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.update_nested_dict"><code class="docutils literal notranslate"><span class="pre">update_nested_dict()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.validate_basic_inputs"><code class="docutils literal notranslate"><span class="pre">validate_basic_inputs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.proteomics">app.components.proteomics module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.clustermap"><code class="docutils literal notranslate"><span class="pre">clustermap()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.differential_abundance"><code class="docutils literal notranslate"><span class="pre">differential_abundance()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.imputation"><code class="docutils literal notranslate"><span class="pre">imputation()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.missing_values_in_other_samples"><code class="docutils literal notranslate"><span class="pre">missing_values_in_other_samples()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.na_filter"><code class="docutils literal notranslate"><span class="pre">na_filter()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.normalization"><code class="docutils literal notranslate"><span class="pre">normalization()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.pca"><code class="docutils literal notranslate"><span class="pre">pca()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.proteomics.perc_cvplot"><code class="docutils literal notranslate"><span class="pre">perc_cvplot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.qc_analysis">app.components.qc_analysis module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.common_proteins"><code class="docutils literal notranslate"><span class="pre">common_proteins()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.commonality_plot"><code class="docutils literal notranslate"><span class="pre">commonality_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.count_plot"><code class="docutils literal notranslate"><span class="pre">count_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.coverage_plot"><code class="docutils literal notranslate"><span class="pre">coverage_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.distribution_plot"><code class="docutils literal notranslate"><span class="pre">distribution_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.generate_commonality_container"><code class="docutils literal notranslate"><span class="pre">generate_commonality_container()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.mean_plot"><code class="docutils literal notranslate"><span class="pre">mean_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.missing_plot"><code class="docutils literal notranslate"><span class="pre">missing_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.parse_tic_data"><code class="docutils literal notranslate"><span class="pre">parse_tic_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.reproducibility_plot"><code class="docutils literal notranslate"><span class="pre">reproducibility_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.qc_analysis.sum_plot"><code class="docutils literal notranslate"><span class="pre">sum_plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.quick_stats">app.components.quick_stats module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.anova"><code class="docutils literal notranslate"><span class="pre">anova()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.differential"><code class="docutils literal notranslate"><span class="pre">differential()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.get_common_data"><code class="docutils literal notranslate"><span class="pre">get_common_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.get_comparative_data"><code class="docutils literal notranslate"><span class="pre">get_comparative_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.get_count_data"><code class="docutils literal notranslate"><span class="pre">get_count_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.get_coverage_data"><code class="docutils literal notranslate"><span class="pre">get_coverage_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.get_mean_data"><code class="docutils literal notranslate"><span class="pre">get_mean_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.get_na_data"><code class="docutils literal notranslate"><span class="pre">get_na_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.quick_stats.get_sum_data"><code class="docutils literal notranslate"><span class="pre">get_sum_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.text_handling">app.components.text_handling module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.text_handling.clean_text"><code class="docutils literal notranslate"><span class="pre">clean_text()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.text_handling.remove_accent_characters"><code class="docutils literal notranslate"><span class="pre">remove_accent_characters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.text_handling.replace_accent_and_special_characters"><code class="docutils literal notranslate"><span class="pre">replace_accent_and_special_characters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.text_handling.replace_special_characters"><code class="docutils literal notranslate"><span class="pre">replace_special_characters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.text_handling.sanitize_for_database_use"><code class="docutils literal notranslate"><span class="pre">sanitize_for_database_use()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.tooltips">app.components.tooltips module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.generic_tooltip"><code class="docutils literal notranslate"><span class="pre">generic_tooltip()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.interactomics_select_top_controls_tooltip"><code class="docutils literal notranslate"><span class="pre">interactomics_select_top_controls_tooltip()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.na_tooltip"><code class="docutils literal notranslate"><span class="pre">na_tooltip()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.nearest_tooltip"><code class="docutils literal notranslate"><span class="pre">nearest_tooltip()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.rescue_tooltip"><code class="docutils literal notranslate"><span class="pre">rescue_tooltip()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.test_type_tooltip"><code class="docutils literal notranslate"><span class="pre">test_type_tooltip()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.use_svenn_tooltip"><code class="docutils literal notranslate"><span class="pre">use_svenn_tooltip()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.ui_components">app.components.ui_components module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.HEADER_DICT"><code class="docutils literal notranslate"><span class="pre">HEADER_DICT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.checklist"><code class="docutils literal notranslate"><span class="pre">checklist()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.discard_samples_checklist"><code class="docutils literal notranslate"><span class="pre">discard_samples_checklist()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.interactomics_area"><code class="docutils literal notranslate"><span class="pre">interactomics_area()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.interactomics_control_col"><code class="docutils literal notranslate"><span class="pre">interactomics_control_col()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.interactomics_crapome_col"><code class="docutils literal notranslate"><span class="pre">interactomics_crapome_col()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.interactomics_enrichment_col"><code class="docutils literal notranslate"><span class="pre">interactomics_enrichment_col()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.interactomics_inbuilt_control_col"><code class="docutils literal notranslate"><span class="pre">interactomics_inbuilt_control_col()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.interactomics_input_card"><code class="docutils literal notranslate"><span class="pre">interactomics_input_card()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.main_content_div"><code class="docutils literal notranslate"><span class="pre">main_content_div()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.main_sidebar"><code class="docutils literal notranslate"><span class="pre">main_sidebar()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.make_du_uploader"><code class="docutils literal notranslate"><span class="pre">make_du_uploader()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.modals"><code class="docutils literal notranslate"><span class="pre">modals()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.navbar"><code class="docutils literal notranslate"><span class="pre">navbar()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.post_saint_container"><code class="docutils literal notranslate"><span class="pre">post_saint_container()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.proteomics_area"><code class="docutils literal notranslate"><span class="pre">proteomics_area()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.proteomics_input_card"><code class="docutils literal notranslate"><span class="pre">proteomics_input_card()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.qc_area"><code class="docutils literal notranslate"><span class="pre">qc_area()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.range_input"><code class="docutils literal notranslate"><span class="pre">range_input()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.saint_filtering_container"><code class="docutils literal notranslate"><span class="pre">saint_filtering_container()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.table_of_contents"><code class="docutils literal notranslate"><span class="pre">table_of_contents()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.upload_area"><code class="docutils literal notranslate"><span class="pre">upload_area()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.ui_components.workflow_area"><code class="docutils literal notranslate"><span class="pre">workflow_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.pages.html">app.pages package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pages.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pages.html#module-app.pages.Colocalizer">app.pages.Colocalizer module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.LinkedZoom"><code class="docutils literal notranslate"><span class="pre">LinkedZoom()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.generate_figures"><code class="docutils literal notranslate"><span class="pre">generate_figures()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.handle_uploaded_data_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_data_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.load_image"><code class="docutils literal notranslate"><span class="pre">load_image()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.load_image_slice"><code class="docutils literal notranslate"><span class="pre">load_image_slice()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.load_merge"><code class="docutils literal notranslate"><span class="pre">load_merge()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.load_names_options"><code class="docutils literal notranslate"><span class="pre">load_names_options()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.load_timepoint_options"><code class="docutils literal notranslate"><span class="pre">load_timepoint_options()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.load_zleveloptions"><code class="docutils literal notranslate"><span class="pre">load_zleveloptions()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.make_du_uploader"><code class="docutils literal notranslate"><span class="pre">make_du_uploader()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.microscopy_content_div"><code class="docutils literal notranslate"><span class="pre">microscopy_content_div()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.parse_metadata"><code class="docutils literal notranslate"><span class="pre">parse_metadata()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.sidebar"><code class="docutils literal notranslate"><span class="pre">sidebar()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.update_channel_selection"><code class="docutils literal notranslate"><span class="pre">update_channel_selection()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.update_cmap"><code class="docutils literal notranslate"><span class="pre">update_cmap()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Colocalizer.utils"><code class="docutils literal notranslate"><span class="pre">utils()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pages.html#module-app.pages.Documentation">app.pages.Documentation module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Documentation.announcements"><code class="docutils literal notranslate"><span class="pre">announcements()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Documentation.other_tools"><code class="docutils literal notranslate"><span class="pre">other_tools()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.Documentation.user_manual"><code class="docutils literal notranslate"><span class="pre">user_manual()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pages.html#module-app.pages.MS_Inspector">app.pages.MS_Inspector module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.num_of_traces_visible"><code class="docutils literal notranslate"><span class="pre">num_of_traces_visible</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.trace_color"><code class="docutils literal notranslate"><span class="pre">trace_color</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.trace_types"><code class="docutils literal notranslate"><span class="pre">trace_types</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.run_limit"><code class="docutils literal notranslate"><span class="pre">run_limit</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.delim_runs"><code class="docutils literal notranslate"><span class="pre">delim_runs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.description_card"><code class="docutils literal notranslate"><span class="pre">description_card()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.download_graphs"><code class="docutils literal notranslate"><span class="pre">download_graphs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.generate_control_card"><code class="docutils literal notranslate"><span class="pre">generate_control_card()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.ms_analytics_layout"><code class="docutils literal notranslate"><span class="pre">ms_analytics_layout()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.reset_graphs"><code class="docutils literal notranslate"><span class="pre">reset_graphs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.sort_dates"><code class="docutils literal notranslate"><span class="pre">sort_dates()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.toggle_graphs"><code class="docutils literal notranslate"><span class="pre">toggle_graphs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.update_run_choices"><code class="docutils literal notranslate"><span class="pre">update_run_choices()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.update_tic_graph"><code class="docutils literal notranslate"><span class="pre">update_tic_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pages.html#module-app.pages.QC_and_data_analysis">app.pages.QC_and_data_analysis module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.parameters"><code class="docutils literal notranslate"><span class="pre">parameters</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.db_file"><code class="docutils literal notranslate"><span class="pre">db_file</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.contaminant_list"><code class="docutils literal notranslate"><span class="pre">contaminant_list</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.figure_output_formats"><code class="docutils literal notranslate"><span class="pre">figure_output_formats</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.layout"><code class="docutils literal notranslate"><span class="pre">layout</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.add_samples_to_discarded"><code class="docutils literal notranslate"><span class="pre">add_samples_to_discarded()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.assign_replicate_colors"><code class="docutils literal notranslate"><span class="pre">assign_replicate_colors()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.check_inputs"><code class="docutils literal notranslate"><span class="pre">check_inputs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.clear_data_stores"><code class="docutils literal notranslate"><span class="pre">clear_data_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.collapse_or_uncollapse_input"><code class="docutils literal notranslate"><span class="pre">collapse_or_uncollapse_input()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.common_proteins_plot"><code class="docutils literal notranslate"><span class="pre">common_proteins_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.commonality_plot"><code class="docutils literal notranslate"><span class="pre">commonality_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.count_plot"><code class="docutils literal notranslate"><span class="pre">count_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.coverage_plot"><code class="docutils literal notranslate"><span class="pre">coverage_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.create_qc_area"><code class="docutils literal notranslate"><span class="pre">create_qc_area()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.display_tap_node"><code class="docutils literal notranslate"><span class="pre">display_tap_node()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.distribution_plot"><code class="docutils literal notranslate"><span class="pre">distribution_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.download_example_comparison_file"><code class="docutils literal notranslate"><span class="pre">download_example_comparison_file()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.example_files_download"><code class="docutils literal notranslate"><span class="pre">example_files_download()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.generate_commonality_container"><code class="docutils literal notranslate"><span class="pre">generate_commonality_container()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.get_adiv_by_id"><code class="docutils literal notranslate"><span class="pre">get_adiv_by_id()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_data_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_data_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_sample_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_sample_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_add_crapome_to_saint"><code class="docutils literal notranslate"><span class="pre">interactomics_add_crapome_to_saint()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_apply_saint_filtering"><code class="docutils literal notranslate"><span class="pre">interactomics_apply_saint_filtering()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_common_proteins_plot"><code class="docutils literal notranslate"><span class="pre">interactomics_common_proteins_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_create_saint_filtering_container"><code class="docutils literal notranslate"><span class="pre">interactomics_create_saint_filtering_container()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_draw_saint_filtered_figure"><code class="docutils literal notranslate"><span class="pre">interactomics_draw_saint_filtered_figure()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_draw_saint_histogram"><code class="docutils literal notranslate"><span class="pre">interactomics_draw_saint_histogram()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_enrichment"><code class="docutils literal notranslate"><span class="pre">interactomics_enrichment()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_initiate_post_saint"><code class="docutils literal notranslate"><span class="pre">interactomics_initiate_post_saint()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_known_plot"><code class="docutils literal notranslate"><span class="pre">interactomics_known_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_map_intensity"><code class="docutils literal notranslate"><span class="pre">interactomics_map_intensity()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_ms_microscopy_plots"><code class="docutils literal notranslate"><span class="pre">interactomics_ms_microscopy_plots()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_network_plot"><code class="docutils literal notranslate"><span class="pre">interactomics_network_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_pca_plot"><code class="docutils literal notranslate"><span class="pre">interactomics_pca_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_run_saint"><code class="docutils literal notranslate"><span class="pre">interactomics_run_saint()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_saint_analysis"><code class="docutils literal notranslate"><span class="pre">interactomics_saint_analysis()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.mean_plot"><code class="docutils literal notranslate"><span class="pre">mean_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.missing_plot"><code class="docutils literal notranslate"><span class="pre">missing_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.open_discard_samples_modal"><code class="docutils literal notranslate"><span class="pre">open_discard_samples_modal()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.parse_chromatogram_data"><code class="docutils literal notranslate"><span class="pre">parse_chromatogram_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.pass_selected_groups_to_data_store"><code class="docutils literal notranslate"><span class="pre">pass_selected_groups_to_data_store()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.plot_tic"><code class="docutils literal notranslate"><span class="pre">plot_tic()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.prepare_for_download"><code class="docutils literal notranslate"><span class="pre">prepare_for_download()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_check_comparison_table"><code class="docutils literal notranslate"><span class="pre">proteomics_check_comparison_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_clustermap"><code class="docutils literal notranslate"><span class="pre">proteomics_clustermap()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_cv_plot"><code class="docutils literal notranslate"><span class="pre">proteomics_cv_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_filtering_plot"><code class="docutils literal notranslate"><span class="pre">proteomics_filtering_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_imputation_plot"><code class="docutils literal notranslate"><span class="pre">proteomics_imputation_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_missing_in_other_samples"><code class="docutils literal notranslate"><span class="pre">proteomics_missing_in_other_samples()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_normalization_plot"><code class="docutils literal notranslate"><span class="pre">proteomics_normalization_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_pca_plot"><code class="docutils literal notranslate"><span class="pre">proteomics_pca_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.proteomics_volcano_plots"><code class="docutils literal notranslate"><span class="pre">proteomics_volcano_plots()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.qc_done"><code class="docutils literal notranslate"><span class="pre">qc_done()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.remove_samples"><code class="docutils literal notranslate"><span class="pre">remove_samples()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.reproducibility_plot"><code class="docutils literal notranslate"><span class="pre">reproducibility_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_information"><code class="docutils literal notranslate"><span class="pre">save_information()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_input_stores"><code class="docutils literal notranslate"><span class="pre">save_input_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_interactomics_figures"><code class="docutils literal notranslate"><span class="pre">save_interactomics_figures()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_interactomics_post_saint_figures"><code class="docutils literal notranslate"><span class="pre">save_interactomics_post_saint_figures()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_proteomics_figures"><code class="docutils literal notranslate"><span class="pre">save_proteomics_figures()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_qc_figures"><code class="docutils literal notranslate"><span class="pre">save_qc_figures()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_workflow_stores"><code class="docutils literal notranslate"><span class="pre">save_workflow_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.select_all_none_controls"><code class="docutils literal notranslate"><span class="pre">select_all_none_controls()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.select_all_none_crapomes"><code class="docutils literal notranslate"><span class="pre">select_all_none_crapomes()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.select_all_none_inbuilt_controls"><code class="docutils literal notranslate"><span class="pre">select_all_none_inbuilt_controls()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.select_none_enrichments"><code class="docutils literal notranslate"><span class="pre">select_none_enrichments()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.send_data"><code class="docutils literal notranslate"><span class="pre">send_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.sum_plot"><code class="docutils literal notranslate"><span class="pre">sum_plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.table_of_contents"><code class="docutils literal notranslate"><span class="pre">table_of_contents()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.toggle_discard_modal"><code class="docutils literal notranslate"><span class="pre">toggle_discard_modal()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.update_cytoscape_layout"><code class="docutils literal notranslate"><span class="pre">update_cytoscape_layout()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.validate_data"><code class="docutils literal notranslate"><span class="pre">validate_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.workflow_area"><code class="docutils literal notranslate"><span class="pre">workflow_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pages.html#module-app.pages">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.pipeline_module.html">app.pipeline_module package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pipeline_module.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pipeline_module.html#module-app.pipeline_module.batch_data_store_builder">app.pipeline_module.batch_data_store_builder module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_data_stores_from_batch_output"><code class="docutils literal notranslate"><span class="pre">build_data_stores_from_batch_output()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_interactomics_data_stores"><code class="docutils literal notranslate"><span class="pre">build_interactomics_data_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_proteomics_data_stores"><code class="docutils literal notranslate"><span class="pre">build_proteomics_data_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_qc_data_stores"><code class="docutils literal notranslate"><span class="pre">build_qc_data_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_replicate_colors_stores"><code class="docutils literal notranslate"><span class="pre">build_replicate_colors_stores()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.build_upload_data_store"><code class="docutils literal notranslate"><span class="pre">build_upload_data_store()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.create_data_store_component"><code class="docutils literal notranslate"><span class="pre">create_data_store_component()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_data_store_builder.save_batch_data_using_infra"><code class="docutils literal notranslate"><span class="pre">save_batch_data_using_infra()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pipeline_module.html#module-app.pipeline_module.batch_figure_builder_from_divs">app.pipeline_module.batch_figure_builder_from_divs module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_figure_builder_from_divs.build_analysis_divs_from_saved_divs"><code class="docutils literal notranslate"><span class="pre">build_analysis_divs_from_saved_divs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_figure_builder_from_divs.get_commonality_pdf_data"><code class="docutils literal notranslate"><span class="pre">get_commonality_pdf_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_figure_builder_from_divs.load_div_pickle"><code class="docutils literal notranslate"><span class="pre">load_div_pickle()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_figure_builder_from_divs.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.batch_figure_builder_from_divs.save_batch_figures_using_saved_divs"><code class="docutils literal notranslate"><span class="pre">save_batch_figures_using_saved_divs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pipeline_module.html#module-app.pipeline_module.pipeline_batch">app.pipeline_module.pipeline_batch module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig"><code class="docutils literal notranslate"><span class="pre">BatchConfig</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.dash_to_wire"><code class="docutils literal notranslate"><span class="pre">dash_to_wire()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.run_pipeline"><code class="docutils literal notranslate"><span class="pre">run_pipeline()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pipeline_module.html#module-app.pipeline_module.pipeline_from_toml">app.pipeline_module.pipeline_from_toml module</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.pipeline_from_toml.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pipeline_module.html#app.pipeline_module.pipeline_from_toml.load_pipeline_parameters"><code class="docutils literal notranslate"><span class="pre">load_pipeline_parameters()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pipeline_module.html#module-app.pipeline_module.pipeline_input_watcher">app.pipeline_module.pipeline_input_watcher module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.pipeline_module.html#module-app.pipeline_module">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.resources.html">app.resources package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="code/app.resources.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.resources.html#module-app.resources.get_cpu_count">app.resources.get_cpu_count module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="code/app.resources.html#module-app.resources">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app.app">app.app module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.celery_app"><code class="docutils literal notranslate"><span class="pre">celery_app</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.app"><code class="docutils literal notranslate"><span class="pre">app</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.server"><code class="docutils literal notranslate"><span class="pre">server</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.logger"><code class="docutils literal notranslate"><span class="pre">logger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.create_navbar"><code class="docutils literal notranslate"><span class="pre">create_navbar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.toggle_navbar_collapse"><code class="docutils literal notranslate"><span class="pre">toggle_navbar_collapse()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app.database_updater">app.database_updater module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.get_dataframe_differences"><code class="docutils literal notranslate"><span class="pre">get_dataframe_differences()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.handle_merg_chunk"><code class="docutils literal notranslate"><span class="pre">handle_merg_chunk()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.handle_mods"><code class="docutils literal notranslate"><span class="pre">handle_mods()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.handle_new"><code class="docutils literal notranslate"><span class="pre">handle_new()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.merge_multiple_string_dataframes"><code class="docutils literal notranslate"><span class="pre">merge_multiple_string_dataframes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.stream_flattened_rows"><code class="docutils literal notranslate"><span class="pre">stream_flattened_rows()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.update_database"><code class="docutils literal notranslate"><span class="pre">update_database()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.update_external_data"><code class="docutils literal notranslate"><span class="pre">update_external_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.update_knowns"><code class="docutils literal notranslate"><span class="pre">update_knowns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.update_log_table"><code class="docutils literal notranslate"><span class="pre">update_log_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.update_table_with_file"><code class="docutils literal notranslate"><span class="pre">update_table_with_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.update_uniprot"><code class="docutils literal notranslate"><span class="pre">update_uniprot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.update_version_table"><code class="docutils literal notranslate"><span class="pre">update_version_table()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app.element_styles">app.element_styles module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app.embedded_page_updater">app.embedded_page_updater module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.embedded_page_updater.create_page_file"><code class="docutils literal notranslate"><span class="pre">create_page_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.embedded_page_updater.parse_embed_file"><code class="docutils literal notranslate"><span class="pre">parse_embed_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.embedded_page_updater.update_pages"><code class="docutils literal notranslate"><span class="pre">update_pages()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app.run_as_pipeline">app.run_as_pipeline module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.run_as_pipeline.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.run_as_pipeline.run_batch_pipeline"><code class="docutils literal notranslate"><span class="pre">run_batch_pipeline()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="README.html" class="btn btn-neutral float-right" title="Proteogyver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

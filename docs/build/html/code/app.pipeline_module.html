@@ -1,0 +1,649 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.pipeline_module package &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="app.resources package" href="app.resources.html" />
+    <link rel="prev" title="app.pages package" href="app.pages.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">2025_ProteoGyver</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="app.html">app package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="app.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="app.components.html">app.components package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.pages.html">app.pages package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">app.pipeline_module package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.resources.html">app.resources package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.app">app.app module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.database_updater">app.database_updater module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.element_styles">app.element_styles module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.embedded_page_updater">app.embedded_page_updater module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.run_as_pipeline">app.run_as_pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">2025_ProteoGyver</a></li>
+          <li class="breadcrumb-item"><a href="app.html">app package</a></li>
+      <li class="breadcrumb-item active">app.pipeline_module package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/code/app.pipeline_module.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="app-pipeline-module-package">
+<h1>app.pipeline_module package<a class="headerlink" href="#app-pipeline-module-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-app.pipeline_module.batch_data_store_builder">
+<span id="app-pipeline-module-batch-data-store-builder-module"></span><h2>app.pipeline_module.batch_data_store_builder module<a class="headerlink" href="#module-app.pipeline_module.batch_data_store_builder" title="Link to this heading"></a></h2>
+<p>Batch Data Store Builder for ProteoGyver</p>
+<p>This module constructs data stores in the exact format expected by the GUI,
+allowing the batch pipeline to use the same infra.save_data_stores function
+as the interactive GUI.</p>
+<p>The module converts batch pipeline results into Dash Store components that
+match the structure and content expected by the GUI export system.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.build_data_stores_from_batch_output">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">build_data_stores_from_batch_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#build_data_stores_from_batch_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.build_data_stores_from_batch_output" title="Link to this definition"></a></dt>
+<dd><p>Build the complete list of data stores from batch output directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing batch output JSON files.</p></li>
+<li><p><strong>workflow</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Workflow name (‘proteomics’ or ‘interactomics’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Complete list of data store components ready for infra.save_data_stores.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.build_interactomics_data_stores">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">build_interactomics_data_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#build_interactomics_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.build_interactomics_data_stores" title="Link to this definition"></a></dt>
+<dd><p>Build interactomics-specific data stores from batch output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch_output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing batch output JSON files.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of interactomics data store components.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.build_proteomics_data_stores">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">build_proteomics_data_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#build_proteomics_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.build_proteomics_data_stores" title="Link to this definition"></a></dt>
+<dd><p>Build proteomics-specific data stores from batch output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch_output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing batch output JSON files.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of proteomics data store components.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.build_qc_data_stores">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">build_qc_data_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qc_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#build_qc_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.build_qc_data_stores" title="Link to this definition"></a></dt>
+<dd><p>Build QC-related data stores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>qc_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></span>) – QC artifacts from batch output.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of QC data store components.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.build_replicate_colors_stores">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">build_replicate_colors_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#build_replicate_colors_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.build_replicate_colors_stores" title="Link to this definition"></a></dt>
+<dd><p>Build replicate color data stores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></span>) – Data dictionary from batch output.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List containing replicate color data store components.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.build_upload_data_store">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">build_upload_data_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#build_upload_data_store"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.build_upload_data_store" title="Link to this definition"></a></dt>
+<dd><p>Build the main upload data store from batch data dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></span>) – Data dictionary from batch output.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Data store component for ‘upload-data-store’.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.create_data_store_component">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">create_data_store_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#create_data_store_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.create_data_store_component" title="Link to this definition"></a></dt>
+<dd><p>Create a Dash data store component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>store_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Data store ID (e.g., ‘proteomics-volcano-data-store’).</p></li>
+<li><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Data to store (dict/JSON string/etc.).</p></li>
+<li><p><strong>timestamp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Optional milliseconds since epoch; uses current time if None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dash Store component dict structure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_data_store_builder.save_batch_data_using_infra">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_data_store_builder.</span></span><span class="sig-name descname"><span class="pre">save_batch_data_using_infra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_data_store_builder.html#save_batch_data_using_infra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_data_store_builder.save_batch_data_using_infra" title="Link to this definition"></a></dt>
+<dd><p>Save batch data using the GUI’s infra.save_data_stores function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing batch output JSON files.</p></li>
+<li><p><strong>export_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory to save exported data.</p></li>
+<li><p><strong>workflow</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Workflow name (‘proteomics’ or ‘interactomics’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Summary dict of the export operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.pipeline_module.batch_figure_builder_from_divs">
+<span id="app-pipeline-module-batch-figure-builder-from-divs-module"></span><h2>app.pipeline_module.batch_figure_builder_from_divs module<a class="headerlink" href="#module-app.pipeline_module.batch_figure_builder_from_divs" title="Link to this heading"></a></h2>
+<p>Batch Figure Builder using saved Dash divs</p>
+<p>This module loads the saved div pickle files generated by the batch pipeline
+and uses them directly with infra.save_figures, just like the GUI does.</p>
+<p>This approach is much more reliable than trying to reconstruct figures from JSON.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_figure_builder_from_divs.build_analysis_divs_from_saved_divs">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_figure_builder_from_divs.</span></span><span class="sig-name descname"><span class="pre">build_analysis_divs_from_saved_divs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_figure_builder_from_divs.html#build_analysis_divs_from_saved_divs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_figure_builder_from_divs.build_analysis_divs_from_saved_divs" title="Link to this definition"></a></dt>
+<dd><p>Build <code class="docutils literal notranslate"><span class="pre">analysis_divs</span></code> list from saved div pickle files.</p>
+<p>The GUI export expects a flat list of individual div components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing the batch output files.</p></li>
+<li><p><strong>workflow</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Workflow type (‘proteomics’ or ‘interactomics’).</p></li>
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Parsed parameters dict (for TIC rendering defaults).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of analysis div components ready for infra.save_figures.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_figure_builder_from_divs.get_commonality_pdf_data">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_figure_builder_from_divs.</span></span><span class="sig-name descname"><span class="pre">get_commonality_pdf_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_figure_builder_from_divs.html#get_commonality_pdf_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_figure_builder_from_divs.get_commonality_pdf_data" title="Link to this definition"></a></dt>
+<dd><p>Get commonality PDF data if available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch_output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing batch output.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PDF data string, or None if not available.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_figure_builder_from_divs.load_div_pickle">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_figure_builder_from_divs.</span></span><span class="sig-name descname"><span class="pre">load_div_pickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pickle_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_figure_builder_from_divs.html#load_div_pickle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_figure_builder_from_divs.load_div_pickle" title="Link to this definition"></a></dt>
+<dd><p>Load a div pickle file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pickle_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Path to the pickle file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict of div components or empty dict if not found or on error.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_figure_builder_from_divs.main">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_figure_builder_from_divs.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_figure_builder_from_divs.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_figure_builder_from_divs.main" title="Link to this definition"></a></dt>
+<dd><p>Command-line entry point for figure generation using saved divs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.batch_figure_builder_from_divs.save_batch_figures_using_saved_divs">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.batch_figure_builder_from_divs.</span></span><span class="sig-name descname"><span class="pre">save_batch_figures_using_saved_divs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_formats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/batch_figure_builder_from_divs.html#save_batch_figures_using_saved_divs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.batch_figure_builder_from_divs.save_batch_figures_using_saved_divs" title="Link to this definition"></a></dt>
+<dd><p>Save batch figures using saved div pickle files and GUI infrastructure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing batch output and div pickle files.</p></li>
+<li><p><strong>export_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory for figure export.</p></li>
+<li><p><strong>workflow</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Workflow type (‘proteomics’ or ‘interactomics’).</p></li>
+<li><p><strong>parameters</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Parsed parameters dict for figure defaults.</p></li>
+<li><p><strong>output_formats</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span>) – Output format list, default [‘html’, ‘pdf’, ‘png’].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Summary dict with export details and counts.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.pipeline_module.pipeline_batch">
+<span id="app-pipeline-module-pipeline-batch-module"></span><h2>app.pipeline_module.pipeline_batch module<a class="headerlink" href="#module-app.pipeline_module.pipeline_batch" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.pipeline_module.pipeline_batch.</span></span><span class="sig-name descname"><span class="pre">BatchConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_table_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_table_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir='batch_out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_template='plotly_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_common_contaminants=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename_replicates=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_only=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow='proteomics'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_formats=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_batch_output=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_filter_percent=70</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_filter_type='sample-group'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization='no_normalization'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imputation='QRILC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_group=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comparison_file=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_threshold=2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_threshold=0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_type='independent'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_controls=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_controls=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crapome_sets=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proximity_filtering=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_controls=3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saint_bfdr_threshold=0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crapome_percentage_threshold=20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crapome_fc_threshold=2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescue_enabled=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen_enrichments=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_supervenn=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/pipeline_batch.html#BatchConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.additional_controls">
+<span class="sig-name descname"><span class="pre">additional_controls</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.additional_controls" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.chosen_enrichments">
+<span class="sig-name descname"><span class="pre">chosen_enrichments</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.chosen_enrichments" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.comparison_file">
+<span class="sig-name descname"><span class="pre">comparison_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.comparison_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.control_group">
+<span class="sig-name descname"><span class="pre">control_group</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.control_group" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.crapome_fc_threshold">
+<span class="sig-name descname"><span class="pre">crapome_fc_threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.crapome_fc_threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.crapome_percentage_threshold">
+<span class="sig-name descname"><span class="pre">crapome_percentage_threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.crapome_percentage_threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.crapome_sets">
+<span class="sig-name descname"><span class="pre">crapome_sets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.crapome_sets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.data_table_path">
+<span class="sig-name descname"><span class="pre">data_table_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.data_table_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.fc_threshold">
+<span class="sig-name descname"><span class="pre">fc_threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.fc_threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.figure_template">
+<span class="sig-name descname"><span class="pre">figure_template</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'plotly_white'</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.figure_template" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.force_supervenn">
+<span class="sig-name descname"><span class="pre">force_supervenn</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.force_supervenn" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.imputation">
+<span class="sig-name descname"><span class="pre">imputation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'QRILC'</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.imputation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.keep_batch_output">
+<span class="sig-name descname"><span class="pre">keep_batch_output</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.keep_batch_output" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.n_controls">
+<span class="sig-name descname"><span class="pre">n_controls</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.n_controls" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.na_filter_percent">
+<span class="sig-name descname"><span class="pre">na_filter_percent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">70</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.na_filter_percent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.na_filter_type">
+<span class="sig-name descname"><span class="pre">na_filter_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sample-group'</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.na_filter_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.normalization">
+<span class="sig-name descname"><span class="pre">normalization</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'no_normalization'</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.normalization" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.outdir">
+<span class="sig-name descname"><span class="pre">outdir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'batch_out'</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.outdir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.p_threshold">
+<span class="sig-name descname"><span class="pre">p_threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.05</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.p_threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.plot_formats">
+<span class="sig-name descname"><span class="pre">plot_formats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.plot_formats" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.proximity_filtering">
+<span class="sig-name descname"><span class="pre">proximity_filtering</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.proximity_filtering" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.remove_common_contaminants">
+<span class="sig-name descname"><span class="pre">remove_common_contaminants</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.remove_common_contaminants" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.rename_replicates">
+<span class="sig-name descname"><span class="pre">rename_replicates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.rename_replicates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.rescue_enabled">
+<span class="sig-name descname"><span class="pre">rescue_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.rescue_enabled" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.saint_bfdr_threshold">
+<span class="sig-name descname"><span class="pre">saint_bfdr_threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.05</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.saint_bfdr_threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.sample_table_path">
+<span class="sig-name descname"><span class="pre">sample_table_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.sample_table_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.test_type">
+<span class="sig-name descname"><span class="pre">test_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'independent'</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.test_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.unique_only">
+<span class="sig-name descname"><span class="pre">unique_only</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.unique_only" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.uploaded_controls">
+<span class="sig-name descname"><span class="pre">uploaded_controls</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.uploaded_controls" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.BatchConfig.workflow">
+<span class="sig-name descname"><span class="pre">workflow</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'proteomics'</span></em><a class="headerlink" href="#app.pipeline_module.pipeline_batch.BatchConfig.workflow" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.dash_to_wire">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.pipeline_batch.</span></span><span class="sig-name descname"><span class="pre">dash_to_wire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/pipeline_batch.html#dash_to_wire"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.pipeline_batch.dash_to_wire" title="Link to this definition"></a></dt>
+<dd><p>Recursively convert Dash/Plotly components to JSON-serializable structures.</p>
+<ul class="simple">
+<li><p>Leaves primitives (str, int, float, bool, None) untouched.</p></li>
+<li><p>Converts any object exposing <code class="docutils literal notranslate"><span class="pre">to_plotly_json()</span></code> (Dash components, go.Figure).</p></li>
+<li><p>Recurses through dicts and lists/tuples.</p></li>
+<li><p>Dataclasses are converted via <code class="docutils literal notranslate"><span class="pre">asdict()</span></code> then recursed.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> – Any Python object (Dash component, go.Figure, dict/list, primitives).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON-serializable structure with components replaced by dicts/lists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_batch.run_pipeline">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.pipeline_batch.</span></span><span class="sig-name descname"><span class="pre">run_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/pipeline_batch.html#run_pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.pipeline_batch.run_pipeline" title="Link to this definition"></a></dt>
+<dd><p>Execute the batch pipeline mirroring the app’s QC and analysis steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cfg</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#app.pipeline_module.pipeline_batch.BatchConfig" title="app.pipeline_module.pipeline_batch.BatchConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BatchConfig</span></code></a></span>) – Batch configuration object.</p></li>
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Parsed application parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Summary dict and JSON artifacts written to <code class="docutils literal notranslate"><span class="pre">cfg.outdir</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.pipeline_module.pipeline_from_toml">
+<span id="app-pipeline-module-pipeline-from-toml-module"></span><h2>app.pipeline_module.pipeline_from_toml module<a class="headerlink" href="#module-app.pipeline_module.pipeline_from_toml" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_from_toml.load_config">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.pipeline_from_toml.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toml_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_toml_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/pipeline_from_toml.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.pipeline_from_toml.load_config" title="Link to this definition"></a></dt>
+<dd><p>Load a complete BatchConfig from a user TOML and defaults.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>toml_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Path to user TOML file.</p></li>
+<li><p><strong>default_toml_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional directory of default TOMLs; when provided,
+a fully expanded TOML is emitted next to the user TOML for transparency.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#app.pipeline_module.pipeline_batch.BatchConfig" title="app.pipeline_module.pipeline_batch.BatchConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BatchConfig</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Populated BatchConfig instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pipeline_module.pipeline_from_toml.load_pipeline_parameters">
+<span class="sig-prename descclassname"><span class="pre">app.pipeline_module.pipeline_from_toml.</span></span><span class="sig-name descname"><span class="pre">load_pipeline_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_toml</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pipeline_module/pipeline_from_toml.html#load_pipeline_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pipeline_module.pipeline_from_toml.load_pipeline_parameters" title="Link to this definition"></a></dt>
+<dd><p>Build final parameters with precedence.</p>
+<p>Precedence: common defaults &lt;- workflow defaults &lt;- user TOML.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user_toml</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – User-provided TOML path.</p></li>
+<li><p><strong>defaults_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Directory containing default TOMLs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Merged parameters dictionary.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If workflow is not defined in the user TOML.</p></li>
+<li><p><strong>ValueError</strong> – If workflow is unsupported.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.pipeline_module.pipeline_input_watcher">
+<span id="app-pipeline-module-pipeline-input-watcher-module"></span><h2>app.pipeline_module.pipeline_input_watcher module<a class="headerlink" href="#module-app.pipeline_module.pipeline_input_watcher" title="Link to this heading"></a></h2>
+<p>Directory watcher that runs the batch pipeline on stable input trees.</p>
+<p>It selects a pipeline TOML under each subdirectory, validates it, ensures
+the directory is quiescent, and invokes the pipeline runner. Results and
+errors are written next to the inputs.</p>
+</section>
+<section id="module-app.pipeline_module">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-app.pipeline_module" title="Link to this heading"></a></h2>
+<p>Pipeline module for background analyses and watchers.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app.pages.html" class="btn btn-neutral float-left" title="app.pages package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app.resources.html" class="btn btn-neutral float-right" title="app.resources package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,707 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.qc_analysis &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.qc_analysis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.qc_analysis</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">QC analysis figure builders and containers.</span>
+
+<span class="sd">Generates standard QC visualizations (counts, coverage, missing values,</span>
+<span class="sd">distribution, reproducibility, commonality, TIC) and their wrappers for</span>
+<span class="sd">use in the UI.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">Series</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_json</span> <span class="k">as</span> <span class="n">pd_read_json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">html</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_bootstrap_components</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dbc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures</span><span class="w"> </span><span class="kn">import</span> <span class="n">bar_graph</span><span class="p">,</span> <span class="n">comparative_plot</span><span class="p">,</span> <span class="n">commonality_graph</span><span class="p">,</span> <span class="n">reproducibility_graph</span><span class="p">,</span> <span class="n">color_tools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">quick_stats</span><span class="p">,</span> <span class="n">db_functions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures.figure_legends</span><span class="w"> </span><span class="kn">import</span> <span class="n">QC_LEGENDS</span> <span class="k">as</span> <span class="n">legends</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.ui_components</span><span class="w"> </span><span class="kn">import</span> <span class="n">checklist</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.tooltips</span><span class="w"> </span><span class="kn">import</span> <span class="n">use_svenn_tooltip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash.dcc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span><span class="p">,</span> <span class="n">Dropdown</span><span class="p">,</span> <span class="n">Loading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="count_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.count_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">count_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">contaminant_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate protein count bar plot per sample.</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param replicate_colors: Color mappings for samples and contaminants.</span>
+<span class="sd">    :param contaminant_list: Optional list of contaminants to exclude.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional plot title.</span>
+<span class="sd">    :returns: Tuple of (graph div, count data as JSON split).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;count_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">count_data</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_count_data</span><span class="p">(</span>
+        <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
+        <span class="n">contaminant_list</span>
+    <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;count_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">color_col</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">count_data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Is contaminant&#39;</span><span class="p">]:</span>
+            <span class="n">color_col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">replicate_colors</span><span class="p">[</span><span class="s1">&#39;contaminant&#39;</span><span class="p">][</span><span class="s1">&#39;samples&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">color_col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">replicate_colors</span><span class="p">[</span><span class="s1">&#39;non-contaminant&#39;</span><span class="p">][</span><span class="s1">&#39;samples&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">])</span>
+    <span class="n">count_data</span><span class="p">[</span><span class="s1">&#39;Color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color_col</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;count_plot - color_added: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;Proteins per sample&#39;</span>
+    <span class="n">graph_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-count-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-proteins_per_sample&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">figtitle</span><span class="p">),</span>
+            <span class="n">bar_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                <span class="s1">&#39;qc-count-plot&#39;</span><span class="p">,</span>
+                <span class="n">defaults</span><span class="p">,</span>
+                <span class="n">figtitle</span><span class="p">,</span>
+                <span class="n">count_data</span><span class="p">,</span>
+                <span class="n">title</span><span class="p">,</span> <span class="n">color_discrete_map</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">hide_legend</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;count-plot&#39;</span><span class="p">]</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;count_plot - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span> <span class="n">count_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="common_proteins">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.common_proteins">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">common_proteins</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">db_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">figure_defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">additional_groups</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;qc&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Summarize common proteins by class and sample.</span>
+
+<span class="sd">    :param data_table: Input matrix in JSON split format.</span>
+<span class="sd">    :param db_file: Path to SQLite database file.</span>
+<span class="sd">    :param figure_defaults: Figure defaults and component config.</span>
+<span class="sd">    :param additional_groups: Optional mapping of group name to protein list to include.</span>
+<span class="sd">    :param id_str: ID prefix for generated components.</span>
+<span class="sd">    :returns: Tuple of (graph div, plot data as JSON split).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">table</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">data_table</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">db_conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
+    <span class="n">common_proteins</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="s1">&#39;common_proteins&#39;</span><span class="p">,</span><span class="s1">&#39;uniprot_id&#39;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+    <span class="n">common_proteins</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">common_proteins</span><span class="p">[</span><span class="s1">&#39;uniprot_id&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">additional_groups</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">additional_groups</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">additional_proteins</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">plist</span> <span class="ow">in</span> <span class="n">additional_groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">plist</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plist</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">common_proteins</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plist</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">additional_proteins</span><span class="p">:</span>
+                <span class="n">additional_proteins</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">additional_proteins</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="n">additional_groups</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">protid</span><span class="p">,</span> <span class="n">groups</span> <span class="ow">in</span> <span class="n">additional_proteins</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">gk</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">additional_groups</span><span class="p">:</span> <span class="n">additional_groups</span><span class="p">[</span><span class="n">gk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">additional_groups</span><span class="p">[</span><span class="n">gk</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">protid</span><span class="p">)</span>
+    
+    <span class="n">plot_headers</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Sample name&#39;</span><span class="p">,</span><span class="s1">&#39;Protein class&#39;</span><span class="p">,</span><span class="s1">&#39;Proteins&#39;</span><span class="p">,</span> <span class="s1">&#39;ValueSum&#39;</span><span class="p">,</span><span class="s1">&#39;Count&#39;</span><span class="p">]</span>
+    <span class="n">plot_data</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">col_data</span><span class="p">:</span> <span class="n">Series</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+        <span class="n">col_data</span> <span class="o">=</span> <span class="n">col_data</span><span class="p">[</span><span class="n">col_data</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span>
+        <span class="n">com_for_col</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">common_proteins</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">common_proteins</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">col_data</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">pclass</span> <span class="ow">in</span> <span class="n">com_for_col</span><span class="p">[</span><span class="s1">&#39;protein_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">class_prots</span> <span class="o">=</span> <span class="n">com_for_col</span><span class="p">[</span><span class="n">com_for_col</span><span class="p">[</span><span class="s1">&#39;protein_type&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">pclass</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">plot_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                <span class="n">c</span><span class="p">,</span> <span class="n">pclass</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">class_prots</span><span class="p">),</span> <span class="n">col_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">class_prots</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_prots</span><span class="p">)</span>
+            <span class="p">])</span>
+        <span class="n">remaining_proteins</span><span class="p">:</span> <span class="n">Series</span> <span class="o">=</span> <span class="n">col_data</span><span class="p">[</span><span class="o">~</span><span class="n">col_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">com_for_col</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">groupname</span><span class="p">,</span> <span class="n">group_prots</span> <span class="ow">in</span> <span class="n">additional_groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">in_both</span> <span class="o">=</span> <span class="n">group_prots</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">remaining_proteins</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">in_both</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">plot_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                    <span class="n">c</span><span class="p">,</span> <span class="n">groupname</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">in_both</span><span class="p">),</span> <span class="n">col_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">in_both</span><span class="p">)]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">in_both</span><span class="p">)</span> 
+                <span class="p">])</span>
+
+        <span class="n">remaining_proteins</span> <span class="o">=</span> <span class="n">remaining_proteins</span><span class="p">[</span><span class="o">~</span><span class="n">remaining_proteins</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">additional_proteins</span><span class="p">)]</span>
+        <span class="n">plot_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+            <span class="n">c</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">remaining_proteins</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="n">remaining_proteins</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">remaining_proteins</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">])</span>
+    <span class="n">plot_frame</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">plot_data</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">plot_headers</span><span class="p">)</span>
+    <span class="n">plot_frame</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;Protein class&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Common proteins in data (</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">-common-proteins-plot&#39;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">-common-proteins-header&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="n">figtitle</span><span class="p">),</span>
+                <span class="n">bar_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_str</span><span class="si">}</span><span class="s1">-common-proteins-graph&#39;</span><span class="p">,</span>
+                    <span class="n">figure_defaults</span><span class="p">,</span>
+                    <span class="n">figtitle</span><span class="p">,</span>
+                    <span class="n">plot_frame</span><span class="p">,</span>
+                    <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">color_col</span><span class="o">=</span><span class="s1">&#39;Protein class&#39;</span><span class="p">,</span><span class="n">y_name</span><span class="o">=</span><span class="s1">&#39;ValueSum&#39;</span><span class="p">,</span> <span class="n">x_name</span><span class="o">=</span><span class="s1">&#39;Sample name&#39;</span>
+                <span class="p">),</span>
+                <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;common-protein-plot&#39;</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+            <span class="p">}</span>
+        <span class="p">),</span>
+        <span class="n">plot_frame</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parse_tic_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.parse_tic_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_tic_data</span><span class="p">(</span><span class="n">expdesign_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">db_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span><span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prepare TIC/BPC/MSn trace bundles for plotting.</span>
+
+<span class="sd">    :param expdesign_json: Experimental design table in JSON split format.</span>
+<span class="sd">    :param replicate_colors: Mapping of sample names to colors.</span>
+<span class="sd">    :param db_file: Path to SQLite database file.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :returns: Tuple of (graph div scaffold, trace dictionary).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">expdesign</span> <span class="o">=</span> <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">expdesign_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">expdesign</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">replicate_colors</span><span class="p">[</span><span class="s1">&#39;samples&#39;</span><span class="p">][</span><span class="n">rep_name</span><span class="p">]</span> <span class="k">for</span> <span class="n">rep_name</span> <span class="ow">in</span> <span class="n">expdesign</span><span class="p">[</span><span class="s1">&#39;Sample name&#39;</span><span class="p">]]</span>
+    <span class="n">expdesign</span><span class="p">[</span><span class="s1">&#39;Sample name nopath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">sn</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">sn</span> <span class="ow">in</span> <span class="n">expdesign</span><span class="p">[</span><span class="s1">&#39;Sample name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">db_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">db_conn</span><span class="p">:</span><span class="c1"># Need rw connection for this one to be able to do this</span>
+        <span class="n">run_data</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_match_with_priority</span><span class="p">(</span>
+            <span class="n">db_conn</span><span class="p">,</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">expdesign</span><span class="p">[</span><span class="s1">&#39;Sample name nopath&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+            <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;file_name_clean&#39;</span><span class="p">,</span> <span class="s1">&#39;sample_id&#39;</span><span class="p">,</span> <span class="s1">&#39;sample_name&#39;</span> <span class="p">],</span>
+            <span class="n">case_insensitive</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">return_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;internal_run_id&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="n">int_run_ids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">int_id_to_sample</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">expdesign</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Sample name nopath&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">run_data</span><span class="p">[</span><span class="n">sample</span><span class="p">]:</span>
+            <span class="n">int_run_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_data</span><span class="p">[</span><span class="n">sample</span><span class="p">][</span><span class="s1">&#39;internal_run_id&#39;</span><span class="p">])</span>
+            <span class="n">int_id_to_sample</span><span class="p">[</span><span class="n">run_data</span><span class="p">[</span><span class="n">sample</span><span class="p">][</span><span class="s1">&#39;internal_run_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">sample</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">int_run_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(),</span> <span class="p">{})</span>
+    <span class="k">with</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">db_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;ro&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">db_conn</span><span class="p">:</span><span class="c1"># No need for rw anymore</span>
+        <span class="n">graph_data</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span><span class="n">db_conn</span><span class="p">,</span> <span class="s1">&#39;ms_plots&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_run_id&#39;</span><span class="p">,</span> <span class="n">int_run_ids</span><span class="p">)</span>
+    <span class="n">tracetypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TIC&#39;</span><span class="p">,</span><span class="s1">&#39;MSn&#39;</span><span class="p">,</span><span class="s1">&#39;BPC&#39;</span><span class="p">]</span>
+    <span class="n">tic_dic</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">trace_type</span> <span class="ow">in</span> <span class="n">tracetypes</span><span class="p">:</span>
+        <span class="n">tracelist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">max_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">max_y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">graph_data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">sample_row</span> <span class="o">=</span> <span class="n">expdesign</span><span class="p">[</span><span class="n">expdesign</span><span class="p">[</span><span class="s1">&#39;Sample name nopath&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">int_id_to_sample</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;internal_run_id&#39;</span><span class="p">]]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">trace_type</span><span class="si">}</span><span class="s1">_trace&#39;</span><span class="p">])</span>
+            <span class="n">max_x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_x</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">trace_type</span><span class="si">}</span><span class="s1">_maxtime&#39;</span><span class="p">])</span>
+            <span class="n">max_y</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_y</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">trace_type</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">])</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s1">&#39;line&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">sample_row</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">],</span> <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="n">tracelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">tic_dic</span><span class="p">[</span><span class="n">trace_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;traces&#39;</span><span class="p">:</span> <span class="n">tracelist</span><span class="p">,</span>
+            <span class="s1">&#39;max_x&#39;</span><span class="p">:</span> <span class="n">max_x</span><span class="p">,</span>
+            <span class="s1">&#39;max_y&#39;</span><span class="p">:</span> <span class="n">max_y</span>
+        <span class="p">}</span>
+    <span class="n">dlname</span> <span class="o">=</span> <span class="s1">&#39;Chromatogram&#39;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlname</span>
+    <span class="n">graph_div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;qc-tic-fic&#39;</span><span class="p">,</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-tic-graph&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Sample run TICs&#39;</span><span class="p">),</span>
+                <span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-tic-plot&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">),</span>
+                <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;tic&#39;</span><span class="p">],</span>
+                <span class="n">Dropdown</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-tic-dropdown&#39;</span><span class="p">,</span><span class="n">options</span><span class="o">=</span><span class="n">tracetypes</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;TIC&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span> <span class="n">tic_dic</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="coverage_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.coverage_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">coverage_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create coverage bar plot (proteins identified in N samples).</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional plot title.</span>
+<span class="sd">    :returns: Tuple of (graph div, coverage data as JSON split).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;coverage - started: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">coverage_data</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_coverage_data</span><span class="p">(</span><span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;coverage - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;Protein identification coverage&#39;</span>
+    <span class="n">graph_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-coverage-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-id_coverage&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Protein identification coverage&#39;</span><span class="p">),</span>
+            <span class="n">bar_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span><span class="s1">&#39;qc-coverage-plot&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">figtitle</span><span class="p">,</span>
+                                 <span class="n">coverage_data</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;Protein identified in N samples&#39;</span><span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;coverage-plot&#39;</span><span class="p">]</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;coverage - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span> <span class="n">coverage_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="reproducibility_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.reproducibility_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reproducibility_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">table_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot per-replicate deviations from group mean.</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param sample_groups: Mapping group -&gt; list of columns.</span>
+<span class="sd">    :param table_type: Label for axis title.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional title.</span>
+<span class="sd">    :returns: Tuple of (graph div, reproducibility data JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;reproducibility_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">data_table</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">repro_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">reproducibility_graph</span><span class="o">.</span><span class="n">get_reproducibility_dataframe</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;reproducibility_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">dlname</span> <span class="o">=</span> <span class="s1">&#39;Sample reproducibility&#39;</span>
+    <span class="n">graph_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-reproducibility-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-reproducibility&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">dlname</span><span class="p">),</span>
+            <span class="n">reproducibility_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                <span class="s1">&#39;qc-reproducibility-plot&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">repro_data</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">table_type</span><span class="p">,</span> <span class="n">dlname</span><span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;reproducibility-plot&#39;</span><span class="p">]</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;reproducibility_plot - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span>  <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">repro_data</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="missing_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.missing_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">missing_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot missing value percentage per sample.</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param replicate_colors: Mapping for sample colors.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional title.</span>
+<span class="sd">    :returns: Tuple of (graph div, NA data JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;missing_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">na_data</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_na_data</span><span class="p">(</span>
+        <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span>
+    <span class="n">na_data</span><span class="p">[</span><span class="s1">&#39;Color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">replicate_colors</span><span class="p">[</span><span class="s1">&#39;samples&#39;</span><span class="p">][</span><span class="n">rep_name</span><span class="p">]</span> <span class="k">for</span> <span class="n">rep_name</span> <span class="ow">in</span> <span class="n">na_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="p">]</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;missing_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;Missing values per sample&#39;</span>
+    <span class="n">graph_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-missing-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-missing_values&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">figtitle</span><span class="p">),</span>
+            <span class="n">bar_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                <span class="s1">&#39;qc-missing-plot&#39;</span><span class="p">,</span>
+                <span class="n">defaults</span><span class="p">,</span>
+                <span class="n">figtitle</span><span class="p">,</span>
+                <span class="n">na_data</span><span class="p">,</span>
+                <span class="n">title</span><span class="p">,</span> <span class="n">color_discrete_map</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;missing_values-plot&#39;</span><span class="p">]</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;missing_plot - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span> <span class="n">na_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="sum_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.sum_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sum_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot sum of values per sample.</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param replicate_colors: Mapping for sample colors.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional title.</span>
+<span class="sd">    :returns: Tuple of (graph div, sum data JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sum_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">sum_data</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_sum_data</span><span class="p">(</span>
+        <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span>
+    <span class="n">sum_data</span><span class="p">[</span><span class="s1">&#39;Color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">replicate_colors</span><span class="p">[</span><span class="s1">&#39;samples&#39;</span><span class="p">][</span><span class="n">rep_name</span><span class="p">]</span> <span class="k">for</span> <span class="n">rep_name</span> <span class="ow">in</span> <span class="n">sum_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="p">]</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;sum_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;Sum of values per sample&#39;</span>
+    <span class="n">graph_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-sum-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-value_sum&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">figtitle</span><span class="p">),</span>
+            <span class="n">bar_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                <span class="s1">&#39;qc-sum-plot&#39;</span><span class="p">,</span>
+                <span class="n">defaults</span><span class="p">,</span>
+                <span class="n">figtitle</span><span class="p">,</span>
+                <span class="n">sum_data</span><span class="p">,</span>
+                <span class="n">title</span><span class="p">,</span> <span class="n">color_discrete_map</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;value_sum-plot&#39;</span><span class="p">]</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;sum_plot - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span> <span class="n">sum_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="mean_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.mean_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mean_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot mean of values per sample.</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param replicate_colors: Mapping for sample colors.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional title.</span>
+<span class="sd">    :returns: Tuple of (graph div, mean data JSON).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;mean_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Value mean per sample&#39;</span>
+    <span class="n">mean_data</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_mean_data</span><span class="p">(</span>
+        <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span>
+    <span class="n">mean_data</span><span class="p">[</span><span class="s1">&#39;Color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">replicate_colors</span><span class="p">[</span><span class="s1">&#39;samples&#39;</span><span class="p">][</span><span class="n">rep_name</span><span class="p">]</span> <span class="k">for</span> <span class="n">rep_name</span> <span class="ow">in</span> <span class="n">mean_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="p">]</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;mean_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;Value mean&#39;</span>
+    <span class="n">graph_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-mean-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-value_mean&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">figtitle</span><span class="p">),</span>
+            <span class="n">bar_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                <span class="s1">&#39;qc-mean-plot&#39;</span><span class="p">,</span>
+                <span class="n">defaults</span><span class="p">,</span>
+                <span class="n">figtitle</span><span class="p">,</span> 
+                <span class="n">mean_data</span><span class="p">,</span>
+                <span class="n">title</span><span class="p">,</span> <span class="n">color_discrete_map</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;value_mean-plot&#39;</span><span class="p">]</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;mean_plot - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span> <span class="n">mean_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="distribution_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.distribution_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">distribution_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replicate_colors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot value distributions per group as box plots.</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param replicate_colors: Mapping for group colors.</span>
+<span class="sd">    :param sample_groups: Mapping sample -&gt; group.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param title: Optional title.</span>
+<span class="sd">    :returns: Tuple of (graph div, original JSON string).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;distribution_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">names</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">comparative_data</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">names</span><span class="p">,</span> <span class="n">comparative_data</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_comparative_data</span><span class="p">(</span>
+        <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
+        <span class="n">sample_groups</span>
+    <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;distribution_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">graph_div</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-distribution-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-value_dist&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Value distribution per sample&#39;</span><span class="p">),</span>
+            <span class="n">comparative_plot</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+                <span class="s1">&#39;qc-value_distribution-plot&#39;</span><span class="p">,</span>
+                <span class="n">comparative_data</span><span class="p">,</span>
+                <span class="n">defaults</span><span class="p">,</span>
+                <span class="s1">&#39;Value distribution per sample&#39;</span><span class="p">,</span>
+                <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                <span class="n">replicate_colors</span><span class="o">=</span><span class="n">replicate_colors</span><span class="p">,</span>
+                <span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;box&#39;</span>
+            <span class="p">),</span>
+            <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;value_dist-plot&#39;</span><span class="p">]</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;distribution_plot - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_div</span><span class="p">,</span> <span class="n">pandas_json</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="commonality_plot">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.commonality_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">commonality_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">force_svenn</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">only_groups</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot commonality across groups using heatmap or Supervenn.</span>
+
+<span class="sd">    :param pandas_json: Data table in JSON split format.</span>
+<span class="sd">    :param rev_sample_groups: Mapping sample -&gt; group.</span>
+<span class="sd">    :param defaults: Figure defaults and component config.</span>
+<span class="sd">    :param force_svenn: If ``True``, forces Supervenn.</span>
+<span class="sd">    :param only_groups: Optional subset of group names to include.</span>
+<span class="sd">    :returns: Tuple of (graph div, common proteins string, optional base64 PDF string).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;commonality_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">common_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_common_data</span><span class="p">(</span>
+        <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
+        <span class="n">rev_sample_groups</span><span class="p">,</span>
+        <span class="n">only_groups</span> <span class="o">=</span> <span class="n">only_groups</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;commonality_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">image_str</span> <span class="o">=</span> <span class="n">commonality_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
+        <span class="n">common_data</span><span class="p">,</span> <span class="s1">&#39;qc-commonality-plot&#39;</span><span class="p">,</span> <span class="n">force_svenn</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">image_str</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;shared_id-plot-hm&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;shared_id-plot-sv&#39;</span><span class="p">]</span>
+    <span class="n">graph_area</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>       
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-supervenn-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-heading-shared_id&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Shared identifications&#39;</span><span class="p">),</span>
+            <span class="n">graph</span><span class="p">,</span>
+            <span class="n">legend</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;overflowX&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whiteSpace&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">common_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">gk</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">gs</span><span class="p">)</span> <span class="k">for</span> <span class="n">gk</span><span class="p">,</span> <span class="n">gs</span> <span class="ow">in</span> <span class="n">common_data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;commonality_plot - graph drawn: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">com</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">sg</span><span class="p">,</span> <span class="n">sgprots</span> <span class="ow">in</span> <span class="n">common_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">sgprots</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">com</span><span class="p">:</span> <span class="n">com</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">com</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+    <span class="n">common_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">sets</span> <span class="ow">in</span> <span class="n">com</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">sk</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">sets</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">sk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">common_data</span><span class="p">:</span>
+            <span class="n">common_data</span><span class="p">[</span><span class="n">sk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">common_data</span><span class="p">[</span><span class="n">sk</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">common_str</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">group</span><span class="p">,</span> <span class="n">nset</span> <span class="ow">in</span> <span class="n">common_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">common_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;Group: </span><span class="si">{</span><span class="n">group</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;, &quot;</span><span class="p">)</span><span class="si">}</span><span class="s1"> :: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">nset</span><span class="p">)</span><span class="si">}</span><span class="s1"> protein groups</span><span class="se">\n</span><span class="si">{</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">nset</span><span class="p">)))</span><span class="si">}</span><span class="se">\n</span><span class="s1">----------</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">graph_area</span><span class="p">,</span> <span class="n">common_str</span><span class="p">,</span> <span class="n">image_str</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_commonality_container">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.generate_commonality_container">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_commonality_container</span><span class="p">(</span><span class="n">sample_groups</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the selection controls and display container for commonality.</span>
+
+<span class="sd">    :param sample_groups: List of group names.</span>
+<span class="sd">    :returns: Bootstrap ``Row`` with controls and graph area.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">def_for_force</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_groups</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="n">def_for_force</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Use supervenn&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+            <span class="n">checklist</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;qc-commonality-select-visible-sample-groups&#39;</span><span class="p">,</span>
+                <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="n">sample_groups</span><span class="p">,</span>
+                <span class="n">default_choice</span><span class="o">=</span><span class="n">sample_groups</span><span class="p">,</span>
+                <span class="n">clean_id</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="n">prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="s1">&#39;Select visible sample groups&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;75px 0px 0px 0px&#39;</span><span class="p">})],</span>
+                <span class="n">postfix_list</span><span class="o">=</span><span class="n">checklist</span><span class="p">(</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;toggle-additional-supervenn-options&#39;</span><span class="p">,</span>
+                    <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Use supervenn&#39;</span><span class="p">],</span>
+                    <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">default_choice</span> <span class="o">=</span> <span class="n">def_for_force</span><span class="p">,</span>
+                    <span class="n">clean_id</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="n">postfix_list</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Update plot&#39;</span><span class="p">,</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-commonality-plot-update-plot-button&#39;</span><span class="p">),</span>
+                        <span class="n">use_svenn_tooltip</span><span class="p">()</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">Loading</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;qc-commonality-graph-div&#39;</span><span class="p">))</span>
+                <span class="p">],</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="mi">10</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

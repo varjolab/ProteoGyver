@@ -1,0 +1,669 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.file_upload_api &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.file_upload_api</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.file_upload_api</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;API endpoint and Celery task for accepting and saving pipeline input files.</span>
+
+<span class="sd">This module provides a Flask API endpoint that accepts file uploads (data_table,</span>
+<span class="sd">sample_table, pipeline_toml, and optionally proteomics_comparisons) and a Celery</span>
+<span class="sd">background task that saves these files to a specified directory.</span>
+
+<span class="sd">The API runs continuously as part of the Flask server, and file saving is handled</span>
+<span class="sd">asynchronously by Celery workers.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">jsonify</span><span class="p">,</span> <span class="n">send_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">werkzeug.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">secure_filename</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">celery</span><span class="w"> </span><span class="kn">import</span> <span class="n">shared_task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">uuid4</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.tools.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_toml</span><span class="p">,</span> <span class="n">read_toml</span><span class="p">,</span> <span class="n">load_toml</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;file_upload_api&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@shared_task</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_uploaded_files</span><span class="p">(</span>
+    <span class="n">data_table_content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+    <span class="n">data_table_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">sample_table_content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+    <span class="n">sample_table_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pipeline_toml_content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+    <span class="n">pipeline_toml_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">proteomics_comparisons_content</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">proteomics_comparisons_filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_directory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">upload_dir_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save uploaded files to the specified directory.</span>
+
+<span class="sd">    This Celery task saves the uploaded files (data_table, sample_table,</span>
+<span class="sd">    pipeline_toml, and optionally proteomics_comparisons) to a specified</span>
+<span class="sd">    output directory. If no output directory is provided, it uses the</span>
+<span class="sd">    default from parameters.toml.</span>
+
+<span class="sd">    :param data_table_content: Binary content of the data table file.</span>
+<span class="sd">    :param data_table_filename: Original filename of the data table.</span>
+<span class="sd">    :param sample_table_content: Binary content of the sample table file.</span>
+<span class="sd">    :param sample_table_filename: Original filename of the sample table.</span>
+<span class="sd">    :param pipeline_toml_content: Binary content of the pipeline TOML file.</span>
+<span class="sd">    :param pipeline_toml_filename: Original filename of the pipeline TOML.</span>
+<span class="sd">    :param proteomics_comparisons_content: Optional binary content of proteomics comparisons file.</span>
+<span class="sd">    :param proteomics_comparisons_filename: Optional original filename of proteomics comparisons.</span>
+<span class="sd">    :param output_directory: Optional output directory path. If None, uses default from parameters.toml.</span>
+<span class="sd">    :param upload_dir_name: Optional upload directory name. If None, generates a new one.</span>
+<span class="sd">    :returns: Dictionary with status, message, and saved file paths.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Load parameters to get default output directory if not provided</span>
+        <span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">read_toml</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">output_directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pipeline_path</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pipeline module&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Input watch directory&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="c1"># Filter out None values and ensure all are strings</span>
+                <span class="n">path_parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pipeline_path</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="n">output_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">path_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">path_parts</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_directory</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">)</span>
+        
+        <span class="c1"># Ensure output directory exists</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Create timestamped subdirectory for this upload</span>
+        <span class="k">if</span> <span class="n">upload_dir_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%M-%S&#39;</span><span class="p">)</span>
+            <span class="n">upload_dir_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">--api_upload_</span><span class="si">{</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+        
+        <span class="n">upload_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">upload_dir_name</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">upload_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">saved_files</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># Save data table</span>
+        <span class="n">data_table_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">upload_dir</span><span class="p">,</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">data_table_filename</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_table_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data_table_content</span><span class="p">)</span>
+        <span class="n">saved_files</span><span class="p">[</span><span class="s1">&#39;data_table&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_table_path</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved data table to </span><span class="si">{</span><span class="n">data_table_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Save sample table</span>
+        <span class="n">sample_table_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">upload_dir</span><span class="p">,</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">sample_table_filename</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">sample_table_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sample_table_content</span><span class="p">)</span>
+        <span class="n">saved_files</span><span class="p">[</span><span class="s1">&#39;sample_table&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_table_path</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved sample table to </span><span class="si">{</span><span class="n">sample_table_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Save pipeline TOML</span>
+        <span class="n">pipeline_toml_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">upload_dir</span><span class="p">,</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">pipeline_toml_filename</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pipeline_toml_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pipeline_toml_content</span><span class="p">)</span>
+        <span class="n">saved_files</span><span class="p">[</span><span class="s1">&#39;pipeline_toml&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_toml_path</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved pipeline TOML to </span><span class="si">{</span><span class="n">pipeline_toml_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Save proteomics comparisons if provided</span>
+        <span class="k">if</span> <span class="n">proteomics_comparisons_content</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">proteomics_comparisons_filename</span><span class="p">:</span>
+            <span class="n">proteomics_comparisons_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">upload_dir</span><span class="p">,</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">proteomics_comparisons_filename</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">proteomics_comparisons_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">proteomics_comparisons_content</span><span class="p">)</span>
+            <span class="n">saved_files</span><span class="p">[</span><span class="s1">&#39;proteomics_comparisons&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">proteomics_comparisons_path</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved proteomics comparisons to </span><span class="si">{</span><span class="n">proteomics_comparisons_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Modify pipeline TOML to update file paths</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Parse TOML</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">load_toml</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">pipeline_toml_path</span><span class="p">))</span>
+            
+            <span class="c1"># Ensure &#39;general&#39; section exists</span>
+            <span class="k">if</span> <span class="s1">&#39;general&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">:</span>
+                <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;general&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            
+            <span class="c1"># Update or create &#39;data&#39; key in general section</span>
+            <span class="n">data_filename</span> <span class="o">=</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">data_table_filename</span><span class="p">)</span>
+            <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;general&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_filename</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Updated pipeline TOML: general.data = </span><span class="si">{</span><span class="n">data_filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Update or create &#39;sample table&#39; key in general section</span>
+            <span class="n">sample_table_filename_secure</span> <span class="o">=</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">sample_table_filename</span><span class="p">)</span>
+            <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;general&#39;</span><span class="p">][</span><span class="s1">&#39;sample table&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_table_filename_secure</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Updated pipeline TOML: general[&#39;sample table&#39;] = </span><span class="si">{</span><span class="n">sample_table_filename_secure</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Update proteomics comparisons if provided</span>
+            <span class="k">if</span> <span class="n">proteomics_comparisons_content</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">proteomics_comparisons_filename</span><span class="p">:</span>
+                <span class="c1"># Ensure &#39;proteomics&#39; section exists</span>
+                <span class="k">if</span> <span class="s1">&#39;proteomics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">:</span>
+                    <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;proteomics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                
+                <span class="c1"># Update or create &#39;comparison_file&#39; key in proteomics section</span>
+                <span class="n">proteomics_comparisons_filename_secure</span> <span class="o">=</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">proteomics_comparisons_filename</span><span class="p">)</span>
+                <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;proteomics&#39;</span><span class="p">][</span><span class="s1">&#39;comparison_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">proteomics_comparisons_filename_secure</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Updated pipeline TOML: proteomics.comparison_file = </span><span class="si">{</span><span class="n">proteomics_comparisons_filename_secure</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Write the modified TOML back</span>
+            <span class="n">save_toml</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">pipeline_toml_path</span><span class="p">))</span>
+            
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully modified pipeline TOML at </span><span class="si">{</span><span class="n">pipeline_toml_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Log error but don&#39;t fail the task - files are already saved</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error modifying pipeline TOML: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Files saved successfully to </span><span class="si">{</span><span class="n">upload_dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;upload_directory&#39;</span><span class="p">:</span> <span class="n">upload_dir</span><span class="p">,</span>
+            <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span><span class="p">,</span>
+            <span class="s1">&#39;saved_files&#39;</span><span class="p">:</span> <span class="n">saved_files</span>
+        <span class="p">}</span>
+    
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error saving uploaded files: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">error_msg</span><span class="p">,</span>
+            <span class="s1">&#39;upload_directory&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;saved_files&#39;</span><span class="p">:</span> <span class="p">{}</span>
+        <span class="p">}</span>
+
+
+<div class="viewcode-block" id="register_file_upload_api">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.file_upload_api.register_file_upload_api">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_file_upload_api</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">celery_app_instance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Register the file upload API endpoint with the Flask server.</span>
+
+<span class="sd">    This function sets up a POST endpoint at &#39;/api/upload-pipeline-files&#39; that</span>
+<span class="sd">    accepts multipart/form-data file uploads. The endpoint accepts:</span>
+<span class="sd">    - data_table (required): Data table file</span>
+<span class="sd">    - sample_table (required): Sample table file</span>
+<span class="sd">    - pipeline_toml (required): Pipeline configuration TOML file</span>
+<span class="sd">    - proteomics_comparisons (optional): Proteomics comparisons file</span>
+
+<span class="sd">    Files are processed asynchronously via a Celery task.</span>
+
+<span class="sd">    :param server: Flask server instance (typically app.server from Dash).</span>
+<span class="sd">    :param celery_app_instance: Optional Celery app instance to use for task execution.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Store celery_app instance for use in the endpoint</span>
+    <span class="n">celery_app_for_task</span> <span class="o">=</span> <span class="n">celery_app_instance</span>
+    
+    <span class="nd">@server</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api/upload-pipeline-files&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">upload_pipeline_files</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;API endpoint for uploading pipeline input files.</span>
+
+<span class="sd">        Accepts POST requests with multipart/form-data containing:</span>
+<span class="sd">        - data_table (required): File upload</span>
+<span class="sd">        - sample_table (required): File upload</span>
+<span class="sd">        - pipeline_toml (required): File upload</span>
+<span class="sd">        - proteomics_comparisons (optional): File upload</span>
+<span class="sd">        - output_directory (optional): Custom output directory path</span>
+
+<span class="sd">        :returns: JSON response with task ID and status.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Check for required files</span>
+            <span class="k">if</span> <span class="s1">&#39;data_table&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Missing required file: data_table&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="k">if</span> <span class="s1">&#39;sample_table&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Missing required file: sample_table&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="k">if</span> <span class="s1">&#39;pipeline_toml&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Missing required file: pipeline_toml&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="c1"># Get required files</span>
+            <span class="n">data_table_file</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;data_table&#39;</span><span class="p">]</span>
+            <span class="n">sample_table_file</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;sample_table&#39;</span><span class="p">]</span>
+            <span class="n">pipeline_toml_file</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;pipeline_toml&#39;</span><span class="p">]</span>
+            
+            <span class="c1"># Check if files are actually uploaded (not empty)</span>
+            <span class="k">if</span> <span class="n">data_table_file</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;data_table file is empty&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="k">if</span> <span class="n">sample_table_file</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;sample_table file is empty&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="k">if</span> <span class="n">pipeline_toml_file</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;pipeline_toml file is empty&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="c1"># Read file contents</span>
+            <span class="n">data_table_content</span> <span class="o">=</span> <span class="n">data_table_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">sample_table_content</span> <span class="o">=</span> <span class="n">sample_table_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">pipeline_toml_content</span> <span class="o">=</span> <span class="n">pipeline_toml_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            
+            <span class="c1"># Get optional proteomics_comparisons file</span>
+            <span class="n">proteomics_comparisons_content</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">proteomics_comparisons_filename</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="s1">&#39;proteomics_comparisons&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+                <span class="n">proteomics_comparisons_file</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="s1">&#39;proteomics_comparisons&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">proteomics_comparisons_file</span><span class="o">.</span><span class="n">filename</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">proteomics_comparisons_content</span> <span class="o">=</span> <span class="n">proteomics_comparisons_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                    <span class="n">proteomics_comparisons_filename</span> <span class="o">=</span> <span class="n">proteomics_comparisons_file</span><span class="o">.</span><span class="n">filename</span>
+            
+            <span class="c1"># Get optional output directory</span>
+            <span class="n">output_directory</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            
+            <span class="c1"># Generate upload directory name synchronously so we can return it immediately</span>
+            <span class="c1"># This matches what the task will create</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%M-%S&#39;</span><span class="p">)</span>
+            <span class="n">upload_dir_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">--api_upload_</span><span class="si">{</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+            
+            <span class="c1"># Trigger Celery task to save files</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Use the celery_app instance if provided, otherwise try to import it</span>
+                <span class="n">app_instance</span> <span class="o">=</span> <span class="n">celery_app_for_task</span>
+                <span class="k">if</span> <span class="n">app_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="kn">from</span><span class="w"> </span><span class="nn">app</span><span class="w"> </span><span class="kn">import</span> <span class="n">celery_app</span>
+                        <span class="n">app_instance</span> <span class="o">=</span> <span class="n">celery_app</span>
+                    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                        <span class="n">app_instance</span> <span class="o">=</span> <span class="kc">None</span>
+                
+                <span class="k">if</span> <span class="n">app_instance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Use send_task with the configured celery_app instance</span>
+                    <span class="n">task</span> <span class="o">=</span> <span class="n">app_instance</span><span class="o">.</span><span class="n">send_task</span><span class="p">(</span>
+                        <span class="s1">&#39;components.file_upload_api.save_uploaded_files&#39;</span><span class="p">,</span>
+                        <span class="n">args</span><span class="o">=</span><span class="p">[],</span>
+                        <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s1">&#39;data_table_content&#39;</span><span class="p">:</span> <span class="n">data_table_content</span><span class="p">,</span>
+                            <span class="s1">&#39;data_table_filename&#39;</span><span class="p">:</span> <span class="n">data_table_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="s1">&#39;sample_table_content&#39;</span><span class="p">:</span> <span class="n">sample_table_content</span><span class="p">,</span>
+                            <span class="s1">&#39;sample_table_filename&#39;</span><span class="p">:</span> <span class="n">sample_table_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="s1">&#39;pipeline_toml_content&#39;</span><span class="p">:</span> <span class="n">pipeline_toml_content</span><span class="p">,</span>
+                            <span class="s1">&#39;pipeline_toml_filename&#39;</span><span class="p">:</span> <span class="n">pipeline_toml_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="s1">&#39;proteomics_comparisons_content&#39;</span><span class="p">:</span> <span class="n">proteomics_comparisons_content</span><span class="p">,</span>
+                            <span class="s1">&#39;proteomics_comparisons_filename&#39;</span><span class="p">:</span> <span class="n">proteomics_comparisons_filename</span><span class="p">,</span>
+                            <span class="s1">&#39;output_directory&#39;</span><span class="p">:</span> <span class="n">output_directory</span><span class="p">,</span>
+                            <span class="s1">&#39;upload_dir_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Fallback to using shared_task directly</span>
+                    <span class="n">task</span> <span class="o">=</span> <span class="n">save_uploaded_files</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span>
+                        <span class="n">data_table_content</span><span class="o">=</span><span class="n">data_table_content</span><span class="p">,</span>
+                        <span class="n">data_table_filename</span><span class="o">=</span><span class="n">data_table_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                        <span class="n">sample_table_content</span><span class="o">=</span><span class="n">sample_table_content</span><span class="p">,</span>
+                        <span class="n">sample_table_filename</span><span class="o">=</span><span class="n">sample_table_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                        <span class="n">pipeline_toml_content</span><span class="o">=</span><span class="n">pipeline_toml_content</span><span class="p">,</span>
+                        <span class="n">pipeline_toml_filename</span><span class="o">=</span><span class="n">pipeline_toml_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                        <span class="n">proteomics_comparisons_content</span><span class="o">=</span><span class="n">proteomics_comparisons_content</span><span class="p">,</span>
+                        <span class="n">proteomics_comparisons_filename</span><span class="o">=</span><span class="n">proteomics_comparisons_filename</span><span class="p">,</span>
+                        <span class="n">output_directory</span><span class="o">=</span><span class="n">output_directory</span><span class="p">,</span>
+                        <span class="n">upload_dir_name</span><span class="o">=</span><span class="n">upload_dir_name</span>
+                    <span class="p">)</span>
+                
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File upload task queued: </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">, upload directory: </span><span class="si">{</span><span class="n">upload_dir_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;accepted&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Files uploaded successfully, processing in background&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span>
+                <span class="p">}),</span> <span class="mi">202</span>
+            
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">celery_error</span><span class="p">:</span>
+                <span class="c1"># Check if it&#39;s a Redis connection error</span>
+                <span class="n">error_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">celery_error</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;Connection refused&#39;</span> <span class="ow">in</span> <span class="n">error_str</span> <span class="ow">or</span> <span class="s1">&#39;111&#39;</span> <span class="ow">in</span> <span class="n">error_str</span> <span class="ow">or</span> <span class="s1">&#39;ConnectionError&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">celery_error</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Celery/Redis connection error: </span><span class="si">{</span><span class="n">celery_error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                        <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Cannot connect to Celery/Redis. Please ensure Redis is running and Celery workers are started.&#39;</span>
+                    <span class="p">}),</span> <span class="mi">503</span>  <span class="c1"># Service Unavailable</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Re-raise other errors to be caught by outer exception handler</span>
+                    <span class="k">raise</span>
+        
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error processing file upload request: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">error_msg</span>
+            <span class="p">}),</span> <span class="mi">500</span>
+    
+    <span class="nd">@server</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api/pipeline-status&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_pipeline_status</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;API endpoint for checking pipeline processing status.</span>
+<span class="sd">        </span>
+<span class="sd">        Accepts GET requests with query parameter:</span>
+<span class="sd">        - upload_directory_name (required): Name of the upload directory</span>
+<span class="sd">        </span>
+<span class="sd">        Returns the status of the pipeline run:</span>
+<span class="sd">        - &#39;processing&#39;: Pipeline is currently running (.pg_analyzing.lock exists)</span>
+<span class="sd">        - &#39;success&#39;: Pipeline completed successfully (pipeline.success.txt exists)</span>
+<span class="sd">        - &#39;error&#39;: Pipeline failed (pipeline.failure.txt exists)</span>
+<span class="sd">        - &#39;not_found&#39;: Upload directory not found</span>
+<span class="sd">        - &#39;unknown&#39;: No status files found (may not have started yet)</span>
+<span class="sd">        </span>
+<span class="sd">        If status is &#39;error&#39;, also returns the contents of ERRORS.txt.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: JSON response with status and optional error message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get upload directory name from query parameter</span>
+            <span class="n">upload_dir_name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;upload_directory_name&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">upload_dir_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Missing required parameter: upload_directory_name&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="c1"># Load parameters to get the base output directory</span>
+            <span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="n">read_toml</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">))</span>
+            <span class="n">pipeline_path</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pipeline module&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Input watch directory&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="c1"># Filter out None values and ensure all are strings</span>
+                <span class="n">path_parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pipeline_path</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="n">base_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">path_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">path_parts</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">base_directory</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">)</span>
+            
+            <span class="c1"># Construct full path to upload directory</span>
+            <span class="n">upload_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_directory</span><span class="p">,</span> <span class="n">upload_dir_name</span><span class="p">)</span>
+            <span class="n">upload_dir_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">upload_dir</span><span class="p">)</span>
+            
+            <span class="c1"># Check if directory exists</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">upload_dir_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">upload_dir_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;not_found&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Upload directory not found: </span><span class="si">{</span><span class="n">upload_dir_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span>
+                <span class="p">}),</span> <span class="mi">404</span>
+            
+            <span class="c1"># Check for status files</span>
+            <span class="n">lock_file</span> <span class="o">=</span> <span class="n">upload_dir_path</span> <span class="o">/</span> <span class="s1">&#39;.pg_analyzing.lock&#39;</span>
+            <span class="n">watcher_log</span> <span class="o">=</span> <span class="n">upload_dir_path</span> <span class="o">/</span> <span class="s1">&#39;watcher.log&#39;</span>
+            <span class="n">success_file</span> <span class="o">=</span> <span class="n">upload_dir_path</span> <span class="o">/</span> <span class="s1">&#39;pipeline.success.txt&#39;</span>
+            <span class="n">failure_file</span> <span class="o">=</span> <span class="n">upload_dir_path</span> <span class="o">/</span> <span class="s1">&#39;pipeline.failure.txt&#39;</span>
+            <span class="n">errors_file</span> <span class="o">=</span> <span class="n">upload_dir_path</span> <span class="o">/</span> <span class="s1">&#39;ERRORS.txt&#39;</span>
+            
+            <span class="c1"># Determine status based on file presence</span>
+            <span class="k">if</span> <span class="n">lock_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="c1"># Pipeline is currently processing</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;processing&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Pipeline is currently running&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span>
+                <span class="p">}),</span> <span class="mi">200</span>
+            
+            <span class="k">if</span> <span class="n">success_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="c1"># Pipeline completed successfully</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Pipeline completed successfully&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span><span class="p">,</span>
+                    <span class="s1">&#39;success_timestamp&#39;</span><span class="p">:</span> <span class="n">success_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">success_file</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">}),</span> <span class="mi">200</span>
+            
+            <span class="k">if</span> <span class="n">failure_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="c1"># Pipeline failed</span>
+                <span class="n">error_content</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">errors_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">error_content</span> <span class="o">=</span> <span class="n">errors_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error reading ERRORS.txt: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">error_content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error reading ERRORS.txt: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Pipeline execution failed&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span><span class="p">,</span>
+                    <span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="n">error_content</span><span class="p">,</span>
+                    <span class="s1">&#39;failure_timestamp&#39;</span><span class="p">:</span> <span class="n">failure_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">failure_file</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">}),</span> <span class="mi">200</span>
+            
+            <span class="c1"># Pipeline being watched, not yet processing. watcher.log will remain after it&#39;s done, so we will check it last.</span>
+            <span class="k">if</span> <span class="n">watcher_log</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;processing&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Pipeline is currently running&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span>
+                <span class="p">}),</span> <span class="mi">200</span>
+
+            
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;No status files found. Pipeline may not have started yet.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;upload_directory_name&#39;</span><span class="p">:</span> <span class="n">upload_dir_name</span>
+            <span class="p">}),</span> <span class="mi">200</span>
+    
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error checking pipeline status: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">error_msg</span>
+            <span class="p">}),</span> <span class="mi">500</span>
+    
+    <span class="nd">@server</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api/download-output&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">download_output</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;API endpoint for downloading the PG output directory as a zip file.</span>
+<span class="sd">        </span>
+<span class="sd">        Accepts GET requests with query parameter:</span>
+<span class="sd">        - upload_directory_name (required): Name of the upload directory</span>
+<span class="sd">        </span>
+<span class="sd">        Returns the &quot;PG output&quot; directory as a zip file named &quot;PG output.zip&quot;.</span>
+<span class="sd">        If the PG output directory doesn&#39;t exist, returns a 404 error.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: ZIP file download or error response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get upload directory name from query parameter</span>
+            <span class="n">upload_dir_name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;upload_directory_name&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">upload_dir_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Missing required parameter: upload_directory_name&#39;</span>
+                <span class="p">}),</span> <span class="mi">400</span>
+            
+            <span class="c1"># Load parameters to get the base output directory</span>
+            <span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="n">read_toml</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">))</span>
+            <span class="n">pipeline_path</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pipeline module&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Input watch directory&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="c1"># Filter out None values and ensure all are strings</span>
+                <span class="n">path_parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pipeline_path</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="n">base_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">path_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">path_parts</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">base_directory</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_path</span><span class="p">)</span>
+            
+            <span class="c1"># Construct full path to upload directory</span>
+            <span class="n">upload_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_directory</span><span class="p">,</span> <span class="n">upload_dir_name</span><span class="p">)</span>
+            <span class="n">upload_dir_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">upload_dir</span><span class="p">)</span>
+            
+            <span class="c1"># Check if directory exists</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">upload_dir_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">upload_dir_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;not_found&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Upload directory not found: </span><span class="si">{</span><span class="n">upload_dir_name</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">}),</span> <span class="mi">404</span>
+            
+            <span class="c1"># Find PG output directory</span>
+            <span class="n">pg_output_dir</span> <span class="o">=</span> <span class="n">upload_dir_path</span> <span class="o">/</span> <span class="s1">&#39;PG output&#39;</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pg_output_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">pg_output_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;not_found&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;PG output directory not found. Pipeline may not have completed yet.&#39;</span>
+                <span class="p">}),</span> <span class="mi">404</span>
+            
+            <span class="c1"># Create a temporary zip file</span>
+            <span class="n">temp_zip</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.zip&#39;</span><span class="p">)</span>
+            <span class="n">temp_zip_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">temp_zip</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">temp_zip</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Create zip file</span>
+                <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">temp_zip_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span> <span class="k">as</span> <span class="n">zipf</span><span class="p">:</span>
+                    <span class="c1"># Walk through the PG output directory and add all files</span>
+                    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">upload_dir_path</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                            <span class="n">file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="n">file</span>
+                            <span class="c1"># Create archive name relative to PG output directory</span>
+                            <span class="n">arcname</span> <span class="o">=</span> <span class="n">file_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">upload_dir_path</span><span class="p">)</span>
+                            <span class="n">zipf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">arcname</span><span class="p">)</span>
+                
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created zip file for PG output: </span><span class="si">{</span><span class="n">temp_zip_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Send the zip file</span>
+                <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">temp_zip_path</span><span class="p">),</span>
+                    <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;application/zip&#39;</span><span class="p">,</span>
+                    <span class="n">as_attachment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">download_name</span><span class="o">=</span><span class="s1">&#39;PG output.zip&#39;</span>
+                <span class="p">)</span>
+            
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">zip_error</span><span class="p">:</span>
+                <span class="c1"># Clean up temp file on error</span>
+                <span class="k">if</span> <span class="n">temp_zip_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="n">temp_zip_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating zip file: </span><span class="si">{</span><span class="n">zip_error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                    <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Error creating zip file: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">zip_error</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">}),</span> <span class="mi">500</span>
+        
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error downloading output: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">error_msg</span>
+            <span class="p">}),</span> <span class="mi">500</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

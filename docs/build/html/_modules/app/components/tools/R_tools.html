@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.tools.R_tools &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../../app.html">app</a></li>
+      <li class="breadcrumb-item active">app.components.tools.R_tools</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.tools.R_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<div class="viewcode-block" id="vsn">
+<a class="viewcode-back" href="../../../../code/app.components.tools.html#app.components.tools.R_tools.vsn">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">vsn</span><span class="p">(</span><span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply VSN normalization via R&#39;s vsn::justvsn.</span>
+
+<span class="sd">    :param dataframe: Input DataFrame (rows=ids in index; columns=samples).</span>
+<span class="sd">    :param random_seed: Seed for reproducibility in R.</span>
+<span class="sd">    :param errorfile: Base path to append Rscript stderr on failure.</span>
+<span class="sd">    :returns: DataFrame of VSN-transformed values, aligned to input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tempname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="n">tempdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;PROTID&#39;</span>
+    <span class="n">script</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">f</span><span class="s1">&#39;tempdir &lt;- &quot;</span><span class="si">{</span><span class="n">tempdir</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dir.create(tempdir, showWarnings = FALSE, recursive = TRUE)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Sys.setenv(TMPDIR=tempdir)&#39;</span><span class="p">,</span>  <span class="c1"># Set temporary directory</span>
+        <span class="s1">&#39;library(&quot;vsn&quot;)&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;set.seed(</span><span class="si">{</span><span class="n">random_seed</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;setwd(&quot;</span><span class="si">{</span><span class="n">sh</span><span class="o">.</span><span class="n">pwd</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s1">&quot;)&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;Sys.setenv(R_USER=&quot;</span><span class="si">{</span><span class="n">sh</span><span class="o">.</span><span class="n">pwd</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s1">&quot;)&#39;</span><span class="p">,</span>  <span class="c1"># Set R user directory</span>
+        <span class="sa">f</span><span class="s1">&#39;data &lt;- read.table(&quot;</span><span class="si">{</span><span class="n">tempname</span><span class="si">}</span><span class="s1">&quot;,sep=&quot;</span><span class="se">\\</span><span class="s1">t&quot;,header=TRUE,row.names=&quot;</span><span class="si">{</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;m = justvsn(data.matrix(data))&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;write.table(m,file=&quot;</span><span class="si">{</span><span class="n">tempname</span><span class="si">}</span><span class="s1">&quot;,sep=&quot;</span><span class="se">\\</span><span class="s1">t&quot;,col.names=NA,quote=FALSE)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;&#39;</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">run_rscript</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">,</span> <span class="n">tempname</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">,</span> <span class="n">replace_dir</span> <span class="o">=</span> <span class="n">tempdir</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="run_rscript">
+<a class="viewcode-back" href="../../../../code/app.components.tools.html#app.components.tools.R_tools.run_rscript">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_rscript</span><span class="p">(</span><span class="n">r_script_contents</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">r_script_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">replace_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="nb">list</span><span class="p">,</span> <span class="n">replace_dir</span><span class="p">:</span><span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">input_df_has_index</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute an R script with a temp data file and return parsed output.</span>
+
+<span class="sd">    :param r_script_contents: Lines of the R script; occurrences of ``replace_name`` are replaced with temp paths.</span>
+<span class="sd">    :param r_script_data: DataFrame to write to temp file for R to read.</span>
+<span class="sd">    :param replace_name: Placeholder token to be replaced with temp filename.</span>
+<span class="sd">    :param errorfile: Base path (e.g. &#39;logs/errors.log&#39;) or list of a file path (e.g. [&#39;logs&#39;,&#39;errors.log&#39;]) for error log on failure.</span>
+<span class="sd">    :param replace_dir: Optional directory placeholder to replace with temp dir.</span>
+<span class="sd">    :param input_df_has_index: Whether to include index when writing CSV/TSV.</span>
+<span class="sd">    :returns: DataFrame parsed from R output file.</span>
+<span class="sd">    :raises Exception: Re-raises Rscript execution errors after logging.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">errorfile</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">errorfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">errorfile</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">datafile</span><span class="p">:</span>
+            <span class="n">repwith</span> <span class="o">=</span> <span class="n">datafile</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">r_script_contents</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">replace_name</span><span class="p">,</span><span class="n">repwith</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">r_script_contents</span><span class="p">]</span>
+            <span class="c1"># Ensure R finds packages installed into the CI user library</span>
+            <span class="n">lib_setup</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;lib_user &lt;- Sys.getenv(&quot;R_LIBS_USER&quot;)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;if (nzchar(lib_user)) .libPaths(c(lib_user, .libPaths()))&#39;</span>
+            <span class="p">]</span>
+            <span class="n">r_script_contents</span> <span class="o">=</span> <span class="n">lib_setup</span> <span class="o">+</span> <span class="n">r_script_contents</span>
+            <span class="k">if</span> <span class="n">replace_dir</span><span class="p">:</span>
+                <span class="n">r_script_contents</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">replace_dir</span><span class="p">,</span><span class="n">tmpdir</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">r_script_contents</span><span class="p">]</span>
+            <span class="n">r_script_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">input_df_has_index</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">scriptfile</span><span class="p">:</span>
+                <span class="n">scriptfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">r_script_contents</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+                <span class="n">scriptfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">sh</span><span class="o">.</span><span class="n">Rscript</span><span class="p">(</span><span class="n">scriptfile</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">datestr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># quick n dirty way to get just the date without time</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">errorfile</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;===================</span><span class="se">\n</span><span class="si">{</span><span class="n">datestr</span><span class="si">}</span><span class="se">\n\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n\n</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">-----------------------</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">e</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">datafile</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">o</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># skip empty rows</span>
+    <span class="n">script_output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">out</span><span class="p">)</span>
+    <span class="n">script_output_df</span> <span class="o">=</span> <span class="n">script_output_df</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;NA&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">script_output_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">r_script_data</span><span class="o">.</span><span class="n">columns</span> <span class="c1"># Restore columns and index in case R renames anything from either.</span>
+    <span class="n">script_output_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">r_script_data</span><span class="o">.</span><span class="n">index</span>
+    <span class="k">return</span> <span class="n">script_output_df</span></div>
+
+
+<div class="viewcode-block" id="impute_qrilc">
+<a class="viewcode-back" href="../../../../code/app.components.tools.html#app.components.tools.R_tools.impute_qrilc">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">impute_qrilc</span><span class="p">(</span><span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Impute missing values using QRILC (via imputeLCMD).</span>
+
+<span class="sd">    :param dataframe: Input DataFrame with missing values.</span>
+<span class="sd">    :param random_seed: Seed for reproducibility.</span>
+<span class="sd">    :param errorfile: Base path for error log on failure.</span>
+<span class="sd">    :returns: DataFrame with imputed values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tempname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="n">script</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;library(&quot;imputeLCMD&quot;)&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;set.seed(</span><span class="si">{</span><span class="n">random_seed</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;df &lt;- read.csv(&quot;</span><span class="si">{</span><span class="n">tempname</span><span class="si">}</span><span class="s1">&quot;,sep=&quot;</span><span class="se">\\</span><span class="s1">t&quot;,row.names=1)&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;write.table(data.frame(impute.QRILC(df,tune.sigma=1)[1]),file=&quot;</span><span class="si">{</span><span class="n">tempname</span><span class="si">}</span><span class="s1">&quot;,sep=&quot;</span><span class="se">\\</span><span class="s1">t&quot;)&#39;</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">run_rscript</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">,</span> <span class="n">tempname</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="impute_random_forest">
+<a class="viewcode-back" href="../../../../code/app.components.tools.html#app.components.tools.R_tools.impute_random_forest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">impute_random_forest</span><span class="p">(</span><span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Impute missing values using randomForest::rfImpute grouped by sample groups.</span>
+
+<span class="sd">    :param dataframe: Input DataFrame with missing values (rows=ids; cols=samples).</span>
+<span class="sd">    :param random_seed: Seed for reproducibility.</span>
+<span class="sd">    :param rev_sample_groups: Mapping sample -&gt; group for supervised imputation.</span>
+<span class="sd">    :param errorfile: Base path for error log on failure.</span>
+<span class="sd">    :returns: DataFrame with imputed values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tempname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">groupsfile</span><span class="p">:</span>
+        <span class="n">groupsfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;sample</span><span class="se">\t</span><span class="s1">group</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">groupsfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">rev_sample_groups</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">groupsfile</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">script</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;suppressPackageStartupMessages({&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  library(readr)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  library(randomForest)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;})&#39;</span><span class="p">,</span>
+
+            <span class="sa">f</span><span class="s1">&#39;INPUT_TSV  &lt;- &quot;</span><span class="si">{</span><span class="n">tempname</span><span class="si">}</span><span class="s1">&quot;   # col1 = protein IDs, rest = numeric samples&#39;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;GROUPS_TSV &lt;- &quot;</span><span class="si">{</span><span class="n">groupsfile</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;     # sample, group&#39;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;OUTPUT_TSV &lt;- &quot;</span><span class="si">{</span><span class="n">tempname</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
+
+            <span class="sa">f</span><span class="s1">&#39;SEED  &lt;- </span><span class="si">{</span><span class="n">random_seed</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;NTREE &lt;- 300&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ITER  &lt;- 5&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;set.seed(SEED)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;dat &lt;- read_tsv(INPUT_TSV, col_types = cols(.default = col_guess()))&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;id_colname  &lt;- names(dat)[1]&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;protein_ids &lt;- as.character(dat[[1]])&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;expr_df     &lt;- dat[, -1, drop = FALSE]&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;X           &lt;- as.matrix(expr_df)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;rownames(X) &lt;- protein_ids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;groups &lt;- read_tsv(GROUPS_TSV,&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;                   col_types = cols(sample = col_character(), group = col_character()))&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;groups &lt;- groups[match(colnames(X), groups$sample), , drop = FALSE]&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;y &lt;- factor(groups$group)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;if (!any(is.na(X))) {&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  out_df &lt;- data.frame(protein_ids, X, check.names = FALSE)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  names(out_df)[1] &lt;- id_colname&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  write_tsv(out_df, OUTPUT_TSV)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  cat(&quot;No NAs detected. Wrote input as final output.</span><span class="se">\n</span><span class="s1">&quot;)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  quit(save = &quot;no&quot;, status = 0)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;}&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;X_df &lt;- as.data.frame(t(X))&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;tmp &lt;- tempfile()&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;invisible(capture.output({&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;  imp &lt;- rfImpute(x = X_df, y = y, iter = ITER, ntree = NTREE)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;}, file = tmp))&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;X_final &lt;- t(as.matrix(imp[, -1, drop = FALSE]))&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;out_df &lt;- data.frame(protein_ids, X_final, check.names = FALSE)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;names(out_df)[1] &lt;- id_colname&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;write_tsv(out_df, OUTPUT_TSV)&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">run_rscript</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">,</span> <span class="n">tempname</span><span class="p">,</span> <span class="n">errorfile</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,848 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.api_tools.uniprot &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../../app.html">app</a></li>
+      <li class="breadcrumb-item active">app.components.api_tools.uniprot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.api_tools.uniprot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">UniProt data access and utilities.</span>
+
+<span class="sd">This module provides helpers to download and process UniProtKB data via</span>
+<span class="sd">the public REST API, including pagination handling, column mapping,</span>
+<span class="sd">organism filtering, and convenience wrappers for common datasets used in</span>
+<span class="sd">ProteoGyver.</span>
+
+<span class="sd">Main entry points</span>
+<span class="sd">-----------------</span>
+<span class="sd">- ``download_uniprot_chunks``: batched download for an organism/field set</span>
+<span class="sd">- ``download_full_uniprot_for_organism``: comprehensive download builder</span>
+<span class="sd">- ``retrieve_uniprot``: cache-aware retrieval to a local TSV</span>
+<span class="sd">- ``update``: check and refresh local UniProt dataset for an organism</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">Large result sets are fetched using server-side pagination with retry</span>
+<span class="sd">policies and optional progress reporting.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">requests.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPAdapter</span><span class="p">,</span> <span class="n">Retry</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">apitools</span>
+
+
+<span class="c1"># TODO: move to a separate file</span>
+<div class="viewcode-block" id="get_uniprot_column_map">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.get_uniprot_column_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_uniprot_column_map</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns currently understood map of uniprot columns in a dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;Entry&#39;</span><span class="p">:</span> <span class="s1">&#39;accession&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Absorption&#39;</span><span class="p">:</span> <span class="s1">&#39;absorption&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Annotation&#39;</span><span class="p">:</span> <span class="s1">&#39;annotation_score&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Activity regulation&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_activity_regulation&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Allergenic properties&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_allergen&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Alternative products&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_alternative_products&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Biotechnological use&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_biotechnology&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Catalytic activity&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_catalytic_activity&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Caution&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_caution&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Cofactor&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_cofactor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Developmental stage&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_developmental_stage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Involvement in disease&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_disease&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Disruption phenotype&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_disruption_phenotype&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Domain[CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_domain&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Function [CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_function&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Induction&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_induction&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Interacts with&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_interaction&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Mass spectrometry&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_mass_spectrometry&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Miscellaneous [CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_miscellaneous&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Pathway&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_pathway&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Pharmaceutical use&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_pharmaceutical&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Polymorphism&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_polymorphism&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Post-translational modification&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_ptm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;RNA editing&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_rna_editing&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence caution&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_sequence_caution&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Subcellular location[CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_subcellular_location&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Subunit structure[CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_subunit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Tissue specificity&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_tissue_specificity&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Toxic dose&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_toxic_dose&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Comment Count&#39;</span><span class="p">:</span> <span class="s1">&#39;comment_count&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Date of creation&#39;</span><span class="p">:</span> <span class="s1">&#39;date_created&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Date of last modification&#39;</span><span class="p">:</span> <span class="s1">&#39;date_modified&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Date of last sequence modification&#39;</span><span class="p">:</span> <span class="s1">&#39;date_sequence_modified&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EC number&#39;</span><span class="p">:</span> <span class="s1">&#39;ec&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Erroneous gene model prediction&#39;</span><span class="p">:</span> <span class="s1">&#39;error_gmodel_pred&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Features&#39;</span><span class="p">:</span> <span class="s1">&#39;feature_count&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Fragment&#39;</span><span class="p">:</span> <span class="s1">&#39;fragment&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Active site&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_act_site&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Binding site&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_binding&#39;</span><span class="p">,</span>
+            <span class="c1"># this field name causes problems 2022-08-22</span>
+            <span class="c1"># &#39;Calcium binding&#39;: &#39;ft_ca_bind&#39;,</span>
+            <span class="s1">&#39;Glycosylation&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_carbohyd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Chain&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_chain&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Coiled coil&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_coiled&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Compositional bias&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_compbias&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence conflict&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_conflict&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Cross-link&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_crosslnk&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Disulfide bond&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_disulfid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DNA binding&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_dna_bind&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Domain[FT]&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_domain&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Helix&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_helix&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Initiator methionine&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_init_met&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Intramembrane&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_intramem&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Lipidation&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_lipid&#39;</span><span class="p">,</span>
+            <span class="c1"># this field name causes problems 2022-08-22</span>
+            <span class="c1"># &#39;Metal binding&#39;: &#39;ft_metal&#39;,</span>
+            <span class="s1">&#39;Modified residue&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_mod_res&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Motif&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_motif&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Mutagenesis&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_mutagen&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Non-adjacent residues&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_non_cons&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Non-standard residue&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_non_std&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Non-terminal residue&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_non_ter&#39;</span><span class="p">,</span>
+            <span class="c1"># this field name causes problems 2022-08-22</span>
+            <span class="c1"># &#39;Nucleotide binding&#39;: &#39;ft_np_bind&#39;,</span>
+            <span class="s1">&#39;Peptide&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_peptide&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Propeptide&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_propep&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Region&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_region&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Repeat&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_repeat&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Signal peptide&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_signal&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Site&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_site&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Beta strand&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_strand&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Topological domain&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_topo_dom&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Transit peptide&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_transit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Transmembrane&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_transmem&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Turn&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_turn&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence uncertainty&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_unsure&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Alternative sequence&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_var_seq&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Natural variant&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_variant&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Zinc finger&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_zn_fing&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene names&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_names&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene names (ordered locus)&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_oln&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene names (ORF)&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_orf&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene names (primary)&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_primary&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene names (synonym)&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_synonym&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (GO)&#39;</span><span class="p">:</span> <span class="s1">&#39;go&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (cellular component)&#39;</span><span class="p">:</span> <span class="s1">&#39;go_c&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (molecular function)&#39;</span><span class="p">:</span> <span class="s1">&#39;go_f&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology IDs&#39;</span><span class="p">:</span> <span class="s1">&#39;go_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (biological process)&#39;</span><span class="p">:</span> <span class="s1">&#39;go_p&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Entry name&#39;</span><span class="p">:</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Keywords&#39;</span><span class="p">:</span> <span class="s1">&#39;keyword&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Keyword ID&#39;</span><span class="p">:</span> <span class="s1">&#39;keywordid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Kinetics&#39;</span><span class="p">:</span> <span class="s1">&#39;kinetics&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Length&#39;</span><span class="p">:</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Taxonomic lineage&#39;</span><span class="p">:</span> <span class="s1">&#39;lineage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Taxonomic lineage (IDs)&#39;</span><span class="p">:</span> <span class="s1">&#39;lineage_ids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PubMed ID&#39;</span><span class="p">:</span> <span class="s1">&#39;lit_pubmed_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Mass&#39;</span><span class="p">:</span> <span class="s1">&#39;mass&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene encoded by&#39;</span><span class="p">:</span> <span class="s1">&#39;organelle&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Organism ID&#39;</span><span class="p">:</span> <span class="s1">&#39;organism_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Organism&#39;</span><span class="p">:</span> <span class="s1">&#39;organism_name&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;pH dependence&#39;</span><span class="p">:</span> <span class="s1">&#39;ph_dependence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Protein existence&#39;</span><span class="p">:</span> <span class="s1">&#39;protein_existence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Protein families&#39;</span><span class="p">:</span> <span class="s1">&#39;protein_families&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Protein names&#39;</span><span class="p">:</span> <span class="s1">&#39;protein_name&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Redox potential&#39;</span><span class="p">:</span> <span class="s1">&#39;redox_potential&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reviewed&#39;</span><span class="p">:</span> <span class="s1">&#39;reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Rhea ID&#39;</span><span class="p">:</span> <span class="s1">&#39;rhea&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence&#39;</span><span class="p">:</span> <span class="s1">&#39;sequence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence version&#39;</span><span class="p">:</span> <span class="s1">&#39;sequence_version&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;3D&#39;</span><span class="p">:</span> <span class="s1">&#39;structure_3d&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Temperature dependence&#39;</span><span class="p">:</span> <span class="s1">&#39;temp_dependence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Tools&#39;</span><span class="p">:</span> <span class="s1">&#39;tools&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UniParc&#39;</span><span class="p">:</span> <span class="s1">&#39;uniparc_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Entry version&#39;</span><span class="p">:</span> <span class="s1">&#39;version&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Virus hosts&#39;</span><span class="p">:</span> <span class="s1">&#39;virus_hosts&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ABCD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_abcd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Allergome&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_allergome&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;AlphaFoldDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_alphafolddb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Antibodypedia&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_antibodypedia&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ArachnoServer&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_arachnoserver&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Araport&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_araport&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Bgee&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_bgee&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BindingDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_bindingdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BioCyc&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_biocyc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BioGRID&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_biogrid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BioGRID-ORCS&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_biogrid-orcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BioMuta&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_biomuta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BMRB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_bmrb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;BRENDA&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_brenda&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CarbonylDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_carbonyldb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CAZy&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_cazy&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CCDS&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ccds&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CDD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_cdd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CGD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_cgd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ChEMBL&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_chembl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ChiTaRS&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_chitars&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CLAE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_clae&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CleanEx&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_cleanex&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CollecTF&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_collectf&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ComplexPortal&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_complexportal&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;COMPLUYEAST-2DPAGE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_compluyeast-2dpage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ConoServer&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_conoserver&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CORUM&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_corum&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CPTAC&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_cptac&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CPTC&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_cptc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CTD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ctd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;dbSNP&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_dbsnp&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DEPOD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_depod&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;dictyBase&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_dictybase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DIP&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_dip&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DisGeNET&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_disgenet&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DisProt&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_disprot&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DMDM&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_dmdm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DNASU&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_dnasu&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DOSAC-COBS-2DPAGE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_dosac-cobs-2dpage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DrugBank&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_drugbank&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;DrugCentral&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_drugcentral&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EchoBASE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_echobase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;eggNOG&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_eggnog&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ELM&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_elm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EMBL&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_embl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Ensembl&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ensembl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EnsemblBacteria&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ensemblbacteria&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EnsemblFungi&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ensemblfungi&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EnsemblMetazoa&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ensemblmetazoa&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EnsemblPlants&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ensemblplants&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EnsemblProtists&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ensemblprotists&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EPD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_epd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ESTHER&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_esther&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;euHCVdb&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_euhcvdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;EvolutionaryTrace&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_evolutionarytrace&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ExpressionAtlas&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_expressionatlas&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;FlyBase&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_flybase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene3D&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_gene3d&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GeneCards&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_genecards&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GeneID&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_geneid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GeneReviews&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_genereviews&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GeneTree&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_genetree&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Genevisible&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_genevisible&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GeneWiki&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_genewiki&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GenomeRNAi&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_genomernai&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GlyConnect&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_glyconnect&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GlyGen&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_glygen&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gramene&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_gramene&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;GuidetoPHARMACOLOGY&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_guidetopharmacology&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;HAMAP&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_hamap&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;HGNC&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_hgnc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;HOGENOM&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_hogenom&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;HPA&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_hpa&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;IDEAL&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ideal&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;IMGT_GENE-DB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_imgt_gene-db&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;InParanoid&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_inparanoid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;IntAct&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_intact&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;InterPro&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_interpro&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;iPTMnet&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_iptmnet&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;jPOST&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_jpost&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;KEGG&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_kegg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;KO&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ko&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;LegioList&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_legiolist&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Leproma&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_leproma&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MaizeGDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_maizegdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MalaCards&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_malacards&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MANE-Select&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_mane-select&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MassIVE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_massive&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MaxQB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_maxqb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MEROPS&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_merops&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MetOSite&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_metosite&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MGI&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_mgi&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MIM&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_mim&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MINT&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_mint&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MoonDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_moondb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;MoonProt&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_moonprot&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;neXtProt&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_nextprot&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;NIAGADS&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_niagads&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;OGP&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ogp&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;OMA&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_oma&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;OpenTargets&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_opentargets&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Orphanet&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_orphanet&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;OrthoDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_orthodb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PANTHER&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_panther&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PathwayCommons&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pathwaycommons&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PATRIC&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_patric&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PaxDb&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_paxdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PCDDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pcddb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PDBsum&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pdbsum&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PeptideAtlas&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_peptideatlas&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PeroxiBase&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_peroxibase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Pfam&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pfam&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PharmGKB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pharmgkb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Pharos&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pharos&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PHI-base&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_phi-base&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PhosphoSitePlus&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_phosphositeplus&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PhylomeDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_phylomedb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PIR&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pir&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PIRSF&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pirsf&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PlantReactome&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_plantreactome&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PomBase&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pombase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PRIDE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pride&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PRINTS&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_prints&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PRO&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pro&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ProDom&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_prodom&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ProMEX&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_promex&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PROSITE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_prosite&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Proteomes&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_proteomes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ProteomicsDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_proteomicsdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PseudoCAP&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pseudocap&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reactome&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_reactome&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;REBASE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_rebase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;RefSeq&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_refseq&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;REPRODUCTION-2DPAGE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_reproduction-2dpage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;RGD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_rgd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;RNAct&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_rnact&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SABIO-RK&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_sabio-rk&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SASBDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_sasbdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SFLD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_sfld&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SGD&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_sgd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SignaLink&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_signalink&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SIGNOR&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_signor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SMART&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_smart&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SMR&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_smr&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;STRING&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_string&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SUPFAM&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_supfam&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SWISS-2DPAGE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_swiss-2dpage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SwissLipids&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_swisslipids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SwissPalm&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_swisspalm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TAIR&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_tair&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TCDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_tcdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TIGRFAMs&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_tigrfams&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TopDownProteomics&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_topdownproteomics&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TreeFam&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_treefam&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TubercuList&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_tuberculist&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UCD-2DPAGE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ucd-2dpage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UCSC&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ucsc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UniCarbKB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_unicarbkb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UniLectin&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_unilectin&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;UniPathway&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_unipathway&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;VectorBase&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_vectorbase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;VEuPathDB&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_veupathdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;VGNC&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_vgnc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;WBParaSite&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_wbparasite&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;WBParaSiteTranscriptProtein&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_wbparasitetranscriptprotein&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;World-2DPAGE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_world-2dpage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;WormBase&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_wormbase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Xenbase&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_xenbase&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ZFIN&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_zfin&#39;</span>
+            <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="get_default_uniprot_column_map">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.get_default_uniprot_column_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_default_uniprot_column_map</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a sensible, yet extensive default map of uniprot columns in a dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;Entry&#39;</span><span class="p">:</span> <span class="s1">&#39;accession&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Post-translational modification&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_ptm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Comment Count&#39;</span><span class="p">:</span> <span class="s1">&#39;comment_count&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Organism&#39;</span><span class="p">:</span> <span class="s1">&#39;organism_name&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Modified residue&#39;</span><span class="p">:</span> <span class="s1">&#39;ft_mod_res&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene names&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_names&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene names (primary)&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_primary&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (cellular component)&#39;</span><span class="p">:</span> <span class="s1">&#39;go_c&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (molecular function)&#39;</span><span class="p">:</span> <span class="s1">&#39;go_f&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (biological process)&#39;</span><span class="p">:</span> <span class="s1">&#39;go_p&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Entry name&#39;</span><span class="p">:</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Keywords&#39;</span><span class="p">:</span> <span class="s1">&#39;keyword&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Length&#39;</span><span class="p">:</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PubMed ID&#39;</span><span class="p">:</span> <span class="s1">&#39;lit_pubmed_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Mass&#39;</span><span class="p">:</span> <span class="s1">&#39;mass&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Protein names&#39;</span><span class="p">:</span> <span class="s1">&#39;protein_name&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reviewed&#39;</span><span class="p">:</span> <span class="s1">&#39;reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence&#39;</span><span class="p">:</span> <span class="s1">&#39;sequence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Entry version&#39;</span><span class="p">:</span> <span class="s1">&#39;version&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Reactome&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_reactome&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Cofactor&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_cofactor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Developmental stage&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_developmental_stage&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Involvement in disease&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_disease&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Disruption phenotype&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_disruption_phenotype&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Domain[CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_domain&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Function [CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_function&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Induction&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_induction&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Interacts with&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_interaction&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Miscellaneous [CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_miscellaneous&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence caution&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_sequence_caution&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Subcellular location[CC]&#39;</span><span class="p">:</span> <span class="s1">&#39;cc_subcellular_location&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Date of last sequence modification&#39;</span><span class="p">:</span> <span class="s1">&#39;date_sequence_modified&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Organism ID&#39;</span><span class="p">:</span> <span class="s1">&#39;organism_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PhosphoSitePlus&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_phosphositeplus&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Sequence version&#39;</span><span class="p">:</span> <span class="s1">&#39;sequence_version&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;RefSeq&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_refseq&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;STRING&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_string&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Ensembl&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_ensembl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;IntAct&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_intact&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;InterPro&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_interpro&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PANTHER&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_panther&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SUPFAM&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_supfam&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Pfam&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pfam&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PRO&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_pro&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;PROSITE&#39;</span><span class="p">:</span> <span class="s1">&#39;xref_prosite&#39;</span><span class="p">,</span>
+            <span class="p">}</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">__get_uniprot_batch</span><span class="p">(</span><span class="n">batch_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span> <span class="c1">#TODO: mark all tuple returns with Generator class once available</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves batches from UniProt, results response, and total number of results.</span>
+
+<span class="sd">    :yields: a tuple of (requests.models.Response, total:str)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="n">batch_url</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">batch_url</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;x-total-results&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+        <span class="n">batch_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">__get_uniprot_next_link</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">__get_uniprot_next_link</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses link to the next page of results in a UniProt query</span>
+
+<span class="sd">    :param headers: dictionary of html headers.</span>
+
+<span class="sd">    :returns: The link, or None is no link is found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">re_next_link</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&lt;(.+)&gt;; rel=&quot;next&quot;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;Link&quot;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re_next_link</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Link&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="download_uniprot_for_database">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.download_uniprot_for_database">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_uniprot_for_database</span><span class="p">(</span><span class="n">versions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks, whether an update for uniprot is available and downloads it if necessary for database use.</span>
+
+<span class="sd">    :param versions: List of current versions of the UniProt database.</span>
+<span class="sd">    :param organisms: Optional set of organism IDs to include.</span>
+<span class="sd">    :param progress: True, if progress should be printed.</span>
+
+<span class="sd">    :returns: Tuple of (DataFrame of UniProt data, List of new versions).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dfs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">db_fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Entry&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Reviewed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Gene names (primary)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Entry name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Gene names&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Organism&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Length&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Sequence&quot;</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">organisms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">organisms</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">organisms</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">organisms</span><span class="p">}</span>
+    <span class="n">org_versions</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
+        <span class="n">org</span><span class="p">,</span> <span class="n">ver</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;::&#39;</span><span class="p">)</span>
+        <span class="n">org_versions</span><span class="p">[</span><span class="n">org</span><span class="p">]</span> <span class="o">=</span> <span class="n">ver</span>
+    <span class="n">ret_vers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">organism</span> <span class="ow">in</span> <span class="n">organisms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">organism</span> <span class="ow">in</span> <span class="n">org_versions</span><span class="p">:</span>
+            <span class="n">old_ver</span> <span class="o">=</span> <span class="n">org_versions</span><span class="p">[</span><span class="n">organism</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">old_ver</span> <span class="o">=</span> <span class="s1">&#39;no version&#39;</span>
+        <span class="n">available</span><span class="p">,</span> <span class="n">new_version</span> <span class="o">=</span> <span class="n">is_newer_available</span><span class="p">(</span><span class="n">old_ver</span><span class="p">,</span> <span class="n">organism</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">available</span><span class="p">:</span>
+            <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">download_uniprot_chunks</span><span class="p">(</span><span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">organism</span><span class="o">=</span><span class="n">organism</span><span class="p">,</span> <span class="n">fields</span> <span class="o">=</span> <span class="n">db_fields</span><span class="p">,</span> <span class="n">reviewed_only</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">ret_vers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">organism</span><span class="si">}</span><span class="s1">::</span><span class="si">{</span><span class="n">new_version</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs</span><span class="p">),</span> <span class="n">ret_vers</span></div>
+
+
+
+
+<div class="viewcode-block" id="download_uniprot_chunks">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.download_uniprot_chunks">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_uniprot_chunks</span><span class="p">(</span><span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">organism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">reviewed_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Downloads whole uniprot for a given organism using pagination.</span>
+
+<span class="sd">    Entry -column will always be the first column and used as the index in the output dataframe.</span>
+
+<span class="sd">    :param progress: Progress report printing</span>
+<span class="sd">    :param organism: human by default, otherwise specify organism ID (e.g. human is 9606). if -1, all organisms will be downloaded</span>
+<span class="sd">    :param fields: uniprot field labels for fields to retrieve. Refer to \</span>
+<span class="sd">        https://www.uniprot.org/help/return_fields for help with field Labels \</span>
+<span class="sd">        (from the label column). If None, download a default selection.</span>
+<span class="sd">    :param reviewed_only: if True, only reviewed entries will be returned. if False, all entries will be returned (probably not what you want).</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: the requested uniprot data in a pandas dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">organism</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">taxonomy</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;%28taxonomy_id%3A</span><span class="si">{</span><span class="n">organism</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">if</span> <span class="n">reviewed_only</span><span class="p">:</span>
+            <span class="n">taxonomy</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">%29%</span><span class="s1">20AND%20&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">taxonomy</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">reviewed_only</span><span class="p">:</span>
+        <span class="n">reviewed</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%28r</span><span class="s1">eviewed%3Atrue%29&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">reviewed</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">filter_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">taxonomy</span><span class="si">}{</span><span class="n">reviewed</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">organism</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">reviewed_only</span><span class="p">:</span>
+        <span class="n">filter_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;query=</span><span class="si">{</span><span class="n">filter_str</span><span class="si">}</span><span class="s1">&amp;&#39;</span>
+    <span class="n">fieldstr</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;tsv&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span>
+        <span class="n">field_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">get_default_uniprot_column_map</span><span class="p">()</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;Entry&#39;</span><span class="p">,</span> <span class="s1">&#39;Entry version&#39;</span><span class="p">,</span> <span class="s1">&#39;Reactome&#39;</span><span class="p">,</span> <span class="s1">&#39;Entry name&#39;</span><span class="p">,</span> <span class="s1">&#39;Gene names&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Protein names&#39;</span><span class="p">,</span> <span class="s1">&#39;Reviewed&#39;</span><span class="p">,</span> <span class="s1">&#39;Organism&#39;</span><span class="p">,</span> <span class="s1">&#39;Comment Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Keywords&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Modified residue&#39;</span><span class="p">,</span> <span class="s1">&#39;PubMed ID&#39;</span><span class="p">,</span> <span class="s1">&#39;Post-translational modification&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (cellular component)&#39;</span><span class="p">,</span> <span class="s1">&#39;Gene ontology (molecular function)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Gene ontology (biological process)&#39;</span><span class="p">,</span> <span class="s1">&#39;Length&#39;</span><span class="p">,</span> <span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Sequence&#39;</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="n">fieldstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field_dict</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="n">have</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">field_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">have</span><span class="p">:</span>
+                <span class="n">fieldstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+                <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">field_dict</span> <span class="o">=</span> <span class="n">get_uniprot_column_map</span><span class="p">()</span>
+        <span class="n">fieldstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field_dict</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">])</span>
+        <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Entry&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s1">&#39;Entry&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">field_dict</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">((</span>
+                    <span class="sa">f</span><span class="s1">&#39;Field </span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s1"> not found in UniProt. Refer to &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;https://www.uniprot.org/help/return_fields for help with field Labels.&#39;</span>
+                <span class="p">),</span> <span class="ne">UserWarning</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fieldstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field_dict</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+                <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fieldstr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s1">&#39;Empty UniProt label list. Refer to &#39;</span>
+        <span class="s1">&#39;https://www.uniprot.org/help/return_fields for help with field Labels.&#39;</span>
+    <span class="p">)</span>
+    <span class="n">final_fieldstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;%2C&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fieldstr</span><span class="p">)</span>
+    <span class="n">pagination_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;https://rest.uniprot.org/uniprotkb/search?fields=</span><span class="si">{</span><span class="n">final_fieldstr</span><span class="si">}</span><span class="s1">&amp;format=</span><span class="si">{</span><span class="n">output_format</span><span class="si">}</span><span class="s1">&amp;&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">filter_str</span><span class="si">}</span><span class="s1">size=500&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">download_uniprot_pagination_url</span><span class="p">(</span><span class="n">pagination_url</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">progress</span><span class="p">)</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">__format_seconds_into_estimate</span><span class="p">(</span><span class="n">total_seconds</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">append</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="n">hours</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">total_seconds</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>
+    <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">remainder</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;estimated: </span><span class="si">{</span><span class="n">hours</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">minutes</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">seconds</span><span class="si">:</span><span class="s2">02</span><span class="si">}{</span><span class="n">append</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<div class="viewcode-block" id="download_uniprot_pagination_url">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.download_uniprot_pagination_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_uniprot_pagination_url</span><span class="p">(</span><span class="n">pag_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">progress</span><span class="p">:</span><span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles the downloading of the uniprot</span>
+
+<span class="sd">    :param pag_url: url for uniprot</span>
+<span class="sd">    :param headers: list of headers to get</span>
+<span class="sd">    :param progress: True, if progress should be printed</span>
+
+<span class="sd">    :returns: Pandas dataframe of the uniprot specified by url and headers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Retry</span> <span class="o">=</span> <span class="n">Retry</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">backoff_factor</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+                    <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">])</span>
+    <span class="n">session</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;https://&quot;</span><span class="p">,</span> <span class="n">HTTPAdapter</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retries</span><span class="p">))</span>
+
+    <span class="n">alltext</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">index</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">times_taken</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">prev_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">batch</span><span class="p">,</span> <span class="n">total</span> <span class="ow">in</span> <span class="n">__get_uniprot_batch</span><span class="p">(</span><span class="n">pag_url</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">batch</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">line</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">alltext</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">progress</span><span class="p">:</span>
+            <span class="n">time_taken</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">prev_time</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">time_taken</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">times_taken</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_taken</span><span class="p">)</span>
+                <span class="n">est_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="nb">int</span><span class="p">(</span><span class="n">total</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">alltext</span><span class="p">))</span><span class="o">/</span><span class="mi">500</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">times_taken</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:])</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">times_taken</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:])))</span>
+                <span class="n">estimate</span> <span class="o">=</span> <span class="n">__format_seconds_into_estimate</span><span class="p">(</span><span class="n">est_time</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="s1">&#39; to finish&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">estimate</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">alltext</span><span class="p">)</span><span class="si">}</span><span class="s1"> / </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s1">, took </span><span class="si">{</span><span class="n">time_taken</span><span class="si">}</span><span class="s1"> seconds, </span><span class="si">{</span><span class="n">estimate</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">prev_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">headers</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">data</span><span class="o">=</span><span class="n">alltext</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Entry&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="retrieve_protein_group">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.retrieve_protein_group">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retrieve_protein_group</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">query_col</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;protein_name&#39;</span><span class="p">,</span> <span class="n">reviewed</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utility function to quickly download tsvs describing each common protein class used in ProteoGyver.</span>
+<span class="sd">    </span>
+<span class="sd">    :param name: protein group name to search for</span>
+<span class="sd">    :param query_col: column to search. Protein name by default.</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: pandas datafrmae of the given protein group</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Entry&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Reviewed&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Entry name&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Protein names&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Gene names&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Organism&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Length&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Gene names (primary)&#39;</span>
+    <span class="p">]</span>
+    <span class="n">colmap</span> <span class="o">=</span> <span class="n">get_uniprot_column_map</span><span class="p">()</span>
+    <span class="n">field_str</span> <span class="o">=</span> <span class="s1">&#39;%2C&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">colmap</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">])</span>
+    
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="s1">&#39;+&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">reviewed</span><span class="p">:</span>
+        <span class="n">revstr</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;+AND+</span><span class="si">%28r</span><span class="s1">eviewed%3Atrue%29&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">revstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">group_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;https://rest.uniprot.org/uniprotkb/search?fields=</span><span class="si">{</span><span class="n">field_str</span><span class="si">}</span><span class="s1">&amp;format=tsv&amp;query=%28</span><span class="si">{</span><span class="n">query_col</span><span class="si">}</span><span class="s1">%3A</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">%29</span><span class="si">{</span><span class="n">revstr</span><span class="si">}</span><span class="s1">&amp;size=500&#39;</span>
+    <span class="k">return</span> <span class="n">download_uniprot_pagination_url</span><span class="p">(</span><span class="n">group_url</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="retrieve_uniprot">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.retrieve_uniprot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retrieve_uniprot</span><span class="p">(</span><span class="n">uniprotfile</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Full human uniprot.tsv&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Downloads full uniprot (reviewed entries only) to a file and returns the dataframe.</span>
+
+<span class="sd">    :param uniprotfile: path of the output file</span>
+<span class="sd">    :param kwargs: kwargs to pass down to download_full_uniprot_for_organism, e.g. to specify which\</span>
+<span class="sd">        organism or if progress should be reported.</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: full uniprot as a pandas dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">uniprotfile</span><span class="p">):</span>
+        <span class="n">updf</span><span class="p">:</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">uniprotfile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">updf</span> <span class="o">=</span> <span class="n">download_full_uniprot_for_organism</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">updf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">uniprotfile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">updf</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">updf</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">]</span>
+    <span class="n">updf</span> <span class="o">=</span> <span class="n">updf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">updf</span></div>
+
+
+<div class="viewcode-block" id="download_full_uniprot_for_organism">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.download_full_uniprot_for_organism">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_full_uniprot_for_organism</span><span class="p">(</span><span class="n">organism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># TODO: mark this as Union[list, int] when newer version of python available</span>
+                                       <span class="n">columns</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                                       <span class="n">overall_progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">reviewed_only</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Downloads the full uniprot database EXCLUDING isoforms in a .tsv format for a \</span>
+<span class="sd">        given organism.</span>
+
+<span class="sd">    :param organism: integer ID or a list of integer ID of the desired organism, e.g. human is 9606. If none, defaults to human.</span>
+<span class="sd">    :param columns: a set of uniprot columns to get</span>
+<span class="sd">    :param progress: Print progress reports of how each batch download is going</span>
+<span class="sd">    :param overall_progress: Print progress reports when each batch is finished</span>
+<span class="sd">    :param reviewed only: True, if only reviewed entries should be retrieved</span>
+
+<span class="sd">    :returns: pandas dataframe of the uniprot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">organism</span><span class="p">:</span>
+        <span class="n">organism</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">9606</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">organism</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">organism</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="n">organism</span><span class="p">]</span>
+    <span class="n">dfs_to_merge</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="n">columns</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">get_default_uniprot_column_map</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">need</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="n">columns</span>
+    <span class="n">lim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="n">next_batch</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">]</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">need</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">overall_progress</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">need</span><span class="p">)</span><span class="si">}</span><span class="s1"> columns to go in </span><span class="si">{</span><span class="mi">1</span><span class="o">+</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">need</span><span class="p">)</span><span class="o">/</span><span class="n">lim</span><span class="p">)</span><span class="si">}</span><span class="s1"> batches.&#39;</span><span class="p">)</span>
+        <span class="n">next_batch</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">need</span><span class="p">)[:(</span><span class="n">lim</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+        <span class="k">for</span> <span class="n">organism_id</span> <span class="ow">in</span> <span class="n">organism</span><span class="p">:</span>
+            <span class="n">dfs_to_merge</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">download_uniprot_chunks</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">next_batch</span><span class="p">,</span>
+                                                        <span class="n">organism</span><span class="o">=</span><span class="n">organism_id</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span> <span class="n">reviewed_only</span><span class="o">=</span><span class="n">reviewed_only</span><span class="p">))</span>
+        <span class="n">need</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">need</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">next_batch</span><span class="p">}</span>
+        <span class="n">next_batch</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs_to_merge</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.update">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">organism</span> <span class="o">=</span> <span class="mi">9606</span><span class="p">,</span><span class="n">progress</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks, whether an update for uniprot is available and downloads it if necessary.</span>
+
+<span class="sd">    :param organism: which organism to download</span>
+<span class="sd">    :param progress: True, if progress should be printed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">apitools</span><span class="o">.</span><span class="n">get_save_location</span><span class="p">(</span><span class="s1">&#39;Uniprot&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_newer_available</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">organism</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">today</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">apitools</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">download_full_uniprot_for_organism</span><span class="p">(</span><span class="n">organism</span><span class="o">=</span><span class="n">organism</span><span class="p">,</span><span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span><span class="n">overall_progress</span><span class="o">=</span><span class="n">progress</span><span class="p">)</span>
+        <span class="n">outfile</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">today</span><span class="si">}</span><span class="s1">_Uniprot_</span><span class="si">{</span><span class="n">organism</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">outfile</span><span class="si">}</span><span class="s1">.tsv&#39;</span><span class="p">,</span><span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">name_dict</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">length_dict</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">name_dict</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Gene names (primary)&#39;</span><span class="p">]</span>
+            <span class="n">length_dict</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">outfile</span><span class="si">}</span><span class="s1">_protein_names.json&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">name_dict</span><span class="p">,</span><span class="n">fil</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">outfile</span><span class="si">}</span><span class="s1">_protein_lengths.json&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">length_dict</span><span class="p">,</span><span class="n">fil</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="is_newer_available">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.is_newer_available">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_newer_available</span><span class="p">(</span><span class="n">current_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">organism</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">9606</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks whether newer uniprot version is available</span>
+
+<span class="sd">    :param current_version: Current version of the uniprot database</span>
+<span class="sd">    :param organism: which organism uniprot to check.</span>
+
+<span class="sd">    :returns: True, if newer uniprot version is available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uniprot_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://rest.uniprot.org/uniprotkb/search?</span><span class="se">\</span>
+<span class="s2">        query=organism_id:</span><span class="si">{</span><span class="n">organism</span><span class="si">}</span><span class="s2">&amp;format=fasta&quot;</span>
+    <span class="n">uniprot_response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uniprot_url</span><span class="p">)</span>
+    <span class="n">newest_version</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">uniprot_response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;X-UniProt-Release&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">current_version</span> <span class="o">!=</span> <span class="n">newest_version</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">newest_version</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">current_version</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="methods_text">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.uniprot.methods_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">methods_text</span><span class="p">(</span><span class="n">organism</span><span class="o">=</span><span class="mi">9606</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a methods text for used uniprot data</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: a tuple of (readable reference information (str), PMID (str), uniprot description (str))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">short</span><span class="p">:</span><span class="nb">str</span>
+    <span class="n">long</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">pmid</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">short</span><span class="p">,</span><span class="n">long</span><span class="p">,</span><span class="n">pmid</span> <span class="o">=</span> <span class="n">apitools</span><span class="o">.</span><span class="n">get_pub_ref</span><span class="p">(</span><span class="s1">&#39;uniprot&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="sa">f</span><span class="s1">&#39;Protein annotations were mapped from UniProt (https://uniprot.org) </span><span class="si">{</span><span class="n">short</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">pmid</span><span class="p">,</span>
+        <span class="n">long</span>
+    <span class="p">])</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

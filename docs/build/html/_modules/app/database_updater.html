@@ -1,0 +1,872 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.database_updater &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.database_updater</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.database_updater</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utilities to update and synchronize the SQLite database from TSV inputs</span>
+<span class="sd">and external APIs (UniProt, IntAct, BioGRID).</span>
+
+<span class="sd">This module provides helpers for:</span>
+<span class="sd">- Creating TSV-based inserts/updates with schema reconciliation</span>
+<span class="sd">- Merging interaction datasets and exporting incremental updates</span>
+<span class="sd">- Recording update logs and packaging outputs</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">text_handling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_functions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.api_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">intact</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.api_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">biogrid</span>
+
+<div class="viewcode-block" id="update_table_with_file">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.update_table_with_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_table_with_file</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">add_info</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update a table with data from a TSV file, adding columns if needed.</span>
+
+<span class="sd">    :param cursor: SQLite database cursor.</span>
+<span class="sd">    :param table_name: Target table name.</span>
+<span class="sd">    :param file_path: Path to the TSV file with new data.</span>
+<span class="sd">    :param parameters: Configuration parameters; expects keys like &#39;Allowed new columns&#39;, &#39;Allowed missing columns&#39;, &#39;Ignore diffs&#39;.</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :param add_info: Optional progress info for logging.</span>
+<span class="sd">    :returns: Tuple of (insertions, modifications).</span>
+<span class="sd">    :raises ValueError: If too many new or missing columns are detected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ignore_diffs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ignore diffs&#39;</span><span class="p">])</span>
+    <span class="n">modifications</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">insertions</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRAGMA table_info(</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="n">table_info</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">db_columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table_info</span><span class="p">)</span>
+
+    <span class="c1"># Read the file</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">file_columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="c1"># Compare columns</span>
+    <span class="n">missing_cols</span> <span class="o">=</span> <span class="n">db_columns</span> <span class="o">-</span> <span class="n">file_columns</span>
+    <span class="n">extra_cols</span> <span class="o">=</span> <span class="n">file_columns</span> <span class="o">-</span> <span class="n">db_columns</span>
+    <span class="n">missing_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">missing_cols</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_diffs</span><span class="p">]</span>
+    <span class="n">extra_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">extra_cols</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_diffs</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Allowed new columns&#39;</span><span class="p">]:</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Too many new columns in file: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extra_cols</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column mismatch for table </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Allowed missing columns&#39;</span><span class="p">]:</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Too many missing columns in file </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_cols</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column mismatch for table </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Add extra columns to database if they exist in file</span>
+    <span class="n">col_renames</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">extra_cols</span><span class="p">:</span>
+        <span class="c1"># Check if the column in the dataframe is numeric</span>
+        <span class="n">is_numeric</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">is_numeric</span><span class="p">:</span>
+            <span class="n">col_type</span> <span class="o">=</span> <span class="s1">&#39;NUMERIC&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">col_type</span> <span class="o">=</span> <span class="s1">&#39;TEXT&#39;</span>
+            
+        <span class="c1"># Sanitize column name to only contain lowercase, numbers, and underscore</span>
+        <span class="n">sanitized_col</span> <span class="o">=</span> <span class="n">text_handling</span><span class="o">.</span><span class="n">sanitize_for_database_use</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ALTER TABLE </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> ADD COLUMN </span><span class="si">{</span><span class="n">sanitized_col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added new column &#39;</span><span class="si">{</span><span class="n">sanitized_col</span><span class="si">}</span><span class="s2">&#39; to table </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> with type </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Add column name to rename mapping if it was changed</span>
+        <span class="k">if</span> <span class="n">sanitized_col</span> <span class="o">!=</span> <span class="n">col</span><span class="p">:</span>
+            <span class="n">col_renames</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">sanitized_col</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_renames</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Assuming the first column is the primary key</span>
+    
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">pk_value</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">primary_key</span><span class="p">]</span>
+        
+        <span class="c1"># Check if the primary key already exists in the table</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">primary_key</span><span class="si">}</span><span class="s2"> = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">pk_value</span><span class="p">,))</span>
+        <span class="n">existing_entry</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">existing_entry</span><span class="p">:</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRAGMA table_info(</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="n">all_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">rr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+            
+            <span class="c1"># Create a dictionary of the new values</span>
+            <span class="n">new_values</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            
+            <span class="c1"># If there&#39;s an existing entry, preserve values for missing columns</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_columns</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_values</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="n">col</span><span class="p">])):</span>
+                    <span class="n">new_values</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing_entry</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">differences</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_columns</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ignore_diffs</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">new_values</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">!=</span> <span class="n">existing_entry</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="n">differences</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># If new entry is the same as old one, do nothing</span>
+            <span class="k">if</span> <span class="n">differences</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">modifications</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Prepare the INSERT statement with preserved values from earlier</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_columns</span><span class="p">)</span>
+            <span class="n">placeholders</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_columns</span><span class="p">))</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">all_columns</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># For new entries, just use the values from the file</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">placeholders</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="c1"># Insert the entry</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;INSERT OR REPLACE INTO </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">) VALUES (</span><span class="si">{</span><span class="n">placeholders</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+        <span class="n">insertions</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">insertions</span> <span class="o">-=</span> <span class="n">modifications</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Updated table </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">modifications</span><span class="si">}</span><span class="s2"> modifications, </span><span class="si">{</span><span class="n">insertions</span><span class="si">}</span><span class="s2"> insertions. </span><span class="si">{</span><span class="n">add_info</span><span class="si">}</span><span class="s2"> data file: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">insertions</span><span class="p">,</span> <span class="n">modifications</span></div>
+
+
+<div class="viewcode-block" id="update_database">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.update_database">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_database</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cc_cols</span><span class="p">,</span> <span class="n">cc_types</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update multiple database tables using TSV files from configured directories.</span>
+
+<span class="sd">    :param conn: SQLite database connection.</span>
+<span class="sd">    :param parameters: Parameters with &#39;Update files&#39; table→directory mappings and limits.</span>
+<span class="sd">    :param cc_cols: Expected column names for creating fresh tables.</span>
+<span class="sd">    :param cc_types: SQL column types aligned with ``cc_cols``.</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :returns: Tuple of (inmod_names, inmod_vals) listing counts per table and action.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">update_files</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update files&#39;</span><span class="p">]</span>
+    <span class="n">inmod_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">inmod_vals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">update_order</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;remove_data&#39;</span><span class="p">,</span><span class="s1">&#39;add_or_replace&#39;</span><span class="p">]</span>
+    <span class="n">update_order</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">table_name</span> <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">update_files</span> <span class="k">if</span> <span class="n">table_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">update_order</span><span class="p">])</span>
+    <span class="n">delete_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">update_order</span><span class="p">:</span>
+        <span class="n">insertions</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">modifications</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">deletions</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">folder_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">update_files</span><span class="p">[</span><span class="n">table_name</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder_path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">table_name</span> <span class="o">==</span> <span class="s1">&#39;remove_data&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder_path</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">file_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">):</span>
+                        <span class="n">dbtable_name</span> <span class="o">=</span> <span class="n">file_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>  <span class="c1"># Skip empty lines and comments</span>
+                                    <span class="k">continue</span>
+                                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+                                    <span class="k">continue</span>
+                                    
+                                <span class="n">criteria_list</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                                <span class="n">where_conditions</span> <span class="o">=</span> <span class="p">[]</span>
+                                <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+                                
+                                <span class="c1"># Process each criterion (column_name, value pair)</span>
+                                <span class="k">for</span> <span class="n">criterion</span> <span class="ow">in</span> <span class="n">criteria_list</span><span class="p">:</span>
+                                    <span class="n">column</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">criterion</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+                                    <span class="n">where_conditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2"> = ?&quot;</span><span class="p">)</span>
+                                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                                
+                                <span class="n">where_clause</span> <span class="o">=</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where_conditions</span><span class="p">)</span>
+                                
+                                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DELETE FROM </span><span class="si">{</span><span class="n">dbtable_name</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">where_clause</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+                                <span class="n">deletions</span> <span class="o">+=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span>
+                            <span class="n">delete_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">table_name</span> <span class="o">==</span> <span class="s1">&#39;add_or_replace&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder_path</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">file_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">):</span>
+                        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+                        <span class="n">new_table_name</span> <span class="o">=</span> <span class="n">file_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="n">space_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39; &#39;</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span>
+                        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">space_columns</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Column names must not contain spaces. Problematic column names: </span><span class="si">{</span><span class="n">space_columns</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DROP TABLE IF EXISTS </span><span class="si">{</span><span class="n">new_table_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="c1"># Create table with columns from the file</span>
+                        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">cc_cols</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+                            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">file_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">,</span><span class="s1">&#39;.txt&#39;</span><span class="p">)),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                                <span class="n">cc_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+                                <span class="n">cc_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">cc_types</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">l</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)]</span>
+                                <span class="n">cc_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">cc_types</span> <span class="k">if</span> <span class="n">l</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+                        <span class="n">columns</span> <span class="o">=</span> <span class="p">[]</span>    
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+                            <span class="n">col_type</span> <span class="o">=</span> <span class="n">cc_types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                            <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">create_query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;CREATE TABLE </span><span class="si">{</span><span class="n">new_table_name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+                        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">create_query</span><span class="p">)</span>
+                        <span class="c1"># Insert data</span>
+                        <span class="n">columns</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+                        <span class="n">placeholders</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;INSERT INTO </span><span class="si">{</span><span class="n">new_table_name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">) VALUES (</span><span class="si">{</span><span class="n">placeholders</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+                        <span class="n">insertions</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created new table </span><span class="si">{</span><span class="n">new_table_name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">insertions</span><span class="si">}</span><span class="s2"> rows&quot;</span><span class="p">)</span>
+                        <span class="n">delete_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">,</span><span class="s1">&#39;txt&#39;</span><span class="p">)):</span>
+                            <span class="n">delete_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">,</span><span class="s1">&#39;txt&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dirfiles</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder_path</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dirfiles</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">file_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tsv&#39;</span><span class="p">):</span>
+                        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+
+                        <span class="n">add_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirfiles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                            <span class="n">add_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dirfiles</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+                        <span class="n">insertions</span><span class="p">,</span> <span class="n">modifications</span> <span class="o">=</span> <span class="n">update_table_with_file</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">add_info</span><span class="p">)</span>
+                        <span class="n">delete_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folder_path</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created directory </span><span class="si">{</span><span class="n">folder_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">inmod_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1"> insertions&#39;</span><span class="p">)</span>
+        <span class="n">inmod_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">insertions</span><span class="p">)</span>
+        <span class="n">inmod_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1"> modifications&#39;</span><span class="p">)</span>
+        <span class="n">inmod_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modifications</span><span class="p">)</span>
+        <span class="n">inmod_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1"> deletions&#39;</span><span class="p">)</span>
+        <span class="n">inmod_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deletions</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">delete_files</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to commit changes: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">inmod_names</span><span class="p">,</span> <span class="n">inmod_vals</span></div>
+
+
+<div class="viewcode-block" id="get_dataframe_differences">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.get_dataframe_differences">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_dataframe_differences</span><span class="p">(</span><span class="n">df1</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">df2</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">ignore_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare two DataFrames and return modified/new indices and missing indices.</span>
+
+<span class="sd">    Columns listed in ``ignore_columns`` are dropped before comparison. The two</span>
+<span class="sd">    DataFrames must have identical columns after dropping.</span>
+
+<span class="sd">    :param df1: Baseline DataFrame.</span>
+<span class="sd">    :param df2: New DataFrame to compare against baseline.</span>
+<span class="sd">    :param ignore_columns: Columns to ignore during comparison.</span>
+<span class="sd">    :returns: Tuple of (new_or_modified_indices, missing_indices).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ignore_columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ignore_columns</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">df1</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ignore_columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df1</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span>
+    <span class="n">df2</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ignore_columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df2</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span>
+    <span class="c1"># Ensure same columns</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">df1</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="s2">&quot;DataFrames must have the same columns&quot;</span>
+
+    <span class="n">common_idx</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">missing_rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+    <span class="n">new_or_modified</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">df1</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">common_idx</span><span class="p">:</span>
+        <span class="n">row1</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">row2</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df1</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">val1</span> <span class="o">=</span> <span class="n">row1</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="n">val2</span> <span class="o">=</span> <span class="n">row2</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+
+            <span class="c1"># Normalize values</span>
+            <span class="n">val1</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">val1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">val1</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">val1</span>
+            <span class="n">val2</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">val2</span><span class="p">)</span> <span class="ow">or</span> <span class="n">val2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">val2</span>
+
+            <span class="k">if</span> <span class="n">val1</span> <span class="o">!=</span> <span class="n">val2</span><span class="p">:</span>
+                <span class="n">new_or_modified</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                <span class="k">break</span>  <span class="c1"># no need to compare rest of row</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">new_or_modified</span><span class="p">),</span> <span class="n">missing_rows</span></div>
+
+
+<div class="viewcode-block" id="update_uniprot">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.update_uniprot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_uniprot</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">versions</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download and stage UniProt data, writing TSV updates if differences found.</span>
+
+<span class="sd">    :param conn: SQLite database connection.</span>
+<span class="sd">    :param parameters: Updater parameters (paths, ignore diffs, deletion policy).</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :param versions: List of current versions of the UniProt database.</span>
+<span class="sd">    :param organisms: Optional set of organism IDs to include.</span>
+<span class="sd">    :returns: Set of UniProt IDs present in the fetched dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">components.api_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">uniprot</span>
+<span class="c1"># Move these into parameters or somesuch:</span>
+    <span class="n">uniprot_renames</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Reviewed&#39;</span><span class="p">:</span> <span class="s1">&#39;is_reviewed&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Gene names (primary)&#39;</span><span class="p">:</span> <span class="s1">&#39;gene_name&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Entry name&#39;</span><span class="p">:</span> <span class="s1">&#39;entry_name&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Gene names&#39;</span><span class="p">:</span> <span class="s1">&#39;all_gene_names&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Organism&#39;</span><span class="p">:</span> <span class="s1">&#39;organism&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Length&#39;</span><span class="p">:</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Sequence&#39;</span><span class="p">:</span> <span class="s1">&#39;sequence&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">uniprot_df</span><span class="p">,</span> <span class="n">new_versions</span> <span class="o">=</span> <span class="n">uniprot</span><span class="o">.</span><span class="n">download_uniprot_for_database</span><span class="p">(</span><span class="n">versions</span><span class="p">,</span> <span class="n">organisms</span><span class="o">=</span><span class="n">organisms</span><span class="p">)</span>
+    <span class="c1">#uniprot_df.to_csv(&#39;uniprot_df_full.tsv&#39;,sep=&#39;\t&#39;)</span>
+    <span class="c1">#uniprot_df = pd.read_csv(&#39;uniprot_df_full.tsv&#39;, sep=&#39;\t&#39;, index_col=0)</span>
+    <span class="n">uniprot_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;uniprot_id&#39;</span>
+    <span class="n">uniprot_id_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">uniprot_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">uniprot_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">uniprot_renames</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;is_reviewed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;is_reviewed&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;reviewed&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">gns</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">uniprot_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;gene_name&#39;</span><span class="p">]):</span>
+            <span class="n">gns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;entry_name&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;gene_name&#39;</span><span class="p">])</span>
+    <span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;gene_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gns</span>
+    <span class="n">gns</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">uniprot_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;all_gene_names&#39;</span><span class="p">]):</span>
+            <span class="n">gns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;entry_name&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;all_gene_names&#39;</span><span class="p">])</span>
+    <span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;all_gene_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gns</span>
+    <span class="n">existing</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;proteins&#39;</span><span class="p">,</span> <span class="n">criteria_col</span><span class="o">=</span><span class="s1">&#39;uniprot_id&#39;</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">uniprot_df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">as_pandas</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+    <span class="n">existing</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;uniprot_id&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">updates</span><span class="p">,</span> <span class="n">missing_rows</span> <span class="o">=</span> <span class="n">get_dataframe_differences</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">uniprot_df</span><span class="p">,</span> <span class="n">ignore_columns</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ignore diffs&#39;</span><span class="p">])</span> <span class="c1">#type: ignore</span>
+    <span class="k">if</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Delete old uniprots&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update files&#39;</span><span class="p">][</span><span class="s1">&#39;remove_data&#39;</span><span class="p">]),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">del_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update files&#39;</span><span class="p">][</span><span class="s1">&#39;remove_data&#39;</span><span class="p">],</span> <span class="s1">&#39;proteins.tsv&#39;</span><span class="p">)</span>
+        <span class="c1"># Read existing deletion criteria if file exists</span>
+        <span class="n">deletions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">del_filepath</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">del_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">deletions</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+        
+        <span class="c1"># Add new deletion criteria for missing UniProt IDs</span>
+        <span class="c1"># Each line will contain just one criterion: &quot;uniprot_id, UPIDXXX&quot;</span>
+        <span class="n">deletions</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;uniprot_id, </span><span class="si">{</span><span class="n">upid</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">upid</span> <span class="ow">in</span> <span class="n">missing_rows</span><span class="p">])</span>
+        
+        <span class="c1"># Write all deletion criteria to file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">del_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">deletions</span><span class="p">))</span>
+    <span class="n">uniprot_df</span> <span class="o">=</span> <span class="n">uniprot_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">updates</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;is_latest&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;entry_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;update_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;version_update_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestamp</span>
+    <span class="n">pver</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">updates</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">existing</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">pver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;version_update_time&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">uniprot_df</span><span class="p">[</span><span class="s1">&#39;prev_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pver</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">updates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">odir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update files&#39;</span><span class="p">][</span><span class="s1">&#39;proteins&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">odir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">odir</span><span class="p">)</span>
+        <span class="n">modfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">odir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">_proteins.tsv&#39;</span><span class="p">)</span>
+        <span class="n">uniprot_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">modfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">uniprot_id_set</span><span class="p">,</span> <span class="n">new_versions</span></div>
+
+
+<div class="viewcode-block" id="merge_multiple_string_dataframes">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.merge_multiple_string_dataframes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">merge_multiple_string_dataframes</span><span class="p">(</span><span class="n">dfs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge DataFrames with semicolon-separated string fields by union of values.</span>
+
+<span class="sd">    Each cell is split on &#39;;&#39; and de-duplicated across dataframes; merged rows are</span>
+<span class="sd">    indexed by &#39;interaction&#39;.</span>
+
+<span class="sd">    :param dfs: List of input DataFrames.</span>
+<span class="sd">    :returns: Merged DataFrame with unioned semicolon-joined values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dfs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+    <span class="n">merged_data</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">))</span>
+    <span class="n">all_columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">dfs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">all_columns</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+                    <span class="n">merged_data</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Now flatten to list of dicts</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">coldata</span> <span class="ow">in</span> <span class="n">merged_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;interaction&#39;</span><span class="p">:</span> <span class="n">idx</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">all_columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">coldata</span><span class="p">:</span>
+                <span class="n">dedup</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">coldata</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dedup</span><span class="p">)</span> <span class="k">if</span> <span class="n">dedup</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;interaction&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">dfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;interaction&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="stream_flattened_rows">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.stream_flattened_rows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_flattened_rows</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield rows as dictionaries with set-unioned values split on &#39;;&#39;.</span>
+
+<span class="sd">    :param df: Input DataFrame; uses &#39;interaction&#39; as index when present.</span>
+<span class="sd">    :returns: Iterator of dict rows with &#39;interaction&#39; key and set values per column.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;interaction&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;interaction&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">out_row</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;interaction&#39;</span><span class="p">:</span> <span class="n">interaction</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+                <span class="k">continue</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span><span class="p">]</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">col</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">out_row</span><span class="p">:</span>
+                <span class="n">out_row</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out_row</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">out_row</span></div>
+
+
+<div class="viewcode-block" id="handle_new">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.handle_new">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_new</span><span class="p">(</span><span class="n">new_interactions</span><span class="p">,</span> <span class="n">odir</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Write new interactions to a timestamped TSV file in the output directory.</span>
+
+<span class="sd">    :param new_interactions: List of interaction dicts keyed by &#39;interaction&#39;.</span>
+<span class="sd">    :param odir: Output directory.</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :param L: Chunk prefix/letter for file naming.</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">modfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">odir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">_known_interactions_</span><span class="si">{</span><span class="n">L</span><span class="si">}</span><span class="s1">.tsv&#39;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">modfile</span><span class="p">):</span>
+        <span class="n">modfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">odir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">_known_interactions_</span><span class="si">{</span><span class="n">L</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">.tsv&#39;</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">new_interactions</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;interaction&#39;</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">modfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handle_mods">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.handle_mods">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_mods</span><span class="p">(</span><span class="n">check_for_mods</span><span class="p">,</span> <span class="n">existing</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">odir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Write modified interactions to TSV and optionally queue deletions.</span>
+
+<span class="sd">    :param check_for_mods: List of candidate modified interaction dicts.</span>
+<span class="sd">    :param existing: Existing interactions DataFrame (indexed by &#39;interaction&#39;).</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :param L: Chunk prefix/letter for file naming.</span>
+<span class="sd">    :param parameters: Updater parameters including deletion settings.</span>
+<span class="sd">    :param odir: Output directory.</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">merg</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">check_for_mods</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;interaction&#39;</span><span class="p">)</span>
+    <span class="n">updates</span><span class="p">,</span> <span class="n">missing_rows</span> <span class="o">=</span> <span class="n">get_dataframe_differences</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">merg</span><span class="p">,</span> <span class="n">ignore_columns</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ignore diffs&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Delete old interactions&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">deletions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update files&#39;</span><span class="p">][</span><span class="s1">&#39;remove_data&#39;</span><span class="p">]),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">del_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update files&#39;</span><span class="p">][</span><span class="s1">&#39;remove_data&#39;</span><span class="p">],</span> <span class="s1">&#39;known_interactions.tsv&#39;</span><span class="p">)</span>
+        <span class="n">deletions</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;interaction, </span><span class="si">{</span><span class="n">interaction</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">interaction</span> <span class="ow">in</span> <span class="n">missing_rows</span><span class="p">])</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">del_filepath</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">deletions</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">updates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">merg</span> <span class="o">=</span> <span class="n">merg</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">updates</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">merg</span><span class="p">[</span><span class="s1">&#39;version_update_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestamp</span>
+        <span class="n">pver</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">updates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">existing</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+                <span class="n">pver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;version_update_time&#39;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pver</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">merg</span><span class="p">[</span><span class="s1">&#39;prev_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pver</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">odir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">odir</span><span class="p">)</span>
+        <span class="n">modfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">odir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">_known_interactions_</span><span class="si">{</span><span class="n">L</span><span class="si">}</span><span class="s1">.tsv&#39;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">modfile</span><span class="p">):</span>
+            <span class="n">modfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">odir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s1">_known_interactions_</span><span class="si">{</span><span class="n">L</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">.tsv&#39;</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">merg</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">modfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handle_merg_chunk">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.handle_merg_chunk">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_merg_chunk</span><span class="p">(</span><span class="n">existing</span><span class="p">:</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">L</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">last_update_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span><span class="p">,</span> <span class="n">odir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge IntAct and BioGRID chunks, writing new and modified interactions.</span>
+
+<span class="sd">    :param existing: Existing interactions DataFrame (index &#39;interaction&#39;).</span>
+<span class="sd">    :param organisms: Optional set of organism IDs to include.</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :param L: Chunk prefix letter.</span>
+<span class="sd">    :param last_update_date: Optional cutoff date for remote queries.</span>
+<span class="sd">    :param odir: Output directory for TSVs.</span>
+<span class="sd">    :param parameters: Updater parameters including &#39;Ignore diffs&#39; and paths.</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">existing_interactions</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stream_cleaned_rows</span><span class="p">():</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">intact</span><span class="o">.</span><span class="n">get_latest</span><span class="p">(</span><span class="n">organisms</span><span class="p">,</span> <span class="n">subset_letter</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">since_date</span> <span class="o">=</span> <span class="n">last_update_date</span><span class="p">),</span>   <span class="c1"># type: ignore</span>
+            <span class="n">biogrid</span><span class="o">.</span><span class="n">get_latest</span><span class="p">(</span><span class="n">organisms</span><span class="p">,</span> <span class="n">subset_letter</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">since_date</span> <span class="o">=</span> <span class="n">last_update_date</span><span class="p">),</span>  <span class="c1"># type: ignore</span>
+        <span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merging&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="s1">&#39;source df shapes&#39;</span><span class="p">,</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">sources</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+        <span class="n">merged</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">stream_flattened_rows</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+                <span class="n">interaction</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;interaction&#39;</span><span class="p">)</span>
+                <span class="n">merged</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">interaction</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">merged</span><span class="p">[</span><span class="n">interaction</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">fields</span> <span class="ow">in</span> <span class="n">merged</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">row_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;interaction&#39;</span><span class="p">:</span> <span class="n">interaction</span><span class="p">,</span>
+                <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="p">}</span>
+
+            <span class="k">for</span> <span class="n">badval</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">badval</span><span class="p">:</span>
+                        <span class="n">row_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="n">pubid</span> <span class="o">=</span> <span class="n">row_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;publication_identifier&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">row_data</span><span class="p">[</span><span class="s1">&#39;publication_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pubid</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))</span> <span class="k">if</span> <span class="n">pubid</span> <span class="k">else</span> <span class="mi">0</span>
+
+            <span class="n">row_data</span><span class="p">[</span><span class="s1">&#39;version_update_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestamp</span>
+            <span class="n">row_data</span><span class="p">[</span><span class="s1">&#39;prev_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+            <span class="n">required</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;uniprot_id_a&#39;</span><span class="p">,</span> <span class="s1">&#39;uniprot_id_b&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;uniprot_id_a_noiso&#39;</span><span class="p">,</span> <span class="s1">&#39;uniprot_id_b_noiso&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;isoform_a&#39;</span><span class="p">,</span> <span class="s1">&#39;isoform_b&#39;</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">row_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">required</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="k">yield</span> <span class="n">row_data</span>
+
+    <span class="n">check_for_mods</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">new_interactions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">odir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">odir</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">stream_cleaned_rows</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;interaction&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">existing_interactions</span><span class="p">:</span>
+            <span class="n">check_for_mods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_interactions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_interactions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>
+            <span class="n">handle_new</span><span class="p">(</span><span class="n">new_interactions</span><span class="p">,</span> <span class="n">odir</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+            <span class="n">new_interactions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">check_for_mods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>
+            <span class="n">handle_mods</span><span class="p">(</span><span class="n">check_for_mods</span><span class="p">,</span> <span class="n">existing</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">odir</span><span class="p">)</span>
+            <span class="n">check_for_mods</span> <span class="o">=</span> <span class="p">[]</span>
+        
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_interactions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">handle_new</span><span class="p">(</span><span class="n">new_interactions</span><span class="p">,</span> <span class="n">odir</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">check_for_mods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">handle_mods</span><span class="p">(</span><span class="n">check_for_mods</span><span class="p">,</span> <span class="n">existing</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">odir</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_version_table">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.update_version_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_version_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">new_versions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the version table with the new versions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="c1"># Ensure the table exists</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CREATE TABLE IF NOT EXISTS data_versions (</span>
+<span class="sd">            dataset TEXT,</span>
+<span class="sd">            version TEXT,</span>
+<span class="sd">            last_update_check TEXT</span>
+<span class="sd">        )</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_versions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">new_ver_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[[</span><span class="n">dataset</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_versions</span><span class="p">],</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="s1">&#39;last_update_check&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;::&#39;</span> <span class="ow">in</span> <span class="n">new_versions</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1"># Fetch existing entries for this dataset into a DataFrame</span>
+            <span class="n">existing_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span>
+                <span class="s2">&quot;SELECT dataset, version FROM data_versions WHERE dataset = ?&quot;</span><span class="p">,</span>
+                <span class="n">con</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="p">(</span><span class="n">dataset</span><span class="p">,),</span>
+            <span class="p">)</span>
+            <span class="n">new_ver_df</span> <span class="o">=</span> <span class="n">new_ver_df</span><span class="p">[</span><span class="o">~</span><span class="n">new_ver_df</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-1::&#39;</span><span class="p">)]</span>
+
+            <span class="n">rows_to_drop</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">incoming_organisms</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;::&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_versions</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">existing_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;::&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">incoming_organisms</span><span class="p">:</span>
+                    <span class="n">rows_to_drop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows_to_drop</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">existing_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">rows_to_drop</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_new</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">existing_df</span><span class="p">,</span> <span class="n">new_ver_df</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df_new</span> <span class="o">=</span> <span class="n">new_ver_df</span>
+        <span class="c1"># Write the new rows</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_new</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;DELETE FROM data_versions WHERE dataset = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">dataset</span><span class="p">,))</span>
+            <span class="n">df_new</span><span class="o">.</span><span class="n">to_sql</span><span class="p">(</span><span class="s1">&#39;data_versions&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">if_exists</span><span class="o">=</span><span class="s1">&#39;append&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="update_knowns">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.update_knowns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_knowns</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">uniprots</span><span class="p">,</span> <span class="n">organisms</span><span class="p">,</span> <span class="n">versions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">|</span><span class="nb">str</span><span class="p">],</span> <span class="n">last_update_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ncpu</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update known interaction TSVs in parallel by merging external sources.</span>
+
+<span class="sd">    :param conn: SQLite connection for reading existing interactions.</span>
+<span class="sd">    :param parameters: Updater parameters with file paths.</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :param uniprots: Set of UniProt IDs to filter by.</span>
+<span class="sd">    :param organisms: Optional set of organism IDs to include.</span>
+<span class="sd">    :param versions: Dictionary of versions for each external source.</span>
+<span class="sd">    :param last_update_date: Cutoff datetime; ignore older remote entries.</span>
+<span class="sd">    :param ncpu: Number of worker processes.</span>
+<span class="sd">    :returns: List of new versions for each external source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">biogrid_version</span> <span class="o">=</span> <span class="n">biogrid</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">version</span> <span class="o">=</span> <span class="n">versions</span><span class="p">[</span><span class="s1">&#39;biogrid&#39;</span><span class="p">],</span> <span class="n">uniprots_to_get</span> <span class="o">=</span> <span class="n">uniprots</span><span class="p">,</span> <span class="n">organisms</span><span class="o">=</span><span class="n">organisms</span><span class="p">)</span>
+    <span class="n">intact_version</span> <span class="o">=</span> <span class="n">intact</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">version</span> <span class="o">=</span> <span class="n">versions</span><span class="p">[</span><span class="s1">&#39;intact&#39;</span><span class="p">],</span> <span class="n">uniprots_to_get</span> <span class="o">=</span> <span class="n">uniprots</span><span class="p">,</span> <span class="n">organisms</span><span class="o">=</span><span class="n">organisms</span><span class="p">)</span>
+    <span class="n">get_chunks</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">intact</span><span class="o">.</span><span class="n">get_available</span><span class="p">())</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">biogrid</span><span class="o">.</span><span class="n">get_available</span><span class="p">())))</span>
+    <span class="n">num_cpus</span> <span class="o">=</span> <span class="n">ncpu</span>
+    <span class="n">odir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update files&#39;</span><span class="p">][</span><span class="s1">&#39;known_interactions&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">odir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">odir</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">num_cpus</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">L</span> <span class="ow">in</span> <span class="n">get_chunks</span><span class="p">:</span>    
+            <span class="n">existing</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table</span><span class="p">(</span>
+                <span class="n">conn</span><span class="p">,</span>
+                <span class="s1">&#39;known_interactions&#39;</span><span class="p">,</span>
+                <span class="n">criteria_col</span> <span class="o">=</span> <span class="s1">&#39;interaction&#39;</span><span class="p">,</span>
+                <span class="n">criteria</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">L</span><span class="si">}</span><span class="s2">%&#39;&quot;</span><span class="p">,</span>
+                <span class="n">operator</span> <span class="o">=</span> <span class="s1">&#39;LIKE&#39;</span><span class="p">,</span>
+                <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;interaction&#39;</span><span class="p">,</span>
+                <span class="n">as_pandas</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">handle_merg_chunk</span><span class="p">,</span> <span class="n">existing</span><span class="p">,</span> <span class="n">organisms</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">last_update_date</span><span class="p">,</span> <span class="n">odir</span><span class="p">,</span> <span class="n">parameters</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+            <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="s1">&#39;biogrid&#39;</span><span class="p">,</span> <span class="n">biogrid_version</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;intact&#39;</span><span class="p">,</span> <span class="n">intact_version</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="update_external_data">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.update_external_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_external_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">organisms</span><span class="p">:</span> <span class="nb">set</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">last_update_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">versions</span><span class="p">:</span> <span class="nb">dict</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ncpu</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update external data tables (UniProt and known interactions).</span>
+
+<span class="sd">    :param conn: SQLite database connection.</span>
+<span class="sd">    :param parameters: Updater parameters; includes external update intervals.</span>
+<span class="sd">    :param timestamp: Current update timestamp string.</span>
+<span class="sd">    :param organisms: Optional set of organism IDs to update.</span>
+<span class="sd">    :param last_update_date: Cutoff date; ignore data older than this.</span>
+<span class="sd">    :param ncpu: Number of CPUs to use for merging chunks.</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating uniprot&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">versions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">versions</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;uniprot&#39;</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
+        <span class="n">versions</span><span class="p">[</span><span class="s1">&#39;uniprot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-1::no version&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;biogrid&#39;</span><span class="p">,</span> <span class="s1">&#39;intact&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
+            <span class="n">versions</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;no version&#39;</span>
+    <span class="n">uniprots</span><span class="p">,</span> <span class="n">new_versions</span> <span class="o">=</span> <span class="n">update_uniprot</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">versions</span><span class="p">[</span><span class="s1">&#39;uniprot&#39;</span><span class="p">],</span> <span class="n">organisms</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating known interactions&#39;</span><span class="p">)</span>
+    <span class="n">known_versions</span> <span class="o">=</span> <span class="n">update_knowns</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">uniprots</span><span class="p">,</span> <span class="n">organisms</span><span class="p">,</span> <span class="n">versions</span><span class="p">,</span> <span class="n">last_update_date</span><span class="p">,</span> <span class="n">ncpu</span><span class="p">)</span>
+    <span class="n">update_version_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;uniprot&#39;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">new_versions</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">known_versions</span><span class="p">:</span>
+        <span class="n">update_version_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_log_table">
+<a class="viewcode-back" href="../../code/app.html#app.database_updater.update_log_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_log_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">inmod_names</span><span class="p">,</span> <span class="n">inmod_vals</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">uptype</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Record database update info in a log table.</span>
+
+<span class="sd">    :param conn: SQLite database connection.</span>
+<span class="sd">    :param inmod_names: Names like &#39;table action&#39; (e.g., &#39;proteins insertions&#39;).</span>
+<span class="sd">    :param inmod_vals: Counts aligned with ``inmod_names``.</span>
+<span class="sd">    :param timestamp: Update timestamp string.</span>
+<span class="sd">    :param uptype: Update category label (e.g., &#39;external&#39;, &#39;snapshot&#39;).</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hasmods</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">inmod_vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">table_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;update_id TEXT&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp TEXT&#39;</span><span class="p">,</span> <span class="s1">&#39;update_type TEXT&#39;</span><span class="p">,</span> <span class="s1">&#39;modification_type TEXT&#39;</span><span class="p">,</span> <span class="s1">&#39;tablename TEXT&#39;</span><span class="p">,</span> <span class="s1">&#39;count INTEGER&#39;</span><span class="p">]</span>
+    <span class="n">new_rows</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># Get the next update ID by finding the highest existing one</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Check if update_log table exists and has data</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39; AND name=&#39;update_log&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">():</span>
+            <span class="c1"># Get the highest update_id that matches our pattern</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT update_id FROM update_log WHERE update_id LIKE &#39;upd_%&#39; ORDER BY CAST(SUBSTR(update_id, 5) AS INTEGER) DESC LIMIT 1&quot;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="c1"># Extract the number from the last update_id and increment</span>
+                <span class="n">last_id</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">last_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">last_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">next_num</span> <span class="o">=</span> <span class="n">last_num</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># No existing upd_ IDs found, start from 1</span>
+                <span class="n">next_num</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Table doesn&#39;t exist yet, start from 1</span>
+            <span class="n">next_num</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="c1"># If any error occurs, start from 1</span>
+        <span class="n">next_num</span> <span class="o">=</span> <span class="mi">1</span>
+    
+    <span class="n">update_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;upd_</span><span class="si">{</span><span class="n">next_num</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="n">hasmods</span><span class="p">:</span>
+        <span class="n">modifications</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inmod_names</span><span class="p">):</span>
+            <span class="n">table</span><span class="p">,</span> <span class="n">mtype</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">modifications</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">inmod_vals</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">tables</span> <span class="ow">in</span> <span class="n">modifications</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">table</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">tables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">new_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">update_id</span><span class="p">,</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">uptype</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">update_id</span><span class="p">,</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">uptype</span><span class="p">,</span> <span class="s1">&#39;no modifications&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">    &#39;</span>
+    <span class="n">create_strs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;CREATE TABLE IF NOT EXISTS update_log (</span><span class="se">\n</span><span class="s2">    </span><span class="si">{</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table_columns</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">)&quot;</span>
+    <span class="c1"># Create update_log table if it doesn&#39;t exist</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">create_strs</span><span class="p">)</span>
+    <span class="n">placeholders</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_columns</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="n">new_rows</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">nc</span><span class="p">)</span>
+        <span class="n">insert_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;INSERT INTO update_log (</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">tc</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">tc</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">table_columns</span><span class="p">])</span><span class="si">}</span><span class="s2">) VALUES (</span><span class="si">{</span><span class="n">placeholders</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">insert_str</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

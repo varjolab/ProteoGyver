@@ -61,7 +61,7 @@ Below is a gallery of all the generated plots.
 ![TIC](images/interactomics/qc/TIC.png)
 ![Proteins per sample](images/interactomics/qc/Proteins_per_sample.png)
 ![Common proteins](images/interactomics/qc/Commonprots.png)
-![Identification coverate](images/interactomics/qc/coverage.png)
+![Identification coverage](images/interactomics/qc/coverage.png)
 ![Sample similarity](images/interactomics/qc/similarity.png)
 ![Missing values](images/interactomics/qc/missing.png)
 ![Value sums](images/interactomics/qc/sums.png)

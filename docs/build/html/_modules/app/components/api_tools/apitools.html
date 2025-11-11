@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.api_tools.apitools &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../../app.html">app</a></li>
+      <li class="breadcrumb-item active">app.components.api_tools.apitools</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.api_tools.apitools</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">date</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nbib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;get_timestamp&#39;</span><span class="p">,</span> <span class="s1">&#39;parse_timestamp_from_str&#39;</span><span class="p">,</span> <span class="s1">&#39;is_newer&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;get_nbibfile&#39;</span><span class="p">,</span> <span class="s1">&#39;get_save_location&#39;</span><span class="p">,</span> <span class="s1">&#39;get_files_newer_than&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;get_newest_file&#39;</span><span class="p">,</span> <span class="s1">&#39;get_pub_ref&#39;</span>
+<span class="p">]</span>
+
+<div class="viewcode-block" id="get_timestamp">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.get_timestamp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_timestamp</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns standardized timestamp.</span>
+
+<span class="sd">    :returns: standardized timestamp for current day as a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_timestamp_from_str">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.parse_timestamp_from_str">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_timestamp_from_str</span><span class="p">(</span><span class="n">stamp_text</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">date</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses standardized time stamp from string.</span>
+<span class="sd">    :param stamp_text: str with the timestamp</span>
+
+<span class="sd">    :returns: Datetime for the timestamp</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">stamp_text</span><span class="p">,</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="is_newer">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.is_newer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_newer</span><span class="p">(</span><span class="n">reference</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">new_date</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks whether new_date is newer than reference</span>
+
+<span class="sd">    :param reference: reference timestamp string</span>
+<span class="sd">    :param new_date: new_date timestamp string</span>
+
+<span class="sd">    :returns: True, if new_date is more recent than reference.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reference_date</span><span class="p">:</span> <span class="n">date</span> <span class="o">=</span> <span class="n">parse_timestamp_from_str</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+    <span class="n">new_date_date</span><span class="p">:</span> <span class="n">date</span> <span class="o">=</span> <span class="n">parse_timestamp_from_str</span><span class="p">(</span><span class="n">new_date</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">new_date_date</span><span class="o">&gt;</span><span class="n">reference_date</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_nbibfile">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.get_nbibfile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_nbibfile</span><span class="p">(</span><span class="n">databasename</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetches the nbib reference file for the given database. Does not check, if the file exists.</span>
+
+<span class="sd">    :param databasename: name of the database</span>
+
+<span class="sd">    :returns: path to the nbib file for that database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nbibpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+        <span class="s1">&#39;nbibs&#39;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">databasename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s1">.nbib&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nbibpath</span></div>
+
+
+<div class="viewcode-block" id="get_save_location">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.get_save_location">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_save_location</span><span class="p">(</span><span class="n">databasename</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the appropriate location to save a database file</span>
+
+<span class="sd">    :param databasename: Name of the database</span>
+<span class="sd">    :returns: path to the database directory, where files should be written.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">base_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+        <span class="s1">&#39;data&#39;</span>
+    <span class="p">)</span>
+    <span class="n">dir_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_location</span><span class="p">,</span> <span class="n">databasename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dir_name</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dir_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dir_name</span></div>
+
+
+<div class="viewcode-block" id="get_files_newer_than">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.get_files_newer_than">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_files_newer_than</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">date_str</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">days</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">namefilter</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets files newer than a given date in a dictionary, only going back a given number of days. Uses os.path.getmtime to establish file dates.</span>
+
+<span class="sd">    :param directory: where to search</span>
+<span class="sd">    :param date: base date for the search, e.g. today</span>
+<span class="sd">    :param days: how many days move the cutoff date to the past from the date parameter</span>
+<span class="sd">    :param namefilter: only return files, which have this string in their name</span>
+
+<span class="sd">    :returns: list of files newer than date-days, that optionally contain namefilter in their name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="c1"># Convert the date string to a datetime object</span>
+    <span class="n">date</span><span class="p">:</span><span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">date_str</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># Calculate the cutoff date</span>
+    <span class="n">cutoff_date</span> <span class="o">=</span> <span class="n">date</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">)</span>
+    <span class="n">newer_files</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Iterate over the files in the directory</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="c1"># Check if the file should be checked, if namefilter is set:</span>
+        <span class="k">if</span> <span class="n">namefilter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">namefilter</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="n">file_path</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="c1"># Get the modification time of the file</span>
+        <span class="n">mod_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
+        <span class="c1"># If the modification time is after the cutoff date, add the file to the list</span>
+        <span class="k">if</span> <span class="n">mod_time</span> <span class="o">&gt;</span> <span class="n">cutoff_date</span><span class="p">:</span>
+            <span class="n">newer_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">newer_files</span></div>
+
+
+<div class="viewcode-block" id="get_newest_file">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.get_newest_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_newest_file</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">namefilter</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the latest modified file in a directory</span>
+
+<span class="sd">    :param directory: where to search</span>
+<span class="sd">    :param namefilter: only consider files with this in their name</span>
+
+<span class="sd">    :returns: name of the newest file, not the full path. If no files are found, returns a randomized string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">existing_files</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">))</span>
+    <span class="n">newest_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+    <span class="k">while</span> <span class="n">newest_file</span> <span class="ow">in</span> <span class="n">existing_files</span><span class="p">:</span>
+        <span class="n">newest_file</span> <span class="o">+=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">newest_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">min</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="c1"># Check if the file should be checked, if namefilter is set:</span>
+        <span class="k">if</span> <span class="n">namefilter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">namefilter</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="n">file_path</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        
+        <span class="c1"># Get the modification time of the file</span>
+        <span class="n">mod_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">mod_time</span> <span class="o">&gt;</span> <span class="n">newest_time</span><span class="p">:</span>
+            <span class="n">newest_file</span> <span class="o">=</span> <span class="n">filename</span>
+            <span class="n">newest_time</span> <span class="o">=</span> <span class="n">mod_time</span>
+    
+    <span class="k">return</span> <span class="n">newest_file</span></div>
+
+
+<div class="viewcode-block" id="get_pub_ref">
+<a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.get_pub_ref">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_pub_ref</span><span class="p">(</span><span class="n">databasename</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetches reference information for the given database</span>
+
+<span class="sd">    :param databasename: which database to get information for</span>
+
+<span class="sd">    :returns: list of reference information: [</span>
+<span class="sd">        short description,</span>
+<span class="sd">        long description,</span>
+<span class="sd">        PMID</span>
+<span class="sd">    ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">nbibdata</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">nbib</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">get_nbibfile</span><span class="p">(</span><span class="n">databasename</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">pubyear</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">nbibdata</span><span class="p">[</span><span class="s1">&#39;publication_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">authors</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;author_abbreviated&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">nbibdata</span><span class="p">[</span><span class="s1">&#39;authors&#39;</span><span class="p">]]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">authors</span> <span class="o">=</span> <span class="p">[</span><span class="n">nbibdata</span><span class="p">[</span><span class="s1">&#39;corporate_author&#39;</span><span class="p">]]</span>
+    <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">nbibdata</span><span class="p">[</span><span class="s2">&quot;journal_abbreviated&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">nbibdata</span><span class="p">[</span><span class="s2">&quot;publication_date&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">nbibdata</span><span class="p">[</span><span class="s2">&quot;doi&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">nbibdata</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+    <span class="n">pmid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">nbibdata</span><span class="p">[</span><span class="s1">&#39;pubmed_id&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">authors</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">short</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">authors</span><span class="p">)</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">pubyear</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">authors</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">short</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">authors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">pubyear</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">short</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">authors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> et al., </span><span class="si">{</span><span class="n">pubyear</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="n">long</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">authors</span><span class="p">)</span><span class="si">}</span><span class="s1">. </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">short</span><span class="p">,</span> <span class="n">long</span><span class="p">,</span> <span class="n">pmid</span><span class="p">]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

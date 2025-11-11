@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.figures.figure_legends &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.figures.figure_legends</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.figures.figure_legends</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Legend helpers for QC, proteomics, and interactomics figures.</span>
+
+<span class="sd">Provides prewritten legend paragraphs and small utilities for dynamic</span>
+<span class="sd">legend generation and templating.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash.html</span><span class="w"> </span><span class="kn">import</span> <span class="n">P</span>
+
+<span class="n">leg_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;qc&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;count-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;Protein counts per sample. Replicates (both biological and technical) should have similar numbers of proteins. Darker area at the bottom of each bar is the proportion of contaminants identified inthe sample.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;common-protein-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;Some proteins are often copurified due to sample handling or workflow in general. These are expected, and if samples were handled in a robust way, the signal we get from these proteins should be rather stable across all samples and sample groups. This plot shows the sum of the signal (intensity by default, spectral count if intensity is not available) of each protein group or combination of groups. :::!NOTE!:::The protein groupings shown is very crude: uniprot was searched with the name of the common protein group, and reviewed protein IDs were downloaded. No further processing was done. This means that proteins might be only tangentially related to the specified function. This will be improved in the future.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;coverage-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;Most proteins should be identified in all of your samples. In interactomics, we expect to see relatively high values on both ends of the scale. Common contaminants/interactors on the left, and highly-specific interactors on the right. In proteomics, we expect a peak on the left, and a descending series towards the right.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;reproducibility-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;The plot describes how far from the average of the sample group values of individual runs are. With some exceptions, all values should be very nearly identical between biological and especially technical replicates, regardless of what kind of an experiment is happening.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;missing_values-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;Missing values are mostly a problem in proteomics workflow. In interactomics, depending on your specific bait set, we can expect to see either very few or very many of them. In particular, if you include controls, e.g. GFP, in your analysis set (as you should), it will inevitably raise the number of missing values. Missing values in interactomics only matter, if comparing protein abundance between different baits.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;value_sum-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;The total intensity sum (or sum of spectral counts, depending on the data) should be roughly equal across sample groups for comparable data.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;value_mean-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;The mean intensity (or spectral counts, depending on the data) should be roughly equal across sample groups for comparable data.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;value_dist-plot&#39;</span><span class="p">:</span> <span class="s1">&#39;Value distribution of the identifications. The specifics can be different across sample groups, but especially replicates should look very similar.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;shared_id-plot-hm&#39;</span><span class="p">:</span> <span class="s1">&#39;Shared identifications across samples. The color corresponds to the number of shared identifications between row and column divided by the number of unique proteins identified across the two sample groups.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;shared_id-plot-sv&#39;</span><span class="p">:</span> <span class="s1">&#39;Supervenn diagram of the shared identifications. One row is one sample group. Numbers on the right show the number of identifications (no filtering) in each sample group. One figure &quot;column&quot; shows how many proteins are shared by each combination of sample gorups, and the number on the bottom shows the number of proteins in the shared group, while the number on top shows the number of sample groups in the shared group.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tic&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;&#39;Chromatogram of the input MS runs. Check your curves, and consider if they&#39;re comparable. TIC is usually enough to identify problems, but you should also check the base peak (most intense ion of any given time point).&#39;&#39;&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;proteomics&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;na_filter&#39;</span><span class="p">:</span> <span class="s1">&#39;Unfiltered and filtered protein counts in samples. Proteins identified in fewer than FILTERPERC percent of the samples of at least one sample group were discarded as low-quality identifications, contaminants, or one-hit wonders.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;normalization&#39;</span><span class="p">:</span> <span class="s1">&#39;Runs were normalized with the chosen method, in order to reduce the effects of run-to-run variation, stemming from e.g. LC performance, MS performance, and especially variation in protein concentration measurements.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;missing-in-other-samples&#39;</span><span class="p">:</span> <span class="s1">&#39;This plot shows the distribution of intensities for all of the proteins, that had missing values in any sample, and intensities of proteins without any missing values. It should be very similar to the imputation histogram. Proteins at the low-end of the value range are most likely low abundance proteins that are either under detection threshold or missing due to expectable losses. Proteins with missing values on the high end of the range are most likely either differentially expressed, errors in sample prep, or chance events.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;imputation&#39;</span><span class="p">:</span> <span class="s1">&#39;Missing values were imputated using the chosen imputation method. This is important, because otherwise calculating p-values for detected changes is impossible in the current PG version. With missing values, it means that either the protein is not in the sample, or the level in the sample is below the detection threshold of the experimental system. We do not know which of these is the case, so we assume their values are around the low end of the detection range. Note that protein can be missing from a sample for reasons related to both biology and sample handling, as well as sampling method etc. This comes with a caveat that even highly abundant proteins may be missing due to e.g. experimental reasons, and that case is not considered here. Therefore it is assumed that this data analysis is preliminary, and questions such as nature of the missingness is considered later.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pca&#39;</span><span class="p">:</span> <span class="s1">&#39;PCA of the individual sample runs. Sample groups can be expected to cluster. If there are large gaps between replicates, check how much of each axis explains of the variation between the samples, and how similar the samples are otherwise (TIC, protein counts, etc). This plot should be used to identify outliers and batch effects. PCA does not inform on the statistical significance of group separation, nor can we expect two principal components to capture biological significance of complex data.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;clustermap&#39;</span><span class="p">:</span> <span class="s1">&#39;Correlation is another metric for how similar samples are. Similarly to above, samples should form clusters of each sample group. Similarity here is also not &#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pertubation-bar&#39;</span><span class="p">:</span> <span class="s1">&#39;Z-score based pertubation score against CONTROLSTRING. Based on the molecular degree of pertubation R-package, but not quite the same. Z-score is calculated based on the mean of the control group, instead of the full sample panel. Higher values mean samples that are more different from the control group. Calculated using BARVALS.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pertubation-bar-2&#39;</span><span class="p">:</span> <span class="s1">&#39;Z-score based pertubation score against CONTROLSTRING. Calculated using BARVALS.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pertubation-matrix&#39;</span><span class="p">:</span> <span class="s1">&#39;Z-score based pertubation score against CONTROLSTRING for TOPN most different proteins across all samples.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cv&#39;</span><span class="p">:</span> <span class="s1">&#39;Coefficient of variation is the standard deviation of a protein divided by the mean of the protein across each sample group. Calculating CV per sample group instead of across all sample groups is better, when we are interested in how stable the abundance is within-group. Given that each sample group consists of replicates, variance should be minimal. Lower CVs generally indicate greater technical reproducibility, and while CVs under 20% qualify as good quality data, and most of them should be under 10%. However be cautious when interpreting CVs alone (https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/pmic.202300090).&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;interactomics&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;pca&#39;</span><span class="p">:</span> <span class="s1">&#39;Spectral count -based PCA. Missing values have been imputed with zeroes. This is not a publication-worthy plot, but does indicate how similar baits are to one another, and thus can be used to possibly identify interesting facets of the data.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;saint-histo&#39;</span><span class="p">:</span> <span class="s1">&#39;Distribution of SAINT BFDR values. There should be a spike on the high end of the range, and a smaller one on the low end.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;filtered-saint-counts&#39;</span><span class="p">:</span> <span class="s1">&#39;Preys have been filtered based on the selected thresholds. BFDR threshold means anything with the selected value or lower passes the filter. Preys that passed through the filter in at least one bait were $RESCUE from other baits. Bait self-interactions have been discarded, IF bait uniprots are in the input file.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;known&#39;</span><span class="p">:</span> <span class="s1">&#39;Known interactor preys (if any) are shown in a darker color on the bottom of each bar, previously unidentified HCIs make up the rest of the bar.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ms-microscopy-single&#39;</span><span class="p">:</span> <span class="s1">&#39;MS microscopy results for BAITSTRING. Values are not &quot;real&quot;, but instead 100 = best match per bait, and the rest are scaled appropriately based on how much of shared signal originates from Preys specific to each localization.&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ms-microscopy-all&#39;</span><span class="p">:</span> <span class="s1">&#39;MS microscopy results for all baits. Values are not &quot;real&quot;, but instead 100 = best match per bait, and the rest are scaled appropriately based on how much of shared signal originates from Preys specific to each localization.&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">#LEG_WIDTH: str = &#39;800px&#39;</span>
+<span class="n">LEG_WIDTH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;75%&#39;</span>
+<span class="n">QC_LEGENDS</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;qc-legend-</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;max-width&#39;</span><span class="p">:</span> <span class="n">LEG_WIDTH</span><span class="p">})</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">leg_dict</span><span class="p">[</span><span class="s1">&#39;qc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">PROTEOMICS_LEGENDS</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;proteomics-legend-</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;max-width&#39;</span><span class="p">:</span> <span class="n">LEG_WIDTH</span><span class="p">})</span>
+                            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">leg_dict</span><span class="p">[</span><span class="s1">&#39;proteomics&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">INTERACTOMICS_LEGENDS</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;interactomics-legend-</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;max-width&#39;</span><span class="p">:</span> <span class="n">LEG_WIDTH</span><span class="p">})</span>
+                               <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">leg_dict</span><span class="p">[</span><span class="s1">&#39;interactomics&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+<div class="viewcode-block" id="leg_rep">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.figure_legends.leg_rep">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">leg_rep</span><span class="p">(</span><span class="n">legend</span><span class="p">,</span> <span class="n">replace</span><span class="p">,</span> <span class="n">rep_with</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">P</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Replace text in an existing legend paragraph.</span>
+
+<span class="sd">    :param legend: Existing ``dash.html.P`` element.</span>
+<span class="sd">    :param replace: Substring to replace.</span>
+<span class="sd">    :param rep_with: Replacement string.</span>
+<span class="sd">    :returns: New ``P`` element with modified text.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">legend</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">children</span> <span class="o">=</span> <span class="n">legend</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">replace</span><span class="p">,</span> <span class="n">rep_with</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="volcano_plot_legend">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.figure_legends.volcano_plot_legend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">volcano_plot_legend</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">id_prefix</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">P</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a legend paragraph for a volcano plot comparison.</span>
+
+<span class="sd">    :param sample: Sample name.</span>
+<span class="sd">    :param control: Control name.</span>
+<span class="sd">    :param id_prefix: Prefix for the element ID.</span>
+<span class="sd">    :returns: ``dash.html.P`` element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_prefix</span><span class="si">}</span><span class="s1">-volcano-plot-</span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s1"> vs </span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1"> volcano plot. Significant values are marked with the name and different color, and the lines represent significance thresholds in fold change and q-value dimensions.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="saint_legend">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.figure_legends.saint_legend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">saint_legend</span><span class="p">(</span><span class="n">rescued</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">P</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Legend for SAINT filtered counts with rescue flag.</span>
+
+<span class="sd">    :param rescued: Whether preys were rescued across baits.</span>
+<span class="sd">    :returns: ``dash.html.P`` element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">leg_rep</span><span class="p">(</span><span class="n">INTERACTOMICS_LEGENDS</span><span class="p">[</span><span class="s1">&#39;filtered-saint-counts&#39;</span><span class="p">],</span> <span class="s1">&#39;$RESCUE&#39;</span><span class="p">,</span> <span class="s1">&#39;rescued&#39;</span> <span class="k">if</span> <span class="n">rescued</span> <span class="k">else</span> <span class="s1">&#39;not rescued&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="enrichment_legend">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.figure_legends.enrichment_legend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">enrichment_legend</span><span class="p">(</span><span class="n">clean_enrichment_name</span><span class="p">,</span> <span class="n">enrichment_name</span><span class="p">,</span> <span class="n">fc_col</span><span class="p">,</span> <span class="n">fc_threshold</span><span class="p">,</span> <span class="n">p_value_name</span><span class="p">,</span> <span class="n">p_threshold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Legend paragraph for enrichment plot settings.</span>
+
+<span class="sd">    :param clean_enrichment_name: Clean identifier for the element ID.</span>
+<span class="sd">    :param enrichment_name: Display name of the enrichment.</span>
+<span class="sd">    :param fc_col: Fold change column used for filtering.</span>
+<span class="sd">    :param fc_threshold: Fold change threshold value.</span>
+<span class="sd">    :param p_value_name: P-value column name used for filtering.</span>
+<span class="sd">    :param p_threshold: P-value threshold.</span>
+<span class="sd">    :returns: ``dash.html.P`` element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">clean_enrichment_name</span><span class="si">}</span><span class="s1">-enrichment-legend&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">enrichment_name</span><span class="si">}</span><span class="s1"> enrichment using </span><span class="si">{</span><span class="n">fc_col</span><span class="si">}</span><span class="s1"> filter of </span><span class="si">{</span><span class="n">fc_threshold</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">p_value_name</span><span class="si">}</span><span class="s1"> filter of </span><span class="si">{</span><span class="n">p_threshold</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="volcano_heatmap_legend">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.figure_legends.volcano_heatmap_legend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">volcano_heatmap_legend</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">id_prefix</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">P</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Legend paragraph for multi-comparison volcano heatmap.</span>
+
+<span class="sd">    :param control: Control name used in comparisons.</span>
+<span class="sd">    :param id_prefix: Prefix for the element ID.</span>
+<span class="sd">    :returns: ``dash.html.P`` element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_prefix</span><span class="si">}</span><span class="s1">-volcano-heatmap-</span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;All comparisons vs vs </span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1"> volcano plot. Only significantly different proteins shown&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

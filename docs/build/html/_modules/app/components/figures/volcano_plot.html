@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.figures.volcano_plot &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.figures.volcano_plot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.figures.volcano_plot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Volcano plots and significant-difference heatmaps.</span>
+
+<span class="sd">Provides a Plotly volcano plot builder and utilities to generate a set</span>
+<span class="sd">of volcano graphs and an aggregate heatmap of significant changes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">html</span><span class="p">,</span> <span class="n">dcc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">graph_objects</span> <span class="k">as</span> <span class="n">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">express</span> <span class="k">as</span> <span class="n">px</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures.figure_legends</span><span class="w"> </span><span class="kn">import</span> <span class="n">volcano_plot_legend</span><span class="p">,</span> <span class="n">volcano_heatmap_legend</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures</span><span class="w"> </span><span class="kn">import</span> <span class="n">heatmaps</span>
+
+
+<div class="viewcode-block" id="volcano_plot">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.volcano_plot.volcano_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">volcano_plot</span><span class="p">(</span>
+    <span class="n">data_table</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fc_axis_min_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">highlight_only</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">adj_p_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">fc_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a volcano plot from a differential results table.</span>
+
+<span class="sd">    :param data_table: Data from ``stats.differential``; only one comparison expected.</span>
+<span class="sd">    :param defaults: Dict with ``height`` and ``width`` for the figure.</span>
+<span class="sd">    :param title: Figure title.</span>
+<span class="sd">    :param fc_axis_min_max: Minimum absolute FC range to avoid narrow plots.</span>
+<span class="sd">    :param adj_p_threshold: Adjusted p-value threshold (q-value).</span>
+<span class="sd">    :param fc_threshold: Absolute log2 fold change threshold for significance.</span>
+<span class="sd">    :param highlight_only: Optional set/list; only significant points with names in this set are labeled.</span>
+<span class="sd">    :returns: Plotly ``Figure``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">highlight_only</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">highlight_only</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">data_table</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">data_table</span><span class="p">[</span><span class="s1">&#39;Highlight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="p">((</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Significant&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">highlight_only</span><span class="p">))</span>
+                               <span class="k">else</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()]</span>
+    <span class="c1"># Draw the volcano plot using plotly express</span>
+    <span class="n">fig</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="s1">&#39;fold_change&#39;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s1">&#39;p_value_adj_neg_log10&#39;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;Significant&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Highlight&#39;</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
+        <span class="n">render_mode</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">,</span>
+        <span class="n">hover_data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="s1">&#39;Gene&#39;</span><span class="p">,</span><span class="s1">&#39;Significant&#39;</span><span class="p">,</span><span class="s1">&#39;p_value_adj_neg_log10&#39;</span><span class="p">,</span><span class="s1">&#39;fold_change&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Set yaxis properties</span>
+    <span class="n">p_thresh_val</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">adj_p_threshold</span><span class="p">)</span>
+    <span class="n">pmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="p">[</span><span class="s1">&#39;p_value_adj_neg_log10&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">p_thresh_val</span><span class="p">)</span><span class="o">+</span><span class="mf">0.5</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">title_text</span><span class="o">=</span><span class="s1">&#39;-log10 (q-value)&#39;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">pmax</span><span class="p">])</span>
+    <span class="c1"># Set the x-axis properties</span>
+    <span class="n">fcrange</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">data_table</span><span class="p">[</span><span class="s1">&#39;fold_change&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">fc_threshold</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fcrange</span> <span class="o">&lt;</span> <span class="n">fc_axis_min_max</span><span class="p">:</span>
+        <span class="n">fcrange</span> <span class="o">=</span> <span class="n">fc_axis_min_max</span>
+    <span class="n">fcrange</span> <span class="o">+=</span> <span class="mf">0.25</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">title_text</span><span class="o">=</span><span class="s1">&#39;Log2 fold change&#39;</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="n">fcrange</span><span class="p">,</span> <span class="n">fcrange</span><span class="p">])</span>
+
+    <span class="c1"># Add vertical lines indicating the significance thresholds</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_shape</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="n">x0</span><span class="o">=-</span><span class="n">fc_threshold</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x1</span><span class="o">=-</span>
+                  <span class="n">fc_threshold</span><span class="p">,</span> <span class="n">y1</span><span class="o">=</span><span class="n">pmax</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dash</span><span class="o">=</span><span class="s1">&#39;dot&#39;</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_shape</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">fc_threshold</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                  <span class="n">x1</span><span class="o">=</span><span class="n">fc_threshold</span><span class="p">,</span> <span class="n">y1</span><span class="o">=</span><span class="n">pmax</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dash</span><span class="o">=</span><span class="s1">&#39;dot&#39;</span><span class="p">))</span>
+    <span class="c1"># And horizontal line:</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_shape</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="n">x0</span><span class="o">=-</span><span class="n">fcrange</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="n">p_thresh_val</span><span class="p">,</span>
+                  <span class="n">x1</span><span class="o">=</span><span class="n">fcrange</span><span class="p">,</span> <span class="n">y1</span><span class="o">=</span><span class="n">p_thresh_val</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dash</span><span class="o">=</span><span class="s1">&#39;dot&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Return the plot</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+
+<div class="viewcode-block" id="generate_graphs">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.volcano_plot.generate_graphs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_graphs</span><span class="p">(</span><span class="n">significant_data</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">fc_thr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">p_thr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">id_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate volcano plots and a heatmap for significant changes.</span>
+
+<span class="sd">    :param significant_data: Long-form DataFrame with at least ``Sample``, ``Control``, ``fold_change``, ``p_value_adj`` columns.</span>
+<span class="sd">    :param defaults: Dict with figure defaults and component config.</span>
+<span class="sd">    :param fc_thr: Absolute log2 fold change threshold for significance.</span>
+<span class="sd">    :param p_thr: Adjusted p-value threshold.</span>
+<span class="sd">    :param id_prefix: Prefix used for generated component IDs.</span>
+<span class="sd">    :returns: ``dash.html.Div`` containing headers, plots, and legends.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">return_div_contents</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">significant_data</span> <span class="o">=</span> <span class="n">significant_data</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">,</span><span class="s1">&#39;Control&#39;</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">control</span> <span class="ow">in</span> <span class="n">significant_data</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">sigs</span> <span class="o">=</span> <span class="n">significant_data</span><span class="p">[</span><span class="n">significant_data</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">control</span><span class="p">]</span>
+        <span class="n">sigs</span> <span class="o">=</span> <span class="n">sigs</span><span class="p">[</span><span class="n">sigs</span><span class="p">[</span><span class="s1">&#39;p_value_adj&#39;</span><span class="p">]</span><span class="o">&lt;</span><span class="n">p_thr</span><span class="p">]</span>
+        <span class="n">sigs</span> <span class="o">=</span> <span class="n">sigs</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">sigs</span><span class="p">[</span><span class="s1">&#39;fold_change&#39;</span><span class="p">])</span><span class="o">&gt;</span><span class="n">fc_thr</span><span class="p">]</span>
+        <span class="n">sigs</span> <span class="o">=</span> <span class="n">sigs</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="s1">&#39;Sample&#39;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="s1">&#39;fold_change&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sigs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">dlname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;All significant differences vs </span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">return_div_contents</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_prefix</span><span class="si">}</span><span class="s1">-volcano-header-heatmap-</span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="n">dlname</span><span class="p">),</span>
+                <span class="n">heatmaps</span><span class="o">.</span><span class="n">make_heatmap_graph</span><span class="p">(</span>
+                    <span class="n">sigs</span><span class="p">,</span>
+                    <span class="n">plot_name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;volcano-significant-vs-</span><span class="si">{</span><span class="n">control</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">value_name</span><span class="o">=</span><span class="s1">&#39;log2 fold change&#39;</span><span class="p">,</span>
+                    <span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">,</span>
+                    <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;balance&#39;</span><span class="p">,</span>
+                    <span class="n">dlname</span><span class="o">=</span><span class="n">dlname</span><span class="p">,</span>
+                    <span class="n">autorange</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">symmetrical</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">cluster</span><span class="o">=</span><span class="s1">&#39;columns&#39;</span>
+                <span class="p">),</span>
+                <span class="n">volcano_heatmap_legend</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">id_prefix</span><span class="p">)</span>
+            <span class="p">])</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">significant_data</span><span class="p">[[</span><span class="s1">&#39;Sample&#39;</span><span class="p">,</span> <span class="s1">&#39;Control&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">sample</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span>
+        <span class="n">control</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span>
+        <span class="n">dlname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Volcano </span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s1"> vs </span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">return_div_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_prefix</span><span class="si">}</span><span class="s1">-volcano-header-</span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s1">-vs-</span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">children</span><span class="o">=</span><span class="n">dlname</span><span class="p">),</span>
+        <span class="p">)</span>
+        
+        <span class="n">config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlname</span>
+        <span class="n">return_div_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">id_prefix</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s1">-vs-</span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">-volcano&#39;</span><span class="p">,</span>
+                <span class="n">figure</span><span class="o">=</span><span class="n">volcano_plot</span><span class="p">(</span>
+                    <span class="n">significant_data</span><span class="p">[(</span><span class="n">significant_data</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">sample</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                        <span class="n">significant_data</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">control</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                    <span class="n">defaults</span><span class="p">,</span> <span class="n">adj_p_threshold</span><span class="o">=</span><span class="n">p_thr</span><span class="p">,</span> <span class="n">fc_threshold</span><span class="o">=</span><span class="n">fc_thr</span>
+                <span class="p">),</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">return_div_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">volcano_plot_legend</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">id_prefix</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="n">children</span><span class="o">=</span><span class="n">return_div_contents</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

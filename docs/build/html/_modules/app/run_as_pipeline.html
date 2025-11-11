@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.run_as_pipeline &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.run_as_pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.run_as_pipeline</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ProteoGyver Batch Pipeline</span>
+
+<span class="sd">This script runs the complete batch pipeline using the same infrastructure</span>
+<span class="sd">as the GUI, ensuring identical behavior and maintainability.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pipeline_module</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline_batch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pipeline_module</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline_from_toml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pipeline_module</span><span class="w"> </span><span class="kn">import</span> <span class="n">batch_data_store_builder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pipeline_module</span><span class="w"> </span><span class="kn">import</span> <span class="n">batch_figure_builder_from_divs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">infra</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">parsing</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="run_batch_pipeline">
+<a class="viewcode-back" href="../../code/app.html#app.run_as_pipeline.run_batch_pipeline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_batch_pipeline</span><span class="p">(</span><span class="n">toml_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the complete batch pipeline.</span>
+
+<span class="sd">    :param toml_path: Path to the TOML configuration file.</span>
+<span class="sd">    :returns: Summary dict with execution details, export paths, and figures info.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">script_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+    <span class="n">parameters_file</span> <span class="o">=</span> <span class="n">script_dir</span> <span class="o">/</span> <span class="s1">&#39;config/parameters.toml&#39;</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_parameters</span><span class="p">(</span><span class="n">parameters_file</span><span class="p">)</span>
+    
+    <span class="n">input_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">toml_path</span><span class="p">))</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">pipeline_from_toml</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="n">toml_path</span><span class="p">,</span> <span class="n">default_toml_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Pipeline module&#39;</span><span class="p">][</span><span class="s1">&#39;Default toml files directory&#39;</span><span class="p">]))</span>
+    <span class="n">plot_formats</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">plot_formats</span>
+    <span class="n">keep_batch_output</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">keep_batch_output</span>
+
+    <span class="n">export_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_dir</span><span class="p">,</span> <span class="s1">&#39;PG output&#39;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">export_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Generate session name from timestamp</span>
+    <span class="n">session_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%M-%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">--pipeline&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Session name: </span><span class="si">{</span><span class="n">session_name</span><span class="si">}</span><span class="s2">, output directory: </span><span class="si">{</span><span class="n">export_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Determine whether to use temporary directory or keep output. The pipeline</span>
+    <span class="c1"># writes artifacts to config.outdir; ensure downstream readers use the same path.</span>
+    <span class="n">temp_context</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">keep_batch_output</span><span class="p">:</span>
+        <span class="c1"># Ensure configured outdir exists and use it directly</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">batch_output_dir</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">outdir</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Use a temporary directory and point config.outdir to it</span>
+        <span class="n">temp_context</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;proteogyver_pipeline_&quot;</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">temp_context</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">batch_output_dir</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">outdir</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">temp_context</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running batch pipeline with temporary output: </span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running batch pipeline with permanent output: </span><span class="si">{</span><span class="n">batch_output_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Step 1: Run the batch pipeline</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Step 1: Running batch pipeline...&quot;</span><span class="p">)</span>
+            
+            <span class="n">summary</span> <span class="o">=</span> <span class="n">pipeline_batch</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
+            
+            <span class="c1"># Check if pipeline returned error due to warnings</span>
+            <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">summary</span> <span class="ow">and</span> <span class="s2">&quot;warnings&quot;</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">:</span>
+                <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warnings: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;warnings&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Write error file to input directory</span>
+                <span class="n">input_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">toml_path</span><span class="p">))</span>
+                <span class="n">error_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_dir</span><span class="p">,</span> <span class="s2">&quot;ERRORS.txt&quot;</span><span class="p">)</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">_dt</span>
+                <span class="n">ts</span> <span class="o">=</span> <span class="n">_dt</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">error_file</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">ts</span><span class="si">}</span><span class="s2">] Errors:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;warnings&#39;</span><span class="p">]:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">ts</span><span class="si">}</span><span class="s2">] - </span><span class="si">{</span><span class="n">warning</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warnings written to </span><span class="si">{</span><span class="n">error_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+            
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch pipeline completed successfully&quot;</span><span class="p">)</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch pipeline failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+            
+            <span class="c1"># Step 2: Build data stores and export</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Step 2: Building data stores and exporting...&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Detect workflow from config</span>
+            <span class="n">workflow</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">workflow</span>
+            
+            <span class="c1"># Build data stores from batch output</span>
+            <span class="n">data_stores</span> <span class="o">=</span> <span class="n">batch_data_store_builder</span><span class="o">.</span><span class="n">build_data_stores_from_batch_output</span><span class="p">(</span><span class="n">batch_output_dir</span><span class="p">,</span> <span class="n">workflow</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Built </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data_stores</span><span class="p">)</span><span class="si">}</span><span class="s2"> data stores&quot;</span><span class="p">)</span>
+            
+            <span class="n">data_export_result</span> <span class="o">=</span> <span class="n">infra</span><span class="o">.</span><span class="n">save_data_stores</span><span class="p">(</span><span class="n">data_stores</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data export completed&quot;</span><span class="p">)</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data export failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+        
+        <span class="n">figure_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Step 3: Generating figures...&quot;</span><span class="p">)</span>
+            <span class="n">figures_export_dir</span> <span class="o">=</span> <span class="n">export_dir</span>
+            
+            <span class="n">figure_summary</span> <span class="o">=</span> <span class="n">batch_figure_builder_from_divs</span><span class="o">.</span><span class="n">save_batch_figures_using_saved_divs</span><span class="p">(</span>
+                <span class="n">batch_output_dir</span><span class="o">=</span><span class="n">batch_output_dir</span><span class="p">,</span>
+                <span class="n">export_dir</span><span class="o">=</span><span class="n">figures_export_dir</span><span class="p">,</span>
+                <span class="n">workflow</span><span class="o">=</span><span class="n">workflow</span><span class="p">,</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                <span class="n">output_formats</span><span class="o">=</span><span class="n">plot_formats</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Figure generation completed&quot;</span><span class="p">)</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Figure generation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Don&#39;t raise - figures are optional</span>
+            <span class="n">figure_summary</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+    
+        <span class="n">guide_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;output_guide.md&#39;</span><span class="p">)</span>
+        <span class="n">infra</span><span class="o">.</span><span class="n">write_README</span><span class="p">(</span><span class="n">export_dir</span><span class="p">,</span> <span class="n">guide_path</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Clean up temporary directory if used</span>
+        <span class="k">if</span> <span class="n">temp_context</span><span class="p">:</span>
+            <span class="n">temp_context</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+    
+    <span class="c1"># Final summary</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;pipeline_summary&quot;</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
+        <span class="s2">&quot;export_directory&quot;</span><span class="p">:</span> <span class="n">export_dir</span><span class="p">,</span>
+        <span class="s2">&quot;session_name&quot;</span><span class="p">:</span> <span class="n">session_name</span><span class="p">,</span>
+        <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="n">workflow</span><span class="p">,</span>
+        <span class="s2">&quot;data_stores_built&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_stores</span><span class="p">),</span>
+        <span class="s2">&quot;batch_output_directory&quot;</span><span class="p">:</span> <span class="n">batch_output_dir</span> <span class="k">if</span> <span class="n">keep_batch_output</span> <span class="k">else</span> <span class="s2">&quot;temporary&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;figures_generated&quot;</span><span class="p">:</span> <span class="n">figure_summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;analysis_divs_count&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure_summary</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;error&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">figure_summary</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;figure_details&quot;</span><span class="p">:</span> <span class="n">figure_summary</span><span class="p">,</span>
+    <span class="p">}</span>
+    
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pipeline finished. Export directory: </span><span class="si">{</span><span class="n">export_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../code/app.html#app.run_as_pipeline.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Command line interface for the batch pipeline.</span>
+
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Run ProteoGyver batch pipeline&quot;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">epilog</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2">Examples:</span>
+<span class="s2">  # Run proteomics pipeline</span>
+<span class="s2">  python run_as_pipeline.py proteomics_pipeline.toml</span>
+<span class="s2">  </span>
+<span class="s2">  # Run interactomics pipeline with custom export directory</span>
+<span class="s2">  python run_as_pipeline.py interactomics_pipeline.toml --export-dir my_results</span>
+<span class="s2">  </span>
+<span class="s2">  # Keep intermediate batch files for debugging</span>
+<span class="s2">  python run_as_pipeline.py config.toml --keep-batch-output</span>
+<span class="s2">  </span>
+<span class="s2">  # Run without plot generation</span>
+<span class="s2">  python run_as_pipeline.py config.toml --no-plots</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;toml_file&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;TOML configuration file for the pipeline&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">,</span> <span class="s2">&quot;-v&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable verbose logging&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--debug&quot;</span><span class="p">,</span> <span class="s2">&quot;-d&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable debug logging&quot;</span><span class="p">)</span>
+    
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    
+    <span class="c1"># Configure logging</span>
+        <span class="c1"># Configure logging</span>
+    <span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">debug</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">_%H%M%S&#39;</span><span class="p">)</span>
+    <span class="n">toml_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">toml_file</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+    <span class="n">log_file</span> <span class="o">=</span> <span class="n">toml_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">_pipeline.log&quot;</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="n">level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span> 
+        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(),</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">log_file</span><span class="p">))</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Validate inputs</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">toml_file</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TOML file not found: </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">toml_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Run the pipeline</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">run_batch_pipeline</span><span class="p">(</span>
+            <span class="n">toml_path</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">toml_file</span><span class="p">,</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Print summary</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Pipeline Complete!&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Workflow: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;workflow&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;figure_details&#39;</span><span class="p">,</span> <span class="p">{}):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR: Figure generation failed: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;figure_details&#39;</span><span class="p">][</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Session name: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;session_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pipeline failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">ERROR: Pipeline Failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

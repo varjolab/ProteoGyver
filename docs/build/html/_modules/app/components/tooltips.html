@@ -1,0 +1,193 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.tooltips &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.tooltips</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.tooltips</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Tooltip helpers for the UI.</span>
+
+<span class="sd">Provides convenience wrappers for Bootstrap tooltips used throughout the</span>
+<span class="sd">application to document inputs and options.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash_bootstrap_components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tooltip</span>
+
+
+<div class="viewcode-block" id="generic_tooltip">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.tooltips.generic_tooltip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generic_tooltip</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tooltip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a generic tooltip.</span>
+
+<span class="sd">    :param target: ID of the target element.</span>
+<span class="sd">    :param text: Tooltip text content.</span>
+<span class="sd">    :returns: Bootstrap ``Tooltip`` component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Tooltip</span><span class="p">(</span>
+        <span class="n">children</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+        <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+        <span class="n">placement</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text-transform&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span><span class="s1">&#39;padding-top&#39;</span><span class="p">:</span> <span class="s1">&#39;50px&#39;</span><span class="p">}</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="na_tooltip">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.tooltips.na_tooltip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">na_tooltip</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s1">&#39;filtering-label&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tooltip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tooltip for NA filtering control.</span>
+
+<span class="sd">    :param target: ID of the target element.</span>
+<span class="sd">    :returns: Bootstrap ``Tooltip`` component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">generic_tooltip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;Discard proteins that are not present in at least N percent of at least one replicate group or in at least N percent of the samples. E.g. drop proteins that were only seen in one replicate of one sample.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="interactomics_select_top_controls_tooltip">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.tooltips.interactomics_select_top_controls_tooltip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactomics_select_top_controls_tooltip</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s1">&#39;interactomics-num-controls&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tooltip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tooltip for selecting most similar inbuilt controls.</span>
+
+<span class="sd">    :param target: ID of the target element.</span>
+<span class="sd">    :returns: Bootstrap ``Tooltip`` component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">generic_tooltip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;Limit the number of inbuilt control runs to a specified number of most-similar runs (by euclidean distance). Increasing the number of control runs increases the SAINT running time, sometimes massively, sometimes barely, but does result in lower number of HCIs.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="use_svenn_tooltip">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.tooltips.use_svenn_tooltip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">use_svenn_tooltip</span><span class="p">(</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;sidebar-force-supervenn&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tooltip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tooltip for forcing Supervenn in commonality plot.</span>
+
+<span class="sd">    :param target: ID of the target element.</span>
+<span class="sd">    :returns: Bootstrap ``Tooltip`` component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">generic_tooltip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;This option will force the use of supervenn in commonality plot, instead of deciding between supervenn and a heatmap depending on the number of sample groups.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="rescue_tooltip">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.tooltips.rescue_tooltip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rescue_tooltip</span><span class="p">(</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;interactomics-rescue-filtered-out&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tooltip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tooltip explaining the rescue option for SAINT filtering.</span>
+
+<span class="sd">    :param target: ID of the target element.</span>
+<span class="sd">    :returns: Bootstrap ``Tooltip`` component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">generic_tooltip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;Rescue will let preys pass filter if they pass the filter with any other bait. This means that BFDR values of e.g. 0.9 can pass, if the prey has a BFDR value of 0.0 with some other bait. !!!NOTE!!! This feature works well for small interactomics datasets of related baits, e.g. four receptors of the same family. With large and unrelated bait sets, it will enrich contaminants, that would otherwise be caught by filter in most baits. However, that can also highlight loopholes in your filtering strategy, or e.g. contaminant sources not covered by control sets.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_type_tooltip">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.tooltips.test_type_tooltip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_type_tooltip</span><span class="p">(</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;proteomics-test-type&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tooltip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tooltip describing test type selection (paired vs independent).</span>
+
+<span class="sd">    :param target: ID of the target element.</span>
+<span class="sd">    :returns: Bootstrap ``Tooltip`` component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">generic_tooltip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">&quot;ONLY USE paired IF you know what you&#39;re doing and your samples will be in the same order across sample groups, and you can be CERTAIN of it. And then check your results to make sure they were.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="nearest_tooltip">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.tooltips.nearest_tooltip">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nearest_tooltip</span><span class="p">(</span><span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;interactomics-nearest-control-filtering&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tooltip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tooltip for nearest-control selection in interactomics.</span>
+
+<span class="sd">    :param target: ID of the target element.</span>
+<span class="sd">    :returns: Bootstrap ``Tooltip`` component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">generic_tooltip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s1">&#39;This option will compare inbuilt control runs and choose n that are most similar to your samples. Only use if you are experiencing performance issues with full controls, as more controls do not degrade performance usually. IF you choose to use it, make sure you know which runs were selected for the final controls.&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

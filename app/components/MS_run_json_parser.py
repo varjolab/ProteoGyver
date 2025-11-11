@@ -141,20 +141,23 @@ def parse_json_files():
 
     pd.DataFrame(data = MS_rows, columns=headers).to_csv(msrows_filename,sep='\t',index=False)
     pd.DataFrame(data = trace_rows, columns=trace_keys).to_csv(tracerows_filename,sep='\t',index=False)
-
+    compress_str = ''
     if move_done_dir:
         os.makedirs(move_done_dir, exist_ok=True)
         for file in done_jsons:
             shutil.move(os.path.join(input_path, file), os.path.join(move_done_dir, file))
         jsons_in_dir = [j for j in os.listdir(move_done_dir) if j.endswith('.json')]
+        move_str = f"Moved: {len(done_jsons)} files to {move_done_dir}."
         if len(jsons_in_dir) > compress_done_when_filecount_over:
             with zipfile.ZipFile(os.path.join(move_done_dir, f'{timestamp}_done_jsons.zip'), 'w') as zipf:
                 for file in jsons_in_dir:
                     zipf.write(os.path.join(move_done_dir, file), file)
             for file in jsons_in_dir:
                 os.remove(os.path.join(move_done_dir, file))
+            compress_str =  f"Compressed: {len(jsons_in_dir)} files to {os.path.join(input_path, f'{timestamp}_done_jsons.zip')}."
     else:
         for file in done_jsons:
             os.remove(os.path.join(input_path, file))
+        move_str = f"Deleted: {len(done_jsons)} files from {input_path}."
     logger.info('Parsing of json files complete')
-    return f"Parsing of json files complete. Moved: {len(done_jsons)} files to {move_done_dir}. Compressed: {len(jsons_in_dir)} files to {os.path.join(input_path, f'{timestamp}_done_jsons.zip')}"
+    return f"Parsing of json files complete. {move_str} {compress_str}"

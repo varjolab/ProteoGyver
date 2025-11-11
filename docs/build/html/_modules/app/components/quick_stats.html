@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.quick_stats &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.quick_stats</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.quick_stats</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Quick statistical utilities for QC and differential analysis.</span>
+
+<span class="sd">Includes ANOVA, pairwise differential testing, and helpers to compute</span>
+<span class="sd">basic per-sample metrics used across figures.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">statsmodels.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">multitest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">ttest_ind</span><span class="p">,</span> <span class="n">ttest_rel</span><span class="p">,</span> <span class="n">f_oneway</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.db_functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">map_protein_info</span>
+
+<div class="viewcode-block" id="anova">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.anova">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">anova</span><span class="p">(</span><span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run one-way ANOVA across sample groups for each row.</span>
+
+<span class="sd">    :param dataframe: Wide matrix with samples as columns and proteins as rows.</span>
+<span class="sd">    :param sample_groups: Mapping group -&gt; list of column names.</span>
+<span class="sd">    :returns: DataFrame with F-statistic, p-value, and Benjamini-Hochberg q-value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create an empty DataFrame to store the results</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">protein</span> <span class="ow">in</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="c1"># Extract the values for each group for the current protein</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[</span><span class="n">dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">protein</span><span class="p">,</span> <span class="n">samples</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">sample_groups</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="c1"># Perform the ANOVA test for the current protein across all sample groups</span>
+        <span class="n">f_stat</span><span class="p">,</span> <span class="n">p_value</span> <span class="o">=</span> <span class="n">f_oneway</span><span class="p">(</span><span class="o">*</span><span class="n">groups</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">f_stat</span><span class="p">,</span> <span class="n">p_value</span><span class="p">])</span>
+        <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+    <span class="n">ret_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">results</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F-static&#39;</span><span class="p">,</span><span class="s1">&#39;p-value&#39;</span><span class="p">])</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">p_value_adj</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">multitest</span><span class="o">.</span><span class="n">multipletests</span><span class="p">(</span><span class="n">ret_df</span><span class="p">[</span><span class="s1">&#39;p-value&#39;</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;fdr_bh&#39;</span><span class="p">)</span>
+    <span class="n">ret_df</span><span class="p">[</span><span class="s1">&#39;q-value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p_value_adj</span>
+    <span class="k">return</span> <span class="n">ret_df</span></div>
+
+
+
+<div class="viewcode-block" id="differential">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.differential">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">differential</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">comparisons</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">data_is_log2_transformed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">namemap</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">adj_p_thr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">fc_thr</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">test_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;independent&#39;</span><span class="p">,</span> <span class="n">db_file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute pairwise differential statistics for specified comparisons.</span>
+
+<span class="sd">    :param data_table: Wide matrix with samples as columns and proteins as rows.</span>
+<span class="sd">    :param sample_groups: Mapping from group name to list of column names.</span>
+<span class="sd">    :param comparisons: List of ``(sample_group, control_group)`` pairs.</span>
+<span class="sd">    :param data_is_log2_transformed: If ``True``, data is already log2; otherwise log2 means are computed.</span>
+<span class="sd">    :param namemap: Optional mapping from index to display name.</span>
+<span class="sd">    :param adj_p_thr: FDR q-value threshold used for the ``Significant`` flag.</span>
+<span class="sd">    :param fc_thr: Absolute log2 fold change threshold for ``Significant``.</span>
+<span class="sd">    :param test_type: ``&#39;independent&#39;`` or ``&#39;paired&#39;`` t-test.</span>
+<span class="sd">    :param db_file_path: Optional database path for gene mapping.</span>
+<span class="sd">    :returns: Long-form DataFrame with FC, p-values, q-values and metadata per comparison.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sig_data</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sample</span><span class="p">,</span> <span class="n">control</span> <span class="ow">in</span> <span class="n">comparisons</span><span class="p">:</span>
+        <span class="n">sample_columns</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">sample_groups</span><span class="p">[</span><span class="n">sample</span><span class="p">]</span>
+        <span class="n">control_columns</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">sample_groups</span><span class="p">[</span><span class="n">control</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">data_is_log2_transformed</span><span class="p">:</span>
+            <span class="n">log2_fold_change</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">data_table</span><span class="p">[</span><span class="n">sample_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">data_table</span><span class="p">[</span><span class="n">control_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log2_fold_change</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">data_table</span><span class="p">[</span><span class="n">sample_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">data_table</span><span class="p">[</span><span class="n">control_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">sample_mean_val</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">data_table</span><span class="p">[</span><span class="n">sample_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">control_mean_val</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">data_table</span><span class="p">[</span><span class="n">control_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Calculate the p-value for each protein using a two-sample t-test</span>
+        <span class="k">if</span> <span class="n">test_type</span> <span class="o">==</span> <span class="s1">&#39;independent&#39;</span><span class="p">:</span>
+            <span class="n">p_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ttest_ind</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">sample_columns</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">control_columns</span><span class="p">])[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">test_type</span> <span class="o">==</span> <span class="s1">&#39;paired&#39;</span><span class="p">:</span>
+            <span class="n">p_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ttest_rel</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">sample_columns</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">control_columns</span><span class="p">])[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Adjust the p-values for multiple testing using the Benjamini-Hochberg correction method</span>
+        <span class="n">_</span><span class="p">:</span> <span class="n">Any</span>
+        <span class="n">p_value_adj</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">p_value_adj</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">multitest</span><span class="o">.</span><span class="n">multipletests</span><span class="p">(</span><span class="n">p_value</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;fdr_bh&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Create a new dataframe containing the fold change and adjusted p-value for each protein</span>
+        <span class="n">result</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;fold_change&#39;</span><span class="p">:</span> <span class="n">log2_fold_change</span><span class="p">,</span> 
+                <span class="s1">&#39;p_value_adj&#39;</span><span class="p">:</span> <span class="n">p_value_adj</span><span class="p">,</span>
+                <span class="s1">&#39;p_value_adj_neg_log10&#39;</span><span class="p">:</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">p_value_adj</span><span class="p">),</span>
+                <span class="s1">&#39;p_value&#39;</span><span class="p">:</span> <span class="n">p_value</span><span class="p">,</span>
+                <span class="s1">&#39;sample_mean_value&#39;</span><span class="p">:</span> <span class="n">sample_mean_val</span><span class="p">,</span>
+                <span class="s1">&#39;control_mean_value&#39;</span><span class="p">:</span> <span class="n">control_mean_val</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">namemap</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">namemap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Identifier&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">index</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Gene&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">map_protein_info</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">db_file_path</span><span class="o">=</span><span class="n">db_file_path</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">control</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Significant&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;p_value_adj&#39;</span><span class="p">]</span><span class="o">&lt;</span><span class="n">adj_p_thr</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;fold_change&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">fc_thr</span><span class="p">))</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;Significant&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#result[&#39;p_value_adj_neg_log10&#39;] = -np.log10(result[&#39;p_value_adj&#39;])</span>
+        <span class="n">sig_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">sig_data</span><span class="p">,</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span>
+        <span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;Control&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;Name&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;Gene&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;Significant&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;fold_change&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;p_value&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;p_value_adj&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;p_value_adj_neg_log10&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;sample_mean_value&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;control_mean_value&#39;</span>
+         <span class="p">]]</span></div>
+
+
+<div class="viewcode-block" id="get_count_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_count_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_count_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">contaminant_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Count non-NA entries per column, optionally excluding contaminants.</span>
+
+<span class="sd">    :param data_table: Input DataFrame.</span>
+<span class="sd">    :param contaminant_list: Optional list of identifiers to treat as contaminants.</span>
+<span class="sd">    :returns: DataFrame with counts and an ``Is contaminant`` flag when applicable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span>\
+        <span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span>\
+        <span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Protein count&#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Sample name&#39;</span>
+    <span class="k">if</span> <span class="n">contaminant_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">contaminants</span> <span class="o">=</span> <span class="n">data_table</span><span class="p">[</span><span class="n">data_table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="n">contaminant_list</span><span class="p">)]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Protein count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Protein count&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">contaminants</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Is contaminant&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">cont_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">contaminants</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Protein count&#39;</span><span class="p">)</span>
+        <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;Is contaminant&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">cont_data</span><span class="p">,</span> <span class="n">data</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;Sample name&#39;</span><span class="p">})</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Sample name&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">&#39;Sample name&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="get_coverage_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_coverage_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_coverage_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute identification coverage counts.</span>
+
+<span class="sd">    :param data_table: Input DataFrame.</span>
+<span class="sd">    :returns: DataFrame of value counts of the number of samples each protein is identified in.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">data_table</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="s1">&#39;Identified in # samples&#39;</span><span class="p">})</span></div>
+
+
+
+<div class="viewcode-block" id="get_na_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_na_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_na_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute NA percentage per column.</span>
+
+<span class="sd">    :param data_table: Input DataFrame.</span>
+<span class="sd">    :returns: DataFrame with ``Missing value %`` per sample.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="p">((</span><span class="n">data_table</span><span class="o">.</span>
+                        <span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">data_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span>\
+        <span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Missing value %&#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Sample name&#39;</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="get_sum_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_sum_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_sum_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute column sums.</span>
+
+<span class="sd">    :param data_table: Input DataFrame.</span>
+<span class="sd">    :returns: DataFrame with ``Value sum`` per sample.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span>\
+        <span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Value sum&#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Sample name&#39;</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="get_mean_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_mean_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mean_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute column means.</span>
+
+<span class="sd">    :param data_table: Input DataFrame.</span>
+<span class="sd">    :returns: DataFrame with ``Value mean`` per sample.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span>\
+        <span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Value mean&#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Sample name&#39;</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="get_comparative_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_comparative_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_comparative_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Split data into a list of group-specific DataFrames.</span>
+
+<span class="sd">    :param data_table: Wide matrix with samples as columns.</span>
+<span class="sd">    :param sample_groups: Mapping from sample to group name.</span>
+<span class="sd">    :returns: Tuple of (list of group names, list of DataFrames).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sample_group_names</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">g</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">sample_groups</span><span class="o">.</span><span class="n">items</span><span class="p">()])))</span>
+    <span class="n">comparative_data</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sample_group_name</span> <span class="ow">in</span> <span class="n">sample_group_names</span><span class="p">:</span>
+        <span class="n">sample_columns</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">sn</span> <span class="k">for</span> <span class="n">sn</span><span class="p">,</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">sample_groups</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">sg</span> <span class="o">==</span> <span class="n">sample_group_name</span><span class="p">]</span>
+        <span class="n">comparative_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_table</span><span class="p">[</span><span class="n">sample_columns</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">sample_group_names</span><span class="p">,</span>
+        <span class="n">comparative_data</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_common_data">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_common_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_common_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">only_groups</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Collect sets of identified proteins per group.</span>
+
+<span class="sd">    :param data_table: Input DataFrame with proteins as index and samples as columns.</span>
+<span class="sd">    :param rev_sample_groups: Mapping from sample name to group name.</span>
+<span class="sd">    :param only_groups: Optional subset of group names to include.</span>
+<span class="sd">    :returns: Dict mapping group name to set of identified proteins.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">group_sets</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">col_proteins</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">data_table</span><span class="p">[[</span><span class="n">column</span><span class="p">]]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">group_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">rev_sample_groups</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">only_groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">group_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">only_groups</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">group_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">group_sets</span><span class="p">:</span>
+            <span class="n">group_sets</span><span class="p">[</span><span class="n">group_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">group_sets</span><span class="p">[</span><span class="n">group_name</span><span class="p">]</span> <span class="o">|=</span> <span class="n">col_proteins</span>
+    <span class="k">return</span> <span class="n">group_sets</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

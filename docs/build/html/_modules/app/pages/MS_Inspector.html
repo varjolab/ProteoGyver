@@ -1,0 +1,784 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.pages.MS_Inspector &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.pages.MS_Inspector</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.pages.MS_Inspector</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Dash app for inspection and analysis of MS performance based on TIC graphs.</span>
+
+<span class="sd">This module provides a web interface for visualizing and analyzing Mass Spectrometry (MS) </span>
+<span class="sd">performance through Total Ion Current (TIC) graphs and related metrics. It allows users to </span>
+<span class="sd">explore MS runs based on time periods, run IDs, or sample types.</span>
+
+<span class="sd">Features:</span>
+<span class="sd">    - Interactive TIC visualization with animation controls</span>
+<span class="sd">    - Multiple trace types support (TIC, MSn_unfiltered)</span>
+<span class="sd">    - Supplementary metrics tracking (AUC, mean intensity, max intensity)</span>
+<span class="sd">    - Sample type filtering and date range selection</span>
+<span class="sd">    - Data export functionality in multiple formats (HTML, PNG, PDF, TSV)</span>
+
+<span class="sd">Components:</span>
+<span class="sd">    - Main TIC graph with adjustable opacity for temporal comparison</span>
+<span class="sd">    - Three supplementary metric graphs (AUC, mean intensity, max intensity)</span>
+<span class="sd">    - Control panel for MS selection, date ranges, and sample types</span>
+<span class="sd">    - Animation controls for TIC visualization</span>
+<span class="sd">    - Data download functionality</span>
+
+<span class="sd">Dependencies:</span>
+<span class="sd">    - dash: Web application framework</span>
+<span class="sd">    - plotly: Interactive plotting library</span>
+<span class="sd">    - pandas: Data manipulation and analysis</span>
+<span class="sd">    - dash_bootstrap_components: Bootstrap components for Dash</span>
+
+<span class="sd">Attributes:</span>
+<span class="sd">    num_of_traces_visible (int): Maximum number of traces visible at once</span>
+<span class="sd">    trace_color (str): RGB color code for traces</span>
+<span class="sd">    trace_types (list): List of supported trace types (TIC, MSn_unfiltered)</span>
+<span class="sd">    run_limit (int): Maximum number of runs that can be loaded at once</span>
+
+<span class="sd">Notes:</span>
+<span class="sd">    - The application enforces a run limit to maintain performance</span>
+<span class="sd">    - Traces are displayed with decreasing opacity for temporal comparison</span>
+<span class="sd">    - All graphs are synchronized for consistent data visualization</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dash_bootstrap_components</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dbc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">callback</span><span class="p">,</span> <span class="n">dcc</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Output</span><span class="p">,</span> <span class="n">State</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">no_update</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">parsing</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">pio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_functions</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">element_styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">GENERIC_PAGE</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+
+<span class="n">pio</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="s1">&#39;plotly_white&#39;</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">dash</span><span class="o">.</span><span class="n">register_page</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;/MS_inspector&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> loading&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="description_card">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.description_card">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">description_card</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the description card component for the dashboard.</span>
+
+<span class="sd">    :returns: Div containing dashboard title and descriptions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;description-card&quot;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H3</span><span class="p">(</span><span class="s2">&quot;TIC visualizer and analysis&quot;</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="s2">&quot;Visualize and assess MS performance.&quot;</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;intro&quot;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s2">&quot;Explore TICs of any MS run or sample set. Choose runs based on times, run IDs, or sample types.&quot;</span><span class="p">),</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NOTE: only </span><span class="si">{</span><span class="n">RUN_LIMIT</span><span class="si">}</span><span class="s2"> runs can be loaded at once. If more than </span><span class="si">{</span><span class="n">RUN_LIMIT</span><span class="si">}</span><span class="s2"> runs are chosen, only the </span><span class="si">{</span><span class="n">RUN_LIMIT</span><span class="si">}</span><span class="s2"> most recent ones will be loaded.&quot;</span><span class="p">),</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s2">&quot;NOTE: If you want to switch to a different runset, you might want to reload the page. Otherwise it will load a bunch of runs right from the start. This will be fixed at some point, and there will be a note about it on the announcements page.&quot;</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_control_card">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.generate_control_card">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_control_card</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the control card with input widgets.</span>
+
+<span class="sd">    :returns: Div with controls for MS selection, date range, sample types, run IDs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ms_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">MASS_SPECS</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;control-card&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">(</span><span class="s1">&#39;Select MS&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;ms-select&#39;</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ms_list</span><span class="p">],</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">ms_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">(</span><span class="s1">&#39;Select Run time&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">DatePickerRange</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;date-picker-select&#39;</span><span class="p">,</span>
+                <span class="n">display_format</span><span class="o">=</span><span class="s1">&#39;YYYY.MM.DD&#39;</span><span class="p">,</span>
+                <span class="n">start_date</span> <span class="o">=</span> <span class="n">MINTIME</span><span class="p">,</span>
+                <span class="n">end_date</span> <span class="o">=</span> <span class="n">MAXTIME</span><span class="p">,</span>
+                <span class="n">min_date_allowed</span> <span class="o">=</span> <span class="n">MINTIME</span><span class="p">,</span>
+                <span class="n">max_date_allowed</span> <span class="o">=</span> <span class="n">MAXTIME</span><span class="p">,</span>
+                <span class="n">initial_visible_month</span><span class="o">=</span><span class="n">MAXTIME</span>
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">(</span><span class="s1">&#39;Select data type&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;ddadia-select&#39;</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">DATA_TYPES</span><span class="p">],</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">DATA_TYPES</span><span class="p">[:],</span>
+                <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">(</span><span class="s1">&#39;Or Input a list of run numbers&#39;</span><span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Textarea</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;load-runs-from-runids&#39;</span><span class="p">,</span>
+                <span class="n">placeholder</span><span class="o">=</span><span class="s1">&#39;Enter run ID numbers. Numbers can be separated by space, tab, or any of these symbols: ,;:&#39;</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;100%&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mi">150</span><span class="p">},</span>
+            <span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;button-div&#39;</span><span class="p">,</span>
+                <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;reset-btn&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Reset&#39;</span><span class="p">,</span> <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;load-runs-button&#39;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                                <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;load-runs-spinner-div&#39;</span><span class="p">,</span>
+                                <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Load runs by selected parameters&#39;</span>
+                            <span class="p">),</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="toggle_graphs">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.toggle_graphs">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;tic-analytics-interval-component&#39;</span><span class="p">,</span><span class="s1">&#39;disabled&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;start-stop-btn&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;start-stop-btn&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;start-stop-btn&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">toggle_graphs</span><span class="p">(</span><span class="n">n_clicks</span><span class="p">,</span> <span class="n">current</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Toggle the graph animation state between running and stopped.</span>
+
+<span class="sd">    :param n_clicks: Number of button clicks.</span>
+<span class="sd">    :param current: Current button text (``&#39;Start&#39;`` or ``&#39;Stop&#39;``).</span>
+<span class="sd">    :returns: Tuple of (interval disabled flag, new button text).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n_clicks</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">n_clicks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">current</span> <span class="o">==</span> <span class="s1">&#39;Stop&#39;</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;Start&#39;</span>
+        <span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">current</span> <span class="o">==</span> <span class="s1">&#39;Start&#39;</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;Stop&#39;</span>
+        <span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">disabled</span><span class="p">,</span><span class="n">text</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="reset_graphs">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.reset_graphs">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;reset-tics&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;reset-animation-button&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reset_graphs</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="update_tic_graph">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.update_tic_graph">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;tic-analytics-tic-graphs&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;auc-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;mean-intensity-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;max-intensity-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;tic-analytics-current-tic-idx&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;tic-analytics-interval-component&#39;</span><span class="p">,</span> <span class="s1">&#39;n_intervals&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;prev-btn&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;next-btn&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;reset-animation-button&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;tic-analytics-current-tic-idx&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;chosen-tics&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;datatype-dropdown&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;datatype-supp-dropdown&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;trace-dict&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;plot-data&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;plot-max-y&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_tic_graph</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">__</span><span class="p">,</span> <span class="n">___</span><span class="p">,</span> <span class="n">____</span><span class="p">,</span> <span class="n">tic_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ticlist</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">datatype</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">supp_datatype</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">traces</span><span class="p">:</span><span class="nb">dict</span><span class="p">,</span> <span class="n">plot_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_y</span><span class="p">:</span><span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the TIC and supplementary metric graphs.</span>
+
+<span class="sd">    :param tic_index: Current TIC index.</span>
+<span class="sd">    :param ticlist: List of TIC internal run IDs.</span>
+<span class="sd">    :param datatype: Trace type to display (e.g., ``&#39;TIC&#39;`` or ``&#39;MSn&#39;``).</span>
+<span class="sd">    :param supp_datatype: Trace type for supplementary plots.</span>
+<span class="sd">    :param traces: Dict mapping run id -&gt; trace dicts.</span>
+<span class="sd">    :param plot_data: Plot data (pandas split-JSON).</span>
+<span class="sd">    :param max_y: Dict of maximum y-values per trace type.</span>
+<span class="sd">    :returns: Tuple of (tic fig, auc fig, mean fig, max fig, next index).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_to_use</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">plot_data</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">next_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">triggered_id</span> <span class="o">==</span> <span class="s1">&#39;reset-animation-button&#39;</span><span class="p">:</span>
+        <span class="n">tic_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">ctx</span><span class="o">.</span><span class="n">triggered_id</span> <span class="o">==</span> <span class="s1">&#39;prev-btn&#39;</span><span class="p">:</span>
+        <span class="n">tic_index</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">ctx</span><span class="o">.</span><span class="n">triggered_id</span> <span class="o">==</span> <span class="s1">&#39;next-btn&#39;</span><span class="p">:</span>
+        <span class="n">tic_index</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">next_offset</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">return_tic_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">tic_index</span> <span class="o">+</span> <span class="n">next_offset</span>
+
+    <span class="k">if</span> <span class="n">tic_index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">tic_index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ticlist</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">tic_index</span> <span class="o">&gt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ticlist</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">tic_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">return_tic_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ticlist</span><span class="p">):</span>
+        <span class="n">return_tic_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">these_tics</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="n">traces</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ticlist</span><span class="p">][:</span><span class="n">tic_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">these_tics</span> <span class="o">=</span> <span class="n">these_tics</span><span class="p">[</span><span class="o">-</span><span class="n">num_of_traces_visible</span><span class="p">:]</span>
+    <span class="n">tic_figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+    <span class="n">these_tics</span> <span class="o">=</span> <span class="n">these_tics</span><span class="p">[:</span><span class="n">num_of_traces_visible</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trace_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">these_tics</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">tic_figure</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">trace_dict</span><span class="p">[</span><span class="n">datatype</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)])</span>
+    <span class="n">max_x</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">datatype</span><span class="si">}</span><span class="s1">_maxtime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">supp_graph_max_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">auc_graph_max_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">supp_datatype</span><span class="si">}</span><span class="s1">_auc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">max_intensity_graph_max_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">supp_datatype</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">mean_intensity_graph_max_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">supp_datatype</span><span class="si">}</span><span class="s1">_mean_intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">auc_graph_max_y</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">auc_graph_max_y</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">max_intensity_graph_max_y</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_intensity_graph_max_y</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">mean_intensity_graph_max_y</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mean_intensity_graph_max_y</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">data_to_use</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">tic_index</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">data_to_use</span><span class="p">[</span><span class="s1">&#39;Run index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">data_to_use</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">auc_figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="s1">&#39;Run index&#39;</span><span class="p">],</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">supp_datatype</span><span class="si">}</span><span class="s1">_auc&#39;</span><span class="p">],</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;lines+markers&#39;</span><span class="p">,</span>
+            <span class="n">opacity</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">line</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">trace_color</span><span class="p">},</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">max_intensity</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="s1">&#39;Run index&#39;</span><span class="p">],</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">supp_datatype</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">],</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;lines+markers&#39;</span><span class="p">,</span>
+            <span class="n">opacity</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">line</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">trace_color</span><span class="p">},</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">))</span>
+    <span class="n">mean_intensity_figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="s1">&#39;Run index&#39;</span><span class="p">],</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">data_to_use</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">supp_datatype</span><span class="si">}</span><span class="s1">_mean_intensity&#39;</span><span class="p">],</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;lines+markers&#39;</span><span class="p">,</span>
+            <span class="n">opacity</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">line</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">trace_color</span><span class="p">},</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">tic_figure</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="c1">#title=setname,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+      <span class="c1">#  width=&#39;100%&#39;,</span>
+        <span class="n">xaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">max_x</span><span class="p">],</span>
+        <span class="n">yaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">max_y</span><span class="p">[</span><span class="n">datatype</span><span class="p">]],</span>
+        <span class="c1">#template=&#39;plotly_dark&#39;,</span>
+        <span class="c1">#plot_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="c1">#paper_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">auc_figure</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="c1">#title=setname,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+        <span class="n">xaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">supp_graph_max_x</span><span class="p">],</span>
+        <span class="n">yaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">auc_graph_max_y</span><span class="p">],</span>
+        <span class="c1">#template=&#39;plotly_dark&#39;,</span>
+        <span class="c1">#plot_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="c1">#paper_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">max_intensity</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="c1">#title=setname,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+        <span class="n">xaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">supp_graph_max_x</span><span class="p">],</span>
+        <span class="n">yaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">max_intensity_graph_max_y</span><span class="p">],</span>
+        <span class="c1">#template=&#39;plotly_dark&#39;,</span>
+        <span class="c1">#plot_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="c1">#paper_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">mean_intensity_figure</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="c1">#title=setname,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+        <span class="n">xaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">supp_graph_max_x</span><span class="p">],</span>
+        <span class="n">yaxis_range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">mean_intensity_graph_max_y</span><span class="p">],</span>
+        <span class="c1">#template=&#39;plotly_dark&#39;,</span>
+        <span class="c1">#plot_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="c1">#paper_bgcolor= &#39;rgba(0, 0, 0, 0)&#39;,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">tic_figure</span><span class="p">,</span> <span class="n">auc_figure</span><span class="p">,</span> <span class="n">mean_intensity_figure</span><span class="p">,</span> <span class="n">max_intensity</span><span class="p">,</span> <span class="n">return_tic_index</span></div>
+
+
+<div class="viewcode-block" id="sort_dates">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.sort_dates">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sort_dates</span><span class="p">(</span><span class="n">date1</span><span class="p">,</span> <span class="n">date2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sort two date strings in ascending order.</span>
+
+<span class="sd">    :param date1: First date (YYYY-MM-DD).</span>
+<span class="sd">    :param date2: Second date (YYYY-MM-DD).</span>
+<span class="sd">    :returns: Tuple of (earlier_date, later_date).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">date1</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">date2</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">date2</span><span class="p">,</span><span class="n">date1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">date1</span><span class="p">,</span> <span class="n">date2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="delim_runs">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.delim_runs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">delim_runs</span><span class="p">(</span><span class="n">runs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a string of run IDs into a sorted list of identifiers.</span>
+
+<span class="sd">    :param runs: String containing run IDs separated by whitespace or , ; :.</span>
+<span class="sd">    :returns: Sorted list of run IDs (strings).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">retruns</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">([</span>
+                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;,&#39;</span><span class="p">,</span><span class="s1">&#39;;&#39;</span><span class="p">,</span><span class="s1">&#39;:&#39;</span><span class="p">]),</span> <span class="n">runs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span>
+            <span class="p">]):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">retruns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">retruns</span></div>
+
+    
+
+<div class="viewcode-block" id="update_run_choices">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.update_run_choices">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;chosen-tics&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;trace-dict&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;plot-data&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;plot-max-y&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;load-runs-spinner-div&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;start-stop-btn&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;run-ids-not-found&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;load-runs-button&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;ms-select&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;date-picker-select&#39;</span><span class="p">,</span> <span class="s1">&#39;start_date&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;date-picker-select&#39;</span><span class="p">,</span> <span class="s1">&#39;end_date&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;ddadia-select&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;load-runs-from-runids&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;load-runs-spinner-div&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span> 
+<span class="k">def</span><span class="w"> </span><span class="nf">update_run_choices</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">selected_ms</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">data_types</span><span class="p">,</span> <span class="n">run_id_list</span><span class="p">,</span> <span class="n">button_text</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the list of runs based on selected criteria.</span>
+
+<span class="sd">    :param selected_ms: Selected MS.</span>
+<span class="sd">    :param start_date: Start date.</span>
+<span class="sd">    :param end_date: End date.</span>
+<span class="sd">    :param data_types: Selected data types.</span>
+<span class="sd">    :param run_id_list: Optional string of run IDs to load.</span>
+<span class="sd">    :param button_text: Current button text.</span>
+<span class="sd">    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks, not_found_text].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">db_conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span>
+    <span class="n">not_found_ids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">run_id_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">run_id_list</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">start</span><span class="p">:</span><span class="nb">str</span>
+        <span class="n">end</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">sort_dates</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span><span class="n">end_date</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">start</span><span class="o">+</span><span class="s1">&#39; 00:00:00&#39;</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">end</span><span class="o">+</span><span class="s1">&#39; 23:59:59&#39;</span>
+        <span class="c1">#start: datetime = datetime.strptime(start+&#39; 00:00:00&#39;,parameters[&#39;Config&#39;][&#39;Time format&#39;])</span>
+        <span class="c1">#end: datetime = datetime.strptime(end+&#39; 23:59:59&#39;,parameters[&#39;Config&#39;][&#39;Time format&#39;])</span>
+        <span class="n">chosen_runs</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table</span><span class="p">(</span>
+            <span class="n">db_conn</span><span class="p">,</span> <span class="c1"># type: ignore</span>
+            <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;run_date&#39;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">),</span>
+            <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REQUIRED_MAINCOLS</span><span class="p">),</span>
+            <span class="n">as_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">operator</span> <span class="o">=</span> <span class="s1">&#39;BETWEEN&#39;</span><span class="p">,</span>
+            <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
+        <span class="p">)</span>
+        <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">chosen_runs</span><span class="p">[</span><span class="n">chosen_runs</span><span class="p">[</span><span class="s1">&#39;inst_model&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">selected_ms</span><span class="p">]</span>
+        <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">chosen_runs</span><span class="p">[</span><span class="n">chosen_runs</span><span class="p">[</span><span class="s1">&#39;data_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">data_types</span><span class="p">)]</span>
+        <span class="n">chosen_runs</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;run_date&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#chosen_runs.index = chosen_runs.index.astype(str)# And flip back to make passing trace_dict easier. Keys of the dict will be converted to strings when passed through data store.</span>
+        <span class="k">if</span> <span class="n">chosen_runs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">RUN_LIMIT</span><span class="p">:</span>
+            <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">chosen_runs</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">RUN_LIMIT</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">run_ids</span> <span class="o">=</span> <span class="n">delim_runs</span><span class="p">(</span><span class="n">run_id_list</span><span class="p">)</span>
+        <span class="c1"># Filter run_ids to only those found in KNOWN_SAMPLES</span>
+        <span class="n">not_found_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rid</span> <span class="k">for</span> <span class="n">rid</span> <span class="ow">in</span> <span class="n">run_ids</span> <span class="k">if</span> <span class="n">rid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">IDMAP</span><span class="p">]</span>
+        <span class="n">run_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">IDMAP</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">run_ids</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">IDMAP</span><span class="p">]</span>
+        <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span>
+            <span class="n">db_conn</span><span class="p">,</span> 
+            <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;internal_run_id&#39;</span><span class="p">,</span>
+            <span class="n">run_ids</span><span class="p">,</span>
+            <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REQUIRED_MAINCOLS</span><span class="p">),</span>
+            <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
+        <span class="p">)</span>
+        <span class="n">chosen_runs</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;run_date&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">run_plots</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span>
+        <span class="n">db_conn</span><span class="p">,</span> 
+        <span class="s1">&#39;ms_plots&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;internal_run_id&#39;</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">chosen_runs</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+        <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
+    <span class="p">)</span>
+    <span class="n">db_conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># type: ignore</span>
+    <span class="n">not_found_text</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">not_found_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">not_found_text</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IDs NOT FOUND IN DATABASE:&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">not_found_ids</span><span class="o">+</span><span class="p">[</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">]</span>
+    <span class="n">max_y</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">trace_types</span><span class="p">:</span>
+        <span class="n">max_y</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_plots</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">trace_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">runid</span><span class="p">,</span> <span class="n">rundata</span> <span class="ow">in</span> <span class="n">run_plots</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">runid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">runid</span><span class="p">)</span>
+        <span class="n">trace_dict</span><span class="p">[</span><span class="n">runid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">tracename</span> <span class="ow">in</span> <span class="n">trace_types</span><span class="p">:</span>
+            <span class="n">tracename</span> <span class="o">=</span> <span class="n">tracename</span>
+            <span class="n">trace_dict</span><span class="p">[</span><span class="n">runid</span><span class="p">][</span><span class="n">tracename</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">color_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_of_traces_visible</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">rundata</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_trace&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;placeholder&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">rundata</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_trace&#39;</span><span class="p">])</span>
+                <span class="n">d</span><span class="p">[</span><span class="s1">&#39;line&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">trace_color</span><span class="p">,</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+                <span class="n">d</span><span class="p">[</span><span class="s1">&#39;opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">num_of_traces_visible</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">num_of_traces_visible</span> <span class="o">-</span> <span class="n">color_i</span><span class="p">)</span>
+                <span class="n">trace_dict</span><span class="p">[</span><span class="n">runid</span><span class="p">][</span><span class="n">tracename</span><span class="p">][</span><span class="n">color_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pio</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">))[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">chosen_runs</span><span class="o">.</span><span class="n">index</span><span class="p">)),</span>
+        <span class="n">trace_dict</span><span class="p">,</span>
+        <span class="n">run_plots</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
+        <span class="n">max_y</span><span class="p">,</span><span class="n">button_text</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">not_found_text</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ms_analytics_layout">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.ms_analytics_layout">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ms_analytics_layout</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main layout for the MS analytics dashboard.</span>
+
+<span class="sd">    :returns: Div containing controls, TIC visualization, and supplementary graphs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;app-container&quot;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;utilities&#39;</span><span class="p">,</span><span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Interval</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;tic-analytics-interval-component&#39;</span><span class="p">,</span>
+                    <span class="n">interval</span><span class="o">=</span><span class="mf">1.5</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span> <span class="c1"># in milliseconds</span>
+                    <span class="n">n_intervals</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">disabled</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;reset-tics&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">}),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;prev-btn-notifier&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">}),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;chosen-tics&#39;</span><span class="p">,</span> <span class="n">children</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">}),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;trace-dict&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;plot-data&#39;</span><span class="p">),</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;plot-max-y&#39;</span><span class="p">),</span>
+                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;tic-analytics-current-tic-idx&#39;</span><span class="p">,</span> <span class="n">children</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">})</span>
+            <span class="p">],</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span><span class="s1">&#39;none&#39;</span><span class="p">}),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                    <span class="n">description_card</span><span class="p">(),</span>
+                    <span class="n">generate_control_card</span><span class="p">()</span>
+                <span class="p">],</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="mi">4</span><span class="p">),</span>
+                <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                            <span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;run-ids-not-found&#39;</span>
+                        <span class="p">)</span>
+                    <span class="p">]),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                        <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="s1">&#39;TICs&#39;</span><span class="p">),</span>
+                        <span class="n">html</span><span class="o">.</span><span class="n">Hr</span><span class="p">(),</span>
+                        <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;tic-analytics-tic-graphs&#39;</span><span class="p">),</span>
+                        <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s1">&#39;Choose metric:    &#39;</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">trace_types</span><span class="p">,</span> <span class="s1">&#39;TIC&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;datatype-dropdown&#39;</span><span class="p">),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;prev-btn&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Previous&#39;</span><span class="p">,</span> <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;start-stop-btn&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Start&#39;</span><span class="p">,</span> <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;next-btn&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Next&#39;</span><span class="p">,</span> <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;reset-animation-button&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Reset&#39;</span><span class="p">,</span> <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-graphs-btn&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="s1">&#39;Download Data&#39;</span><span class="p">,</span> <span class="n">n_clicks</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Download</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-graphs&#39;</span><span class="p">),</span>
+                        <span class="p">])</span>
+                    <span class="p">]),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="s1">&#39;Supplementary metrics&#39;</span><span class="p">),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">Hr</span><span class="p">(),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s1">&#39;Choose metric for supplementary plots:    &#39;</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">trace_types</span><span class="p">,</span> <span class="s1">&#39;TIC&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;datatype-supp-dropdown&#39;</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">B</span><span class="p">(</span><span class="s1">&#39;Area under the curve&#39;</span><span class="p">),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;auc-graph&#39;</span><span class="p">),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">B</span><span class="p">(</span><span class="s1">&#39;Mean intensity&#39;</span><span class="p">),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;mean-intensity-graph&#39;</span><span class="p">),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">B</span><span class="p">(</span><span class="s1">&#39;Max intensity&#39;</span><span class="p">),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;max-intensity-graph&#39;</span><span class="p">),</span>
+                    <span class="p">])</span>
+                <span class="p">],</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="p">])</span>
+        <span class="p">],</span><span class="n">style</span><span class="o">=</span><span class="n">GENERIC_PAGE</span><span class="p">)</span></div>
+
+
+<span class="c1"># Add new callback for download functionality</span>
+<div class="viewcode-block" id="download_graphs">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.download_graphs">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;download-graphs&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;download-graphs-btn&#39;</span><span class="p">,</span> <span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;tic-analytics-tic-graphs&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;auc-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;mean-intensity-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;max-intensity-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;plot-data&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_graphs</span><span class="p">(</span><span class="n">n_clicks</span><span class="p">,</span> <span class="n">tic_fig</span><span class="p">,</span> <span class="n">auc_fig</span><span class="p">,</span> <span class="n">mean_fig</span><span class="p">,</span> <span class="n">max_fig</span><span class="p">,</span> <span class="n">plot_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a ZIP with current graphs and data for download.</span>
+
+<span class="sd">    :param n_clicks: Number of clicks on download button.</span>
+<span class="sd">    :param tic_fig: TIC plot figure.</span>
+<span class="sd">    :param auc_fig: AUC plot figure.</span>
+<span class="sd">    :param mean_fig: Mean intensity plot figure.</span>
+<span class="sd">    :param max_fig: Max intensity plot figure.</span>
+<span class="sd">    :param plot_data: Underlying data (pandas split-JSON).</span>
+<span class="sd">    :returns: send_bytes payload of the ZIP, or no_update if not triggered.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">n_clicks</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">no_update</span>
+    
+    <span class="c1"># Use cache directory from parameters</span>
+    <span class="n">str_uuid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="n">temp_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Cache dir&#39;</span><span class="p">],</span><span class="s1">&#39;ms inspector&#39;</span><span class="p">,</span><span class="n">str_uuid</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H-%M&quot;</span><span class="p">)</span>
+    <span class="n">zip_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2"> MS Inspector.zip&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Save figures as HTML, PNG and PDF</span>
+        <span class="n">figs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Chromatogram&#39;</span><span class="p">:</span> <span class="n">tic_fig</span><span class="p">,</span>
+            <span class="s1">&#39;AUC&#39;</span><span class="p">:</span> <span class="n">auc_fig</span><span class="p">,</span>
+            <span class="s1">&#39;Mean Intensity&#39;</span><span class="p">:</span> <span class="n">mean_fig</span><span class="p">,</span>
+            <span class="s1">&#39;Max Intensity&#39;</span><span class="p">:</span> <span class="n">max_fig</span>
+        <span class="p">}</span>
+        
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Save as HTML</span>
+            <span class="n">pio</span><span class="o">.</span><span class="n">write_html</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.html&quot;</span><span class="p">))</span>
+            <span class="c1"># Save as PNG</span>
+            <span class="n">pio</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">))</span>
+            <span class="c1"># Save as PDF</span>
+            <span class="n">pio</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.pdf&quot;</span><span class="p">))</span>
+        
+        <span class="c1"># Save data as TSV</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">plot_data</span><span class="p">),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s1">&#39;Data.tsv&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Create ZIP file</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">zip_filename</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zipf</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">file</span> <span class="o">!=</span> <span class="n">zip_filename</span><span class="p">:</span>
+                    <span class="n">zipf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">file</span><span class="p">),</span> <span class="n">file</span><span class="p">)</span>
+        
+        <span class="c1"># Read ZIP file and encode for download</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">zip_filename</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">zip_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        
+        <span class="c1"># Clean up temporary files</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">file</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">dcc</span><span class="o">.</span><span class="n">send_bytes</span><span class="p">(</span><span class="n">zip_data</span><span class="p">,</span> <span class="n">zip_filename</span><span class="p">)</span>
+    
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating download package: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">no_update</span></div>
+
+    
+<span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+<span class="n">parameters</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_parameters</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">))</span>
+<span class="n">database_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Database file&#39;</span><span class="p">])</span>    
+
+<span class="n">num_of_traces_visible</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="n">trace_color</span> <span class="o">=</span> <span class="s1">&#39;rgb(56, 8, 35)&#39;</span>
+<span class="n">trace_types</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TIC&#39;</span><span class="p">,</span><span class="s1">&#39;BPC&#39;</span><span class="p">,</span><span class="s1">&#39;MSn&#39;</span><span class="p">]</span>
+<span class="n">samplecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;file_name_clean&#39;</span><span class="p">]</span>
+<span class="n">REQUIRED_MAINCOLS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;internal_run_id&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;inst_model&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;inst_serial_no&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;run_date&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;data_type&#39;</span>
+<span class="p">]</span> <span class="o">+</span> <span class="n">samplecols</span>
+<span class="n">required_plot_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;internal_run_id&#39;</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">tracename</span> <span class="ow">in</span> <span class="n">trace_types</span><span class="p">:</span>
+    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_trace&#39;</span><span class="p">)</span>
+    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_mean_intensity&#39;</span><span class="p">)</span>
+    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_auc&#39;</span><span class="p">)</span>
+    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">)</span>
+
+<span class="n">db_conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table</span><span class="p">(</span>
+    <span class="n">db_conn</span><span class="p">,</span>
+    <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span> 
+    <span class="n">select_col</span> <span class="o">=</span> <span class="n">REQUIRED_MAINCOLS</span><span class="p">,</span>
+    <span class="n">as_pandas</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
+<span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+<span class="n">db_conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># type: ignore</span>
+
+<span class="n">MASS_SPECS</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[[</span><span class="s1">&#39;inst_model&#39;</span><span class="p">,</span><span class="s1">&#39;inst_serial_no&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">continue</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">continue</span>
+    <span class="n">MASS_SPECS</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[])</span>
+    <span class="n">MASS_SPECS</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">DATA_TYPES</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+<span class="n">IDMAP</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c1"># TODO: handle better runs with names or IDs that are repeated. e.g. two files with the same sample_id</span>
+<span class="n">del_runs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">internal_run_id</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">samplecols</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">samplecols</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="ow">in</span> <span class="n">IDMAP</span><span class="p">:</span>
+            <span class="n">del_runs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">])</span> <span class="c1"># For now we just delete ambiguous entries</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">IDMAP</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">]]</span> <span class="o">=</span> <span class="n">internal_run_id</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">del_runs</span><span class="p">:</span>
+    <span class="k">del</span> <span class="n">IDMAP</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+
+<span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">],</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Config&#39;</span><span class="p">][</span><span class="s1">&#39;Time format&#39;</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">MAXTIME</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">MINTIME</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">data</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> preliminary data loaded&#39;</span><span class="p">)</span>
+    <span class="n">RUN_LIMIT</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">use_layout</span> <span class="o">=</span> <span class="n">ms_analytics_layout</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">use_layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="s1">&#39;No MS runs in database.&#39;</span><span class="p">)</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">use_layout</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

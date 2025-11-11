@@ -1,0 +1,833 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.infra &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.infra</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.infra</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Infrastructure components for the Proteogyver web application.</span>
+
+<span class="sd">This module provides core infrastructure components and utilities for the Proteogyver web app,</span>
+<span class="sd">including data storage, figure export, and utility functions.</span>
+
+<span class="sd">Key functionality includes:</span>
+
+<span class="sd">*   Data store configuration and management</span>
+<span class="sd">*   Figure export in multiple formats (HTML, PDF, PNG)</span>
+<span class="sd">*   Input parameter tracking and export</span>
+<span class="sd">*   Utility functions for component traversal and data formatting</span>
+<span class="sd">*   Hidden utility components for app functionality</span>
+
+<span class="sd">The module defines configurations for data store exports and figure directories, and provides</span>
+<span class="sd">functions for saving data, figures, and input parameters to files. It also creates various</span>
+<span class="sd">Dash components used throughout the application.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">.. py:func:: save_data_stores</span>
+<span class="sd">    Saves data from data stores to files.</span>
+<span class="sd">.. py:func:: save_figures</span>
+<span class="sd">    Exports figures in various formats.</span>
+<span class="sd">.. py:func:: save_input_information</span>
+<span class="sd">    Saves input parameters to TSV.</span>
+<span class="sd">.. py:func:: get_all_props</span>
+<span class="sd">    Utility function for traversing Dash components.</span>
+<span class="sd">.. py:func:: get_all_types</span>
+<span class="sd">    Utility function for traversing Dash components.</span>
+<span class="sd">.. py:func:: upload_data_stores</span>
+<span class="sd">    Creates Dash components for uploaded data stores.</span>
+<span class="sd">.. py:func:: working_data_stores</span>
+<span class="sd">    Creates Dash components for processed/working data stores.</span>
+
+<span class="sd">Constants</span>
+<span class="sd">---------</span>
+<span class="sd">.. py:data:: DATA_STORE_IDS</span>
+<span class="sd">    List of all data store IDs.</span>
+<span class="sd">.. py:data:: data_store_export_configuration</span>
+<span class="sd">    Export settings for each data store.</span>
+<span class="sd">.. py:data:: figure_export_directories</span>
+<span class="sd">    Output directory mapping for figures.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dash</span><span class="w"> </span><span class="kn">import</span> <span class="n">dcc</span><span class="p">,</span> <span class="n">html</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">pio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly</span><span class="w"> </span><span class="kn">import</span> <span class="n">graph_objects</span> <span class="k">as</span> <span class="n">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">markdown</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">base64</span><span class="w"> </span><span class="kn">import</span> <span class="n">b64decode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">_version</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">data_store_export_configuration</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;interactomics-network-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-network-interactions-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-bfdr-histogram-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-graph-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-common-protein-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-comparison-table-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;commonality-figure-pdf-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-cv-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;qc-commonality-plot-visible-groups-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;tic-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">],</span>
+
+    <span class="s1">&#39;uploaded-data-table-info-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">,</span> <span class="s1">&#39;Input data info&#39;</span><span class="p">,</span> <span class="s1">&#39;Data table&#39;</span><span class="p">,</span> <span class="s1">&#39;input-file&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;uploaded-sample-table-info-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">,</span> <span class="s1">&#39;Input data info&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample table&#39;</span><span class="p">,</span> <span class="s1">&#39;input-file&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;upload-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="s1">&#39;Debug&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;replicate-colors-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="s1">&#39;Debug&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;replicate-colors-with-contaminants-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="s1">&#39;Debug&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;discard-samples-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="s1">&#39;Debug&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;commonality-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Shared proteins&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;reproducibility-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Reproducibility data&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    
+    <span class="s1">&#39;uploaded-sample-table-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Input data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;Uploaded expdesign&#39;</span><span class="p">],</span><span class="s1">&#39;noindex&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;uploaded-data-table-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Input data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;upload-split&#39;</span><span class="p">],</span>
+
+    <span class="s1">&#39;interactomics-msmic-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;MS microscopy results&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-volcano-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Differential abundance&#39;</span><span class="p">,</span> <span class="s1">&#39;volc-split&#39;</span><span class="p">],</span>
+    
+    <span class="s1">&#39;count-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;Protein counts&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;version-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span><span class="s1">&#39;Versions&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Software and database versions&#39;</span><span class="p">],</span><span class="s1">&#39;noindex&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;common-protein-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;Common proteins&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;coverage-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;Protein coverage&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;missing-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;Missing counts&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;sum-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;Value sums&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;mean-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;Value means&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-distribution-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;sample distribution&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;distribution-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Summary data&#39;</span><span class="p">,</span> <span class="s1">&#39;Value distribution&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+
+    <span class="s1">&#39;proteomics-pca-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Figure data&#39;</span><span class="p">,</span> <span class="s1">&#39;Proteomics PCA&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-clustermap-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Figure data&#39;</span><span class="p">,</span> <span class="s1">&#39;Proteomics Clustermap&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-pertubation-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Figure data&#39;</span><span class="p">,</span> <span class="s1">&#39;Proteomics pertubation&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+
+    <span class="s1">&#39;proteomics-na-filtered-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Proteomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;NA filtered data&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-normalization-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Proteomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;NA-Normalized data&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-imputation-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Proteomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;NA-Norm-Imputed data&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    
+    <span class="s1">&#39;interactomics-pca-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Interactomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;PCA&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-imputed-and-normalized-intensity&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Interactomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;ImpNorm intensities&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-crapome-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Interactomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;Crapome&#39;</span><span class="p">],</span><span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-output-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Interactomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;Saint output&#39;</span><span class="p">],</span><span class="s1">&#39;noindex&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-final-output-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Interactomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;Saint output with crapome&#39;</span><span class="p">],</span><span class="s1">&#39;noindex&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-filtered-output-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Interactomics data tables&#39;</span><span class="p">,</span> <span class="s1">&#39;Filtered saint output&#39;</span><span class="p">],</span><span class="s1">&#39;noindex&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-input-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;SAINT input&#39;</span><span class="p">,</span> <span class="s1">&#39;saint-split&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-enrichment-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Enrichment&#39;</span><span class="p">,</span> <span class="s1">&#39;enrichment-split&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;proteomics-volcano-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Differential abundance&#39;</span><span class="p">,</span> <span class="s1">&#39;volc-split&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-filtered-and-intensity-mapped-output-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Filtered interactomics results with intensity&#39;</span><span class="p">,</span> <span class="s1">&#39;rename-int&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;interactomics-saint-filt-int-known-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Filtered interactomics results with intensity and knowns&#39;</span><span class="p">,</span> <span class="s1">&#39;rename-int&#39;</span><span class="p">],</span>
+
+    <span class="s1">&#39;interactomics-enrichment-information-data-store&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">,</span> <span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="s1">&#39;Enrichment information&#39;</span><span class="p">,</span> <span class="s1">&#39;enrich-split&#39;</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">figure_export_directories</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Filtered Prey counts per bait&#39;</span><span class="p">:</span> <span class="s1">&#39;Interactomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Identified known interactions&#39;</span><span class="p">:</span> <span class="s1">&#39;Interactomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Sample run TICs&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Sample run BPCs&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Sample run MSns&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Missing values per sample&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SPC PCA&#39;</span><span class="p">:</span> <span class="s1">&#39;Interactomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Protein identification coverage&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Proteins per sample&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SAINT BFDR value distribution&#39;</span><span class="p">:</span> <span class="s1">&#39;Interactomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Sample reproducibility&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Shared identifications&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Sum of values per sample&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Value distribution per sample&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Value mean&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Imputation&#39;</span><span class="p">:</span> <span class="s1">&#39;Proteomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Missing value filtering&#39;</span><span class="p">:</span> <span class="s1">&#39;Proteomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Coefficients of variation&#39;</span><span class="p">:</span> <span class="s1">&#39;Proteomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;High-confidence interactions and identified known interactions&#39;</span><span class="p">:</span> <span class="s1">&#39;Interactomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Common proteins in data (qc)&#39;</span><span class="p">:</span> <span class="s1">&#39;QC figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Common proteins in data (interactomics)&#39;</span><span class="p">:</span> <span class="s1">&#39;Interactomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Intensity of proteins with missing values in other samples&#39;</span><span class="p">:</span> <span class="s1">&#39;Proteomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Normalization&#39;</span><span class="p">:</span> <span class="s1">&#39;Proteomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PCA&#39;</span><span class="p">:</span> <span class="s1">&#39;Proteomics figures&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Sample correlation clustering&#39;</span><span class="p">:</span> <span class="s1">&#39;Proteomics figures&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">DATA_STORE_IDS</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_store_export_configuration</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<div class="viewcode-block" id="save_data_stores">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.save_data_stores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_data_stores</span><span class="p">(</span><span class="n">data_stores</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save data from data stores into files under an export directory.</span>
+
+<span class="sd">    :param data_stores: List of Store-like elements with ``props.data``.</span>
+<span class="sd">    :param export_dir: Destination directory path.</span>
+<span class="sd">    :returns: Dict of failures keyed by store id (empty if none).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prev_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;save data stores - started: </span><span class="si">{</span><span class="n">prev_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fails</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">fails_errors</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data_stores</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;data&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="n">export_format</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">export_subdir</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">file_config</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">export_format</span><span class="p">,</span> <span class="n">export_subdir</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file_config</span> <span class="o">=</span> <span class="n">data_store_export_configuration</span><span class="p">[</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span>
+        <span class="n">output_index</span><span class="o">=</span><span class="kc">True</span>
+        <span class="k">if</span> <span class="s1">&#39;noindex&#39;</span> <span class="ow">in</span> <span class="n">file_config</span><span class="p">:</span>
+            <span class="n">file_config</span> <span class="o">=</span> <span class="n">file_config</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;noindex&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">output_index</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;NO EXPORT&#39;</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">export_destination</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_dir</span><span class="p">,</span> <span class="n">export_subdir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">export_destination</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="o">*</span><span class="n">file_name</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">export_destination</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">export_destination</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">file_name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">file_name</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="n">file_name</span><span class="o">+</span><span class="s1">&#39;.json&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                    <span class="n">dict_to_write</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="n">dict_to_write</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">dict_to_write</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dict_to_write</span><span class="p">,</span> <span class="n">fil</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;txt&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">file_config</span> <span class="o">==</span> <span class="s1">&#39;enrich-split&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">enrichment_name</span><span class="p">,</span> <span class="n">file_contents</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="s1">&#39;Enrichment&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">enrichment_name</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">export_format</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                            <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_contents</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">file_config</span> <span class="o">==</span> <span class="s1">&#39;input-file&#39;</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">export_format</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">file_name</span> <span class="o">==</span> <span class="s1">&#39;Data table&#39;</span><span class="p">:</span>
+                            <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                                <span class="sa">f</span><span class="s1">&#39;File modified timestamp: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;Modified time&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                <span class="sa">f</span><span class="s1">&#39;File name: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;File name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                <span class="sa">f</span><span class="s1">&#39;Data type: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;Data type&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                            <span class="p">]))</span>
+                            <span class="k">if</span> <span class="s1">&#39;Data source guess&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+                                <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Data source guess: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;Data source guess&quot;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">file_name</span> <span class="o">==</span> <span class="s1">&#39;Sample table&#39;</span><span class="p">:</span>
+                            <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                                <span class="sa">f</span><span class="s1">&#39;File modified timestamp: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;Modified time&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                <span class="sa">f</span><span class="s1">&#39;File name: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;File name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+                            <span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">export_format</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;tsv&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;split&#39;</span> <span class="ow">in</span> <span class="n">file_config</span><span class="p">:</span>
+                    <span class="n">pd_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="s1">&#39;pertubation&#39;</span> <span class="ow">in</span> <span class="n">file_config</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="s1">&#39;rename-int&#39;</span> <span class="ow">in</span> <span class="n">file_config</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;Averaged intensity&#39;</span> <span class="ow">in</span> <span class="n">pd_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;intensity&#39;</span> <span class="ow">in</span> <span class="n">file_name</span><span class="p">)</span>  <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;knowns&#39;</span> <span class="ow">in</span> <span class="n">file_name</span><span class="p">):</span>
+                                <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;Filtered interactomics results with knowns&#39;</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">continue</span>
+                    <span class="n">use_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">file_name</span><span class="p">,</span> <span class="n">export_format</span><span class="p">]))</span>
+                    <span class="n">pd_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">use_name</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">output_index</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="s1">&#39;enrichment-split&#39;</span> <span class="ow">in</span> <span class="n">file_config</span><span class="p">:</span>
+                    <span class="n">export_destination</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">export_destination</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">export_destination</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">enrichment_name</span><span class="p">,</span> <span class="n">enrichment_dict</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">use_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">enrichment_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">export_format</span><span class="p">]))</span>
+                        <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">enrichment_dict</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">use_name</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">file_config</span> <span class="o">==</span> <span class="s1">&#39;upload-split&#39;</span><span class="p">:</span>
+                    <span class="n">export_destination</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">export_destination</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">export_destination</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">data_table</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">use_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">export_format</span><span class="p">]))</span>
+                        <span class="n">pd_df</span><span class="p">:</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">data_table</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">pd_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> <span class="k">continue</span>
+                        <span class="n">pd_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">use_name</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">file_config</span> <span class="o">==</span> <span class="s1">&#39;saint-split&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">saint_name</span><span class="p">,</span> <span class="n">saint_filelines</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">use_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">saint_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">export_format</span><span class="p">]))</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">use_name</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">saint_filelines</span><span class="p">:</span>
+                                <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="s1">&#39;volc-split&#39;</span> <span class="ow">in</span> <span class="n">file_config</span><span class="p">:</span>
+                    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+                    <span class="n">df_dicts</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">df_dicts_all</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">s_c_row</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;Sample&#39;</span><span class="p">,</span> <span class="s1">&#39;Control&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                        <span class="n">sample</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">s_c_row</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span>
+                        <span class="n">control</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">s_c_row</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span>
+                        <span class="n">compname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">sample</span><span class="si">}</span><span class="s1"> vs </span><span class="si">{</span><span class="n">control</span><span class="si">}</span><span class="s1">&#39;</span>
+                        <span class="n">sig_comp</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">compname</span><span class="si">}</span><span class="s1"> sig only&#39;</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig_comp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">31</span><span class="p">:</span>
+                            <span class="n">compname</span> <span class="o">=</span> <span class="n">compname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                            <span class="n">replace</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+                                <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s1">&#39;samplegroup&#39;</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+                            <span class="n">compname</span> <span class="o">=</span> <span class="n">replace</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;SG&#39;</span><span class="p">,</span> <span class="n">compname</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="s1">&#39;samplegroup&#39;</span> <span class="ow">in</span> <span class="n">compname</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                                <span class="n">compname</span> <span class="o">=</span> <span class="n">compname</span><span class="o">.</span><span class="n">replace</span><span class="p">()</span>
+                            <span class="n">sig_comp</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">compname</span><span class="si">}</span><span class="s1"> significant only&#39;</span>
+                        <span class="n">sig_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">sample</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">control</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Significant&#39;</span><span class="p">]]</span>
+                        <span class="k">if</span> <span class="n">sig_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">df_dicts</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">sig_comp</span><span class="p">,</span>
+                                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sig_df</span><span class="p">,</span>
+                                <span class="s1">&#39;headers&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                                <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="kc">False</span>
+                            <span class="p">})</span>
+                        <span class="n">df_dicts_all</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">compname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">sample</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">control</span><span class="p">)],</span>
+                            <span class="s1">&#39;headers&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="kc">False</span>
+                        <span class="p">})</span>
+                    <span class="n">export_destination</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">export_destination</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">export_destination</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">df_dict</span> <span class="ow">in</span> <span class="n">df_dicts</span><span class="p">:</span>
+                        <span class="n">use_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">df_dict</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">export_format</span><span class="p">]))</span>
+                        <span class="n">df_dict</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">use_name</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">df_dict</span> <span class="ow">in</span> <span class="n">df_dicts_all</span><span class="p">:</span>
+                        <span class="n">use_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_destination</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">df_dict</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">export_format</span><span class="p">]))</span>
+                        <span class="n">df_dict</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">use_name</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;DEBUG_INFRA_SAVE_DATA_STORES&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c1"># pylint: disable=bare-except</span>
+            <span class="n">fails</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">d</span>
+            <span class="n">fails_errors</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;save data stores - export </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> done: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prev_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">prev_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fails</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to save data stores: </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fails</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;FAILED_DATA_STORES_errors.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">fails_errors</span><span class="p">,</span> <span class="n">fil</span><span class="p">,</span> <span class="n">indent</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;FAILED_DATA_STORES.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">fails</span><span class="p">,</span> <span class="n">fil</span><span class="p">,</span> <span class="n">indent</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;save data stores - Done with export: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prev_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_all_props">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.get_all_props">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_all_props</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">marker_key</span><span class="p">,</span> <span class="n">match_partial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find all elements whose props contain a marker key.</span>
+
+<span class="sd">    :param elements: Nested dash component-like dict/list structure.</span>
+<span class="sd">    :param marker_key: Key to search for within ``props``.</span>
+<span class="sd">    :param match_partial: Whether to allow partial matches (unused).</span>
+<span class="sd">    :returns: List of tuples ``(marker_key, element)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">mkey</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">marker_key</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">mkey</span> <span class="o">=</span> <span class="n">marker_key</span>
+        <span class="k">if</span> <span class="n">mkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">mkey</span><span class="p">,</span> <span class="n">elements</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_all_props</span><span class="p">(</span>
+                    <span class="n">elements</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">marker_key</span><span class="p">,</span> <span class="n">match_partial</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_all_props</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">marker_key</span><span class="p">,</span> <span class="n">match_partial</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+
+<div class="viewcode-block" id="get_all_types">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.get_all_types">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_all_types</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">get_types</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find all elements of specified types in a nested structure.</span>
+
+<span class="sd">    :param elements: Nested dash component-like dict/list structure.</span>
+<span class="sd">    :param get_types: List of element type strings to collect (e.g., ``[&#39;h4&#39;,&#39;graph&#39;]``).</span>
+<span class="sd">    :returns: List of matching elements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># return [elements]</span>
+        <span class="k">for</span> <span class="n">gt</span> <span class="ow">in</span> <span class="n">get_types</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">elements</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">gt</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_all_types</span><span class="p">(</span>
+                    <span class="n">elements</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">get_types</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_all_types</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">get_types</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="write_README">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.write_README">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_README</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">guide_file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a README.html file rendered from markdown.</span>
+
+<span class="sd">    :param save_dir: Target directory for README.</span>
+<span class="sd">    :param guide_file: Path to markdown file to render.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">guide_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">fil</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">html_content</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">markdown</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">extensions</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;markdown.extensions.nl2br&#39;</span><span class="p">,</span> <span class="s1">&#39;markdown.extensions.sane_lists&#39;</span><span class="p">])</span>
+    <span class="n">html_template</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &lt;!DOCTYPE html&gt;</span>
+<span class="s2">    &lt;html&gt;</span>
+<span class="s2">    &lt;head&gt;</span>
+<span class="s2">        &lt;style&gt;</span>
+<span class="s2">            body </span><span class="se">{{</span>
+<span class="s2">                font-family: Arial, sans-serif;</span>
+<span class="s2">                line-height: 1.6;</span>
+<span class="s2">                margin: 40px;</span>
+<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            ul, ol </span><span class="se">{{</span>
+<span class="s2">                padding-left: 20px;</span>
+<span class="s2">                margin-bottom: 20px;</span>
+<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">            li </span><span class="se">{{</span>
+<span class="s2">                margin-bottom: 8px;</span>
+<span class="s2">            </span><span class="se">}}</span>
+<span class="s2">        &lt;/style&gt;</span>
+<span class="s2">    &lt;/head&gt;</span>
+<span class="s2">    &lt;body&gt;</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">html_content</span><span class="si">}</span>
+<span class="s2">    &lt;/body&gt;</span>
+<span class="s2">    &lt;/html&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s1">&#39;README.html&#39;</span><span class="p">),</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">html_template</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_figures">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.save_figures">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_figures</span><span class="p">(</span><span class="n">analysis_divs</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">,</span> <span class="n">output_formats</span><span class="p">,</span> <span class="n">commonality_pdf_data</span><span class="p">,</span> <span class="n">workflow</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save figures found in analysis divs in requested formats.</span>
+
+<span class="sd">    :param analysis_divs: Analysis container elements to scan.</span>
+<span class="sd">    :param export_dir: Base directory to save figures to.</span>
+<span class="sd">    :param output_formats: Formats to export (e.g., ``[&#39;html&#39;,&#39;pdf&#39;,&#39;png&#39;]``).</span>
+<span class="sd">    :param commonality_pdf_data: Optional PDF bytes (base64) for commonality figure.</span>
+<span class="sd">    :param workflow: Workflow name used in paths.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;saving figures: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">prev_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">headers_and_figures</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">get_all_types</span><span class="p">(</span>
+        <span class="n">analysis_divs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;h4&#39;</span><span class="p">,</span> <span class="s1">&#39;h5&#39;</span><span class="p">,</span> <span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">])</span>
+    <span class="n">figure_names_and_figures</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">prev_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="c1"># if there is pdf data, it means that matplotlib engine was used to generate this particular figure, and we need to add it to the queue in this form:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">commonality_pdf_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">commonality_pdf_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">header</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Shared identifications&#39;</span>
+        <span class="n">figure_names_and_figures</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+            <span class="n">figure_export_directories</span><span class="p">[</span><span class="n">header</span><span class="p">],</span>
+            <span class="n">header</span><span class="p">,</span>
+            <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;NO HTML&#39;</span><span class="p">,</span>
+            <span class="n">commonality_pdf_data</span><span class="p">,</span>
+            <span class="s1">&#39;pdf_text&#39;</span>
+        <span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">header</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">headers_and_figures</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">headers_and_figures</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;h4&#39;</span><span class="p">:</span>
+                <span class="n">graph</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">headers_and_figures</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">graph</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">}:</span>
+                    <span class="k">continue</span>
+                <span class="n">legend</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">headers_and_figures</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">header_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]</span>
+                <span class="n">fdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="k">if</span> <span class="n">header_str</span> <span class="ow">in</span> <span class="n">figure_export_directories</span><span class="p">:</span>
+                    <span class="n">fdir</span> <span class="o">=</span> <span class="n">figure_export_directories</span><span class="p">[</span><span class="n">header_str</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="s1">&#39;volcano&#39;</span> <span class="ow">in</span> <span class="n">header_str</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;all significant differences vs&#39;</span> <span class="ow">in</span> <span class="n">header_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                    <span class="n">fdir</span> <span class="o">=</span> <span class="s1">&#39;Volcano plots&#39;</span>
+                <span class="k">if</span> <span class="n">graph</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;graph&#39;</span><span class="p">:</span>
+                    <span class="n">figure</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">graph</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;figure&#39;</span><span class="p">]</span>
+                    <span class="n">figure_html</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">pio</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span>
+                        <span class="n">figure</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;config&#39;</span><span class="p">])</span>
+                    <span class="n">figure_names_and_figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">fdir</span><span class="p">,</span> <span class="n">header_str</span><span class="p">,</span> <span class="n">legend</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">figure_html</span><span class="p">,</span> <span class="n">figure</span><span class="p">,</span> <span class="s1">&#39;graph&#39;</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">graph</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;img&#39;</span><span class="p">:</span>
+                    <span class="n">img_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">graph</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;src&#39;</span><span class="p">]</span>
+                    <span class="n">figure_html</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;Img id=</span><span class="si">{</span><span class="n">graph</span><span class="p">[</span><span class="s2">&quot;props&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">, src=&quot;</span><span class="si">{</span><span class="n">img_str</span><span class="si">}</span><span class="s1">&quot;&gt;&#39;</span>
+                    <span class="n">figure_names_and_figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">fdir</span><span class="p">,</span> <span class="n">header_str</span><span class="p">,</span> <span class="n">legend</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">figure_html</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;h5&#39;</span><span class="p">:</span>  <span class="c1"># Only used in enrichment plots and MS-microscopy plots</span>
+                <span class="n">graph</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">headers_and_figures</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">legend</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">headers_and_figures</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;figure&#39;</span> <span class="ow">in</span> <span class="n">graph</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="n">figure</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">graph</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;figure&#39;</span><span class="p">]</span>
+                <span class="n">figure_html</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">pio</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span>
+                    <span class="n">figure</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;config&#39;</span><span class="p">])</span>
+                <span class="n">fig_subdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Enrichment figures&#39;</span>
+                <span class="k">if</span> <span class="s1">&#39;microscopy&#39;</span> <span class="ow">in</span> <span class="n">legend</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">fig_subdir</span> <span class="o">=</span> <span class="s1">&#39;MS-microscopy&#39;</span>
+                <span class="n">figure_names_and_figures</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                    <span class="n">fig_subdir</span><span class="p">,</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">legend</span><span class="p">[</span>
+                        <span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">figure_html</span><span class="p">,</span> <span class="n">figure</span><span class="p">,</span> <span class="s1">&#39;graph&#39;</span>
+                <span class="p">])</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;saving figures - figures identified: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">figure_names_and_figures</span><span class="p">)</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prev_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">prev_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">subdir</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">legend</span><span class="p">,</span> <span class="n">fig_html</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">figtype</span> <span class="ow">in</span> <span class="n">figure_names_and_figures</span><span class="p">:</span>
+        <span class="k">while</span> <span class="s1">&#39;;REP&#39;</span> <span class="ow">in</span> <span class="n">subdir</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">rep_what</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">subdir</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">replace</span> <span class="o">=</span> <span class="n">rep_what</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">replace</span> <span class="o">==</span> <span class="s1">&#39;WORKFLOW&#39;</span><span class="p">:</span>
+                <span class="n">subdir</span> <span class="o">=</span> <span class="n">subdir</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;;</span><span class="si">{</span><span class="n">rep_what</span><span class="si">}</span><span class="s1">;&#39;</span><span class="p">,</span> <span class="n">workflow</span><span class="p">)</span>
+        <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_dir</span><span class="p">,</span> <span class="n">subdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">target_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">target_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;html&#39;</span> <span class="ow">in</span> <span class="n">output_formats</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fig_html</span> <span class="o">!=</span> <span class="s1">&#39;NO HTML&#39;</span><span class="p">):</span>
+            <span class="n">new_html</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">split_html</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">fig_html</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">add_header</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">split_html</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="s1">&#39;&lt;body&gt;&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">add_header</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">new_html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">add_header</span><span class="p">:</span>
+                    <span class="n">new_html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;div&gt;&lt;H4&gt;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&lt;/H4&gt;&lt;/div&gt;&#39;</span><span class="p">)</span>
+                    <span class="n">add_header</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">new_html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;div&gt;&lt;p&gt;</span><span class="si">{</span><span class="n">legend</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">new_html</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">split_html</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">.html&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_html</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">output_format</span> <span class="ow">in</span> <span class="n">output_formats</span><span class="p">:</span>
+            <span class="n">fig_path</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">output_format</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;html&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">figtype</span> <span class="o">==</span> <span class="s1">&#39;graph&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">fig_path</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fig_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;.</span><span class="si">{</span><span class="n">output_format</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; ERROR.txt&#39;</span><span class="p">),</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error Message:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">figtype</span> <span class="o">==</span> <span class="s1">&#39;img&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s1">&#39;pdf&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fig_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                    <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b64decode</span><span class="p">(</span><span class="n">fig</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;src&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                        <span class="s1">&#39;data:image/png;base64,&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)))</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">figtype</span> <span class="o">==</span> <span class="s1">&#39;pdf_text&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">output_format</span> <span class="o">!=</span> <span class="s1">&#39;pdf&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fig_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+                    <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b64decode</span><span class="p">(</span><span class="n">fig</span><span class="p">))</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;saving figures - writing: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">output_format</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prev_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">prev_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;saving figures - done: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prev_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="format_nested_list">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.format_nested_list">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_nested_list</span><span class="p">(</span><span class="n">input_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format a nested list into a comma-separated string.</span>
+
+<span class="sd">    :param input_list: Nested list to format.</span>
+<span class="sd">    :returns: Comma-separated string representation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">input_list</span><span class="p">)</span>
+    <span class="n">rlist</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">rlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">format_nested_list</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rlist</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_input_information">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.save_input_information">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_input_information</span><span class="p">(</span><span class="n">input_divs</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save user input parameters/settings to a TSV file.</span>
+
+<span class="sd">    :param input_divs: Input container elements to scan.</span>
+<span class="sd">    :param export_dir: Destination directory.</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;saving input info: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">prev_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">these</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Slider&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Select&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Checklist&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;RadioItems&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Input&#39;</span>
+    <span class="p">]</span>
+    <span class="n">input_options</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;Proteogyver version&#39;</span><span class="p">,</span> <span class="n">__version__</span><span class="p">]]</span>
+    <span class="n">labels_and_inputs</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">get_all_types</span><span class="p">(</span><span class="n">input_divs</span><span class="p">,</span> <span class="n">these</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels_and_inputs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">label</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Label&#39;</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">label</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;of:&#39;</span><span class="p">:</span>
+            <span class="n">label</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NA filtering based on&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">input_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">label</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">],</span> <span class="n">labels_and_inputs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="c1"># Have to iterate over the inputs again to gather some trickier input options. Janky.</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">input</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels_and_inputs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;id&#39;</span> <span class="ow">in</span> <span class="nb">input</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">input</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;interactomics-nearest-control-filtering&#39;</span><span class="p">:</span>
+            <span class="n">usebool</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">input</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">usebool</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">input_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">[</span><span class="s1">&#39;Use only most-similar controls&#39;</span><span class="p">,</span> <span class="n">usebool</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">input</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;interactomics-num-controls&#39;</span><span class="p">:</span>
+            <span class="n">input_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">[</span><span class="s1">&#39;Number of used controls (If similarity scoring used for controls)&#39;</span><span class="p">,</span> <span class="nb">input</span><span class="p">[</span><span class="s1">&#39;props&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]])</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H-%M&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">export_dir</span><span class="p">,</span> <span class="s1">&#39;Workflow information and parameters.tsv&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fil</span><span class="p">:</span>
+        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Parameter</span><span class="se">\t</span><span class="s1">Value</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Tool</span><span class="se">\t</span><span class="s1">ProteoGyver QC and preliminary analysis</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Export time</span><span class="se">\t</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">input_options</span><span class="p">:</span>
+            <span class="n">val_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">format_nested_list</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">val_str</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+            <span class="n">fil</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">val_str</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;saving input info - done: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">prev_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="upload_data_stores">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.upload_data_stores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">upload_data_stores</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create Store components for uploaded data.</span>
+
+<span class="sd">    :returns: Div containing uploaded data Stores.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ID_STR</span> <span class="ow">in</span> <span class="n">DATA_STORE_IDS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;uploaded&#39;</span> <span class="ow">in</span> <span class="n">ID_STR</span><span class="p">:</span>
+            <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;uploaded-data-store&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ID_STR</span><span class="p">}))</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;input-stores&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="n">stores</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="working_data_stores">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.working_data_stores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">working_data_stores</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create Store components for processed/working data.</span>
+
+<span class="sd">    :returns: Div containing working data Stores.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ID_STR</span> <span class="ow">in</span> <span class="n">DATA_STORE_IDS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;uploaded&#39;</span> <span class="ow">in</span> <span class="n">ID_STR</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">stores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;data-store&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ID_STR</span><span class="p">}))</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;workflow-stores&#39;</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">stores</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="temporary_download_divs">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.temporary_download_divs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">temporary_download_divs</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create temporary divs used for downloads.</span>
+
+<span class="sd">    :returns: Div containing temporary download children.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-temporary-things&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;download_temp</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">children</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">)]</span><span class="o">+</span> <span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;download-temp-dir-ready&#39;</span><span class="p">,</span><span class="n">children</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="temporary_download_button_loading_divs">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.temporary_download_button_loading_divs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">temporary_download_button_loading_divs</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create hidden loading indicators for download buttons.</span>
+
+<span class="sd">    :returns: Div with Loading components used during downloads.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span><span class="n">dcc</span><span class="o">.</span><span class="n">Loading</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;download_loading_temp</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">children</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">)],</span> <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;   &#39;</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="invisible_utilities">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.invisible_utilities">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">invisible_utilities</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create hidden utility components container.</span>
+
+<span class="sd">    :returns: Hidden Div with utility components.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;utils-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">notifiers</span><span class="p">(),</span>
+            <span class="n">working_data_stores</span><span class="p">(),</span>
+            <span class="n">upload_data_stores</span><span class="p">(),</span>
+            <span class="n">temporary_download_divs</span><span class="p">(),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-saint-has-error&#39;</span><span class="p">,</span><span class="n">children</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="notifiers">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.infra.notifiers">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">notifiers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create notification components used by callbacks.</span>
+
+<span class="sd">    :returns: Hidden Div with notifier children.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;notifiers-div&#39;</span><span class="p">,</span>
+        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;start-analysis-notifier&#39;</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-done-notifier&#39;</span><span class="p">),</span>
+
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;done-notifier&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-clustering-done-notifier&#39;</span><span class="p">}),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;done-notifier&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;proteomics-volcanoes-done-notifier&#39;</span><span class="p">}),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;done-notifier&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-saint-done-notifier&#39;</span><span class="p">}),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;done-notifier&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-pre-enrich-done-notifier&#39;</span><span class="p">}),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;done-notifier&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;interactomics-enrichment-done-notifier&#39;</span><span class="p">}),</span>
+
+            <span class="c1"># Replace these two with the above</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;workflow-done-notifier&#39;</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;workflow-volcanoes-done-notifier&#39;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

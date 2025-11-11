@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.EnrichmentAdmin &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.components.EnrichmentAdmin</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.components.EnrichmentAdmin</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">util</span> <span class="k">as</span> <span class="n">import_util</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">parsing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+
+
+<div class="viewcode-block" id="EnrichmentAdmin">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EnrichmentAdmin</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage enrichment handlers and orchestrate enrichment runs.</span>
+
+<span class="sd">    :param parameters_file: Path to parameters TOML used to locate handler modules.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">read_toml</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_file</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enrichment_handlers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enrichments</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_disabled</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handler_basedir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Enrichers&#39;</span><span class="p">])</span>
+        
+        <span class="k">for</span> <span class="n">_module_filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler_basedir</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_module_filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">_module_filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">_filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler_basedir</span><span class="p">,</span> <span class="n">_module_filename</span><span class="p">)</span>
+            <span class="n">_module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_module_filename</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">_spec</span> <span class="o">=</span> <span class="n">import_util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span>
+                    <span class="s1">&#39;module.name&#39;</span><span class="p">,</span> <span class="n">_filepath</span><span class="p">)</span>
+                <span class="n">_api_module</span> <span class="o">=</span> <span class="n">import_util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">_spec</span><span class="p">)</span>
+                <span class="n">_spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">_api_module</span><span class="p">)</span>
+                <span class="n">_handler</span> <span class="o">=</span> <span class="n">_api_module</span><span class="o">.</span><span class="n">handler</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_enrichment_handlers</span><span class="p">[</span><span class="n">_module_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;handler&#39;</span><span class="p">:</span> <span class="n">_handler</span><span class="p">,</span>
+                    <span class="s1">&#39;available&#39;</span><span class="p">:</span> <span class="n">_handler</span><span class="o">.</span><span class="n">get_available</span><span class="p">(),</span>
+                    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">_handler</span><span class="o">.</span><span class="n">nice_name</span><span class="p">,</span>
+                    <span class="s1">&#39;defaults&#39;</span><span class="p">:</span> <span class="n">_handler</span><span class="o">.</span><span class="n">get_default_panel</span><span class="p">()</span>
+                <span class="p">}</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Failed to load enrichment module </span><span class="si">{</span><span class="n">_module_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># Continue with other modules even if one fails</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enrichment_handlers</span><span class="p">[</span><span class="n">_module_name</span><span class="p">][</span><span class="s1">&#39;available&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_enrichments</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="n">_module_name</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enrichment_handlers</span><span class="p">[</span><span class="n">_module_name</span><span class="p">][</span><span class="s1">&#39;defaults&#39;</span><span class="p">]:</span>
+                <span class="n">show</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">ban_str</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;file loading&#39;</span><span class="p">][</span><span class="s1">&#39;Do not show in enrichment default&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">ban_str</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                        <span class="n">show</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="n">_module_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">import_handlers</span><span class="p">()</span>
+<div class="viewcode-block" id="EnrichmentAdmin.get_available">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin.get_available">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_available</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List all available enrichment names across handlers.</span>
+
+<span class="sd">        :returns: Sorted list of enrichment names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enrichments</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+
+<div class="viewcode-block" id="EnrichmentAdmin.get_default">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin.get_default">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_default</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List default enrichment names suggested by handlers.</span>
+
+<span class="sd">        :returns: Sorted list of default enrichment names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+
+<div class="viewcode-block" id="EnrichmentAdmin.get_disabled">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin.get_disabled">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_disabled</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List enrichments disabled by configuration.</span>
+
+<span class="sd">        :returns: Sorted list of disabled enrichment names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_disabled</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EnrichmentAdmin.import_handlers">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin.import_handlers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">import_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Import all enrichment handler modules from configured directory.</span>
+
+<span class="sd">        :returns: Dict mapping module name -&gt; handler instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">module_filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler_basedir</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">module_filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">):</span>
+                <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler_basedir</span><span class="p">,</span> <span class="n">module_filename</span><span class="p">)</span>
+                <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">module_filename</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">spec</span> <span class="o">=</span> <span class="n">import_util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="s1">&#39;module.name&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+                    <span class="n">api_module</span> <span class="o">=</span> <span class="n">import_util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+                    <span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">api_module</span><span class="p">)</span>
+                    <span class="n">ret_dict</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">api_module</span><span class="o">.</span><span class="n">handler</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Failed to load enrichment handler </span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="c1"># Continue with other modules even if one fails</span>
+                    <span class="k">continue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_imported_handlers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">ret_dict</span></div>
+
+
+<div class="viewcode-block" id="EnrichmentAdmin.enrich_all">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin.enrich_all">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enrich_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span><span class="n">enrichment_strings</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">id_column</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">id_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">split_by_column</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">split_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run all requested enrichments via their handlers.</span>
+
+<span class="sd">        :param data_table: Input table with identifiers and optional split column.</span>
+<span class="sd">        :param enrichment_strings: List of enrichment names to run.</span>
+<span class="sd">        :param id_column: Column containing identifiers to enrich.</span>
+<span class="sd">        :param id_list: Explicit list of identifiers if not using ``id_column``.</span>
+<span class="sd">        :param split_by_column: Optional column to split input by groups/baits.</span>
+<span class="sd">        :param split_name: Label for the split dimension (defaults to &#39;Sample group&#39;).</span>
+<span class="sd">        :returns: Tuple of (result_names, return_dataframes, information).</span>
+<span class="sd">        :raises AssertionError: If neither ``id_column`` nor ``id_list`` is provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">((</span><span class="n">id_column</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">id_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)),</span> <span class="s1">&#39;Supply either id_column or id_list&#39;</span>
+        <span class="k">if</span> <span class="n">split_by_column</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">split_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">split_name</span> <span class="o">=</span> <span class="s1">&#39;Sample group&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">id_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Can not supply id_list with split_by_column!&#39;</span>
+        
+        <span class="n">enrichments_to_do</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">e_str</span> <span class="ow">in</span> <span class="n">enrichment_strings</span><span class="p">:</span>
+            <span class="n">apiname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enrichments</span><span class="p">[</span><span class="n">e_str</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">apiname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enrichments_to_do</span><span class="p">:</span>
+                <span class="n">enrichments_to_do</span><span class="p">[</span><span class="n">apiname</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">enrichments_to_do</span><span class="p">[</span><span class="n">apiname</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_str</span><span class="p">)</span>
+        <span class="n">enrichment_results</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">enrichment_names</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">done_info</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">api</span><span class="p">,</span> <span class="n">enrichmentlist</span> <span class="ow">in</span> <span class="n">enrichments_to_do</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">enrichment_options</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">enrichmentlist</span><span class="p">)</span>
+                <span class="n">enrichment_input</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="n">split_by_column</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">data_table</span><span class="p">[</span><span class="n">split_by_column</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="n">data_table</span><span class="p">[</span><span class="n">data_table</span><span class="p">[</span><span class="n">split_by_column</span><span class="p">]</span><span class="o">==</span><span class="n">b</span><span class="p">]</span>
+                        <span class="n">enrichment_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">b</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">id_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">id_list</span><span class="p">:</span>
+                        <span class="n">enrichment_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;All&#39;</span><span class="p">,</span><span class="n">id_list</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">enrichment_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;All&#39;</span><span class="p">,</span><span class="n">df</span><span class="p">[</span><span class="n">id_column</span><span class="p">]])</span>
+                <span class="n">result_names</span><span class="p">:</span> <span class="nb">list</span>
+                <span class="n">return_dataframes</span><span class="p">:</span> <span class="nb">list</span>
+                <span class="n">done_information</span><span class="p">:</span> <span class="nb">list</span>
+                <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imported_handlers</span><span class="p">[</span><span class="n">api</span><span class="p">]</span>
+                <span class="n">result_names</span><span class="p">,</span> <span class="n">return_dataframes</span><span class="p">,</span> <span class="n">done_information</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="n">enrich</span><span class="p">(</span><span class="n">enrichment_input</span><span class="p">,</span> <span class="n">enrichment_options</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1">#TODO move to logging module</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error in enrichment </span><span class="si">{</span><span class="n">api</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">result_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Error&#39;</span><span class="p">]</span>
+                <span class="n">return_dataframes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()]</span>
+                <span class="n">done_information</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Enrichment failed.&#39;</span><span class="p">]</span>
+                <span class="k">continue</span>
+            <span class="n">enrichment_results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">return_dataframes</span><span class="p">)</span>
+            <span class="n">enrichment_names</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">result_names</span><span class="p">)</span>
+            <span class="n">done_info</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">done_information</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">enrichment_names</span><span class="p">,</span> <span class="n">enrichment_results</span><span class="p">,</span> <span class="n">done_info</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

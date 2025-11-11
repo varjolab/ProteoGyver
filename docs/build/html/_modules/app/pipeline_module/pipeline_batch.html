@@ -1,0 +1,721 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.pipeline_module.pipeline_batch &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.pipeline_module.pipeline_batch</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.pipeline_module.pipeline_batch</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># Run Dash analysis headlessly, step-by-step.</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">base64</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">is_dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">parsing</span><span class="p">,</span> <span class="n">qc_analysis</span><span class="p">,</span> <span class="n">proteomics</span><span class="p">,</span> <span class="n">interactomics</span><span class="p">,</span> <span class="n">db_functions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures</span><span class="w"> </span><span class="kn">import</span> <span class="n">color_tools</span> 
+
+<div class="viewcode-block" id="dash_to_wire">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.dash_to_wire">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dash_to_wire</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively convert Dash/Plotly components to JSON-serializable structures.</span>
+
+<span class="sd">    - Leaves primitives (str, int, float, bool, None) untouched.</span>
+<span class="sd">    - Converts any object exposing ``to_plotly_json()`` (Dash components, go.Figure).</span>
+<span class="sd">    - Recurses through dicts and lists/tuples.</span>
+<span class="sd">    - Dataclasses are converted via ``asdict()`` then recursed.</span>
+
+<span class="sd">    :param obj: Any Python object (Dash component, go.Figure, dict/list, primitives).</span>
+<span class="sd">    :returns: JSON-serializable structure with components replaced by dicts/lists.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fast path: primitives / “don’t touch”</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">,</span> <span class="nb">memoryview</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="c1"># Numpy scalars -&gt; built-in types (optional but handy)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">generic</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># Dash/Plotly components &amp; figures expose this</span>
+    <span class="n">to_json</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;to_plotly_json&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">to_json</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dash_to_wire</span><span class="p">(</span><span class="n">to_json</span><span class="p">())</span>
+
+    <span class="c1"># Dataclasses → dict, then recurse</span>
+    <span class="k">if</span> <span class="n">is_dataclass</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dash_to_wire</span><span class="p">(</span><span class="n">asdict</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+
+    <span class="c1"># Mappings → dict, then recurse on values</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">dash_to_wire</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="c1"># Sequences (lists/tuples) → list, recurse per element</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dash_to_wire</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+
+    <span class="c1"># Anything else: leave as-is (you can add more coercions if needed)</span>
+    <span class="k">return</span> <span class="n">obj</span></div>
+
+
+
+
+<span class="c1"># -------- Config --------</span>
+<div class="viewcode-block" id="BatchConfig">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BatchConfig</span><span class="p">:</span>
+
+    <span class="c1"># --- data ---</span>
+    <span class="n">data_table_path</span><span class="p">:</span> <span class="nb">str</span>                 <span class="c1"># e.g. &quot;data/your_maxquant_proteingroups.tsv&quot;</span>
+    <span class="n">sample_table_path</span><span class="p">:</span> <span class="nb">str</span>               <span class="c1"># e.g. &quot;data/experimental_design.tsv&quot;</span>
+    <span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;batch_out&quot;</span>            <span class="c1"># where to write JSON artifacts</span>
+    <span class="n">figure_template</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;plotly_white&quot;</span>
+    <span class="n">remove_common_contaminants</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">rename_replicates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">unique_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">workflow</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;proteomics&quot;</span>
+
+    <span class="c1"># --- pipeline ---</span>
+    <span class="n">plot_formats</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;pdf&quot;</span><span class="p">])</span>
+    <span class="n">keep_batch_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Proteomics knobs</span>
+    <span class="n">na_filter_percent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">70</span>
+    <span class="n">na_filter_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sample-group&quot;</span>        <span class="c1"># &quot;sample-group&quot; | &quot;sample-set&quot;</span>
+    <span class="n">normalization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;no_normalization&quot;</span>        <span class="c1"># &quot;Median&quot; | &quot;Quantile&quot; | &quot;Vsn&quot; | &quot;no_normalization&quot;</span>
+    <span class="n">imputation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;QRILC&quot;</span>              <span class="c1"># &quot;knn&quot; | &quot;mean&quot; | ...</span>
+    <span class="n">control_group</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># If None, provide comparison_file instead</span>
+    <span class="n">comparison_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fc_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">p_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+    <span class="n">test_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;independent&quot;</span>
+    <span class="c1"># Interactomics knobs</span>
+    <span class="n">uploaded_controls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">additional_controls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">crapome_sets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">proximity_filtering</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">n_controls</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">saint_bfdr_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+    <span class="n">crapome_percentage_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">crapome_fc_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">rescue_enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">chosen_enrichments</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">force_supervenn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<span class="c1"># -------- Helpers that mimic Dash&#39;s upload content --------</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_upload_contents_for_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return tuple compatible with Dash Upload: (contents, filename, mtime_ms).</span>
+
+<span class="sd">    :param path: Path to a file on disk.</span>
+<span class="sd">    :returns: Tuple of (base64 contents string, filename, last-modified ms).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">b64</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+    <span class="c1"># Dash passes strings like &quot;data:application/octet-stream;base64,AAAA...&quot;</span>
+    <span class="n">contents</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data:application/octet-stream;base64,</span><span class="si">{</span><span class="n">b64</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">last_mod</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">contents</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">last_mod</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ensure_dir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_dump_json</span><span class="p">(</span><span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="n">_ensure_dir</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># -------- Pipeline --------</span>
+<div class="viewcode-block" id="run_pipeline">
+<a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.run_pipeline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_pipeline</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">BatchConfig</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute the batch pipeline mirroring the app&#39;s QC and analysis steps.</span>
+
+<span class="sd">    :param cfg: Batch configuration object.</span>
+<span class="sd">    :param params: Parsed application parameters.</span>
+<span class="sd">    :returns: Summary dict and JSON artifacts written to ``cfg.outdir``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1) Load parameters &amp; db/contaminants (mirrors QC_and_data_analysis.py)</span>
+    <span class="n">db_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;Data paths&quot;</span><span class="p">][</span><span class="s2">&quot;Database file&quot;</span><span class="p">])</span>
+    <span class="n">contaminant_list</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_contaminants</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
+
+    <span class="c1"># 2) “Upload” data &amp; sample tables from disk (use same parsing functions the app uses)</span>
+    <span class="n">data_contents</span><span class="p">,</span> <span class="n">data_name</span><span class="p">,</span> <span class="n">data_mtime</span> <span class="o">=</span> <span class="n">_upload_contents_for_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data_table_path</span><span class="p">)</span>
+    <span class="n">sample_contents</span><span class="p">,</span> <span class="n">sample_name</span><span class="p">,</span> <span class="n">sample_mtime</span> <span class="o">=</span> <span class="n">_upload_contents_for_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">sample_table_path</span><span class="p">)</span>
+
+    <span class="c1"># App gives a style dict and file-loading config; we can pass a dummy style and the real file settings</span>
+    <span class="n">dummy_style</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">file_loading_cfg</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;file loading&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Same functions the callbacks use:</span>
+    <span class="c1"># parsing.parse_data_file -&gt; returns (upload_style, data_info, data_tables)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">data_info</span><span class="p">,</span> <span class="n">data_tables</span><span class="p">,</span> <span class="n">warnings</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_data_file</span><span class="p">(</span>
+        <span class="n">data_contents</span><span class="p">,</span> <span class="n">data_name</span><span class="p">,</span> <span class="n">data_mtime</span><span class="p">,</span> <span class="n">dummy_style</span><span class="p">,</span> <span class="n">file_loading_cfg</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Data table warnings&#39;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;- This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)&#39;</span><span class="p">)</span>
+    
+    <span class="n">_</span><span class="p">,</span> <span class="n">expdes_info</span><span class="p">,</span> <span class="n">expdes_table</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_sample_table</span><span class="p">(</span>
+        <span class="n">sample_contents</span><span class="p">,</span> <span class="n">sample_name</span><span class="p">,</span> <span class="n">sample_mtime</span><span class="p">,</span> <span class="n">dummy_style</span>
+    <span class="p">)</span>
+    <span class="n">exp_cols_found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">expdes_info</span><span class="p">[</span><span class="s1">&#39;required columns found&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exp_cols_found</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">req_cols</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sample name&#39;</span><span class="p">,</span> <span class="s1">&#39;sample group&#39;</span><span class="p">]</span>
+        <span class="n">fcols</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">expdes_info</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">req_cols</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">expdes_info</span><span class="p">])</span>
+        <span class="n">warnings</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;Sample table warnings&#39;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;- Experimental design table is missing required columns. Found columns: </span><span class="si">{</span><span class="n">fcols</span><span class="si">}</span><span class="s1">, required columns: </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">req_cols</span><span class="p">)</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;- This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)&#39;</span>
+        <span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Return error information to be handled by pipeline_input_watcher</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">workflow</span><span class="p">,</span>
+            <span class="s2">&quot;session_name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M-%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">--batch&#39;</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Pipeline terminated due to warnings in input files&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;warnings&quot;</span><span class="p">:</span> <span class="n">warnings</span><span class="p">,</span>
+            <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span>
+        <span class="p">}</span>
+        
+    <span class="c1"># 3) Format the data (mirrors `validate_data` callback)</span>
+    <span class="c1"># also set your figure template</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">plotly.io</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pio</span>
+    <span class="n">pio</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">figure_template</span>
+
+    <span class="n">session_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M-%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">--batch&#39;</span>
+    <span class="n">data_dictionary</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">format_data</span><span class="p">(</span>
+        <span class="n">session_name</span><span class="p">,</span>
+        <span class="n">data_tables</span><span class="p">,</span>
+        <span class="n">data_info</span><span class="p">,</span>
+        <span class="n">expdes_table</span><span class="p">,</span>
+        <span class="n">expdes_info</span><span class="p">,</span>
+        <span class="n">contaminant_list</span> <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">remove_common_contaminants</span> <span class="k">else</span> <span class="p">[],</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">rename_replicates</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">unique_only</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;workflow parameters&quot;</span><span class="p">][</span><span class="s2">&quot;interactomics&quot;</span><span class="p">][</span><span class="s2">&quot;control indicators&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;file loading&quot;</span><span class="p">][</span><span class="s2">&quot;Bait ID column names&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_info</span>
+    <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;input_data_tables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_tables</span>
+    <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;input_sample_table&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expdes_table</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;01_data_dictionary&quot;</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">)</span>
+
+    <span class="c1"># 4) Assign replicate colors (mirrors assign_replicate_colors)</span>
+    <span class="n">rep_colors</span><span class="p">,</span> <span class="n">rep_colors_with_cont</span> <span class="o">=</span> <span class="n">color_tools</span><span class="o">.</span><span class="n">get_assigned_colors</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;sample groups&quot;</span><span class="p">][</span><span class="s2">&quot;norm&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;02_replicate_colors&quot;</span><span class="p">,</span> <span class="n">rep_colors</span><span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;02_replicate_colors_with_cont&quot;</span><span class="p">,</span> <span class="n">rep_colors_with_cont</span><span class="p">)</span>
+
+    <span class="c1"># 5) QC chain (call the same functions used in callbacks)</span>
+    <span class="n">artifacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">divs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># TIC</span>
+    <span class="n">tic_div</span><span class="p">,</span> <span class="n">tic_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">parse_tic_data</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="s2">&quot;experimental design&quot;</span><span class="p">],</span>
+        <span class="n">rep_colors</span><span class="p">,</span>
+        <span class="n">db_file</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;tic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tic_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;tic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tic_div</span>
+    <span class="c1"># Counts</span>
+    <span class="n">table_to_use</span> <span class="o">=</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="s2">&quot;table to use&quot;</span><span class="p">]</span>
+    <span class="n">count_div</span><span class="p">,</span> <span class="n">count_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">count_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="s2">&quot;with-contaminants&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">rep_colors_with_cont</span><span class="p">,</span>
+        <span class="n">contaminant_list</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;counts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;counts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count_div</span>
+    <span class="c1"># Common proteins</span>
+    <span class="n">common_div</span><span class="p">,</span> <span class="n">common_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">common_proteins</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">db_file</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+        <span class="n">additional_groups</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Other contaminants&quot;</span><span class="p">:</span> <span class="n">contaminant_list</span><span class="p">},</span>
+        <span class="n">id_str</span><span class="o">=</span><span class="s2">&quot;qc&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;common_proteins&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;common_proteins&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_div</span>
+    <span class="c1"># Coverage</span>
+    <span class="n">coverage_div</span><span class="p">,</span> <span class="n">coverage_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">coverage_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;half-height&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;coverage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coverage_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;coverage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coverage_div</span>
+    <span class="c1"># Reproducibility</span>
+    <span class="n">repro_div</span><span class="p">,</span> <span class="n">repro_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">reproducibility_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;sample groups&quot;</span><span class="p">][</span><span class="s2">&quot;norm&quot;</span><span class="p">],</span>
+        <span class="n">table_to_use</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;reproducibility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">repro_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;reproducibility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">repro_div</span>
+    <span class="c1"># Missing</span>
+    <span class="n">missing_div</span><span class="p">,</span> <span class="n">missing_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">missing_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">rep_colors</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;half-height&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;missing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">missing_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;missing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">missing_div</span>
+    <span class="c1"># Sum</span>
+    <span class="n">sum_div</span><span class="p">,</span> <span class="n">sum_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">sum_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">rep_colors</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;half-height&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;sum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sum_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;sum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sum_div</span>
+    <span class="c1"># Mean</span>
+    <span class="n">mean_div</span><span class="p">,</span> <span class="n">mean_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">mean_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">rep_colors</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;half-height&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_div</span>
+    <span class="c1"># Distribution</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">get_distribution_title</span><span class="p">(</span><span class="n">table_to_use</span><span class="p">)</span>
+    <span class="n">dist_div</span><span class="p">,</span> <span class="n">dist_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">distribution_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="n">table_to_use</span><span class="p">],</span>
+        <span class="n">rep_colors</span><span class="p">,</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;sample groups&quot;</span><span class="p">][</span><span class="s2">&quot;rev&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+        <span class="n">title</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;distribution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist_data</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;distribution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist_div</span>
+
+    <span class="c1"># Commonality</span>
+    <span class="n">commonality_div</span><span class="p">,</span> <span class="n">commonality_data</span><span class="p">,</span> <span class="n">pdf_str</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">commonality_plot</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="s1">&#39;table to use&#39;</span><span class="p">]],</span>
+        <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;rev&#39;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;Figure defaults&#39;</span><span class="p">][</span><span class="s1">&#39;full-height&#39;</span><span class="p">],</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">force_supervenn</span><span class="p">,</span> 
+    <span class="p">)</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;commonality&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">commonality_data</span>
+    <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;commonality_pdf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_str</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;commonality&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">commonality_div</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;03_qc_divs.pickle&quot;</span><span class="p">),</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">divs</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;03_qc_artifacts&quot;</span><span class="p">,</span> <span class="n">artifacts</span><span class="p">)</span>
+    <span class="c1"># 6) Workflow-specific analysis</span>
+    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;proteomics&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_run_proteomics_workflow</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">,</span> <span class="n">rep_colors</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">artifacts</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cfg</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;interactomics&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_run_interactomics_workflow</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">,</span> <span class="n">rep_colors</span><span class="p">,</span> <span class="n">rep_colors_with_cont</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">artifacts</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown workflow: </span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">workflow</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run_proteomics_workflow</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">BatchConfig</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+                            <span class="n">rep_colors</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
+                            <span class="n">artifacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the proteomics analysis workflow.</span>
+
+<span class="sd">    :param cfg: Batch configuration.</span>
+<span class="sd">    :param data_dictionary: Parsed/validated inputs and groups.</span>
+<span class="sd">    :param rep_colors: Replicate color assignments.</span>
+<span class="sd">    :param params: Parsed application parameters.</span>
+<span class="sd">    :param artifacts: QC artifacts dict.</span>
+<span class="sd">    :returns: Proteomics summary dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">divs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># NA filter</span>
+    <span class="n">na_filter_div</span><span class="p">,</span> <span class="n">na_filtered</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">na_filter</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">na_filter_percent</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+        <span class="n">filter_type</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">na_filter_type</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;10_na_filtered&quot;</span><span class="p">,</span> <span class="n">na_filtered</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;na_filter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">na_filter_div</span>
+    <span class="c1"># Normalization</span>
+    <span class="n">normalization_div</span><span class="p">,</span> <span class="n">normalized</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">normalization</span><span class="p">(</span>
+        <span class="n">na_filtered</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">normalization</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Config&quot;</span><span class="p">][</span><span class="s2">&quot;script error file&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;11_normalized&quot;</span><span class="p">,</span> <span class="n">normalized</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;normalization&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalization_div</span>
+    <span class="c1"># Imputation</span>
+    <span class="k">if</span> <span class="n">normalized</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">missing_values_in_other_samples_div</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">missing_values_in_other_samples</span><span class="p">(</span>
+            <span class="n">normalized</span><span class="p">,</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;missing_values_in_other_samples&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">missing_values_in_other_samples_div</span>
+        <span class="n">imputation_div</span><span class="p">,</span> <span class="n">imputed</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">imputation</span><span class="p">(</span>
+            <span class="n">normalized</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">imputation</span><span class="p">,</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Config&quot;</span><span class="p">][</span><span class="s2">&quot;script error file&quot;</span><span class="p">],</span>
+            <span class="n">sample_groups_rev</span><span class="o">=</span><span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;sample groups&quot;</span><span class="p">][</span><span class="s2">&quot;rev&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;12_imputed&quot;</span><span class="p">,</span> <span class="n">imputed</span><span class="p">)</span>
+        <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;imputation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imputation_div</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">imputed</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># PCA (optional)</span>
+    <span class="k">if</span> <span class="n">imputed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pca_div</span><span class="p">,</span> <span class="n">pca_data</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">pca</span><span class="p">(</span>
+            <span class="n">imputed</span><span class="p">,</span>
+            <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;sample groups&quot;</span><span class="p">][</span><span class="s2">&quot;rev&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+            <span class="n">rep_colors</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;13_pca&quot;</span><span class="p">,</span> <span class="n">pca_data</span><span class="p">)</span>
+        <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;pca&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pca_div</span>
+
+        <span class="c1"># CV analysis</span>
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">cv_div</span><span class="p">,</span> <span class="n">cv_data</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">perc_cvplot</span><span class="p">(</span>
+                <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="s1">&#39;table to use&#39;</span><span class="p">]],</span>
+                <span class="n">na_filtered</span><span class="p">,</span>
+                <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;sample groups&quot;</span><span class="p">][</span><span class="s2">&quot;norm&quot;</span><span class="p">],</span>
+                <span class="n">rep_colors</span><span class="p">,</span>
+                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;13_cv&quot;</span><span class="p">,</span> <span class="n">cv_data</span><span class="p">)</span>
+            <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;cv&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cv_div</span>
+        <span class="c1"># Clustermap/correlation clustering</span>
+        <span class="n">clustermap_div</span><span class="p">,</span> <span class="n">clustermap_data</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">clustermap</span><span class="p">(</span>
+            <span class="n">imputed</span><span class="p">,</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;13_clustermap&quot;</span><span class="p">,</span> <span class="n">clustermap_data</span><span class="p">)</span>
+        <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;clustermap&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">clustermap_div</span>
+        <span class="c1"># Perturbation analysis (if we have control groups)</span>
+        <span class="c1"># Find control groups from comparisons</span>
+        <span class="n">control_groups</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">comparison_file</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+            <span class="n">comp_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">comparison_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;Control&#39;</span> <span class="ow">in</span> <span class="n">comp_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">control_groups</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">comp_df</span><span class="p">[</span><span class="s1">&#39;Control&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="c1"># Volcano (control vs comparisons) — optional when controls/comparisons provided</span>
+    <span class="n">volcano</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">imputed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sgroups</span> <span class="o">=</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;sample groups&quot;</span><span class="p">][</span><span class="s2">&quot;norm&quot;</span><span class="p">]</span>
+
+        <span class="c1"># If a comparisons file is provided and valid, validate like the UI does</span>
+        <span class="n">comp_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">comp_style</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;background-color&quot;</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">}</span>
+        <span class="n">comparisons_file_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">comparison_file</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">comparison_file</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">comparison_file</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">comparison_file</span><span class="p">):</span>
+                <span class="n">comparisons_file_path</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">comparison_file</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">comparisons_file_path</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">comparisons_file_path</span><span class="p">:</span>
+            <span class="n">comp_contents</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_upload_contents_for_path</span><span class="p">(</span><span class="n">comparisons_file_path</span><span class="p">)</span>
+            <span class="n">comp_style</span><span class="p">,</span> <span class="n">comp_data</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">check_comparison_file</span><span class="p">(</span>
+                <span class="n">comp_contents</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">sgroups</span><span class="p">,</span> <span class="n">comp_style</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Normalize control group (treat empty string as None)</span>
+        <span class="n">control_group_clean</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">control_group</span> <span class="k">if</span> <span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">control_group</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">control_group</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Only run DA if we have either a control group or valid comparisons</span>
+        <span class="n">has_controls_or_comparisons</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">control_group_clean</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">comp_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">has_controls_or_comparisons</span><span class="p">:</span>
+            <span class="n">comparisons</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_comparisons</span><span class="p">(</span>
+                <span class="n">control_group_clean</span><span class="p">,</span> <span class="n">comp_data</span><span class="p">,</span> <span class="n">sgroups</span>
+            <span class="p">)</span>
+
+            <span class="n">volcano_div</span><span class="p">,</span> <span class="n">volcano_data</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">differential_abundance</span><span class="p">(</span>
+                <span class="n">imputed</span><span class="p">,</span>
+                <span class="n">sgroups</span><span class="p">,</span>
+                <span class="n">comparisons</span><span class="p">,</span>
+                <span class="n">cfg</span><span class="o">.</span><span class="n">fc_threshold</span><span class="p">,</span>
+                <span class="n">cfg</span><span class="o">.</span><span class="n">p_threshold</span><span class="p">,</span>
+                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+                <span class="n">cfg</span><span class="o">.</span><span class="n">test_type</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;Data paths&quot;</span><span class="p">][</span><span class="s2">&quot;Database file&quot;</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="n">volcano</span> <span class="o">=</span> <span class="n">volcano_data</span>
+            <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;14_volcano&quot;</span><span class="p">,</span> <span class="n">volcano</span><span class="p">)</span>
+            <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;volcano&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volcano_div</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No control information; skip DA gracefully</span>
+            <span class="n">volcano</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;04_proteomics_divs.pickle&quot;</span><span class="p">),</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">divs</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="s2">&quot;proteomics&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;session_name&quot;</span><span class="p">:</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;other&quot;</span><span class="p">][</span><span class="s2">&quot;session name&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;artifacts&quot;</span><span class="p">:</span> <span class="n">artifacts</span><span class="p">,</span>
+        <span class="s2">&quot;na_filtered&quot;</span><span class="p">:</span> <span class="n">na_filtered</span><span class="p">,</span>
+        <span class="s2">&quot;normalized&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">normalized</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;imputed&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">imputed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;volcano&quot;</span><span class="p">:</span> <span class="n">volcano</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;00_summary&quot;</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">summary</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run_interactomics_workflow</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">BatchConfig</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+                               <span class="n">rep_colors</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">rep_colors_with_cont</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+                               <span class="n">artifacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the interactomics analysis workflow.</span>
+
+<span class="sd">    :param cfg: Batch configuration.</span>
+<span class="sd">    :param data_dictionary: Parsed/validated inputs and groups.</span>
+<span class="sd">    :param rep_colors: Replicate color assignments.</span>
+<span class="sd">    :param rep_colors_with_cont: Replicate colors incl. contaminants.</span>
+<span class="sd">    :param params: Parsed application parameters.</span>
+<span class="sd">    :param artifacts: QC artifacts dict.</span>
+<span class="sd">    :returns: Interactomics summary dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">db_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;Data paths&quot;</span><span class="p">][</span><span class="s2">&quot;Database file&quot;</span><span class="p">])</span>
+    <span class="n">divs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Check if we have spectral count data</span>
+    <span class="k">if</span> <span class="s1">&#39;&quot;No data&quot;&#39;</span> <span class="ow">in</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="s2">&quot;spc&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="s2">&quot;interactomics&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;session_name&quot;</span><span class="p">:</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;other&quot;</span><span class="p">][</span><span class="s2">&quot;session name&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;artifacts&quot;</span><span class="p">:</span> <span class="n">artifacts</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;No spectral count data available for interactomics analysis&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span>
+        <span class="p">}</span>
+    
+    <span class="c1"># 1) Generate SAINT container (prepare controls and data)</span>
+    <span class="n">saint_div</span><span class="p">,</span> <span class="n">saint_dict</span><span class="p">,</span> <span class="n">crapome_data</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">generate_saint_container</span><span class="p">(</span>
+        <span class="n">data_dictionary</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">uploaded_controls</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">additional_controls</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">crapome_sets</span><span class="p">,</span>
+        <span class="n">db_file</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">proximity_filtering</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">n_controls</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;20_saint_dict&quot;</span><span class="p">,</span> <span class="n">saint_dict</span><span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;20_crapome_data&quot;</span><span class="p">,</span> <span class="n">crapome_data</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;saint&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saint_div</span>
+    
+    <span class="c1"># 2) Run SAINT analysis</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">saint_dict</span><span class="p">:</span>  <span class="c1"># Empty dict means no data</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="s2">&quot;interactomics&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;session_name&quot;</span><span class="p">:</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;other&quot;</span><span class="p">][</span><span class="s2">&quot;session name&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;artifacts&quot;</span><span class="p">:</span> <span class="n">artifacts</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Insufficient data for SAINT analysis&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span>
+        <span class="p">}</span>
+    
+    <span class="n">session_name</span> <span class="o">=</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;other&quot;</span><span class="p">][</span><span class="s2">&quot;session name&quot;</span><span class="p">]</span>
+    <span class="n">bait_uniprots</span> <span class="o">=</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;other&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bait uniprots&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    
+    <span class="n">saint_output</span><span class="p">,</span> <span class="n">saint_failed</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">run_saint</span><span class="p">(</span>
+        <span class="n">saint_dict</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;External tools&quot;</span><span class="p">][</span><span class="s2">&quot;SAINT tempdir&quot;</span><span class="p">],</span>
+        <span class="n">session_name</span><span class="p">,</span>
+        <span class="n">bait_uniprots</span><span class="p">,</span>
+        <span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s2">&quot;SAINT failed&quot;</span> <span class="ow">in</span> <span class="n">saint_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="s2">&quot;interactomics&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;session_name&quot;</span><span class="p">:</span> <span class="n">session_name</span><span class="p">,</span>
+            <span class="s2">&quot;artifacts&quot;</span><span class="p">:</span> <span class="n">artifacts</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;SAINT analysis failed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;saint_failed&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span>
+        <span class="p">}</span>
+    
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;21_saint_output_raw&quot;</span><span class="p">,</span> <span class="n">saint_output</span><span class="p">)</span>
+    
+    <span class="c1"># 3) Add CRAPome data if available</span>
+    <span class="k">if</span> <span class="n">crapome_data</span> <span class="ow">and</span> <span class="n">crapome_data</span> <span class="o">!=</span> <span class="s1">&#39;{&quot;columns&quot;:[],&quot;index&quot;:[],&quot;data&quot;:[]}&#39;</span><span class="p">:</span>
+        <span class="n">saint_output</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">add_crapome</span><span class="p">(</span><span class="n">saint_output</span><span class="p">,</span> <span class="n">crapome_data</span><span class="p">)</span>
+        <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;22_saint_with_crapome&quot;</span><span class="p">,</span> <span class="n">saint_output</span><span class="p">)</span>
+    
+    <span class="c1"># 4) Filter SAINT results</span>
+    <span class="n">filtered_saint</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">saint_filtering</span><span class="p">(</span>
+        <span class="n">saint_output</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">saint_bfdr_threshold</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">crapome_percentage_threshold</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">crapome_fc_threshold</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">rescue_enabled</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;23_saint_filtered&quot;</span><span class="p">,</span> <span class="n">filtered_saint</span><span class="p">)</span>
+    
+    <span class="n">filtered_saint</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">map_intensity</span><span class="p">(</span><span class="n">filtered_saint</span><span class="p">,</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="s1">&#39;intensity&#39;</span><span class="p">],</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;norm&#39;</span><span class="p">])</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;23_saint_filtered_and_intensity_mapped&quot;</span><span class="p">,</span> <span class="n">filtered_saint</span><span class="p">)</span>
+    <span class="n">known_div</span><span class="p">,</span> <span class="n">filtered_saint_with_knowns</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">known_plot</span><span class="p">(</span><span class="n">filtered_saint</span><span class="p">,</span> <span class="n">db_file</span><span class="p">,</span> <span class="n">rep_colors_with_cont</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;Figure defaults&#39;</span><span class="p">][</span><span class="s1">&#39;half-height&#39;</span><span class="p">])</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;23_saint_filtered_and_intensity_mapped_with_knowns&quot;</span><span class="p">,</span> <span class="n">filtered_saint_with_knowns</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;known&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">known_div</span>
+    <span class="c1"># 5) Generate network plot</span>
+    <span class="n">network_div</span><span class="p">,</span> <span class="n">network_elements</span><span class="p">,</span> <span class="n">interactions</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">do_network</span><span class="p">(</span>
+        <span class="n">filtered_saint</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">][</span><span class="s2">&quot;height&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;24_network_elements&quot;</span><span class="p">,</span> <span class="n">network_elements</span><span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;24_interactions&quot;</span><span class="p">,</span> <span class="n">interactions</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;network&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">network_div</span>
+    <span class="c1"># 6) PCA analysis</span>
+    <span class="n">pca_div</span><span class="p">,</span> <span class="n">pca_data</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">pca</span><span class="p">(</span>
+        <span class="n">filtered_saint</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+        <span class="n">rep_colors</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;25_pca&quot;</span><span class="p">,</span> <span class="n">pca_data</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;pca&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pca_div</span>
+    <span class="c1"># 7) Enrichment analysis (if requested)</span>
+    <span class="n">enrichment_data</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">enrichment_info</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">chosen_enrichments</span><span class="p">:</span>
+        <span class="n">enrichment_div</span><span class="p">,</span> <span class="n">enrichment_data</span><span class="p">,</span> <span class="n">enrichment_info</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">enrich</span><span class="p">(</span>
+            <span class="n">filtered_saint</span><span class="p">,</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">chosen_enrichments</span><span class="p">,</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+            <span class="n">parameters_file</span><span class="o">=</span><span class="n">parameters_path</span>
+        <span class="p">)</span>
+        <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;26_enrichment_data&quot;</span><span class="p">,</span> <span class="n">enrichment_data</span><span class="p">)</span>
+        <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;26_enrichment_info&quot;</span><span class="p">,</span> <span class="n">enrichment_info</span><span class="p">)</span>
+        <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;enrichment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">enrichment_div</span>
+    <span class="c1"># 8) MS-microscopy analysis</span>
+    <span class="n">msmic_div</span><span class="p">,</span> <span class="n">msmic_data</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">do_ms_microscopy</span><span class="p">(</span>
+        <span class="n">filtered_saint</span><span class="p">,</span>
+        <span class="n">db_file</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;27_msmic_data&quot;</span><span class="p">,</span> <span class="n">msmic_data</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;msmic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msmic_div</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;05_interactomics_divs.pickle&quot;</span><span class="p">),</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">divs</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;workflow&quot;</span><span class="p">:</span> <span class="s2">&quot;interactomics&quot;</span><span class="p">,</span> 
+        <span class="s2">&quot;session_name&quot;</span><span class="p">:</span> <span class="n">session_name</span><span class="p">,</span>
+        <span class="s2">&quot;artifacts&quot;</span><span class="p">:</span> <span class="n">artifacts</span><span class="p">,</span>
+        <span class="s2">&quot;saint_output&quot;</span><span class="p">:</span> <span class="n">saint_output</span><span class="p">,</span>
+        <span class="s2">&quot;saint_failed&quot;</span><span class="p">:</span> <span class="n">saint_failed</span><span class="p">,</span>
+        <span class="s2">&quot;filtered_saint&quot;</span><span class="p">:</span> <span class="n">filtered_saint</span><span class="p">,</span>
+        <span class="s2">&quot;network_elements&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">network_elements</span><span class="p">)</span> <span class="k">if</span> <span class="n">network_elements</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;interactions&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">interactions</span><span class="p">)</span> <span class="k">if</span> <span class="n">interactions</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;enrichment_analysis&quot;</span><span class="p">:</span> <span class="n">enrichment_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;msmic_analysis&quot;</span><span class="p">:</span> <span class="n">msmic_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;00_summary&quot;</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">summary</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

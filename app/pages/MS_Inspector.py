@@ -431,7 +431,6 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
     nclicks = 1
     if len(chosen_runs) == 0:
         nclicks = 0
-    print(chosen_runs)
     return (
         sorted(list(chosen_runs.index)),
         trace_dict,

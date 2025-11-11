@@ -1,0 +1,1202 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.components.api_tools package &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="app.components.enrichment package" href="app.components.enrichment.html" />
+    <link rel="prev" title="app.components package" href="app.components.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">2025_ProteoGyver</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="app.html">app package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="app.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="app.components.html">app.components package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.pages.html">app.pages package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.pipeline_module.html">app.pipeline_module package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.resources.html">app.resources package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-app-module">app.app module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-database-updater-module">app.database_updater module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.element_styles">app.element_styles module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.embedded_page_updater">app.embedded_page_updater module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app-run-as-pipeline-module">app.run_as_pipeline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">2025_ProteoGyver</a></li>
+          <li class="breadcrumb-item"><a href="app.html">app package</a></li>
+          <li class="breadcrumb-item"><a href="app.components.html">app.components package</a></li>
+      <li class="breadcrumb-item active">app.components.api_tools package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/code/app.components.api_tools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="app-components-api-tools-package">
+<h1>app.components.api_tools package<a class="headerlink" href="#app-components-api-tools-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-app.components.api_tools.apitools">
+<span id="app-components-api-tools-apitools-module"></span><h2>app.components.api_tools.apitools module<a class="headerlink" href="#module-app.components.api_tools.apitools" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.get_files_newer_than">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">get_files_newer_than</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">days</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namefilter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#get_files_newer_than"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.get_files_newer_than" title="Link to this definition"></a></dt>
+<dd><p>Gets files newer than a given date in a dictionary, only going back a given number of days. Uses os.path.getmtime to establish file dates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – where to search</p></li>
+<li><p><strong>date</strong> – base date for the search, e.g. today</p></li>
+<li><p><strong>days</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – how many days move the cutoff date to the past from the date parameter</p></li>
+<li><p><strong>namefilter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – only return files, which have this string in their name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of files newer than date-days, that optionally contain namefilter in their name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.get_nbibfile">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">get_nbibfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">databasename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#get_nbibfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.get_nbibfile" title="Link to this definition"></a></dt>
+<dd><p>Fetches the nbib reference file for the given database. Does not check, if the file exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>databasename</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – name of the database</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>path to the nbib file for that database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.get_newest_file">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">get_newest_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namefilter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#get_newest_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.get_newest_file" title="Link to this definition"></a></dt>
+<dd><p>Finds the latest modified file in a directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>directory</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – where to search</p></li>
+<li><p><strong>namefilter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – only consider files with this in their name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>name of the newest file, not the full path. If no files are found, returns a randomized string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.get_pub_ref">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">get_pub_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">databasename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#get_pub_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.get_pub_ref" title="Link to this definition"></a></dt>
+<dd><p>Fetches reference information for the given database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>databasename</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – which database to get information for</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of reference information: [
+short description,
+long description,
+PMID</p>
+</dd>
+</dl>
+<p>]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.get_save_location">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">get_save_location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">databasename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#get_save_location"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.get_save_location" title="Link to this definition"></a></dt>
+<dd><p>Finds the appropriate location to save a database file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>databasename</strong> – Name of the database</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>path to the database directory, where files should be written.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.get_timestamp">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">get_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#get_timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.get_timestamp" title="Link to this definition"></a></dt>
+<dd><p>Returns standardized timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>standardized timestamp for current day as a string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.is_newer">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">is_newer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#is_newer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.is_newer" title="Link to this definition"></a></dt>
+<dd><p>Checks whether new_date is newer than reference</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – reference timestamp string</p></li>
+<li><p><strong>new_date</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – new_date timestamp string</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True, if new_date is more recent than reference.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.apitools.parse_timestamp_from_str">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.apitools.</span></span><span class="sig-name descname"><span class="pre">parse_timestamp_from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stamp_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/apitools.html#parse_timestamp_from_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.apitools.parse_timestamp_from_str" title="Link to this definition"></a></dt>
+<dd><p>Parses standardized time stamp from string.
+:type stamp_text: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>
+:param stamp_text: str with the timestamp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">date</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Datetime for the timestamp</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.api_tools.biogrid">
+<span id="app-components-api-tools-biogrid-module"></span><h2>app.components.api_tools.biogrid module<a class="headerlink" href="#module-app.components.api_tools.biogrid" title="Link to this heading"></a></h2>
+<p>BioGRID interaction data utilities.</p>
+<p>This module provides helpers to download, parse and manage BioGRID
+protein-protein interaction data and expose them as normalized
+tab-separated files and pandas DataFrames.</p>
+<p>Main entry points:
+- <code class="docutils literal notranslate"><span class="pre">update</span></code>: checks remote and updates the local BioGRID cache if needed
+- <code class="docutils literal notranslate"><span class="pre">get_latest</span></code>: loads the latest cached data as a DataFrame
+- <code class="docutils literal notranslate"><span class="pre">methods_text</span></code>: returns a ready-to-use methods description</p>
+<p class="rubric">Notes</p>
+<p>The processing pipelines operate on large datasets and therefore use
+chunked reading and on-disk sharding (by interaction prefix) to reduce
+memory pressure.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.deduplicate_str_dataframe_by_index">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">deduplicate_str_dataframe_by_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#deduplicate_str_dataframe_by_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.deduplicate_str_dataframe_by_index" title="Link to this definition"></a></dt>
+<dd><p>Deduplicate string values per index by merging rows.</p>
+<p>For each index value, string-like columns are split by <code class="docutils literal notranslate"><span class="pre">;</span></code>,
+deduplicated, sorted, and then re-joined with <code class="docutils literal notranslate"><span class="pre">;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> – Input DataFrame with potentially duplicated index rows.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame where rows sharing an index are merged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.do_update">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">do_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_zipname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latest_zip_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#do_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.do_update" title="Link to this definition"></a></dt>
+<dd><p>Download, extract and convert the latest BioGRID archive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory where the data files will be placed.</p></li>
+<li><p><strong>save_zipname</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Zip filename to write under <code class="docutils literal notranslate"><span class="pre">save_dir</span></code>.</p></li>
+<li><p><strong>latest_zip_url</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – URL for the BioGRID zip resource.</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of UniProt accessions to retain.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.filter_chunk">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">filter_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#filter_chunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.filter_chunk" title="Link to this definition"></a></dt>
+<dd><p>Filter and normalize a BioGRID chunk.</p>
+<p>Keeps only physical interactions with valid UniProt accessions,
+applies optional organism and UniProt filters, derives helper
+columns, and prepares processed variants for downstream merging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Raw chunk as read from BioGRID TAB3 file.</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of UniProt accessions to retain
+(isoforms allowed; matching is applied on base accession).</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of (filtered DataFrame, normalized column names list,
+interactor-specific column names list).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.generate_pandas">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">generate_pandas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#generate_pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.generate_pandas" title="Link to this definition"></a></dt>
+<dd><p>Convert a BioGRID TAB3 file into normalized TSV shards on disk.</p>
+<p>The file is read in chunks, filtered and normalized, and then
+expanded into symmetric interaction rows which are sharded by
+interaction prefix for deduplication and memory efficiency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Path to the downloaded <code class="docutils literal notranslate"><span class="pre">.tab3.txt</span></code> file.</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of UniProt accessions to retain.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.get_available">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">get_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#get_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.get_available" title="Link to this definition"></a></dt>
+<dd><p>List available interaction shard names for the latest version.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of shard basenames without the <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> suffix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.get_final_df">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">get_final_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%Y/%m/%d'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#get_final_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.get_final_df" title="Link to this definition"></a></dt>
+<dd><p>Aggregate sharded chunk into a final deduplicated DataFrame.</p>
+<p>Combines semicolon-delimited values per interaction key, and manages
+creation/update dates by carrying forward dates from a previous
+version when values are unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chunk_df</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – DataFrame assembled from shard files for a prefix.</p></li>
+<li><p><strong>time_format</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Output date format string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Final deduplicated DataFrame indexed by <code class="docutils literal notranslate"><span class="pre">interaction</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.get_latest">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">get_latest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_letter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#get_latest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.get_latest" title="Link to this definition"></a></dt>
+<dd><p>Fetch the latest BioGRID data from the local cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+<li><p><strong>subset_letter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Restrict to shards whose filename starts with this letter.</p></li>
+<li><p><strong>name_only</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, return the latest folder path instead of loading data.</p></li>
+<li><p><strong>since_date</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Not implemented yet; reserved for future use.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame of the latest BioGRID data or a path string when <code class="docutils literal notranslate"><span class="pre">name_only=True</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.get_method_annotation">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">get_method_annotation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#get_method_annotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.get_method_annotation" title="Link to this definition"></a></dt>
+<dd><p>Return annotations for BioGRID interaction identification methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping from method name to description text.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.get_upid">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">get_upid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">upcol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#get_upid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.get_upid" title="Link to this definition"></a></dt>
+<dd><p>Normalize UniProt IDs contained in a Series.</p>
+<p>Removes placeholder/null tokens and converts empty results to <code class="docutils literal notranslate"><span class="pre">NaN</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>upcol</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span>) – Series containing UniProt accessions as strings.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Cleaned Series with empty values converted to <code class="docutils literal notranslate"><span class="pre">NaN</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.handle_and_split_save">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">handle_and_split_save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normcols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swcols</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#handle_and_split_save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.handle_and_split_save" title="Link to this definition"></a></dt>
+<dd><p>Expand interactor-specific rows and shard to disk by prefix.</p>
+<p>Produces a symmetric representation (A-&gt;B and B-&gt;A) and writes
+records into prefix-based TSV shards in <code class="docutils literal notranslate"><span class="pre">folder_path</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Filtered and normalized chunk DataFrame.</p></li>
+<li><p><strong>folder_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Output directory for shard files.</p></li>
+<li><p><strong>normcols</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – List of normalized, non-interactor-specific columns.</p></li>
+<li><p><strong>swcols</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – List of interactor-specific columns (will be expanded
+for both interactors).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.methods_text">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">methods_text</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#methods_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.methods_text" title="Link to this definition"></a></dt>
+<dd><p>Generate a plain-text description of the BioGRID data used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Multi-line string including source, version and citation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.read_file_chunks">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">read_file_chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#read_file_chunks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.read_file_chunks" title="Link to this definition"></a></dt>
+<dd><p>Read a TSV shard file in chunks and optionally filter by organism.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Path to a TSV shard.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+<li><p><strong>since_date</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Not implemented yet; reserved for future use.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Concatenated DataFrame of the shard file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.read_folder_chunks">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">read_folder_chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folderpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_letter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#read_folder_chunks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.read_folder_chunks" title="Link to this definition"></a></dt>
+<dd><p>Load all TSV shards in a folder, optionally restricting by prefix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folderpath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing shard files.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+<li><p><strong>subset_letter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – If provided, only files starting with this letter are read.</p></li>
+<li><p><strong>since_date</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Not implemented yet; reserved for future use.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Concatenated DataFrame of all matching shards.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.split_and_save_by_prefix">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">split_and_save_by_prefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_chars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\\t'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#split_and_save_by_prefix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.split_and_save_by_prefix" title="Link to this definition"></a></dt>
+<dd><p>Shard a DataFrame by a column prefix and append to TSV files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Input DataFrame.</p></li>
+<li><p><strong>column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column whose prefix is used for grouping.</p></li>
+<li><p><strong>num_chars</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of prefix characters to use.</p></li>
+<li><p><strong>output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Target directory for TSV shards.</p></li>
+<li><p><strong>index</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to include the index in CSV output.</p></li>
+<li><p><strong>sep</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Field separator for CSV output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.biogrid.update">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.biogrid.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/biogrid.html#update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.biogrid.update" title="Link to this definition"></a></dt>
+<dd><p>Update the local BioGRID cache if a newer release is available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>versions</strong> – List of current versions of the BioGRID database.</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of UniProt accessions to retain.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New version string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.api_tools.intact">
+<span id="app-components-api-tools-intact-module"></span><h2>app.components.api_tools.intact module<a class="headerlink" href="#module-app.components.api_tools.intact" title="Link to this heading"></a></h2>
+<p>IntAct database interaction module for protein-protein interaction data.</p>
+<p>This module provides functionality to download, parse, and manage protein
+interaction data from the IntAct database (<a class="reference external" href="https://www.ebi.ac.uk/intact/">https://www.ebi.ac.uk/intact/</a>).
+It handles:</p>
+<ul class="simple">
+<li><p>Automated updates from IntAct’s FTP server</p></li>
+<li><p>Parsing of PSI-MITAB formatted files</p></li>
+<li><p>Conversion to pandas DataFrames with standardized column names</p></li>
+<li><p>Version tracking and data freshness checks</p></li>
+<li><p>Methods text generation for citations</p></li>
+</ul>
+<section id="main-entry-points">
+<h3>Main entry points<a class="headerlink" href="#main-entry-points" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: check for and download new IntAct releases</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_latest</span></code>: retrieve the most recent downloaded data as a DataFrame</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">methods_text</span></code>: generate citation text for the data source</p></li>
+</ul>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.do_update">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">do_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#do_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.do_update" title="Link to this definition"></a></dt>
+<dd><p>Download (if needed) and convert the IntAct archive to TSV shards.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_file</strong> – Destination zip path (also used to derive output folder).</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of UniProt accessions to retain.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.download_intact_ftp">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">download_intact_ftp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#download_intact_ftp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.download_intact_ftp" title="Link to this definition"></a></dt>
+<dd><p>Download the IntAct archive over FTP with retries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_file</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Destination file path for the downloaded zip.</p></li>
+<li><p><strong>max_retries</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Maximum number of retry attempts.</p></li>
+<li><p><strong>retry_delay</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Delay between retries in seconds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path to the saved file on success, <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.filter_chunk">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">filter_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#filter_chunk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.filter_chunk" title="Link to this definition"></a></dt>
+<dd><p>Filter IntAct PSI-MITAB chunk and derive helper columns.</p>
+<p>Keeps rows involving UniProt IDs, removes negative interactions, builds
+UniProt ID lists and isoform/base variants, derives organism fields, and
+optionally filters by organisms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chunk</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Raw PSI-MITAB chunk as DataFrame.</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of UniProt base accessions to retain.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Filtered and minimally normalized DataFrame chunk.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.generate_pandas">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">generate_pandas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#generate_pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.generate_pandas" title="Link to this definition"></a></dt>
+<dd><p>Inefficiently generates a pandas dataframe from a given intact zip file (downloaded  by update()) and writes it to a .tsv file with the same name as input file path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – path to the downloaded zip file</p></li>
+<li><p><strong>output_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – path for the output file</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – set of which uniprots should be included in the written .tsv file. If None, all uniprots will be included.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – organisms to filter the data by. This set should contain the organism IDs as strings. If None, all data will be included.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.get_available">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">get_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#get_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.get_available" title="Link to this definition"></a></dt>
+<dd><p>List available interaction shard names for the latest IntAct version.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of shard basenames without the <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> suffix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.get_final_df">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">get_final_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#get_final_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.get_final_df" title="Link to this definition"></a></dt>
+<dd><p>Deduplicate and finalize a shard file into a consistent DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df_filename</strong> – Path to a shard TSV produced by the parser.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Final DataFrame indexed by <code class="docutils literal notranslate"><span class="pre">interaction</span></code> with dates reduced.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.get_ids">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">get_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#get_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.get_ids" title="Link to this definition"></a></dt>
+<dd><p>Extract UniProt accessions from PSI-MITAB identifier columns.</p>
+<p>For each row, takes <code class="docutils literal notranslate"><span class="pre">col1</span></code> and <code class="docutils literal notranslate"><span class="pre">col2</span></code> (pipe-delimited alternates),
+keeps only <code class="docutils literal notranslate"><span class="pre">uniprotkb:</span></code> identifiers, and optionally filters by a
+provided set of UniProt base accessions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – Input DataFrame chunk.</p></li>
+<li><p><strong>col1</strong> – Primary ID column name.</p></li>
+<li><p><strong>col2</strong> – Alternate ID column name (pipe-delimited).</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of accessions to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of <code class="docutils literal notranslate"><span class="pre">;</span></code>-joined UniProt IDs per row, or <code class="docutils literal notranslate"><span class="pre">|DROP|</span></code> when empty.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.get_iso">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">get_iso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#get_iso"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.get_iso" title="Link to this definition"></a></dt>
+<dd><p>Convert UniProt isoforms to base accessions for a Series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ser</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span>) – Series of <code class="docutils literal notranslate"><span class="pre">;</span></code>-joined UniProt IDs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List where each element is a <code class="docutils literal notranslate"><span class="pre">;</span></code>-joined string with isoform suffixes removed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.get_latest">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">get_latest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_letter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#get_latest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.get_latest" title="Link to this definition"></a></dt>
+<dd><p>Fetch the latest IntAct data from the local cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+<li><p><strong>subset_letter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Restrict to shards whose filename starts with this letter.</p></li>
+<li><p><strong>name_only</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, return the latest folder path instead of loading data.</p></li>
+<li><p><strong>since_date</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Keep rows with creation or update date on/after this date.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame of the latest IntAct data or a path string when <code class="docutils literal notranslate"><span class="pre">name_only=True</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.get_org">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">get_org</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#get_org"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.get_org" title="Link to this definition"></a></dt>
+<dd><p>Extract and normalize organism TaxIDs from PSI-MITAB Taxid fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ser</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span>) – Series with pipe-delimited Taxid entries (e.g., <code class="docutils literal notranslate"><span class="pre">taxid:9606(human)</span></code>).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of comma-joined unique TaxIDs per element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.handle_and_split_save">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">handle_and_split_save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\\t'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#handle_and_split_save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.handle_and_split_save" title="Link to this definition"></a></dt>
+<dd><p>Expand interactor pairs into symmetric rows and shard to disk.</p>
+<p>Normalizes columns, pre-processes multi-value fields, expands all
+interactor combinations A-&gt;B and B-&gt;A with isoform/base variants,
+and writes sharded TSVs by interaction prefix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Filtered and minimally normalized chunk.</p></li>
+<li><p><strong>temp_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Output directory for TSV shards.</p></li>
+<li><p><strong>sep</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – TSV separator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.methods_text">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">methods_text</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#methods_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.methods_text" title="Link to this definition"></a></dt>
+<dd><p>Generate a plain-text description of the IntAct data used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Multi-line string including source, version and citation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.only_latest_date">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">only_latest_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%Y/%m/%d'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#only_latest_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.only_latest_date" title="Link to this definition"></a></dt>
+<dd><p>Reduce semicolon-joined dates to their latest value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ser</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span>) – Series of date strings, possibly semicolon-joined.</p></li>
+<li><p><strong>time_format</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Output date format string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Series</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Series with only the latest date per element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.read_file_chunks">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">read_file_chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_letter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#read_file_chunks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.read_file_chunks" title="Link to this definition"></a></dt>
+<dd><p>Read a TSV shard in chunks and optionally filter by organism/date.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Path to shard TSV file.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+<li><p><strong>subset_letter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – If provided, only rows whose interaction starts with this letter are retained.</p></li>
+<li><p><strong>since_date</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Keep rows with creation or update date on/after this date.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Concatenated DataFrame of filtered shard content.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.read_folder_chunks">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">read_folder_chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folderpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_letter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">since_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#read_folder_chunks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.read_folder_chunks" title="Link to this definition"></a></dt>
+<dd><p>Load all TSV shards in a folder, optionally restricting by prefix/date.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folderpath</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Directory containing shard files.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+<li><p><strong>subset_letter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Restrict to files whose names start with this letter.</p></li>
+<li><p><strong>since_date</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Keep rows with creation or update date on/after this date.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Concatenated DataFrame of matching shard contents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.split_and_save_by_prefix">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">split_and_save_by_prefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_chars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\\t'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#split_and_save_by_prefix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.split_and_save_by_prefix" title="Link to this definition"></a></dt>
+<dd><p>Shard a DataFrame by a column prefix and append to TSV files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Input DataFrame.</p></li>
+<li><p><strong>column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Column whose prefix is used for grouping.</p></li>
+<li><p><strong>num_chars</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of prefix characters to use.</p></li>
+<li><p><strong>output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Target directory for TSV shards.</p></li>
+<li><p><strong>index</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to include the index in CSV output.</p></li>
+<li><p><strong>sep</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Field separator for CSV output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.intact.update">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.intact.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniprots_to_get</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/intact.html#update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.intact.update" title="Link to this definition"></a></dt>
+<dd><p>Update the local IntAct cache if a newer release is available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>version</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Current version string.</p></li>
+<li><p><strong>uniprots_to_get</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of UniProt base accessions to retain.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of NCBI TaxIDs (as strings) to retain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New version string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.api_tools.uniprot">
+<span id="app-components-api-tools-uniprot-module"></span><h2>app.components.api_tools.uniprot module<a class="headerlink" href="#module-app.components.api_tools.uniprot" title="Link to this heading"></a></h2>
+<p>UniProt data access and utilities.</p>
+<p>This module provides helpers to download and process UniProtKB data via
+the public REST API, including pagination handling, column mapping,
+organism filtering, and convenience wrappers for common datasets used in
+ProteoGyver.</p>
+<section id="id1">
+<h3>Main entry points<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">download_uniprot_chunks</span></code>: batched download for an organism/field set</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">download_full_uniprot_for_organism</span></code>: comprehensive download builder</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">retrieve_uniprot</span></code>: cache-aware retrieval to a local TSV</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: check and refresh local UniProt dataset for an organism</p></li>
+</ul>
+<p class="rubric">Notes</p>
+<p>Large result sets are fetched using server-side pagination with retry
+policies and optional progress reporting.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.download_full_uniprot_for_organism">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">download_full_uniprot_for_organism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overall_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reviewed_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#download_full_uniprot_for_organism"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.download_full_uniprot_for_organism" title="Link to this definition"></a></dt>
+<dd><p>Downloads the full uniprot database EXCLUDING isoforms in a .tsv format for a         given organism.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>organism</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – integer ID or a list of integer ID of the desired organism, e.g. human is 9606. If none, defaults to human.</p></li>
+<li><p><strong>columns</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></span>) – a set of uniprot columns to get</p></li>
+<li><p><strong>progress</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Print progress reports of how each batch download is going</p></li>
+<li><p><strong>overall_progress</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Print progress reports when each batch is finished</p></li>
+<li><p><strong>only</strong> (<em>reviewed</em>) – True, if only reviewed entries should be retrieved</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas dataframe of the uniprot.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.download_uniprot_chunks">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">download_uniprot_chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reviewed_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#download_uniprot_chunks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.download_uniprot_chunks" title="Link to this definition"></a></dt>
+<dd><p>Downloads whole uniprot for a given organism using pagination.</p>
+<p>Entry -column will always be the first column and used as the index in the output dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>progress</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Progress report printing</p></li>
+<li><p><strong>organism</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – human by default, otherwise specify organism ID (e.g. human is 9606). if -1, all organisms will be downloaded</p></li>
+<li><p><strong>fields</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – uniprot field labels for fields to retrieve. Refer to         <a class="reference external" href="https://www.uniprot.org/help/return_fields">https://www.uniprot.org/help/return_fields</a> for help with field Labels         (from the label column). If None, download a default selection.</p></li>
+<li><p><strong>reviewed_only</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – if True, only reviewed entries will be returned. if False, all entries will be returned (probably not what you want).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the requested uniprot data in a pandas dataframe.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.download_uniprot_for_database">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">download_uniprot_for_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">versions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organisms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#download_uniprot_for_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.download_uniprot_for_database" title="Link to this definition"></a></dt>
+<dd><p>Checks, whether an update for uniprot is available and downloads it if necessary for database use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>versions</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – List of current versions of the UniProt database.</p></li>
+<li><p><strong>organisms</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional set of organism IDs to include.</p></li>
+<li><p><strong>progress</strong> – True, if progress should be printed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of (DataFrame of UniProt data, List of new versions).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.download_uniprot_pagination_url">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">download_uniprot_pagination_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pag_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#download_uniprot_pagination_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.download_uniprot_pagination_url" title="Link to this definition"></a></dt>
+<dd><p>Handles the downloading of the uniprot</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pag_url</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – url for uniprot</p></li>
+<li><p><strong>headers</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>) – list of headers to get</p></li>
+<li><p><strong>progress</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – True, if progress should be printed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pandas dataframe of the uniprot specified by url and headers.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.get_default_uniprot_column_map">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">get_default_uniprot_column_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#get_default_uniprot_column_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.get_default_uniprot_column_map" title="Link to this definition"></a></dt>
+<dd><p>Returns a sensible, yet extensive default map of uniprot columns in a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.get_uniprot_column_map">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">get_uniprot_column_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#get_uniprot_column_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.get_uniprot_column_map" title="Link to this definition"></a></dt>
+<dd><p>Returns currently understood map of uniprot columns in a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.is_newer_available">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">is_newer_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9606</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#is_newer_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.is_newer_available" title="Link to this definition"></a></dt>
+<dd><p>Checks whether newer uniprot version is available</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>current_version</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Current version of the uniprot database</p></li>
+<li><p><strong>organism</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – which organism uniprot to check.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True, if newer uniprot version is available.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.methods_text">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">methods_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9606</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#methods_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.methods_text" title="Link to this definition"></a></dt>
+<dd><p>Generates a methods text for used uniprot data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple of (readable reference information (str), PMID (str), uniprot description (str))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.retrieve_protein_group">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">retrieve_protein_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'protein_name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reviewed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#retrieve_protein_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.retrieve_protein_group" title="Link to this definition"></a></dt>
+<dd><p>Utility function to quickly download tsvs describing each common protein class used in ProteoGyver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – protein group name to search for</p></li>
+<li><p><strong>query_col</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – column to search. Protein name by default.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas datafrmae of the given protein group</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.retrieve_uniprot">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">retrieve_uniprot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uniprotfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Full</span> <span class="pre">human</span> <span class="pre">uniprot.tsv'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#retrieve_uniprot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.retrieve_uniprot" title="Link to this definition"></a></dt>
+<dd><p>Downloads full uniprot (reviewed entries only) to a file and returns the dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>uniprotfile</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – path of the output file</p></li>
+<li><p><strong>kwargs</strong> – kwargs to pass down to download_full_uniprot_for_organism, e.g. to specify which        organism or if progress should be reported.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>full uniprot as a pandas dataframe.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.api_tools.uniprot.update">
+<span class="sig-prename descclassname"><span class="pre">app.components.api_tools.uniprot.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9606</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/api_tools/uniprot.html#update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.api_tools.uniprot.update" title="Link to this definition"></a></dt>
+<dd><p>Checks, whether an update for uniprot is available and downloads it if necessary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>organism</strong> – which organism to download</p></li>
+<li><p><strong>progress</strong> – True, if progress should be printed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.components.api_tools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-app.components.api_tools" title="Link to this heading"></a></h2>
+<p>API tools subpackage for external data sources.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app.components.html" class="btn btn-neutral float-left" title="app.components package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app.components.enrichment.html" class="btn btn-neutral float-right" title="app.components.enrichment package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
