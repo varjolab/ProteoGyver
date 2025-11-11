@@ -210,7 +210,7 @@ def read_dia_nn(data_table: pd.DataFrame) -> List[Union[pd.DataFrame, Dict[str, 
         data_cols: list = []
         for column in data_table.columns:
             col: list = column.split('.')
-            if col[-1] == 'd':
+            if col[-1] in ['d', 'raw']:
                 data_cols.append(column)
         if len(data_cols) == 0:
             gather: bool = False
@@ -408,6 +408,19 @@ def remove_all_na(data_table: pd.DataFrame, subset: list[str]|None = None, inpla
     else:
         data_table.dropna(how='all', axis=0, subset=subset, inplace=inplace)
 
+def remove_filepath_from_columns(data_table: pd.DataFrame) -> None:
+    """Removes filepath from column names. For example, if the column name is 'data/run1.raw', it will be changed to 'run1'. Column renaming will be done in place."""
+    col_renames: dict = {}
+    for col in data_table.columns:
+        rk = col
+        if '/' in col:
+            rk = rk.rsplit('/', 1)[-1]
+        if '\\' in col:
+            rk = rk.rsplit('\\', 1)[-1]
+        if rk != col:
+            col_renames[col] = rk
+    data_table.rename(columns=col_renames, inplace=True)
+
 def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tuple[Dict[str, str], Dict[str, Any]]:
     """Determine and apply the appropriate read function for a data file.
 
@@ -417,6 +430,7 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
     :returns: Tuple of (tables dict in JSON split, info dict).
     """
     table: pd.DataFrame = read_df_from_content(file_contents, filename)
+    remove_filepath_from_columns(table)
     table.columns = [text_handling.replace_accent_and_special_characters(str(x), allow_space=True, make_lowercase=False) for x in table.columns]
     # Validation: initialize containers
     warnings: list[str] = []
@@ -461,6 +475,8 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
         table, **keyword_args)
     intensity_table = remove_duplicate_protein_groups(intensity_table)
     spc_table = remove_duplicate_protein_groups(spc_table)
+    print(intensity_table.columns)
+    print(spc_table.columns)
     # Post-reader validation metrics for intensity and spc tables
     try:
         for name, df in [('intensity', intensity_table), ('spc', spc_table)]:
