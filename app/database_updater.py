@@ -40,6 +40,7 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp,
     # Read the file
     df = pd.read_csv(file_path, sep='\t')
     if table_name in ['ms_runs', 'ms_plots']:
+        vals = [0]
         try:
             query = 'SELECT internal_run_id FROM ms_runs'
             vals = [int(r[0].split('_',maxsplit=1)[-1]) for r in cursor.execute(query, ()).fetchall()]
