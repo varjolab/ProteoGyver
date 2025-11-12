@@ -1,13 +1,13 @@
 Sample name	Sample group
-8971_Liu_Cov_Lysate_32-1-1_S1-A2_1.d	SG1
-8973_Liu_Cov_Lysate_32-1-2_S1-A4_1.d	SG1
-8975_Liu_Cov_Lysate_32-1-3_S1-A6_1.d	SG1
-8977_Liu_Cov_Lysate_32-8-1_S1-A8_1.d	SG2
-8979_Liu_Cov_Lysate_32-8-2_S1-A10_1.d	SG2
-8981_Liu_Cov_Lysate_32-8-3_S1-A12_1.d	SG2
-8983_Liu_Cov_Lysate_32-16-1_S1-B2_1.d	SG3
-8985_Liu_Cov_Lysate_32-16-2_S1-B4_1.d	SG3
-8987_Liu_Cov_Lysate_32-16-3_S1-B6_1.d	SG3
-these_samples_without_sample_group_will_not_be_loaded	
-sample_without_sample_group_2	
-sample_without_sample_group_3	
+445_Tomppa_33-D_re_S1-H4	SG1
+323_Tomppa_18-D_re_S1-B6	SG1
+331_Tomppa_19-D_re_S1-F6	SG1
+359_Tomppa_25-B_re_S1-D8	SG2
+414_Tomppa_9-A_re_S1-A3	SG2
+353_Tomppa_23-C_re_S1-A8	SG2
+303_Tomppa_16-B_re_S1-H4	SG3
+355_Tomppa_23-D_re_S1-B8	SG3
+317_Tomppa_18-A_re_S1-G5	SG3
+361_Tomppa_25-C_re_S1-E8	
+439_Tomppa_33-A_re_S1-E4	
+520_Tomppa_58-C_re_S1-E5	

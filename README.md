@@ -42,6 +42,8 @@ Example files are downloadable from the sidebar of the main interface. These inc
 4. Choose analysis parameters
 5. Export results in various formats (HTML, PNG, PDF, TSV)
 
+In more detail below.
+
 ### Input Data Format
 - Sample table must include:
   - "Sample name" column
@@ -55,6 +57,80 @@ Example files are downloadable from the sidebar of the main interface. These inc
     - FragPipe (combined_prot.tsv)
     - DIA-NN (pg_matrix.tsv)
     - Generic matrix format (one row = one protein, one column = one sample)
+
+### Input options guide
+
+This section describes all input options available in the ProteoGyver interface, organized by workflow type.
+
+#### General Input Options (Main Sidebar)
+
+The main sidebar contains options that apply to all workflows:
+
+- **Download example files**: Button to download example data files and sample tables for testing workflows
+- **Upload files**:
+  - **Data file**: Upload your main data table
+  - **Sample table**: Upload your sample metadata table
+- **Options** (checklist):
+  - **Remove common contaminants** (default: enabled): Automatically filters out known common contaminants from the analysis
+  - **Rename replicates**: Automatically renames replicate samples based on patterns
+  - **Use unique proteins only (remove protein groups)**: Removes protein groups, keeping only unique protein identifiers
+- **Select workflow**: Dropdown to choose between available workflows (Proteomics, Interactomics)
+- **Select figure style**: Dropdown to choose visualization theme (plotly_white, simple_white, plotly_dark)
+- **Begin analysis**: Button to start the analysis workflow (enabled after required files are uploaded)
+- **Choose samples to discard**: Button (appears after initial analysis) to open a modal for selecting samples to exclude from analysis.
+- **Download all data**: Button to download all analysis results as a zip file (enabled after analysis completes)
+
+#### Proteomics Workflow Options
+
+After selecting the Proteomics workflow starting the analysis, the following options become available:
+
+- **Filter out proteins not present in at least X%**: Slider (0-100%, default: 60%) to set the minimum percentage threshold for protein presence. Proteins below this threshold will be filtered out. 
+- **Filter type**: 
+  - **One sample group** (default): Filter based on presence within each sample group independently (e.g. with a 60% filter and three samples per sample group, a protein has to be present in at least two out of three samples.)
+  - **Whole sample set**: Filter based on presence across all samples (e.g. with two sample groups of five samples each (10 runs in total), a protein has to be present in 6 out of 10 samples with 60% filter.)
+- **Imputation**: 
+  - **QRILC** (default): Quantile Regression Imputation of Left-Censored data
+  - **minProb**: Minimum probability imputation: Values for missing are picked from a gaussian distribution centered around the lowest non-missing values of each sample.
+  - **gaussian**: Gaussian distribution-based imputation: Values for missing are picked from a gaussian distribution centered around (mean-2*stdev) of each column.
+  - **minValue**: Replace missing values with minimum detected value
+  - **Random forest**: Random forest-based imputation
+- **Normalization**: Radio buttons to select data normalization method:
+  - **No normalization** (default): Preserves raw intensity values
+  - **Median**: Median normalization across samples
+  - **Quantile**: Quantile normalization
+  - **Vsn**: Variance Stabilizing Normalization
+- **Select control group**: Dropdown to choose a sample group from your data to use as the control/reference group for comparisons
+- **Or upload comparison file**: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons
+- **log2 fold change threshold for comparisons**: Radio buttons to set the fold change threshold (default: 2-fold, log2 = 1.0). 
+- **Adjusted p-value threshold for comparisons**: Radio buttons to set the significance threshold for differential abundance (default: 0.01). Values used are FDR(bh) adjusted p-values. 
+- **Test type for comparisons**: Radio buttons to select statistical test:
+  - **independent** (default): Independent samples t-test (student's, use for unpaired samples)
+  - **paired**: Paired t-test (use only if samples are paired and in the same order across groups - see tooltip warning)
+
+After pressing the **Run proteomics analysis** button, proteomics-specific plots and analyses will be generated.
+
+#### Interactomics Workflow Options
+
+After selecting the Interactomics workflow and initiating the analysis, the following options become available:
+
+- **Choose uploaded controls**: Checklist to select which sample groups from your uploaded data should be used as controls. Sample groups with terms like "ctrl", "gfp", or "control" in their names are automatically suggested as controls. It is always suggested to include many control runs as part of any uploaded sample set.
+- **Choose additional control sets**: Checklist to select built-in control sets from the database. 
+- **Choose Crapome sets**: Checklist to select sets to use for crapome-filtering. The original nesvilab CRAPome (Contaminant Repository for Affinity Purification) is available, as well as control purification sets that include lots of expectable background. 
+- **Choose enrichments**: Checklist to select enrichment analysis types to perform (e.g., GO terms, pathways). Includes a "Deselect all enrichments" button for quick deselection.
+- **Rescue filtered out**: Checkbox (default: unchecked) to enable rescue filtering. When enabled, interactions that pass the filter in any sample group will be rescued, even if they fail in others. **Note**: This works well for small datasets of related baits (e.g., receptors from the same family) but will enrich contaminants in especially in large, unrelated bait sets.
+
+After clicking the **Run SAINT analysis** button, PG will run SAINT in the background and when finished, present with SAINT-specific options and visualization.
+
+#### SAINT Filtering Options (Post-SAINT Analysis)
+
+After SAINT analysis completes, additional filtering options become available:
+
+- **Saint BFDR threshold**: Slider to set the Bayesian False Discovery Rate threshold for filtering interactions. Interactions with BFDR values above this threshold will be filtered out.
+- **Crapome filtering percentage**: Slider to set the maximum percentage of CRAPome datasets in which a prey can appear before being considered for filtering based on SPC fold change (next parameter).
+- **SPC fold change vs crapome threshold for rescue**: Slider to set the fold change threshold for filtering possible crapome-identified contaminants. If a prey's spectral count is lower, than the average of any crapome multiplied by the threshold multiplier (this parameter), it is considered a contaminant and filtered out.
+
+After pressing the **Done filtering** button, analysis will proceed and plots and data of e.g. known interactors, chosen functional enrichments, and MS-microscopy will be displayed.
+
 
 ### Algorithm details
 ProteoGyver relies mostly on proven software. However, some choices have been made:
@@ -388,3 +464,4 @@ Other tools can access the database. Writes to the database should not require a
 
 If you use ProteoGyver, a part of it, or tools based on it, please cite:
 [Add citation information here]
+

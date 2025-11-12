@@ -1079,8 +1079,6 @@ def select_all_none_crapomes(all_selected: bool, options: List[Dict[str, str]]) 
     State('interactomics-choose-additional-control-sets', 'value'),
     State('interactomics-choose-crapome-sets', 'value'),
     State({'type': 'data-store', 'name': 'upload-data-store'}, 'data'),
-    State('interactomics-nearest-control-filtering', 'value'),
-    State('interactomics-num-controls', 'value'),
     prevent_initial_call=True
 )
 def interactomics_saint_analysis(
@@ -1089,8 +1087,6 @@ def interactomics_saint_analysis(
     additional_controls: List[str], 
     crapomes: List[str], 
     uploaded_data: Dict[str, Any], 
-    proximity_filtering_checklist: List[str], 
-    n_controls: int
 ) -> Union[Tuple[html.Div, Dict[str, Any], Dict[str, Any]], Tuple[Any, Any, Any]]:
     """Initialize SAINT analysis with selected control samples and parameters.
 
@@ -1107,8 +1103,7 @@ def interactomics_saint_analysis(
         return (no_update, no_update, no_update)
     if nclicks < 1:
         return (no_update, no_update, no_update)
-    do_proximity_filtering: bool = ('Select' in proximity_filtering_checklist)
-    return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file, do_proximity_filtering, n_controls)
+    return interactomics.generate_saint_container(uploaded_data, uploaded_controls, additional_controls, crapomes, db_file)
 
 @callback(
     Output({'type': 'data-store',

@@ -177,7 +177,11 @@ def known_plot(filtered_saint_input_json: str,
 
     known_str: str = 'Known interactions found per bait (Known / All):'
     no_knowns_found: set = set()
+    done: set = set()
     for bait in figure_data.index:
+        if bait in done:
+            continue
+        done.add(bait)
         bdata: pd.DataFrame = figure_data[figure_data.index == bait]
         known_sum: int = bdata[bdata["Known interaction"]]["Prey count"].sum()
         if known_sum == 0:
@@ -911,8 +915,8 @@ def generate_saint_container(input_data_dict: Dict[str, Any],
                            additional_controls: List[str], 
                            crapomes: List[str], 
                            db_file: str, 
-                           select_most_similar_only: bool, 
-                           n_controls: int) -> Tuple[html.Div, Dict[str, List[List[str]]], str]:
+                           select_most_similar_only: bool = False, 
+                           n_controls: int = 30) -> Tuple[html.Div, Dict[str, List[List[str]]], str]:
     """Build SAINT UI container and prepare inputs.
 
     :param input_data_dict: Input data and metadata including sample groups.
