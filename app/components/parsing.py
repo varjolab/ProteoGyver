@@ -439,7 +439,6 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
     """
     table: pd.DataFrame = read_df_from_content(file_contents, filename)
     remove_filepath_from_columns(table)
-    table.columns = [text_handling.replace_accent_and_special_characters(remove_rawfile_ending(str(x)), replacewith='_', allow_numbers=True) for x in table.columns]
     # Validation: initialize containers
     warnings: list[str] = []
     validation: dict[str, Any] = {}
@@ -482,6 +481,20 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
     intensity_table, spc_table, protein_length_dict = read_funcs[data_type](
         table, **keyword_args)
     
+    intensity_table.columns = [
+        text_handling.replace_accent_and_special_characters(
+            remove_rawfile_ending(x),
+            replacewith='_',
+            allow_numbers=True
+        ) for x in intensity_table.columns
+    ]
+    spc_table.columns = [
+        text_handling.replace_accent_and_special_characters(
+            remove_rawfile_ending(x),
+            replacewith='_',
+            allow_numbers=True
+        ) for x in spc_table.columns
+    ]
     intensity_table = remove_duplicate_protein_groups(intensity_table)
     spc_table = remove_duplicate_protein_groups(spc_table)
     # Post-reader validation metrics for intensity and spc tables
@@ -760,7 +773,22 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
     new_upload_style['background-color'] = indicator_color
     if indicator_color != 'red':
         for c in decoded_table.columns:
-            decoded_table[c] = [text_handling.replace_accent_and_special_characters(remove_rawfile_ending(str(x)), replacewith='_', allow_numbers=True) for x in decoded_table[c]]
+            rep_args = {
+                'replacewith': '_',
+                'allow_numbers': True
+            }
+            if additional_info['sample group'] == c:
+                rep_args['allow_space'] = True
+                rep_args['make_lowercase'] = False
+            elif 'bait uniprot' in additional_info:
+                if additional_info['bait uniprot'] == c:
+                    rep_args['make_lowercase'] = False
+            decoded_table[c] = [
+                text_handling.replace_accent_and_special_characters(
+                    remove_rawfile_ending(str(x)),
+                    **rep_args
+                ) for x in decoded_table[c]
+            ]
     return (new_upload_style, info, decoded_table.to_json(orient='split'))
 
 
@@ -829,10 +857,6 @@ def format_data(session_uid: str, data_tables: Dict[str, str],
         io.StringIO(data_tables['int']), orient='split')
     spc_table: pd.DataFrame = pd.read_json(io.StringIO(data_tables['spc']),orient='split')
     expdesign: pd.DataFrame = pd.read_json(io.StringIO(expdes_table),orient='split')
-
-    print(intensity_table.head(2))
-    print(spc_table.head(2))
-    print(expdesign.head(2))
 
     sample_groups: dict
     discarded_columns: list
@@ -1290,7 +1314,15 @@ def check_comparison_file(file_contents: str, file_name: str,
         if ('sample' not in dataframe.columns) or ('control' not in dataframe.columns):
             scol, ccol = dataframe.columns[:2]
         for col in [scol,ccol]:
-            dataframe[col] = [text_handling.replace_accent_and_special_characters(remove_rawfile_ending(str(x)), allow_space=True, make_lowercase=False) for x in dataframe[col]]
+            dataframe[col] = [
+                text_handling.replace_accent_and_special_characters(
+                    remove_rawfile_ending(str(x)),
+                    replacewith = '_',
+                    allow_numbers = True,
+                    allow_space=True,
+                    make_lowercase=False) 
+                for x in dataframe[col]
+            ]
         for _, row in dataframe.iterrows():
             samplename: str = row[scol]
             controlname: str = row[ccol]

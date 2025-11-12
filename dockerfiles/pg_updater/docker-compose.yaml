@@ -1,5 +1,5 @@
 services:
-  pg_update:
+  pg_database_updater:
     image: pg_updater:1.5
     container_name: pgu15
     environment:

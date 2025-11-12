@@ -1,5 +1,5 @@
 services:
-  pg_revtest:
+  proteogyver:
     image: proteogyver:1.5
     container_name: pg15
     ports:

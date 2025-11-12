@@ -54,4 +54,5 @@ Dockerfile*
 
 # Other
 build/
+startup.sh
 
