@@ -1,7 +1,7 @@
 services:
   pg_revtest:
-    image: pg:1.6
-    container_name: pg16
+    image: pg:1.5
+    container_name: pg15
     ports:
       - "8050:8050"
     environment:

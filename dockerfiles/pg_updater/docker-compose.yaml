@@ -1,7 +1,7 @@
 services:
   pg_update:
-    image: pgu:1.6
-    container_name: pgu16
+    image: pgu:1.5
+    container_name: pgu15
     environment:
       TZ: Europe/Helsinki
       FORCE_PG_DB_UPDATE: '0' # set to '1' to force a full database update, otherwise only updates that are due will be performed.
