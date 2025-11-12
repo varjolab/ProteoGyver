@@ -1,5 +1,4 @@
-# Example usecases for ProteoGyver using public datasets
-This guide documents the end to end QC analysis of a public proteomics dataset.
+# Example Proteomics usecase for ProteoGyver
 
 ## Software and data utilized
 Data for this example is from a dataset of a [previous publication](https://doi.org/10.1113/JP288104). The specific data used doesn't really matter, and here it's used only for illustrative purposes. Similarly, it is DIA data and as such, was searched with Dia-NN with default parameters and a generic human fasta library from UniProt. The results obtained are not optimal (for example Dia-NN parameters were not tuned based on MS method), but as long as something is identified, it is good enough.
