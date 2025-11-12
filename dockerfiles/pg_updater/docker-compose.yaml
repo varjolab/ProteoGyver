@@ -1,6 +1,6 @@
 services:
   pg_update:
-    image: pgu:1.5
+    image: pg_updater:1.5
     container_name: pgu15
     environment:
       TZ: Europe/Helsinki
