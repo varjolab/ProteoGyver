@@ -1,9 +1,7 @@
 # PG specific additions
-app/components/api_tools/data/
 *.ipynb
 Server_output/
 Server_input/
-app/data/db/db build files/
 app/pages/proteomics_fi.py
 debug/
 celerybeat-schedule.db*
