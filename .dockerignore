@@ -25,6 +25,9 @@ pytest.ini
 # Documentation
 docs/_build/
 docs/_static/
+README.md
+example use cases/
+.readthedocs.yaml
 
 # Cache and logs
 app/cache/
@@ -41,6 +44,7 @@ app/logs/
 # Git
 .git/
 .gitignore
+.github/
 
 # Docker
 dockerfiles/dockerfile_updater
@@ -49,8 +53,5 @@ Dockerfile*
 .dockerignore
 
 # Other
-*.md
-README.md
-example use cases/
 build/
 
