@@ -9,7 +9,7 @@ This example assumes you have proteogyver running in a docker container already.
 
 ## Data upload
 
-For data upload, the pg_matrix.tsv from the Dia-NN output was used as the data table, and for sample table, the sample runs were randomly divided into groups of 5. For sample table structure, please see either the interactomics example (sans the bait uniprot -column, or the [example files](app/data/PG example files).
+For data upload, the pg_matrix.tsv from the Dia-NN output was used as the data table, and for sample table, the sample runs were randomly divided into groups of 5. For sample table structure, please see either the interactomics example (sans the bait uniprot -column, or the [example files](../app/data/PG%20example%20files/).
 
 
 Proteomics was chosen from the workflow selection dropdown, and after pressing the "Begin analysis" -button, QC metric plots will begin to appear. After the QC plots have been generated, the proteomics input panel is presented:
