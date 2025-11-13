@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -59,7 +63,6 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-          <li class="breadcrumb-item"><a href="../../../app.html">app</a></li>
       <li class="breadcrumb-item active">app.components.api_tools.apitools</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -231,16 +234,13 @@
 <div class="viewcode-block" id="get_pub_ref">
 <a class="viewcode-back" href="../../../../code/app.components.api_tools.html#app.components.api_tools.apitools.get_pub_ref">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_pub_ref</span><span class="p">(</span><span class="n">databasename</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fetches reference information for the given database</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetches reference information for the given database</span>
 
 <span class="sd">    :param databasename: which database to get information for</span>
-
-<span class="sd">    :returns: list of reference information: [</span>
-<span class="sd">        short description,</span>
-<span class="sd">        long description,</span>
-<span class="sd">        PMID</span>
-<span class="sd">    ]</span>
+<span class="sd">    :returns: list of reference information containing:</span>
+<span class="sd">        - short description</span>
+<span class="sd">        - long description</span>
+<span class="sd">        - PMID</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">nbibdata</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">nbib</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">get_nbibfile</span><span class="p">(</span><span class="n">databasename</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>

@@ -67,12 +67,40 @@ class AppImportFinder(importlib.abc.MetaPathFinder):
         
         # Create a new spec with our custom loader
         spec = importlib.util.spec_from_loader(name, RedirectLoader(app_name))
-        if app_spec.submodule_search_locations:
+        if spec and app_spec and hasattr(app_spec, 'submodule_search_locations') and app_spec.submodule_search_locations:
             spec.submodule_search_locations = app_spec.submodule_search_locations
         return spec
 
 # Install the custom import finder
 sys.meta_path.insert(0, AppImportFinder())  
+
+# Copy example files directory to build output so links work
+def copy_example_files(app, exception):
+    """Copy example files directory to build output after build.
+    
+    This allows the link ../app/data/PG example files/ to work
+    from the built HTML files in docs/build/html/
+    """
+    if exception:
+        return
+    import shutil
+    # app.outdir is docs/build/html, so ../app/data is docs/build/app/data
+    build_dir = os.path.join(app.outdir, '..', 'app', 'data')
+    # Source is at project root: app/data/PG example files
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    source_dir = os.path.join(project_root, 'app', 'data', 'PG example files')
+    target_dir = os.path.join(build_dir, 'PG example files')
+    if os.path.exists(source_dir):
+        os.makedirs(build_dir, exist_ok=True)
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir)
+        shutil.copytree(source_dir, target_dir)
+
+def setup(app):
+    """Sphinx setup function to register event handlers."""
+    app.connect('build-finished', copy_example_files)
+    return {'version': '1.0', 'parallel_read_safe': True}
+
 project = 'ProteoGyver'
 copyright = '2025, Kari Salokas'
 author = 'Kari Salokas'
@@ -93,8 +121,8 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 # -- Options for autodoc -------------------------------------------------
-# Suppress warnings for modules that can't be imported
-#suppress_warnings = ['autodoc.import_object']
+# Suppress warnings for modules that can't be imported and MyST cross-reference warnings
+suppress_warnings = ['myst.xref_missing']
 
 # Autodoc settings
 autodoc_mock_imports = []  # List of modules to mock if needed

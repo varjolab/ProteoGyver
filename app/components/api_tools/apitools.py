@@ -136,16 +136,13 @@ def get_newest_file(directory:str, namefilter:str = None) -> str:
     return newest_file
 
 def get_pub_ref(databasename:str) -> list:
-    """
-    Fetches reference information for the given database
+    """Fetches reference information for the given database
 
     :param databasename: which database to get information for
-
-    :returns: list of reference information: [
-        short description,
-        long description,
-        PMID
-    ]
+    :returns: list of reference information containing:
+        - short description
+        - long description
+        - PMID
     """
     
     nbibdata: list = nbib.read_file(get_nbibfile(databasename))[0]
