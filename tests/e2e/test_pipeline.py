@@ -147,8 +147,8 @@ def test_proteomics_minimal_happy_path(tmp_path: Path):
     base = _persist_dir(tmp_path, 'proteomics_minimal_happy_path')
     toml_path = _build_toml(
         'proteomics',
-        EX_DATA / 'Proteomics data file minimal.tsv',
-        EX_DATA / 'Proteomics sample table minimal.tsv',
+        EX_DATA / 'Proteomics data file.tsv',
+        EX_DATA / 'Proteomics sample table.tsv',
         overrides=None,
         out_dir=base,
     )
@@ -282,8 +282,8 @@ def test_interactomics_wrong_input_no_spc_returns_error(tmp_path: Path):
     # Intentionally feed proteomics table to interactomics
     toml_path = _build_toml(
         'interactomics',
-        EX_DATA / 'Proteomics data file minimal.tsv',
-        EX_DATA / 'Proteomics sample table minimal.tsv',
+        EX_DATA / 'Proteomics data file.tsv',
+        EX_DATA / 'Proteomics sample table.tsv',
         overrides=None,
         out_dir=base,
     )
@@ -325,8 +325,8 @@ def test_proteomics_paths_exist_relative_to_toml(tmp_path: Path, relpaths: list[
     base = _persist_dir(tmp_path, 'proteomics_paths_exist_relative_to_toml')
     toml_path = _build_toml(
         'proteomics',
-        EX_DATA / 'Proteomics data file minimal.tsv',
-        EX_DATA / 'Proteomics sample table minimal.tsv',
+        EX_DATA / 'Proteomics data file.tsv',
+        EX_DATA / 'Proteomics sample table.tsv',
         overrides=None,
         out_dir=base,
     )
