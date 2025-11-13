@@ -295,12 +295,12 @@ The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) 
 
 ### Microscopy Image Colocalizer
 
-The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format.
+The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format. 
 
 ## Installation
 
 ### MS run data pre-analysis
-This is optional, but highly recommended. In order for the MS-inspector to have data to work with, or for QC to display chromatograms, information about MS runs needs to be included in the database.
+This is optional, but highly recommended. In order for the MS-inspector to have data to work with, or for QC to display chromatograms, information about MS runs needs to be included in the database. Unfortunately currently the PG container has to be restarted for new data to be utilized in MS inspector, but that will be fixed in the next update.
 
 MS run data needs to be pre-analyzed. As it may not be desirable to present run files directly to the server PG is running on, PG assumes that rawfile pre-analysis .json files are present in the directory specified in parameters.toml at "Maintenance"."MS run parsing"."Input files". The parser script is provided in utils folder (MSParser subdir), with its own venv requirements.txt file. MSParser.py can handle timsTOF and thermo data currently. Tested MS systems so far include the TimsTOF Pro, Pro2, QExactive, Orbitrap Elite, Astral, and Astral Zoom.
 
