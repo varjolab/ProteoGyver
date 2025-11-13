@@ -44,8 +44,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a></li>
 </ul>
@@ -87,12 +87,22 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="README.html#table-of-contents">Table of contents:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#security">Security</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#security-and-compatibility">Security and compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#example-use-cases">Example use cases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="README.html#qc-and-quick-analysis-toolset">QC and quick analysis toolset</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="README.html#core-analysis-workflows">Core Analysis Workflows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="README.html#usage">Usage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="README.html#input-data-format">Input Data Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="README.html#ptm-workflow">PTM workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#input-options-guide">Input options guide</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="README.html#general-input-options-main-sidebar">General Input Options (Main Sidebar)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#proteomics-workflow-options">Proteomics Workflow Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#interactomics-workflow-options">Interactomics Workflow Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#saint-filtering-options-post-saint-analysis">SAINT Filtering Options (Post-SAINT Analysis)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#algorithm-details">Algorithm details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#ptm-workflow">PTM workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#pipeline-mode-for-automated-processing">Pipeline mode for automated processing</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="README.html#pipeline-input-toml">Pipeline input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="README.html#parameters-not-in-the-input-toml">Parameters not in the input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="README.html#initiating-pipeline-analysis-via-api">Initiating pipeline analysis via API</a></li>
@@ -155,15 +165,16 @@
 <li class="toctree-l2"><a class="reference internal" href="README.html#how-to-cite">How to cite</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#software-and-data-prerequisites">Software and data prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#dia-nn-searches">Dia-NN searches</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#proteogyver">ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#software-and-data-utilized">Software and data utilized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#proteogyver">Proteogyver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Proteomics_example.html#data-upload">Data upload</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Interactomics_example.html#software-and-data-prerequisites">Software and data prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Interactomics_example.html#fragpipe-searches">Fragpipe searches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Interactomics_example.html#proteogyver">Proteogyver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Interactomics_example.html#data-upload">Data upload</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a><ul>
@@ -259,22 +270,9 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.file_upload_api.register_file_upload_api"><code class="docutils literal notranslate"><span class="pre">register_file_upload_api()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.infra">app.components.infra module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="code/app.components.html#app-components-infra-module">app.components.infra module</a><ul>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#functions">Functions</a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#constants">Constants</a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.format_nested_list"><code class="docutils literal notranslate"><span class="pre">format_nested_list()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.get_all_props"><code class="docutils literal notranslate"><span class="pre">get_all_props()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.get_all_types"><code class="docutils literal notranslate"><span class="pre">get_all_types()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.invisible_utilities"><code class="docutils literal notranslate"><span class="pre">invisible_utilities()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.notifiers"><code class="docutils literal notranslate"><span class="pre">notifiers()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.save_data_stores"><code class="docutils literal notranslate"><span class="pre">save_data_stores()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.save_figures"><code class="docutils literal notranslate"><span class="pre">save_figures()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.save_input_information"><code class="docutils literal notranslate"><span class="pre">save_input_information()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.temporary_download_button_loading_divs"><code class="docutils literal notranslate"><span class="pre">temporary_download_button_loading_divs()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.temporary_download_divs"><code class="docutils literal notranslate"><span class="pre">temporary_download_divs()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.upload_data_stores"><code class="docutils literal notranslate"><span class="pre">upload_data_stores()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.working_data_stores"><code class="docutils literal notranslate"><span class="pre">working_data_stores()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.infra.write_README"><code class="docutils literal notranslate"><span class="pre">write_README()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.interactomics">app.components.interactomics module</a><ul>
@@ -360,7 +358,9 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.read_matrix"><code class="docutils literal notranslate"><span class="pre">read_matrix()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_all_na"><code class="docutils literal notranslate"><span class="pre">remove_all_na()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_duplicate_protein_groups"><code class="docutils literal notranslate"><span class="pre">remove_duplicate_protein_groups()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_filepath_from_columns"><code class="docutils literal notranslate"><span class="pre">remove_filepath_from_columns()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_from_table"><code class="docutils literal notranslate"><span class="pre">remove_from_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_rawfile_ending"><code class="docutils literal notranslate"><span class="pre">remove_rawfile_ending()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.rename_columns_and_update_expdesign"><code class="docutils literal notranslate"><span class="pre">rename_columns_and_update_expdesign()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.unmix_dtypes"><code class="docutils literal notranslate"><span class="pre">unmix_dtypes()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.update_nested_dict"><code class="docutils literal notranslate"><span class="pre">update_nested_dict()</span></code></a></li>
@@ -517,6 +517,7 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.example_files_download"><code class="docutils literal notranslate"><span class="pre">example_files_download()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.generate_commonality_container"><code class="docutils literal notranslate"><span class="pre">generate_commonality_container()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.get_adiv_by_id"><code class="docutils literal notranslate"><span class="pre">get_adiv_by_id()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.get_github_version"><code class="docutils literal notranslate"><span class="pre">get_github_version()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_data_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_data_table()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_sample_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_sample_table()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_add_crapome_to_saint"><code class="docutils literal notranslate"><span class="pre">interactomics_add_crapome_to_saint()</span></code></a></li>
@@ -570,6 +571,7 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.toggle_discard_modal"><code class="docutils literal notranslate"><span class="pre">toggle_discard_modal()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.update_cytoscape_layout"><code class="docutils literal notranslate"><span class="pre">update_cytoscape_layout()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.validate_data"><code class="docutils literal notranslate"><span class="pre">validate_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.version_check"><code class="docutils literal notranslate"><span class="pre">version_check()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.workflow_area"><code class="docutils literal notranslate"><span class="pre">workflow_area()</span></code></a></li>
 </ul>
 </li>
@@ -631,7 +633,14 @@
 <li class="toctree-l4"><a class="reference internal" href="code/app.html#app.app.toggle_navbar_collapse"><code class="docutils literal notranslate"><span class="pre">toggle_navbar_collapse()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="code/app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app.database_admin">app.database_admin module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_admin.clean_database"><code class="docutils literal notranslate"><span class="pre">clean_database()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_admin.create_sqlite_from_schema"><code class="docutils literal notranslate"><span class="pre">create_sqlite_from_schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_admin.get_external_versions"><code class="docutils literal notranslate"><span class="pre">get_external_versions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_admin.last_update"><code class="docutils literal notranslate"><span class="pre">last_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_admin.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app.database_updater">app.database_updater module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.get_dataframe_differences"><code class="docutils literal notranslate"><span class="pre">get_dataframe_differences()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="code/app.html#app.database_updater.handle_merg_chunk"><code class="docutils literal notranslate"><span class="pre">handle_merg_chunk()</span></code></a></li>
@@ -661,6 +670,45 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="code/app.html#module-app">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="code/MSParser.html">MSParser Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="code/MSParser.html#submodules">Submodules</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/MSParser.html#module-utils.MSParser.ms_name_identifier">MSParser.ms_name_identifier module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.ms_name_identifier.identify"><code class="docutils literal notranslate"><span class="pre">identify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/MSParser.html#module-utils.MSParser.MSparser">MSParser.MSparser module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.analyze"><code class="docutils literal notranslate"><span class="pre">analyze()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.calculate_auc"><code class="docutils literal notranslate"><span class="pre">calculate_auc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.count_intercepts"><code class="docutils literal notranslate"><span class="pre">count_intercepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.handle_data"><code class="docutils literal notranslate"><span class="pre">handle_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.parse_d"><code class="docutils literal notranslate"><span class="pre">parse_d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.parse_raw"><code class="docutils literal notranslate"><span class="pre">parse_raw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.read_toml"><code class="docutils literal notranslate"><span class="pre">read_toml()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.remove_accent_characters"><code class="docutils literal notranslate"><span class="pre">remove_accent_characters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.remove_rawfile_ending"><code class="docutils literal notranslate"><span class="pre">remove_rawfile_ending()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.MSparser.replace_special_characters"><code class="docutils literal notranslate"><span class="pre">replace_special_characters()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/MSParser.html#module-utils.MSParser.parse_thermo">MSParser.parse_thermo module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_thermo.deduplicate_nested_dicts"><code class="docutils literal notranslate"><span class="pre">deduplicate_nested_dicts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_thermo.get_scantypes"><code class="docutils literal notranslate"><span class="pre">get_scantypes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_thermo.get_traces"><code class="docutils literal notranslate"><span class="pre">get_traces()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_thermo.parse_file"><code class="docutils literal notranslate"><span class="pre">parse_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_thermo.roundup"><code class="docutils literal notranslate"><span class="pre">roundup()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/MSParser.html#module-utils.MSParser.parse_timstof">MSParser.parse_timstof module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_timstof.get_directory_size"><code class="docutils literal notranslate"><span class="pre">get_directory_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_timstof.get_traces"><code class="docutils literal notranslate"><span class="pre">get_traces()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="code/MSParser.html#utils.MSParser.parse_timstof.parse_file"><code class="docutils literal notranslate"><span class="pre">parse_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="code/MSParser.html#module-utils.MSParser">Module contents</a></li>
 </ul>
 </li>
 </ul>

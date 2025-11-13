@@ -152,3 +152,19 @@ jobs:
         with:
           name: junit-report
           path: reports/junit.xml
+
+      - name: Install Sphinx and documentation dependencies
+        run: |
+          micromamba run -n PG pip install sphinx sphinx-rtd-theme myst-parser sphinx-autodoc-typehints
+
+      - name: Build Sphinx documentation
+        run: |
+          cd docs
+          micromamba run -n PG make html
+
+      - name: Upload documentation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sphinx-documentation
+          path: docs/build/html

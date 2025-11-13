@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="2025_ProteoGyver" href="code/modules.html" />
-    <link rel="prev" title="Example usecases for ProteoGyver using public datasets" href="Interactomics_example.html" /> 
+    <link rel="next" title="Code Reference" href="code/modules.html" />
+    <link rel="prev" title="Example Interactomcis usecase for ProteoGyver using a public dataset" href="Interactomics_example.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,8 +45,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">ProteoGyver User Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#qc-and-data-analysis">QC and data analysis</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#data-upload">Data upload</a><ul>
@@ -66,7 +66,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#colocalizer">Colocalizer</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -185,6 +185,11 @@
 <h3>Running ProteoGyver<a class="headerlink" href="#running-proteogyver" title="Link to this heading"></a></h3>
 <ol class="arabic simple">
 <li><p>Upload data and sample table files to their corresponding places (either drag and drop, or click on the area and choose)</p></li>
+</ol>
+<ul class="simple">
+<li><p>If the sample table has a bait uniprot column, the indicator will turn blue, indicating that PG thinks you are uploading interactomics data.</p></li>
+</ul>
+<ol class="arabic simple" start="2">
 <li><p>Choose workflow from the dropdown</p></li>
 <li><p>(optional) change figure theme, if you want</p></li>
 <li><p>(optional) disable contaminant removal, if you know why you’re doing that</p></li>
@@ -193,7 +198,8 @@
 <p>After initial QC plots have been generated, you may use the discard samples-button to get rid of any samples or groups of samples that you do not want to include in the final analysis.</p>
 <section id="qc-results">
 <h4>QC results<a class="headerlink" href="#qc-results" title="Link to this heading"></a></h4>
-<p>The first thing you will see is a bunch of QC plots. These describe sample quality, and may indicate problems with your runs. Figure legends will elaborate on each figure.</p>
+<p><strong>Most figures</strong> support selecting a subregion for closer study, zooming in, or toggling on and off different groups. For example, clicking once on on the name of a sample group removes it from the plot, while clicking twice disables all other sample groups. Selecting a region on the plot zooms into that region, and double clicking restores the view.</p>
+<p>After starting PG, the first thing you will see is a bunch of QC plots. These describe sample quality, and may indicate problems with your runs. Figure legends will elaborate on each figure.</p>
 </section>
 <section id="workflow-specific-figures">
 <h4>Workflow specific figures<a class="headerlink" href="#workflow-specific-figures" title="Link to this heading"></a></h4>
@@ -349,8 +355,8 @@ Crapome filtering is calculated for each crapome. Protein is considered junk, if
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Interactomics_example.html" class="btn btn-neutral float-left" title="Example usecases for ProteoGyver using public datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="code/modules.html" class="btn btn-neutral float-right" title="2025_ProteoGyver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Interactomics_example.html" class="btn btn-neutral float-left" title="Example Interactomcis usecase for ProteoGyver using a public dataset" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="code/modules.html" class="btn btn-neutral float-right" title="Code Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

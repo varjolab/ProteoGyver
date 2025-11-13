@@ -70,6 +70,7 @@ app.components.infra module
    :members:
    :show-inheritance:
    :undoc-members:
+   :no-index:
 
 app.components.interactomics module
 -----------------------------------

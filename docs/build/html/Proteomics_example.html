@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Example usecases for ProteoGyver using public datasets &mdash; ProteoGyver Documentation</title>
+  <title>Example Proteomics usecase for ProteoGyver &mdash; ProteoGyver Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Example usecases for ProteoGyver using public datasets" href="Interactomics_example.html" />
+    <link rel="next" title="Example Interactomcis usecase for ProteoGyver using a public dataset" href="Interactomics_example.html" />
     <link rel="prev" title="Proteogyver" href="README.html" /> 
 </head>
 
@@ -45,15 +45,15 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Example usecases for ProteoGyver using public datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#software-and-data-prerequisites">Software and data prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dia-nn-searches">Dia-NN searches</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#proteogyver">ProteoGyver</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Example Proteomics usecase for ProteoGyver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#software-and-data-utilized">Software and data utilized</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#proteogyver">Proteogyver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-upload">Data upload</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -70,7 +70,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Example usecases for ProteoGyver using public datasets</li>
+      <li class="breadcrumb-item active">Example Proteomics usecase for ProteoGyver</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/Proteomics_example.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -80,34 +80,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="example-usecases-for-proteogyver-using-public-datasets">
-<h1>Example usecases for ProteoGyver using public datasets<a class="headerlink" href="#example-usecases-for-proteogyver-using-public-datasets" title="Link to this heading"></a></h1>
-<p>This guide documents the end to end QC analysis of a public proteomics dataset.</p>
-<section id="software-and-data-prerequisites">
-<h2>Software and data prerequisites<a class="headerlink" href="#software-and-data-prerequisites" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>DIA-NN version</p></li>
-<li><p>Proteomics dataset :</p></li>
-</ul>
-</section>
-<section id="dia-nn-searches">
-<h2>Dia-NN searches<a class="headerlink" href="#dia-nn-searches" title="Link to this heading"></a></h2>
-<p>Since the goal is not to demo how to use Dia-NN, default workflows will be used, with minimal consideration given to e.g. parameters of different mass spectrometers. As long as the library used is from the same organism, we will identify enough proteins to demo PG. In a real use scenario, parameters in Dia-NN in particular should be set according to the MS settings.</p>
-<p>Dia-NN was run on a windows 11 computer with settings in the proteomics_pipeline file in this directory.</p>
+  <section id="example-proteomics-usecase-for-proteogyver">
+<h1>Example Proteomics usecase for ProteoGyver<a class="headerlink" href="#example-proteomics-usecase-for-proteogyver" title="Link to this heading"></a></h1>
+<section id="software-and-data-utilized">
+<h2>Software and data utilized<a class="headerlink" href="#software-and-data-utilized" title="Link to this heading"></a></h2>
+<p>Data for this example is from a dataset of a <a class="reference external" href="https://doi.org/10.1113/JP288104">previous publication</a>. The specific data used doesn’t really matter, and here it’s used only for illustrative purposes. Similarly, it is DIA data and as such, was searched with Dia-NN with default parameters and a generic human fasta library from UniProt. The results obtained are not optimal (for example Dia-NN parameters were not tuned based on MS method), but as long as something is identified, it is good enough.</p>
 </section>
 <section id="proteogyver">
-<h2>ProteoGyver<a class="headerlink" href="#proteogyver" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Upload the pg_matrix.tsv as the data file</p></li>
-<li><p>Upload the sample table.tsv as the sample table</p></li>
-</ol>
-<ul class="simple">
-<li><p>Both indicators should turn green at this point to indicate successful preliminary data parse.</p></li>
-</ul>
-<ol class="arabic simple" start="3">
-<li><p>Select proteomics from the workflow dropdown</p></li>
-<li><p>Click begin analysis</p></li>
-</ol>
+<h2>Proteogyver<a class="headerlink" href="#proteogyver" title="Link to this heading"></a></h2>
+<p>This example assumes you have proteogyver running in a docker container already. If not, refer to the main readme file for install instructions.</p>
+</section>
+<section id="data-upload">
+<h2>Data upload<a class="headerlink" href="#data-upload" title="Link to this heading"></a></h2>
+<p>For data upload, the pg_matrix.tsv from the Dia-NN output was used as the data table, and for sample table, the sample runs were randomly divided into groups of 5. For sample table structure, please see either the interactomics example (sans the bait uniprot -column, or the <a href="example_files/">example files</a>.</p>
+<p>Proteomics was chosen from the workflow selection dropdown, and after pressing the “Begin analysis” -button, QC metric plots will begin to appear. After the QC plots have been generated, the proteomics input panel is presented:</p>
+<p>From here, we relaxed the usual filtering to have at least some differences between the sample groups for later. For this example, we also chose the random forest based imputation algorithm.
+<img alt="Proteomics input panel" src="_images/proteomics_input.png" />
+For proteomics workflow, those are the only inputs available. Afterwards, user is expected to inspect the plots to ensure data quality.</p>
+<p>Below is a gallery of all the generated plots.</p>
+<p><img alt="TIC" src="_images/TIC.png" />
+<img alt="Proteins per sample" src="_images/Proteins_per_sample.png" />
+<img alt="Common proteins" src="_images/Commonprots.png" />
+<img alt="Identification coverage" src="_images/coverage.png" />
+<img alt="Sample similarity" src="_images/similarity.png" />
+<img alt="Missing values" src="_images/missing.png" />
+<img alt="Value sums" src="_images/sums.png" />
+<img alt="Value means" src="_images/means.png" />
+<img alt="Value distribution" src="_images/distribution.png" />
+<img alt="Shared identifications" src="_images/shared.png" /></p>
+<p><img alt="Missing value filtering" src="_images/missing_filt.png" />
+<img alt="Normalization" src="_images/normalization.png" />
+<img alt="Intensity of missing proteins in other samples" src="_images/imp_miss.png" />
+<img alt="Imputation" src="_images/imputation.png" />
+<img alt="Coefficients of variation" src="_images/CV.png" />
+<img alt="PCA" src="_images/PCA.png" />
+<img alt="Sample correlation clustering" src="_images/correlation.png" />
+<img alt="Differential heatmap" src="_images/all_differential.png" />
+In addition, individual volcano plots for each comparison will be generated.</p>
 </section>
 </section>
 
@@ -116,7 +125,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="README.html" class="btn btn-neutral float-left" title="Proteogyver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Interactomics_example.html" class="btn btn-neutral float-right" title="Example usecases for ProteoGyver using public datasets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Interactomics_example.html" class="btn btn-neutral float-right" title="Example Interactomcis usecase for ProteoGyver using a public dataset" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -45,8 +45,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Proteogyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Code Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">app package</a><ul>
@@ -68,7 +68,14 @@
 <li class="toctree-l4"><a class="reference internal" href="#app.app.toggle_navbar_collapse"><code class="docutils literal notranslate"><span class="pre">toggle_navbar_collapse()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-app.database_admin">app.database_admin module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.database_admin.clean_database"><code class="docutils literal notranslate"><span class="pre">clean_database()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.database_admin.create_sqlite_from_schema"><code class="docutils literal notranslate"><span class="pre">create_sqlite_from_schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.database_admin.get_external_versions"><code class="docutils literal notranslate"><span class="pre">get_external_versions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.database_admin.last_update"><code class="docutils literal notranslate"><span class="pre">last_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.database_admin.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-app.database_updater">app.database_updater module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#app.database_updater.get_dataframe_differences"><code class="docutils literal notranslate"><span class="pre">get_dataframe_differences()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#app.database_updater.handle_merg_chunk"><code class="docutils literal notranslate"><span class="pre">handle_merg_chunk()</span></code></a></li>
@@ -100,6 +107,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-app">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser Package</a></li>
 </ul>
 </li>
 </ul>
@@ -231,27 +239,23 @@
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.file_upload_api.register_file_upload_api"><code class="docutils literal notranslate"><span class="pre">register_file_upload_api()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="app.components.html#module-app.components.infra">app.components.infra module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app.components.html#app-components-infra-module">app.components.infra module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app.components.html#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.save_data_stores"><code class="docutils literal notranslate"><span class="pre">save_data_stores()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.save_figures"><code class="docutils literal notranslate"><span class="pre">save_figures()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.save_input_information"><code class="docutils literal notranslate"><span class="pre">save_input_information()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.get_all_props"><code class="docutils literal notranslate"><span class="pre">get_all_props()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.get_all_types"><code class="docutils literal notranslate"><span class="pre">get_all_types()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.upload_data_stores"><code class="docutils literal notranslate"><span class="pre">upload_data_stores()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.working_data_stores"><code class="docutils literal notranslate"><span class="pre">working_data_stores()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#constants">Constants</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.DATA_STORE_IDS"><code class="docutils literal notranslate"><span class="pre">DATA_STORE_IDS</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.data_store_export_configuration"><code class="docutils literal notranslate"><span class="pre">data_store_export_configuration</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="app.components.html#app.components.infra.figure_export_directories"><code class="docutils literal notranslate"><span class="pre">figure_export_directories</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.format_nested_list"><code class="docutils literal notranslate"><span class="pre">format_nested_list()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.get_all_props"><code class="docutils literal notranslate"><span class="pre">get_all_props()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.get_all_types"><code class="docutils literal notranslate"><span class="pre">get_all_types()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.invisible_utilities"><code class="docutils literal notranslate"><span class="pre">invisible_utilities()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.notifiers"><code class="docutils literal notranslate"><span class="pre">notifiers()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.save_data_stores"><code class="docutils literal notranslate"><span class="pre">save_data_stores()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.save_figures"><code class="docutils literal notranslate"><span class="pre">save_figures()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.save_input_information"><code class="docutils literal notranslate"><span class="pre">save_input_information()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.temporary_download_button_loading_divs"><code class="docutils literal notranslate"><span class="pre">temporary_download_button_loading_divs()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.temporary_download_divs"><code class="docutils literal notranslate"><span class="pre">temporary_download_divs()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.upload_data_stores"><code class="docutils literal notranslate"><span class="pre">upload_data_stores()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.working_data_stores"><code class="docutils literal notranslate"><span class="pre">working_data_stores()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.infra.write_README"><code class="docutils literal notranslate"><span class="pre">write_README()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="app.components.html#module-app.components.interactomics">app.components.interactomics module</a><ul>
@@ -341,7 +345,9 @@
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.read_matrix"><code class="docutils literal notranslate"><span class="pre">read_matrix()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.remove_all_na"><code class="docutils literal notranslate"><span class="pre">remove_all_na()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.remove_duplicate_protein_groups"><code class="docutils literal notranslate"><span class="pre">remove_duplicate_protein_groups()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.remove_filepath_from_columns"><code class="docutils literal notranslate"><span class="pre">remove_filepath_from_columns()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.remove_from_table"><code class="docutils literal notranslate"><span class="pre">remove_from_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.remove_rawfile_ending"><code class="docutils literal notranslate"><span class="pre">remove_rawfile_ending()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.rename_columns_and_update_expdesign"><code class="docutils literal notranslate"><span class="pre">rename_columns_and_update_expdesign()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.unmix_dtypes"><code class="docutils literal notranslate"><span class="pre">unmix_dtypes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.html#app.components.parsing.update_nested_dict"><code class="docutils literal notranslate"><span class="pre">update_nested_dict()</span></code></a></li>
@@ -498,6 +504,7 @@
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.example_files_download"><code class="docutils literal notranslate"><span class="pre">example_files_download()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.generate_commonality_container"><code class="docutils literal notranslate"><span class="pre">generate_commonality_container()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.get_adiv_by_id"><code class="docutils literal notranslate"><span class="pre">get_adiv_by_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.get_github_version"><code class="docutils literal notranslate"><span class="pre">get_github_version()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_data_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_data_table()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_sample_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_sample_table()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.interactomics_add_crapome_to_saint"><code class="docutils literal notranslate"><span class="pre">interactomics_add_crapome_to_saint()</span></code></a></li>
@@ -551,6 +558,7 @@
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.toggle_discard_modal"><code class="docutils literal notranslate"><span class="pre">toggle_discard_modal()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.update_cytoscape_layout"><code class="docutils literal notranslate"><span class="pre">update_cytoscape_layout()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.validate_data"><code class="docutils literal notranslate"><span class="pre">validate_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.version_check"><code class="docutils literal notranslate"><span class="pre">version_check()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.pages.html#app.pages.QC_and_data_analysis.workflow_area"><code class="docutils literal notranslate"><span class="pre">workflow_area()</span></code></a></li>
 </ul>
 </li>
@@ -735,8 +743,104 @@ sets up logging, creates the navigation bar, and defines the main layout structu
 </dd></dl>
 
 </section>
-<section id="app-database-admin-module">
-<h2>app.database_admin module<a class="headerlink" href="#app-database-admin-module" title="Link to this heading"></a></h2>
+<section id="module-app.database_admin">
+<span id="app-database-admin-module"></span><h2>app.database_admin module<a class="headerlink" href="#module-app.database_admin" title="Link to this heading"></a></h2>
+<p>Administrative entrypoints and helpers for database lifecycle operations.</p>
+<p>Tasks include schema creation, snapshotting, external data updates, and
+periodic cleanup of old versions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.database_admin.clean_database">
+<span class="sig-prename descclassname"><span class="pre">app.database_admin.</span></span><span class="sig-name descname"><span class="pre">clean_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">versions_to_keep_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/database_admin.html#clean_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.database_admin.clean_database" title="Link to this definition"></a></dt>
+<dd><p>Remove old database directories, keeping a configured number of versions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>versions_to_keep_dict</strong> – Mapping with keys ‘&lt;name&gt;’ (keep count),
+‘&lt;name&gt;_path’ (path list), and ‘&lt;name&gt;_regex’ (folder regex with group 1
+sortable for recency).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.database_admin.create_sqlite_from_schema">
+<span class="sig-prename descclassname"><span class="pre">app.database_admin.</span></span><span class="sig-name descname"><span class="pre">create_sqlite_from_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schema_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pragmas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('foreign_keys=ON',</span> <span class="pre">'journal_mode=WAL')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/database_admin.html#create_sqlite_from_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.database_admin.create_sqlite_from_schema" title="Link to this definition"></a></dt>
+<dd><p>Create a SQLite database from a .sql schema file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>schema_file</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Path to the schema file.</p></li>
+<li><p><strong>db_file</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Path of the database to create.</p></li>
+<li><p><strong>overwrite</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to overwrite an existing DB file.</p></li>
+<li><p><strong>pragmas</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span>) – PRAGMAs to apply after connecting (e.g., (“foreign_keys=ON”,)).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Absolute path to the created database.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>FileNotFoundError</strong> – If <code class="docutils literal notranslate"><span class="pre">schema_file</span></code> does not exist.</p></li>
+<li><p><strong>FileExistsError</strong> – If <code class="docutils literal notranslate"><span class="pre">db_file</span></code> exists and <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> is False.</p></li>
+<li><p><strong>sqlite3.Error</strong> – If executing the schema fails.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.database_admin.get_external_versions">
+<span class="sig-prename descclassname"><span class="pre">app.database_admin.</span></span><span class="sig-name descname"><span class="pre">get_external_versions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">externals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/database_admin.html#get_external_versions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.database_admin.get_external_versions" title="Link to this definition"></a></dt>
+<dd><p>Get the versions of the external databases.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.database_admin.last_update">
+<span class="sig-prename descclassname"><span class="pre">app.database_admin.</span></span><span class="sig-name descname"><span class="pre">last_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uptype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/database_admin.html#last_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.database_admin.last_update" title="Link to this definition"></a></dt>
+<dd><p>Return the last update time for a given update type or a default.</p>
+<p>If the log lookup fails, defaults to now minus <code class="docutils literal notranslate"><span class="pre">interval</span></code> seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Connection</span></code></span>) – SQLite database connection.</p></li>
+<li><p><strong>uptype</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Update type label to query (e.g., ‘external’).</p></li>
+<li><p><strong>interval</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Interval in seconds to compute a safe default.</p></li>
+<li><p><strong>time_format</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Timestamp format string used in the log table.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Datetime of the last update or a computed default.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.database_admin.main">
+<span class="sig-prename descclassname"><span class="pre">app.database_admin.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/database_admin.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.database_admin.main" title="Link to this definition"></a></dt>
+<dd><p>Main entry point for database administration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-app.database_updater">
 <span id="app-database-updater-module"></span><h2>app.database_updater module<a class="headerlink" href="#module-app.database_updater" title="Link to this heading"></a></h2>

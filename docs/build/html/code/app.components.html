@@ -44,7 +44,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">2025_ProteoGyver</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Code Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="app.html">app package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="app.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#">app.components package</a></li>
@@ -55,7 +59,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.app">app.app module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.database_admin">app.database_admin module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.database_updater">app.database_updater module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.element_styles">app.element_styles module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.embedded_page_updater">app.embedded_page_updater module</a></li>
@@ -63,7 +67,7 @@
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser Package</a></li>
 </ul>
 </li>
 </ul>
@@ -82,7 +86,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">2025_ProteoGyver</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Code Reference</a></li>
           <li class="breadcrumb-item"><a href="app.html">app package</a></li>
       <li class="breadcrumb-item active">app.components package</li>
       <li class="wy-breadcrumbs-aside">
@@ -992,8 +996,8 @@ accepts multipart/form-data file uploads. The endpoint accepts:
 </dd></dl>
 
 </section>
-<section id="module-app.components.infra">
-<span id="app-components-infra-module"></span><h2>app.components.infra module<a class="headerlink" href="#module-app.components.infra" title="Link to this heading"></a></h2>
+<section id="app-components-infra-module">
+<h2>app.components.infra module<a class="headerlink" href="#app-components-infra-module" title="Link to this heading"></a></h2>
 <p>Infrastructure components for the Proteogyver web application.</p>
 <p>This module provides core infrastructure components and utilities for the Proteogyver web app,
 including data storage, figure export, and utility functions.</p>
@@ -1010,6 +1014,55 @@ functions for saving data, figures, and input parameters to files. It also creat
 Dash components used throughout the application.</p>
 <section id="functions">
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.infra.save_data_stores">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_data_stores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.save_data_stores" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Saves</span> <span class="pre">data</span> <span class="pre">from</span> <span class="pre">data</span> <span class="pre">stores</span> <span class="pre">to</span> <span class="pre">files.</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.infra.save_figures">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_figures</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_figures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.save_figures" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Exports</span> <span class="pre">figures</span> <span class="pre">in</span> <span class="pre">various</span> <span class="pre">formats.</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.infra.save_input_information">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_input_information</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_input_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.save_input_information" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Saves</span> <span class="pre">input</span> <span class="pre">parameters</span> <span class="pre">to</span> <span class="pre">TSV.</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.infra.get_all_props">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">get_all_props</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#get_all_props"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.get_all_props" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Utility</span> <span class="pre">function</span> <span class="pre">for</span> <span class="pre">traversing</span> <span class="pre">Dash</span> <span class="pre">components.</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.infra.get_all_types">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">get_all_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#get_all_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.get_all_types" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Utility</span> <span class="pre">function</span> <span class="pre">for</span> <span class="pre">traversing</span> <span class="pre">Dash</span> <span class="pre">components.</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.infra.upload_data_stores">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">upload_data_stores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#upload_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.upload_data_stores" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Creates</span> <span class="pre">Dash</span> <span class="pre">components</span> <span class="pre">for</span> <span class="pre">uploaded</span> <span class="pre">data</span> <span class="pre">stores.</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.infra.working_data_stores">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">working_data_stores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#working_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.working_data_stores" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Creates</span> <span class="pre">Dash</span> <span class="pre">components</span> <span class="pre">for</span> <span class="pre">processed/working</span> <span class="pre">data</span> <span class="pre">stores.</span></span></dt>
+<dd></dd></dl>
+
 </section>
 <section id="constants">
 <h3>Constants<a class="headerlink" href="#constants" title="Link to this heading"></a></h3>
@@ -1036,8 +1089,8 @@ Dash components used throughout the application.</p>
 
 </section>
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.format_nested_list">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">format_nested_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#format_nested_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.format_nested_list" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">format_nested_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#format_nested_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Format a nested list into a comma-separated string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1050,8 +1103,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.get_all_props">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">get_all_props</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_partial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#get_all_props"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.get_all_props" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">get_all_props</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_partial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#get_all_props"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Find all elements whose props contain a marker key.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1071,8 +1124,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.get_all_types">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">get_all_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_types</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#get_all_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.get_all_types" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">get_all_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_types</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#get_all_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Find all elements of specified types in a nested structure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1091,8 +1144,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.invisible_utilities">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">invisible_utilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#invisible_utilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.invisible_utilities" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">invisible_utilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#invisible_utilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Create hidden utility components container.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1105,8 +1158,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.notifiers">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">notifiers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#notifiers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.notifiers" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">notifiers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#notifiers"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Create notification components used by callbacks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1119,8 +1172,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.save_data_stores">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_data_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_stores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.save_data_stores" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_data_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_stores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Save data from data stores into files under an export directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1139,8 +1192,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.save_figures">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_figures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_divs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_formats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commonality_pdf_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_figures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.save_figures" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_figures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_divs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_formats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commonality_pdf_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workflow</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_figures"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Save figures found in analysis divs in requested formats.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1162,8 +1215,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.save_input_information">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_input_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_divs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_input_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.save_input_information" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">save_input_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_divs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#save_input_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Save user input parameters/settings to a TSV file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1182,8 +1235,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.temporary_download_button_loading_divs">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">temporary_download_button_loading_divs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#temporary_download_button_loading_divs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.temporary_download_button_loading_divs" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">temporary_download_button_loading_divs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#temporary_download_button_loading_divs"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Create hidden loading indicators for download buttons.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1193,8 +1246,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.temporary_download_divs">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">temporary_download_divs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#temporary_download_divs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.temporary_download_divs" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">temporary_download_divs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#temporary_download_divs"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Create temporary divs used for downloads.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1204,8 +1257,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.upload_data_stores">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">upload_data_stores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#upload_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.upload_data_stores" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">upload_data_stores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#upload_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Create Store components for uploaded data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1218,8 +1271,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.working_data_stores">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">working_data_stores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#working_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.working_data_stores" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">working_data_stores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#working_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Create Store components for processed/working data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1232,8 +1285,8 @@ Dash components used throughout the application.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.infra.write_README">
-<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">write_README</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guide_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#write_README"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.infra.write_README" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">app.components.infra.</span></span><span class="sig-name descname"><span class="pre">write_README</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guide_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/infra.html#write_README"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Write a README.html file rendered from markdown.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1451,7 +1504,7 @@ downstream steps can proceed in demo or fallback mode.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.components.interactomics.generate_saint_container">
-<span class="sig-prename descclassname"><span class="pre">app.components.interactomics.</span></span><span class="sig-name descname"><span class="pre">generate_saint_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crapomes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_most_similar_only</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_controls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/interactomics.html#generate_saint_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.interactomics.generate_saint_container" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.components.interactomics.</span></span><span class="sig-name descname"><span class="pre">generate_saint_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crapomes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_most_similar_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_controls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/interactomics.html#generate_saint_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.interactomics.generate_saint_container" title="Link to this definition"></a></dt>
 <dd><p>Build SAINT UI container and prepare inputs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2973,6 +3026,17 @@ Defaults to 0</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="app.components.parsing.remove_filepath_from_columns">
+<span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">remove_filepath_from_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_table</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#remove_filepath_from_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.remove_filepath_from_columns" title="Link to this definition"></a></dt>
+<dd><p>Removes filepath from column names. For example, if the column name is ‘data/run1.raw’, it will be changed to ‘run1’. Column renaming will be done in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="app.components.parsing.remove_from_table">
 <span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">remove_from_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discard_samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#remove_from_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.remove_from_table" title="Link to this definition"></a></dt>
 <dd><p>Removes specified samples from a data table based on table type.</p>
@@ -2996,6 +3060,17 @@ Defaults to 0</p></li>
 <li><p>For experimental design tables, removes rows where Sample name matches discard list</p></li>
 <li><p>For other tables, removes columns matching discard list</p></li>
 </ul>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.parsing.remove_rawfile_ending">
+<span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">remove_rawfile_ending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#remove_rawfile_ending"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.remove_rawfile_ending" title="Link to this definition"></a></dt>
+<dd><p>Removes the raw file ending from a column name. For example, if the column name is ‘run1.raw’, it will be changed to ‘run1’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

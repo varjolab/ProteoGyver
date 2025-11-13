@@ -45,11 +45,12 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Proteogyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Code Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="app.html">app package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser Package</a></li>
 </ul>
 </li>
 </ul>
@@ -147,7 +148,14 @@
 <li class="toctree-l3"><a class="reference internal" href="app.html#app.app.toggle_navbar_collapse"><code class="docutils literal notranslate"><span class="pre">toggle_navbar_collapse()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="app.html#module-app.database_admin">app.database_admin module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app.database_admin.clean_database"><code class="docutils literal notranslate"><span class="pre">clean_database()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app.database_admin.create_sqlite_from_schema"><code class="docutils literal notranslate"><span class="pre">create_sqlite_from_schema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app.database_admin.get_external_versions"><code class="docutils literal notranslate"><span class="pre">get_external_versions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app.database_admin.last_update"><code class="docutils literal notranslate"><span class="pre">last_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#app.database_admin.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="app.html#module-app.database_updater">app.database_updater module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="app.html#app.database_updater.get_dataframe_differences"><code class="docutils literal notranslate"><span class="pre">get_dataframe_differences()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#app.database_updater.handle_merg_chunk"><code class="docutils literal notranslate"><span class="pre">handle_merg_chunk()</span></code></a></li>
@@ -177,6 +185,45 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="app.html#module-app">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="MSParser.html">MSParser Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html#submodules">Submodules</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html#module-utils.MSParser.ms_name_identifier">MSParser.ms_name_identifier module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.ms_name_identifier.identify"><code class="docutils literal notranslate"><span class="pre">identify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html#module-utils.MSParser.MSparser">MSParser.MSparser module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.analyze"><code class="docutils literal notranslate"><span class="pre">analyze()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.calculate_auc"><code class="docutils literal notranslate"><span class="pre">calculate_auc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.count_intercepts"><code class="docutils literal notranslate"><span class="pre">count_intercepts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.handle_data"><code class="docutils literal notranslate"><span class="pre">handle_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.parse_d"><code class="docutils literal notranslate"><span class="pre">parse_d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.parse_raw"><code class="docutils literal notranslate"><span class="pre">parse_raw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.read_toml"><code class="docutils literal notranslate"><span class="pre">read_toml()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.remove_accent_characters"><code class="docutils literal notranslate"><span class="pre">remove_accent_characters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.remove_rawfile_ending"><code class="docutils literal notranslate"><span class="pre">remove_rawfile_ending()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.MSparser.replace_special_characters"><code class="docutils literal notranslate"><span class="pre">replace_special_characters()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html#module-utils.MSParser.parse_thermo">MSParser.parse_thermo module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_thermo.deduplicate_nested_dicts"><code class="docutils literal notranslate"><span class="pre">deduplicate_nested_dicts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_thermo.get_scantypes"><code class="docutils literal notranslate"><span class="pre">get_scantypes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_thermo.get_traces"><code class="docutils literal notranslate"><span class="pre">get_traces()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_thermo.parse_file"><code class="docutils literal notranslate"><span class="pre">parse_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_thermo.roundup"><code class="docutils literal notranslate"><span class="pre">roundup()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html#module-utils.MSParser.parse_timstof">MSParser.parse_timstof module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_timstof.get_directory_size"><code class="docutils literal notranslate"><span class="pre">get_directory_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_timstof.get_traces"><code class="docutils literal notranslate"><span class="pre">get_traces()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="MSParser.html#utils.MSParser.parse_timstof.parse_file"><code class="docutils literal notranslate"><span class="pre">parse_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html#module-utils.MSParser">Module contents</a></li>
 </ul>
 </li>
 </ul>

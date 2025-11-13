@@ -17,19 +17,19 @@ Dash components used throughout the application.
 
 Functions
 ---------
-.. py:func:: save_data_stores
+.. py:function:: save_data_stores
     Saves data from data stores to files.
-.. py:func:: save_figures
+.. py:function:: save_figures
     Exports figures in various formats.
-.. py:func:: save_input_information
+.. py:function:: save_input_information
     Saves input parameters to TSV.
-.. py:func:: get_all_props
+.. py:function:: get_all_props
     Utility function for traversing Dash components.
-.. py:func:: get_all_types
+.. py:function:: get_all_types
     Utility function for traversing Dash components.
-.. py:func:: upload_data_stores
+.. py:function:: upload_data_stores
     Creates Dash components for uploaded data stores.
-.. py:func:: working_data_stores
+.. py:function:: working_data_stores
     Creates Dash components for processed/working data stores.
 
 Constants

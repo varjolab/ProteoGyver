@@ -1,37 +1,43 @@
-MSParser package
+MSParser Package
 ================
+
+The MSParser package provides utilities for pre-analysis of MS raw data files,
+including parsers for Thermo and timsTOF instruments.
 
 Submodules
 ----------
 
+.. toctree::
+   :maxdepth: 2
+
+MSParser.ms_name_identifier module
+-----------------------------------
+
+.. automodule:: utils.MSParser.ms_name_identifier
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 MSParser.MSparser module
 ------------------------
 
-.. automodule:: MSParser.MSparser
+.. automodule:: utils.MSParser.MSparser
    :members:
    :show-inheritance:
    :undoc-members:
 
-MSParser.ms\_name\_identifier module
-------------------------------------
-
-.. automodule:: MSParser.ms_name_identifier
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-MSParser.parse\_thermo module
+MSParser.parse_thermo module
 -----------------------------
 
-.. automodule:: MSParser.parse_thermo
+.. automodule:: utils.MSParser.parse_thermo
    :members:
    :show-inheritance:
    :undoc-members:
 
-MSParser.parse\_timstof module
+MSParser.parse_timstof module
 ------------------------------
 
-.. automodule:: MSParser.parse_timstof
+.. automodule:: utils.MSParser.parse_timstof
    :members:
    :show-inheritance:
    :undoc-members:
@@ -39,7 +45,8 @@ MSParser.parse\_timstof module
 Module contents
 ---------------
 
-.. automodule:: MSParser
+.. automodule:: utils.MSParser
    :members:
    :show-inheritance:
    :undoc-members:
+

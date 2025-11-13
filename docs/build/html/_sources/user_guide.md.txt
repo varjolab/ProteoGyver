@@ -39,6 +39,7 @@ The data table should **NOT** contain any duplicate proteins. Duplicates should 
 
 ### Running ProteoGyver
 1. Upload data and sample table files to their corresponding places (either drag and drop, or click on the area and choose)
+- If the sample table has a bait uniprot column, the indicator will turn blue, indicating that PG thinks you are uploading interactomics data.
 2. Choose workflow from the dropdown
 3. (optional) change figure theme, if you want
 4. (optional) disable contaminant removal, if you know why you're doing that
@@ -47,7 +48,9 @@ The data table should **NOT** contain any duplicate proteins. Duplicates should 
 After initial QC plots have been generated, you may use the discard samples-button to get rid of any samples or groups of samples that you do not want to include in the final analysis.
 
 #### QC results
-The first thing you will see is a bunch of QC plots. These describe sample quality, and may indicate problems with your runs. Figure legends will elaborate on each figure. 
+**Most figures** support selecting a subregion for closer study, zooming in, or toggling on and off different groups. For example, clicking once on on the name of a sample group removes it from the plot, while clicking twice disables all other sample groups. Selecting a region on the plot zooms into that region, and double clicking restores the view.
+
+After starting PG, the first thing you will see is a bunch of QC plots. These describe sample quality, and may indicate problems with your runs. Figure legends will elaborate on each figure. 
 #### Workflow specific figures
 These figures represent QC metrics specific to the workflow. In addition, some more specialized plots are described in the context of the appropriate workflow below.
 #### Workflow-specific input

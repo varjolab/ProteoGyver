@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Example usecases for ProteoGyver using public datasets &mdash; ProteoGyver Documentation</title>
+  <title>Example Interactomcis usecase for ProteoGyver using a public dataset &mdash; ProteoGyver Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="ProteoGyver User Guide" href="user_guide.html" />
-    <link rel="prev" title="Example usecases for ProteoGyver using public datasets" href="Proteomics_example.html" /> 
+    <link rel="prev" title="Example Proteomics usecase for ProteoGyver" href="Proteomics_example.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,14 +45,15 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Example usecases for ProteoGyver using public datasets</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Example Interactomcis usecase for ProteoGyver using a public dataset</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#software-and-data-prerequisites">Software and data prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fragpipe-searches">Fragpipe searches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#proteogyver">Proteogyver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-upload">Data upload</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -69,7 +70,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Example usecases for ProteoGyver using public datasets</li>
+      <li class="breadcrumb-item active">Example Interactomcis usecase for ProteoGyver using a public dataset</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/Interactomics_example.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -79,20 +80,177 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="example-usecases-for-proteogyver-using-public-datasets">
-<h1>Example usecases for ProteoGyver using public datasets<a class="headerlink" href="#example-usecases-for-proteogyver-using-public-datasets" title="Link to this heading"></a></h1>
+  <section id="example-interactomcis-usecase-for-proteogyver-using-a-public-dataset">
+<h1>Example Interactomcis usecase for ProteoGyver using a public dataset<a class="headerlink" href="#example-interactomcis-usecase-for-proteogyver-using-a-public-dataset" title="Link to this heading"></a></h1>
 <p>This guide documents the end to end QC analysis of a public interactomics dataset.</p>
 <section id="software-and-data-prerequisites">
 <h2>Software and data prerequisites<a class="headerlink" href="#software-and-data-prerequisites" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>FragPipe:</p></li>
-<li><p>Interactomics dataset:</p></li>
-</ul>
+<p>For this example, we used a publicly available dataset (MSV000095163, <a class="reference external" href="https://doi.org/10.1016/j.mcpro.2024.100890">Original paper</a>)</p>
+<p>Since the goal is not to demo how to use FragPipe, default workflows will be used, with minimal consideration given to e.g. parameters of different mass spectrometers. As long as the library used is from the same organism, we will identify enough proteins to demo PG. In a real use scenario, parameters in MSFragger in particular should be set according to the MS settings. For this reason, default FragPipe workflow was used with a recent Human fasta proteome downloaded from UniProt. To save time on searches, only a subset of 30 runs were analyzed (see sample table below)</p>
 </section>
-<section id="fragpipe-searches">
-<h2>Fragpipe searches<a class="headerlink" href="#fragpipe-searches" title="Link to this heading"></a></h2>
-<p>Since the goal is not to demo how to use FragPipe, default workflows will be used, with minimal consideration given to e.g. parameters of different mass spectrometers. As long as the library used is from the same organism, we will identify enough proteins to demo PG. In a real use scenario, parameters in MSFragger in particular should be set according to the MS settings.</p>
-<p>FragPipe was run on linux with</p>
+<section id="proteogyver">
+<h2>Proteogyver<a class="headerlink" href="#proteogyver" title="Link to this heading"></a></h2>
+<p>This example assumes you have proteogyver running in a docker container already. If not, refer to the main readme file for install instructions.</p>
+</section>
+<section id="data-upload">
+<h2>Data upload<a class="headerlink" href="#data-upload" title="Link to this heading"></a></h2>
+<p>For data upload, the combined_protein.tsv from the FragPipe output was used as the data table, and for sample table, a tsv file with the following contents was created:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sample name</p></th>
+<th class="head"><p>Sample group</p></th>
+<th class="head"><p>Bait uniprot</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>15537_DMP_AP2_GFP_3N_1_S1_B10_1</p></td>
+<td><p>DMP_AP2_GFP_3N</p></td>
+<td><p>P42212</p></td>
+</tr>
+<tr class="row-odd"><td><p>15538_DMP_AP2_GFP_3N_2_S1_B11_1</p></td>
+<td><p>DMP_AP2_GFP_3N</p></td>
+<td><p>P42212</p></td>
+</tr>
+<tr class="row-even"><td><p>15539_DMP_AP2_GFP_3N_3_S1_B12_1</p></td>
+<td><p>DMP_AP2_GFP_3N</p></td>
+<td><p>P42212</p></td>
+</tr>
+<tr class="row-odd"><td><p>15573_DMP_AP1_NFIB_3N_1_S1_E1_1</p></td>
+<td><p>DMP_AP1_NFIB_3N</p></td>
+<td><p>O00712</p></td>
+</tr>
+<tr class="row-even"><td><p>15574_DMP_AP1_NFIB_3N_2_S1_E2_1</p></td>
+<td><p>DMP_AP1_NFIB_3N</p></td>
+<td><p>O00712</p></td>
+</tr>
+<tr class="row-odd"><td><p>15575_DMP_AP1_NFIB_3N_3_S1_E3_1</p></td>
+<td><p>DMP_AP1_NFIB_3N</p></td>
+<td><p>O00712</p></td>
+</tr>
+<tr class="row-even"><td><p>15581_DMP_AP2_NFIA_3N_1_S1_E7_1</p></td>
+<td><p>DMP_AP2_NFIA_3N</p></td>
+<td><p>Q12857</p></td>
+</tr>
+<tr class="row-odd"><td><p>15582_DMP_AP2_NFIA_3N_2_S1_E8_1</p></td>
+<td><p>DMP_AP2_NFIA_3N</p></td>
+<td><p>Q12857</p></td>
+</tr>
+<tr class="row-even"><td><p>15583_DMP_AP2_NFIA_3N_3_S1_E9_1</p></td>
+<td><p>DMP_AP2_NFIA_3N</p></td>
+<td><p>Q12857</p></td>
+</tr>
+<tr class="row-odd"><td><p>15589_DMP_AP1_NFIC_3N_1_S1_F1_1</p></td>
+<td><p>DMP_AP1_NFIC_3N</p></td>
+<td><p>P08651</p></td>
+</tr>
+<tr class="row-even"><td><p>15590_DMP_AP1_NFIC_3N_2_S1_F2_1</p></td>
+<td><p>DMP_AP1_NFIC_3N</p></td>
+<td><p>P08651</p></td>
+</tr>
+<tr class="row-odd"><td><p>15591_DMP_AP1_NFIC_3N_3_S1_F3_1</p></td>
+<td><p>DMP_AP1_NFIC_3N</p></td>
+<td><p>P08651</p></td>
+</tr>
+<tr class="row-even"><td><p>15629_DMP_AP2_NFIX_3N_1_S1_H7_1</p></td>
+<td><p>DMP_AP2_NFIX_3N</p></td>
+<td><p>Q14938</p></td>
+</tr>
+<tr class="row-odd"><td><p>15630_DMP_AP2_NFIX_3N_2_S1_H8_1</p></td>
+<td><p>DMP_AP2_NFIX_3N</p></td>
+<td><p>Q14938</p></td>
+</tr>
+<tr class="row-even"><td><p>15631_DMP_AP2_NFIX_3N_3_S1_H9_1</p></td>
+<td><p>DMP_AP2_NFIX_3N</p></td>
+<td><p>Q14938</p></td>
+</tr>
+<tr class="row-odd"><td><p>17547_NFIA_MAC3N_16hBID_R1_S1_C1_1</p></td>
+<td><p>NFIA_MAC3N_16hBID</p></td>
+<td><p>Q12857</p></td>
+</tr>
+<tr class="row-even"><td><p>17548_NFIA_MAC3N_16hBID_R2_S1_C2_1</p></td>
+<td><p>NFIA_MAC3N_16hBID</p></td>
+<td><p>Q12857</p></td>
+</tr>
+<tr class="row-odd"><td><p>17549_NFIA_MAC3N_16hBID_R3_S1_C3_1</p></td>
+<td><p>NFIA_MAC3N_16hBID</p></td>
+<td><p>Q12857</p></td>
+</tr>
+<tr class="row-even"><td><p>17551_NFIB_MAC3N_16hBID_R1_S1_C5_1</p></td>
+<td><p>NFIB_MAC3N_16hBID</p></td>
+<td><p>O00712</p></td>
+</tr>
+<tr class="row-odd"><td><p>17552_NFIB_MAC3N_16hBID_R2_S1_C6_1</p></td>
+<td><p>NFIB_MAC3N_16hBID</p></td>
+<td><p>O00712</p></td>
+</tr>
+<tr class="row-even"><td><p>17553_NFIB_MAC3N_16hBID_R3_S1_C7_1</p></td>
+<td><p>NFIB_MAC3N_16hBID</p></td>
+<td><p>O00712</p></td>
+</tr>
+<tr class="row-odd"><td><p>17555_NFIC_MAC3N_16hBID_R1_S1_C9_1</p></td>
+<td><p>NFIC_MAC3N_16hBID</p></td>
+<td><p>P08651</p></td>
+</tr>
+<tr class="row-even"><td><p>17556_NFIC_MAC3N_16hBID_R2_S1_C10_1</p></td>
+<td><p>NFIC_MAC3N_16hBID</p></td>
+<td><p>P08651</p></td>
+</tr>
+<tr class="row-odd"><td><p>17557_NFIC_MAC3N_16hBID_R3_S1_C11_1</p></td>
+<td><p>NFIC_MAC3N_16hBID</p></td>
+<td><p>P08651</p></td>
+</tr>
+<tr class="row-even"><td><p>17559_NFIX_MAC3N_16hBID_R1_S1_D1_1</p></td>
+<td><p>NFIX_MAC3N_16hBID</p></td>
+<td><p>Q14938</p></td>
+</tr>
+<tr class="row-odd"><td><p>17560_NFIX_MAC3N_16hBID_R2_S1_D2_1</p></td>
+<td><p>NFIX_MAC3N_16hBID</p></td>
+<td><p>Q14938</p></td>
+</tr>
+<tr class="row-even"><td><p>17561_NFIX_MAC3N_16hBID_R3_S1_D3_1</p></td>
+<td><p>NFIX_MAC3N_16hBID</p></td>
+<td><p>Q14938</p></td>
+</tr>
+<tr class="row-odd"><td><p>17567_GFP_MAC3N_16hBID_R1_S1_D9_1</p></td>
+<td><p>GFP_MAC3N_16hBID</p></td>
+<td><p>P42212</p></td>
+</tr>
+<tr class="row-even"><td><p>17568_GFP_MAC3N_16hBID_R2_S1_D10_1</p></td>
+<td><p>GFP_MAC3N_16hBID</p></td>
+<td><p>P42212</p></td>
+</tr>
+<tr class="row-odd"><td><p>17569_GFP_MAC3N_16hBID_R3_S1_D11_1</p></td>
+<td><p>GFP_MAC3N_16hBID</p></td>
+<td><p>P42212</p></td>
+</tr>
+</tbody>
+</table>
+<p>Interactomics was chosen from the workflow dropdown, and then it’s time to press the “Begin analysis” -button. After that, the workflow is initiated, and QC plots should begin to appear with figure legends documenting, what each of them represents. After QC plots have been generated, the interactomics-specific input options panel will appear at the top of the page:
+<img alt="Interactomics input panel" src="images/interactomics/input_panel.png" />
+In this example we’ve chosen to use GFPs from the sample set as controls, as well as all possible control purification sets and crapome sets, and a few PANTHER enrichments.
+After clicking “Run SAINT analysis”, PG will run SAINT, and present another input panel further down the page:
+<img alt="SAINT input panel" src="images/interactomics/SAINT_panel.png" />
+Here we see the filtered prey counts with the chosen filters. In this particular dataset, we have some AP-MS purifications together with BioID, so the lower counts on that side are expected. Normally APMS and BioID samples are analyzed in different SAINT runs, but for general QC purposes, this will do.</p>
+<p>When we’ve chosen the filters we want to use, we can click the “Done filtering” button, and PG will start generating interactomics-specific plots.
+Below is a gallery of all the generated plots.</p>
+<p><img alt="TIC" src="images/interactomics/qc/TIC.png" />
+<img alt="Proteins per sample" src="images/interactomics/qc/Proteins_per_sample.png" />
+<img alt="Common proteins" src="images/interactomics/qc/Commonprots.png" />
+<img alt="Identification coverage" src="images/interactomics/qc/coverage.png" />
+<img alt="Sample similarity" src="images/interactomics/qc/similarity.png" />
+<img alt="Missing values" src="images/interactomics/qc/missing.png" />
+<img alt="Value sums" src="images/interactomics/qc/sums.png" />
+<img alt="Value means" src="images/interactomics/qc/means.png" />
+<img alt="Value distribution" src="images/interactomics/qc/distribution.png" />
+<img alt="Shared identifications" src="images/interactomics/qc/shared.png" />
+<img alt="BFDR distribution" src="images/interactomics/workflow/BFDR.png" />
+<img alt="Filtered counts" src="images/interactomics/workflow/SAINT_panel.png" />
+<img alt="Known interactors identified" src="images/interactomics/workflow/knowns.png" />
+<img alt="Common proteins in data after filtering" src="images/interactomics/workflow/Commons.png" />
+<img alt="SPC PCA" src="images/interactomics/workflow/SPC_PCA.png" />
+<img alt="Network plot" src="images/interactomics/workflow/network.png" />
+<img alt="MS-microscopy" src="images/interactomics/workflow/MSMIC.png" />
+<img alt="Statistical overrepresentation" src="images/interactomics/workflow/enrich.png" /></p>
 </section>
 </section>
 
@@ -100,7 +258,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Proteomics_example.html" class="btn btn-neutral float-left" title="Example usecases for ProteoGyver using public datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Proteomics_example.html" class="btn btn-neutral float-left" title="Example Proteomics usecase for ProteoGyver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="user_guide.html" class="btn btn-neutral float-right" title="ProteoGyver User Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

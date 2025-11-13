@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -123,6 +127,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">element_styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">GENERIC_PAGE</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.text_handling</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace_special_characters</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
@@ -194,10 +199,10 @@
                 <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
-            <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">(</span><span class="s1">&#39;Or Input a list of run numbers&#39;</span><span class="p">),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">(</span><span class="s1">&#39;Or Input a list of run file names.&#39;</span><span class="p">),</span>
             <span class="n">dcc</span><span class="o">.</span><span class="n">Textarea</span><span class="p">(</span>
                 <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;load-runs-from-runids&#39;</span><span class="p">,</span>
-                <span class="n">placeholder</span><span class="o">=</span><span class="s1">&#39;Enter run ID numbers. Numbers can be separated by space, tab, or any of these symbols: ,;:&#39;</span><span class="p">,</span>
+                <span class="n">placeholder</span><span class="o">=</span><span class="s1">&#39;Enter run names. File names can be separated by a tab or a newline.&#39;</span><span class="p">,</span>
                 <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="s1">&#39;100%&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mi">150</span><span class="p">},</span>
             <span class="p">),</span>
             <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
@@ -418,13 +423,15 @@
 <span class="sd">    :returns: Sorted list of run IDs (strings).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">retruns</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">([</span>
-                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;,&#39;</span><span class="p">,</span><span class="s1">&#39;;&#39;</span><span class="p">,</span><span class="s1">&#39;:&#39;</span><span class="p">]),</span> <span class="n">runs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span>
-            <span class="p">]):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">retruns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">continue</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">runs</span> <span class="o">=</span> <span class="n">runs</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">retruns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">replace_special_characters</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">replacewith</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">allow_numbers</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">retruns</span></div>
 
     
@@ -438,7 +445,6 @@
     <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;plot-max-y&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
     <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;load-runs-spinner-div&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
     <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;start-stop-btn&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
-    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;run-ids-not-found&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
     <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;load-runs-button&#39;</span><span class="p">,</span><span class="s1">&#39;n_clicks&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;ms-select&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;date-picker-select&#39;</span><span class="p">,</span> <span class="s1">&#39;start_date&#39;</span><span class="p">),</span>
@@ -457,10 +463,9 @@
 <span class="sd">    :param data_types: Selected data types.</span>
 <span class="sd">    :param run_id_list: Optional string of run IDs to load.</span>
 <span class="sd">    :param button_text: Current button text.</span>
-<span class="sd">    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks, not_found_text].</span>
+<span class="sd">    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks].</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">db_conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span>
-    <span class="n">not_found_ids</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">run_id_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">run_id_list</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="n">start</span><span class="p">:</span><span class="nb">str</span>
         <span class="n">end</span><span class="p">:</span> <span class="nb">str</span>
@@ -487,13 +492,10 @@
             <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">chosen_runs</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">RUN_LIMIT</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">run_ids</span> <span class="o">=</span> <span class="n">delim_runs</span><span class="p">(</span><span class="n">run_id_list</span><span class="p">)</span>
-        <span class="c1"># Filter run_ids to only those found in KNOWN_SAMPLES</span>
-        <span class="n">not_found_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rid</span> <span class="k">for</span> <span class="n">rid</span> <span class="ow">in</span> <span class="n">run_ids</span> <span class="k">if</span> <span class="n">rid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">IDMAP</span><span class="p">]</span>
-        <span class="n">run_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">IDMAP</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">run_ids</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">IDMAP</span><span class="p">]</span>
         <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span>
             <span class="n">db_conn</span><span class="p">,</span> 
             <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;internal_run_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;file_name_clean&#39;</span><span class="p">,</span>
             <span class="n">run_ids</span><span class="p">,</span>
             <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REQUIRED_MAINCOLS</span><span class="p">),</span>
             <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
@@ -507,9 +509,6 @@
         <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
     <span class="p">)</span>
     <span class="n">db_conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># type: ignore</span>
-    <span class="n">not_found_text</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">not_found_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">not_found_text</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IDs NOT FOUND IN DATABASE:&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">not_found_ids</span><span class="o">+</span><span class="p">[</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">]</span>
     <span class="n">max_y</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">trace_types</span><span class="p">:</span>
         <span class="n">max_y</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_plots</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -527,12 +526,14 @@
                 <span class="n">d</span><span class="p">[</span><span class="s1">&#39;line&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">trace_color</span><span class="p">,</span><span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
                 <span class="n">d</span><span class="p">[</span><span class="s1">&#39;opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">num_of_traces_visible</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">num_of_traces_visible</span> <span class="o">-</span> <span class="n">color_i</span><span class="p">)</span>
                 <span class="n">trace_dict</span><span class="p">[</span><span class="n">runid</span><span class="p">][</span><span class="n">tracename</span><span class="p">][</span><span class="n">color_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pio</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">))[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-
+    <span class="n">nclicks</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chosen_runs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">nclicks</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">chosen_runs</span><span class="o">.</span><span class="n">index</span><span class="p">)),</span>
         <span class="n">trace_dict</span><span class="p">,</span>
         <span class="n">run_plots</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
-        <span class="n">max_y</span><span class="p">,</span><span class="n">button_text</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">not_found_text</span>
+        <span class="n">max_y</span><span class="p">,</span><span class="n">button_text</span><span class="p">,</span><span class="n">nclicks</span>
     <span class="p">)</span></div>
 
 

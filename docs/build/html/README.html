@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="2025_ProteoGyver" href="code/modules.html" />
+    <link rel="next" title="Example Proteomics usecase for ProteoGyver" href="Proteomics_example.html" />
     <link rel="prev" title="ProteoGyver documentation" href="index.html" /> 
 </head>
 
@@ -46,12 +46,22 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Proteogyver</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of contents:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#security">Security</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#security-and-compatibility">Security and compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-use-cases">Example use cases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#qc-and-quick-analysis-toolset">QC and quick analysis toolset</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#core-analysis-workflows">Core Analysis Workflows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#input-data-format">Input Data Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ptm-workflow">PTM workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#input-options-guide">Input options guide</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#general-input-options-main-sidebar">General Input Options (Main Sidebar)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#proteomics-workflow-options">Proteomics Workflow Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#interactomics-workflow-options">Interactomics Workflow Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#saint-filtering-options-post-saint-analysis">SAINT Filtering Options (Post-SAINT Analysis)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-details">Algorithm details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ptm-workflow">PTM workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline-mode-for-automated-processing">Pipeline mode for automated processing</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#pipeline-input-toml">Pipeline input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#parameters-not-in-the-input-toml">Parameters not in the input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#initiating-pipeline-analysis-via-api">Initiating pipeline analysis via API</a></li>
@@ -108,7 +118,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#how-to-cite">How to cite</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -141,9 +154,14 @@
 <section id="table-of-contents">
 <h2>Table of contents:<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
 </section>
-<section id="security">
-<h2>Security<a class="headerlink" href="#security" title="Link to this heading"></a></h2>
-<p>The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)</p>
+<section id="security-and-compatibility">
+<h2>Security and compatibility<a class="headerlink" href="#security-and-compatibility" title="Link to this heading"></a></h2>
+<p>The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)
+ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, however should work just fine on other platforms as well. ARM-based systems may require a rebuild of the container.</p>
+</section>
+<section id="example-use-cases">
+<h2>Example use cases<a class="headerlink" href="#example-use-cases" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="#./example%20use%20cases/"><span class="xref myst">Example use cases</span></a> cover both interactomics and proteomcis workflows, as well as typical use of MS inspector. The examples are rudimentary, but they do showcase the outputs of the tools quite well.</p>
 </section>
 <section id="qc-and-quick-analysis-toolset">
 <h2>QC and quick analysis toolset<a class="headerlink" href="#qc-and-quick-analysis-toolset" title="Link to this heading"></a></h2>
@@ -186,6 +204,7 @@
 <li><p>Choose analysis parameters</p></li>
 <li><p>Export results in various formats (HTML, PNG, PDF, TSV)</p></li>
 </ol>
+<p>In more detail below.</p>
 </section>
 <section id="input-data-format">
 <h3>Input Data Format<a class="headerlink" href="#input-data-format" title="Link to this heading"></a></h3>
@@ -216,6 +235,106 @@
 </li>
 </ul>
 </section>
+<section id="input-options-guide">
+<h3>Input options guide<a class="headerlink" href="#input-options-guide" title="Link to this heading"></a></h3>
+<p>This section describes all input options available in the ProteoGyver interface, organized by workflow type.</p>
+<section id="general-input-options-main-sidebar">
+<h4>General Input Options (Main Sidebar)<a class="headerlink" href="#general-input-options-main-sidebar" title="Link to this heading"></a></h4>
+<p>The main sidebar contains options that apply to all workflows:</p>
+<ul class="simple">
+<li><p><strong>Download example files</strong>: Button to download example data files and sample tables for testing workflows</p></li>
+<li><p><strong>Upload files</strong>:</p>
+<ul>
+<li><p><strong>Data file</strong>: Upload your main data table</p></li>
+<li><p><strong>Sample table</strong>: Upload your sample metadata table</p></li>
+</ul>
+</li>
+<li><p><strong>Options</strong> (checklist):</p>
+<ul>
+<li><p><strong>Remove common contaminants</strong> (default: enabled): Automatically filters out known common contaminants from the analysis</p></li>
+<li><p><strong>Rename replicates</strong>: Automatically renames replicate samples based on patterns</p></li>
+<li><p><strong>Use unique proteins only (remove protein groups)</strong>: Removes protein groups, keeping only unique protein identifiers</p></li>
+</ul>
+</li>
+<li><p><strong>Select workflow</strong>: Dropdown to choose between available workflows (Proteomics, Interactomics)</p></li>
+<li><p><strong>Select figure style</strong>: Dropdown to choose visualization theme (plotly_white, simple_white, plotly_dark)</p></li>
+<li><p><strong>Begin analysis</strong>: Button to start the analysis workflow (enabled after required files are uploaded)</p></li>
+<li><p><strong>Choose samples to discard</strong>: Button (appears after initial analysis) to open a modal for selecting samples to exclude from analysis.</p></li>
+<li><p><strong>Download all data</strong>: Button to download all analysis results as a zip file (enabled after analysis completes)</p></li>
+</ul>
+</section>
+<section id="proteomics-workflow-options">
+<h4>Proteomics Workflow Options<a class="headerlink" href="#proteomics-workflow-options" title="Link to this heading"></a></h4>
+<p>After selecting the Proteomics workflow starting the analysis, the following options become available:</p>
+<ul class="simple">
+<li><p><strong>Filter out proteins not present in at least X%</strong>: Slider (0-100%, default: 60%) to set the minimum percentage threshold for protein presence. Proteins below this threshold will be filtered out.</p></li>
+<li><p><strong>Filter type</strong>:</p>
+<ul>
+<li><p><strong>One sample group</strong> (default): Filter based on presence within each sample group independently (e.g. with a 60% filter and three samples per sample group, a protein has to be present in at least two out of three samples.)</p></li>
+<li><p><strong>Whole sample set</strong>: Filter based on presence across all samples (e.g. with two sample groups of five samples each (10 runs in total), a protein has to be present in 6 out of 10 samples with 60% filter.)</p></li>
+</ul>
+</li>
+<li><p><strong>Imputation</strong>:</p>
+<ul>
+<li><p><strong>QRILC</strong> (default): Quantile Regression Imputation of Left-Censored data</p></li>
+<li><p><strong>minProb</strong>: Minimum probability imputation: Values for missing are picked from a gaussian distribution centered around the lowest non-missing values of each sample.</p></li>
+<li><p><strong>gaussian</strong>: Gaussian distribution-based imputation: Values for missing are picked from a gaussian distribution centered around (mean-2*stdev) of each column.</p></li>
+<li><p><strong>minValue</strong>: Replace missing values with minimum detected value</p></li>
+<li><p><strong>Random forest</strong>: Random forest-based imputation</p></li>
+</ul>
+</li>
+<li><p><strong>Normalization</strong>: Radio buttons to select data normalization method:</p>
+<ul>
+<li><p><strong>No normalization</strong> (default): Preserves raw intensity values</p></li>
+<li><p><strong>Median</strong>: Median normalization across samples</p></li>
+<li><p><strong>Quantile</strong>: Quantile normalization</p></li>
+<li><p><strong>Vsn</strong>: Variance Stabilizing Normalization</p></li>
+</ul>
+</li>
+<li><p><strong>Select control group</strong>: Dropdown to choose a sample group from your data to use as the control/reference group for comparisons</p></li>
+<li><p><strong>Or upload comparison file</strong>: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons</p></li>
+<li><p><strong>log2 fold change threshold for comparisons</strong>: Radio buttons to set the fold change threshold (default: 2-fold, log2 = 1.0).</p></li>
+<li><p><strong>Adjusted p-value threshold for comparisons</strong>: Radio buttons to set the significance threshold for differential abundance (default: 0.01). Values used are FDR(bh) adjusted p-values.</p></li>
+<li><p><strong>Test type for comparisons</strong>: Radio buttons to select statistical test:</p>
+<ul>
+<li><p><strong>independent</strong> (default): Independent samples t-test (student’s, use for unpaired samples)</p></li>
+<li><p><strong>paired</strong>: Paired t-test (use only if samples are paired and in the same order across groups - see tooltip warning)</p></li>
+</ul>
+</li>
+</ul>
+<p>After pressing the <strong>Run proteomics analysis</strong> button, proteomics-specific plots and analyses will be generated.</p>
+</section>
+<section id="interactomics-workflow-options">
+<h4>Interactomics Workflow Options<a class="headerlink" href="#interactomics-workflow-options" title="Link to this heading"></a></h4>
+<p>After selecting the Interactomics workflow and initiating the analysis, the following options become available:</p>
+<ul class="simple">
+<li><p><strong>Choose uploaded controls</strong>: Checklist to select which sample groups from your uploaded data should be used as controls. Sample groups with terms like “ctrl”, “gfp”, or “control” in their names are automatically suggested as controls. It is always suggested to include many control runs as part of any uploaded sample set.</p></li>
+<li><p><strong>Choose additional control sets</strong>: Checklist to select built-in control sets from the database.</p></li>
+<li><p><strong>Choose Crapome sets</strong>: Checklist to select sets to use for crapome-filtering. The original nesvilab CRAPome (Contaminant Repository for Affinity Purification) is available, as well as control purification sets that include lots of expectable background.</p></li>
+<li><p><strong>Choose enrichments</strong>: Checklist to select enrichment analysis types to perform (e.g., GO terms, pathways). Includes a “Deselect all enrichments” button for quick deselection.</p></li>
+<li><p><strong>Rescue filtered out</strong>: Checkbox (default: unchecked) to enable rescue filtering. When enabled, interactions that pass the filter in any sample group will be rescued, even if they fail in others. <strong>Note</strong>: This works well for small datasets of related baits (e.g., receptors from the same family) but will enrich contaminants in especially in large, unrelated bait sets.</p></li>
+</ul>
+<p>After clicking the <strong>Run SAINT analysis</strong> button, PG will run SAINT in the background and when finished, present with SAINT-specific options and visualization.</p>
+</section>
+<section id="saint-filtering-options-post-saint-analysis">
+<h4>SAINT Filtering Options (Post-SAINT Analysis)<a class="headerlink" href="#saint-filtering-options-post-saint-analysis" title="Link to this heading"></a></h4>
+<p>After SAINT analysis completes, additional filtering options become available:</p>
+<ul class="simple">
+<li><p><strong>Saint BFDR threshold</strong>: Slider to set the Bayesian False Discovery Rate threshold for filtering interactions. Interactions with BFDR values above this threshold will be filtered out.</p></li>
+<li><p><strong>Crapome filtering percentage</strong>: Slider to set the maximum percentage of CRAPome datasets in which a prey can appear before being considered for filtering based on SPC fold change (next parameter).</p></li>
+<li><p><strong>SPC fold change vs crapome threshold for rescue</strong>: Slider to set the fold change threshold for filtering possible crapome-identified contaminants. If a prey’s spectral count is lower, than the average of any crapome multiplied by the threshold multiplier (this parameter), it is considered a contaminant and filtered out.</p></li>
+</ul>
+<p>After pressing the <strong>Done filtering</strong> button, analysis will proceed and plots and data of e.g. known interactors, chosen functional enrichments, and MS-microscopy will be displayed.</p>
+</section>
+</section>
+<section id="algorithm-details">
+<h3>Algorithm details<a class="headerlink" href="#algorithm-details" title="Link to this heading"></a></h3>
+<p>ProteoGyver relies mostly on proven software. However, some choices have been made:</p>
+<ul class="simple">
+<li><p>p-values for differential abundance are adjusted with the Benjamini-Hochberg procedure</p></li>
+<li><p>log2 fold chance thresholding is also used for the abundance in differential tests. This relies on “raw” log2 fold change (1 = 2-fold change).</p></li>
+</ul>
+</section>
 <section id="ptm-workflow">
 <h3>PTM workflow<a class="headerlink" href="#ptm-workflow" title="Link to this heading"></a></h3>
 <p>Currently the PTM workflow is not ready for deployment. However, PTMs can be analyzed in a rudimentary way with the proteomics workflow. In this case, the input data table should be a generic matrix, where the first column is the ID column specifying the protein and modification site, and all other columns represent intensity values of e.g. the identified peptide or site. In this case, the first column could contain values such as Protein12-siteY32, or similar. As long as each entry is unique, PG will ingest the file happily. The workflow will then produce the same plots, e.g. counts, intensity distributions, missing values, volcano plots etc.</p>
@@ -227,6 +346,9 @@ df.to_csv(‘report.tsv’,sep=’\t’)
 as long as pandas, pyarrow, and fastparquet are installed via e.g. pip. With large reports, you will need to read/write in chunks.
 The report.tsv is then ready for the script, and the resulting matrix ready for PG. Do keep in mind that R may change the column headers if special characters or spaces are present.</p>
 </div></blockquote>
+</section>
+<section id="pipeline-mode-for-automated-processing">
+<h3>Pipeline mode for automated processing<a class="headerlink" href="#pipeline-mode-for-automated-processing" title="Link to this heading"></a></h3>
 <p>The pipeline module features an ingest directory (see parameters.toml [Pipeline module.Input watch directory], by default data/Server_input/Pipeline_input ). While the Proteogyver container is running, a watcher script will detect newly created folders in this directory, and launch the analysis in the background for each.</p>
 <p>Each input folder should contain:</p>
 <ul class="simple">
@@ -599,7 +721,7 @@ This should take around 15 minutes, but can take much longer, mostly due to R re
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="ProteoGyver documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="code/modules.html" class="btn btn-neutral float-right" title="2025_ProteoGyver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Proteomics_example.html" class="btn btn-neutral float-right" title="Example Proteomics usecase for ProteoGyver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,0 +1,343 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.database_admin &mdash; ProteoGyver Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ProteoGyver
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code/modules.html">Code Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ProteoGyver</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.database_admin</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.database_admin</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Administrative entrypoints and helpers for database lifecycle operations.</span>
+
+<span class="sd">Tasks include schema creation, snapshotting, external data updates, and</span>
+<span class="sd">periodic cleanup of old versions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_functions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">database_updater</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dateutil.relativedelta</span><span class="w"> </span><span class="kn">import</span> <span class="n">relativedelta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pandas.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseError</span>
+
+<div class="viewcode-block" id="clean_database">
+<a class="viewcode-back" href="../../code/app.html#app.database_admin.clean_database">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clean_database</span><span class="p">(</span><span class="n">versions_to_keep_dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove old database directories, keeping a configured number of versions.</span>
+
+<span class="sd">    :param versions_to_keep_dict: Mapping with keys &#39;&lt;name&gt;&#39; (keep count),</span>
+<span class="sd">        &#39;&lt;name&gt;_path&#39; (path list), and &#39;&lt;name&gt;_regex&#39; (folder regex with group 1</span>
+<span class="sd">        sortable for recency).</span>
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">versions_to_keep_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">versions_to_keep_dict</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_path&#39;</span><span class="p">])</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="n">versions_to_keep_dict</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_regex&#39;</span><span class="p">]</span>
+        <span class="n">folders</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">folders</span> <span class="o">=</span> <span class="p">[(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">directory</span><span class="p">)</span> <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">]</span>
+        <span class="n">folders</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">[</span><span class="n">versions_to_keep_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]:]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Removing&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">folder</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">folder</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="create_sqlite_from_schema">
+<a class="viewcode-back" href="../../code/app.html#app.database_admin.create_sqlite_from_schema">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_sqlite_from_schema</span><span class="p">(</span><span class="n">schema_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+                              <span class="n">db_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+                              <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                              <span class="n">pragmas</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;foreign_keys=ON&quot;</span><span class="p">,</span><span class="s2">&quot;journal_mode=WAL&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a SQLite database from a .sql schema file.</span>
+
+<span class="sd">    :param schema_file: Path to the schema file.</span>
+<span class="sd">    :param db_file: Path of the database to create.</span>
+<span class="sd">    :param overwrite: Whether to overwrite an existing DB file.</span>
+<span class="sd">    :param pragmas: PRAGMAs to apply after connecting (e.g., (&quot;foreign_keys=ON&quot;,)).</span>
+<span class="sd">    :returns: Absolute path to the created database.</span>
+<span class="sd">    :raises FileNotFoundError: If ``schema_file`` does not exist.</span>
+<span class="sd">    :raises FileExistsError: If ``db_file`` exists and ``overwrite`` is False.</span>
+<span class="sd">    :raises sqlite3.Error: If executing the schema fails.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">schema_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">schema_file</span><span class="p">)</span>
+    <span class="n">db_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">schema_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Schema file not found: </span><span class="si">{</span><span class="n">schema_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">db_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="n">db_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database already exists: </span><span class="si">{</span><span class="n">db_path</span><span class="si">}</span><span class="s2"> (use overwrite=True)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Read with UTF-8-SIG to gracefully handle a BOM; normalize line endings.</span>
+    <span class="n">sql</span> <span class="o">=</span> <span class="n">schema_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8-sig&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">con</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pragmas</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pragmas</span><span class="p">:</span>
+                <span class="n">con</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRAGMA </span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>   <span class="c1"># Executes multiple CREATE TABLE/INDEX/etc. statements</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c1"># Remove partially-created DB on failure</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">db_path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_external_versions">
+<a class="viewcode-back" href="../../code/app.html#app.database_admin.get_external_versions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_external_versions</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span> <span class="n">externals</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the versions of the external databases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">version_dict</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_full_table_as_pd</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;data_versions&#39;</span><span class="p">):</span>
+            <span class="n">version_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="n">version</span>
+    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
+        <span class="n">version_dict</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="k">return</span> <span class="n">version_dict</span></div>
+
+
+<div class="viewcode-block" id="last_update">
+<a class="viewcode-back" href="../../code/app.html#app.database_admin.last_update">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span> <span class="n">uptype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">time_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the last update time for a given update type or a default.</span>
+
+<span class="sd">    If the log lookup fails, defaults to now minus ``interval`` seconds.</span>
+
+<span class="sd">    :param conn: SQLite database connection.</span>
+<span class="sd">    :param uptype: Update type label to query (e.g., &#39;external&#39;).</span>
+<span class="sd">    :param interval: Interval in seconds to compute a safe default.</span>
+<span class="sd">    :param time_format: Timestamp format string used in the log table.</span>
+<span class="sd">    :returns: Datetime of the last update or a computed default.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">last_update</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">db_functions</span><span class="o">.</span><span class="n">get_last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">uptype</span><span class="p">),</span> <span class="n">time_format</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">uptype</span><span class="p">,</span> <span class="s1">&#39;last update:&#39;</span><span class="p">,</span> <span class="n">last_update</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">last_update</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">interval</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">last_update</span></div>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../code/app.html#app.database_admin.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main entry point for database administration.</span>
+
+<span class="sd">    :returns: None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">force_full_update</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">read_toml</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">))</span>
+    <span class="n">time_format</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Config&#39;</span><span class="p">][</span><span class="s1">&#39;Time format&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;--force-full-update&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="n">force_full_update</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Forcing full database update&#39;</span><span class="p">)</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">time_format</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Config&#39;</span><span class="p">][</span><span class="s1">&#39;CPU count limit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ncpus&#39;</span><span class="p">:</span>
+        <span class="n">ncpu</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ncpu</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Config&#39;</span><span class="p">][</span><span class="s1">&#39;CPU count limit&#39;</span><span class="p">]</span>
+    <span class="n">db_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Database file&#39;</span><span class="p">])</span>
+    <span class="n">organisms</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database creation&#39;</span><span class="p">][</span><span class="s1">&#39;Organisms to include in database&#39;</span><span class="p">])</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database updater&#39;</span><span class="p">][</span><span class="s1">&#39;Tsv templates directory&#39;</span><span class="p">])</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database updater&#39;</span><span class="p">][</span><span class="s1">&#39;Update files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">),</span> <span class="n">exist_ok</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">need_full_update</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">db_path</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Database file does not exist, generating database&#39;</span><span class="p">)</span>
+        <span class="n">dbfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Database file&#39;</span><span class="p">])</span>
+        <span class="n">need_to_create</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">need_full_update</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="s1">&#39;Minimal database file&#39;</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking for minimal database file&#39;</span><span class="p">)</span>
+            <span class="n">minimal_db_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Minimal database file&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">minimal_db_path</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Minimal database file found, using it&#39;</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">minimal_db_path</span><span class="p">,</span> <span class="n">db_path</span><span class="p">)</span>
+                <span class="n">need_to_create</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Minimal database file not found, creating database&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">need_to_create</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating database&#39;</span><span class="p">)</span>
+            <span class="n">schema_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Schema file&#39;</span><span class="p">])</span>
+            <span class="n">create_sqlite_from_schema</span><span class="p">(</span><span class="n">schema_file</span><span class="p">,</span> <span class="n">dbfile</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+            <span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+            <span class="n">database_updater</span><span class="o">.</span><span class="n">update_log_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;db creation&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">timestamp</span><span class="p">,</span> <span class="s1">&#39;created&#39;</span><span class="p">)</span>
+            <span class="n">db_functions</span><span class="o">.</span><span class="n">generate_database_table_templates_as_tsvs</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database updater&#39;</span><span class="p">][</span><span class="s1">&#39;Database table primary keys&#39;</span><span class="p">])</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+    <span class="c1"># Export a snapshot, if required:</span>
+    <span class="n">cc_cols</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database creation&#39;</span><span class="p">][</span><span class="s1">&#39;Control and crapome db detailed columns&#39;</span><span class="p">]</span>
+    <span class="n">cc_types</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database creation&#39;</span><span class="p">][</span><span class="s1">&#39;Control and crapome db detailed types&#39;</span><span class="p">]</span>
+    
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database updater&#39;</span><span class="p">]</span>
+    <span class="n">update_interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Update interval minutes&#39;</span><span class="p">])</span><span class="o">*</span><span class="mi">60</span>
+    <span class="n">snapshot_interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database snapshot settings&#39;</span><span class="p">][</span><span class="s1">&#39;Snapshot interval days&#39;</span><span class="p">])</span><span class="o">*</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span>
+    <span class="n">api_update_interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;External data update interval days&#39;</span><span class="p">])</span><span class="o">*</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span>
+    <span class="k">if</span> <span class="n">api_update_interval</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">api_update_interval</span> <span class="o">=</span> <span class="mi">2000</span><span class="o">*</span><span class="mi">365</span><span class="o">*</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span> <span class="c1"># 2000 years.  So never. If set to &lt; 0.</span>
+    <span class="n">clean_interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database clean interval days&#39;</span><span class="p">])</span><span class="o">*</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+
+    <span class="n">last_external_update_date</span> <span class="o">=</span> <span class="n">last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;external&#39;</span><span class="p">,</span> <span class="n">api_update_interval</span><span class="p">,</span> <span class="n">time_format</span><span class="p">)</span>
+    <span class="n">do_snapshot</span> <span class="o">=</span> <span class="n">need_full_update</span> <span class="ow">or</span> <span class="p">(</span><span class="n">last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">,</span> <span class="n">snapshot_interval</span><span class="p">,</span> <span class="n">time_format</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">snapshot_interval</span><span class="p">)))</span>
+    <span class="n">do_external_update</span> <span class="o">=</span> <span class="n">need_full_update</span> <span class="ow">or</span> <span class="p">(</span><span class="n">last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;external&#39;</span><span class="p">,</span> <span class="n">api_update_interval</span><span class="p">,</span> <span class="n">time_format</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">api_update_interval</span><span class="p">)))</span>
+    <span class="n">do_main_db_update</span> <span class="o">=</span> <span class="n">need_full_update</span> <span class="ow">or</span> <span class="p">(</span><span class="n">last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;main_db_update&#39;</span><span class="p">,</span> <span class="n">update_interval</span><span class="p">,</span> <span class="n">time_format</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">update_interval</span><span class="p">)))</span>
+    <span class="n">do_clean_update</span> <span class="o">=</span> <span class="n">need_full_update</span> <span class="ow">or</span> <span class="p">(</span><span class="n">last_update</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;clean&#39;</span><span class="p">,</span> <span class="n">clean_interval</span><span class="p">,</span> <span class="n">time_format</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">clean_interval</span><span class="p">)))</span>
+    <span class="n">updates_to_do</span> <span class="o">=</span> <span class="p">[</span><span class="n">update</span> <span class="k">for</span> <span class="n">update</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s1">&#39;External&#39;</span> <span class="k">if</span> <span class="n">do_external_update</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Main db&#39;</span> <span class="k">if</span> <span class="n">do_main_db_update</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Clean&#39;</span> <span class="k">if</span> <span class="n">do_clean_update</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Snapshot&#39;</span> <span class="k">if</span> <span class="n">do_snapshot</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="p">]</span> <span class="k">if</span> <span class="n">update</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">updates_to_do</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Going to do updates:&#39;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">updates_to_do</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No updates to do&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">force_full_update</span> <span class="ow">or</span> <span class="n">do_snapshot</span><span class="p">:</span>
+        <span class="n">snapshot_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database snapshot settings&#39;</span><span class="p">][</span><span class="s1">&#39;Snapshot dir&#39;</span><span class="p">])</span>
+        <span class="n">snapshots_to_keep</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database snapshot settings&#39;</span><span class="p">][</span><span class="s1">&#39;Snapshots to keep&#39;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exporting snapshot&#39;</span><span class="p">)</span>
+        <span class="n">db_functions</span><span class="o">.</span><span class="n">export_snapshot</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">snapshot_dir</span><span class="p">,</span> <span class="n">snapshots_to_keep</span><span class="p">)</span>
+        <span class="n">database_updater</span><span class="o">.</span><span class="n">update_log_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;snapshot snapshot&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">timestamp</span><span class="p">,</span> <span class="s1">&#39;snapshot&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">force_full_update</span> <span class="ow">or</span> <span class="n">do_external_update</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating external data&#39;</span><span class="p">)</span>
+        <span class="n">versions</span> <span class="o">=</span> <span class="n">get_external_versions</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;biogrid&#39;</span><span class="p">,</span> <span class="s1">&#39;intact&#39;</span><span class="p">,</span> <span class="s1">&#39;uniprot&#39;</span><span class="p">])</span>
+        <span class="n">database_updater</span><span class="o">.</span><span class="n">update_external_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">organisms</span><span class="p">,</span> <span class="n">last_external_update_date</span><span class="p">,</span> <span class="n">versions</span><span class="p">,</span> <span class="n">ncpu</span><span class="p">)</span>
+        <span class="n">database_updater</span><span class="o">.</span><span class="n">update_log_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;external update&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">timestamp</span><span class="p">,</span> <span class="s1">&#39;external&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">force_full_update</span> <span class="ow">or</span> <span class="n">do_main_db_update</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating database&#39;</span><span class="p">)</span>
+        <span class="n">inmod_names</span><span class="p">,</span> <span class="n">inmod_vals</span> <span class="o">=</span> <span class="n">database_updater</span><span class="o">.</span><span class="n">update_database</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cc_cols</span><span class="p">,</span> <span class="n">cc_types</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+        <span class="n">database_updater</span><span class="o">.</span><span class="n">update_log_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">inmod_names</span><span class="p">,</span> <span class="n">inmod_vals</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="s1">&#39;main_db_update&#39;</span><span class="p">)</span>
+        <span class="n">db_functions</span><span class="o">.</span><span class="n">generate_database_table_templates_as_tsvs</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Database table primary keys&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">force_full_update</span> <span class="ow">or</span> <span class="n">do_clean_update</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cleaning database&#39;</span><span class="p">)</span>
+        <span class="n">clean_database</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Versions to keep&#39;</span><span class="p">])</span>
+        <span class="n">database_updater</span><span class="o">.</span><span class="n">update_log_table</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;clean update&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">timestamp</span><span class="p">,</span> <span class="s1">&#39;clean&#39;</span><span class="p">)</span>
+    
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># type: ignore</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Database update done.&#39;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kari Salokas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

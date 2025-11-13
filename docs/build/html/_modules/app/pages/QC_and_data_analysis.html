@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -84,6 +88,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xxlimited</span><span class="w"> </span><span class="kn">import</span> <span class="n">Str</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">uuid4</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
@@ -103,6 +108,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">element_styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">CONTENT_STYLE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlopen</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">URLError</span><span class="p">,</span> <span class="n">HTTPError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">_version</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
 
 
@@ -127,6 +134,58 @@
     <span class="p">],</span>
     <span class="n">style</span><span class="o">=</span><span class="n">CONTENT_STYLE</span>
 <span class="p">)</span>
+
+<div class="viewcode-block" id="get_github_version">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.QC_and_data_analysis.get_github_version">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_github_version</span><span class="p">(</span><span class="n">repo_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;https://github.com/varjolab/Proteogyver&quot;</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;main&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch the version from the VERSION file in a GitHub repository.</span>
+<span class="sd">    </span>
+<span class="sd">    :param repo_url: GitHub repository URL.</span>
+<span class="sd">    :param branch: Branch name to fetch from (default: &#39;main&#39;).</span>
+<span class="sd">    :returns: Version string from GitHub, or None if fetch fails.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert GitHub URL to raw content URL</span>
+    <span class="c1"># https://github.com/varjolab/Proteogyver -&gt; https://raw.githubusercontent.com/varjolab/Proteogyver/main/VERSION</span>
+    <span class="n">raw_url</span> <span class="o">=</span> <span class="n">repo_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;github.com&quot;</span><span class="p">,</span> <span class="s2">&quot;raw.githubusercontent.com&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">branch</span><span class="si">}</span><span class="s2">/VERSION&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">raw_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">version</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">URLError</span><span class="p">,</span> <span class="n">HTTPError</span><span class="p">,</span> <span class="ne">TimeoutError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Use logging module directly since logger might not be initialized yet</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch version from GitHub: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch version from GitHub: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="version_check">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.QC_and_data_analysis.version_check">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;version-check-div&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;proteogyver-logo&#39;</span><span class="p">,</span> <span class="s1">&#39;src&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">version_check</span><span class="p">(</span><span class="n">_</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a version check div, which will be shown if there is a newer version available.</span>
+<span class="sd">    </span>
+<span class="sd">    :param _: trigger for the callback.</span>
+<span class="sd">    :returns: Version check div with update notification if newer version is available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">available_version</span> <span class="o">=</span> <span class="n">get_github_version</span><span class="p">()</span>
+    <span class="n">div_contents</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">compstyle</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font-size&#39;</span><span class="p">:</span> <span class="s1">&#39;12px&#39;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">available_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Could not fetch version, don&#39;t show anything</span>
+        <span class="n">div_contents</span> <span class="o">=</span> <span class="s1">&#39;Could not check for new version.&#39;</span>
+    <span class="k">elif</span> <span class="n">available_version</span> <span class="o">!=</span> <span class="n">__version__</span><span class="p">:</span>
+        <span class="c1"># Newer version available</span>
+        <span class="n">div_contents</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;New version available: </span><span class="si">{</span><span class="n">available_version</span><span class="si">}</span><span class="s1"> (current: </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s1">)&#39;</span>    
+        <span class="n">compstyle</span><span class="p">[</span><span class="s1">&#39;font-size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;20px&#39;</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="n">div_contents</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">compstyle</span><span class="p">)</span></div>
+
+
 
 <div class="viewcode-block" id="clear_data_stores">
 <a class="viewcode-back" href="../../../code/app.pages.html#app.pages.QC_and_data_analysis.clear_data_stores">[docs]</a>
@@ -1220,8 +1279,6 @@
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;interactomics-choose-additional-control-sets&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;interactomics-choose-crapome-sets&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;data-store&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;upload-data-store&#39;</span><span class="p">},</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
-    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;interactomics-nearest-control-filtering&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
-    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;interactomics-num-controls&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
     <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">interactomics_saint_analysis</span><span class="p">(</span>
@@ -1230,8 +1287,6 @@
     <span class="n">additional_controls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
     <span class="n">crapomes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
     <span class="n">uploaded_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> 
-    <span class="n">proximity_filtering_checklist</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
-    <span class="n">n_controls</span><span class="p">:</span> <span class="nb">int</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize SAINT analysis with selected control samples and parameters.</span>
 
@@ -1248,8 +1303,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">no_update</span><span class="p">,</span> <span class="n">no_update</span><span class="p">,</span> <span class="n">no_update</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">nclicks</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">no_update</span><span class="p">,</span> <span class="n">no_update</span><span class="p">,</span> <span class="n">no_update</span><span class="p">)</span>
-    <span class="n">do_proximity_filtering</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Select&#39;</span> <span class="ow">in</span> <span class="n">proximity_filtering_checklist</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">generate_saint_container</span><span class="p">(</span><span class="n">uploaded_data</span><span class="p">,</span> <span class="n">uploaded_controls</span><span class="p">,</span> <span class="n">additional_controls</span><span class="p">,</span> <span class="n">crapomes</span><span class="p">,</span> <span class="n">db_file</span><span class="p">,</span> <span class="n">do_proximity_filtering</span><span class="p">,</span> <span class="n">n_controls</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">generate_saint_container</span><span class="p">(</span><span class="n">uploaded_data</span><span class="p">,</span> <span class="n">uploaded_controls</span><span class="p">,</span> <span class="n">additional_controls</span><span class="p">,</span> <span class="n">crapomes</span><span class="p">,</span> <span class="n">db_file</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="interactomics_run_saint">
@@ -2134,8 +2188,7 @@
             <span class="n">zip_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         
         <span class="c1"># Clean up temporary files</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">export_dir</span><span class="p">)</span>
-        <span class="c1">#shutil.rmtree(export_dir)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">export_dir</span><span class="p">)</span>
     
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating download package: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

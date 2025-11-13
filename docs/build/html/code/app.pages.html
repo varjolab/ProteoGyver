@@ -44,7 +44,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">2025_ProteoGyver</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Code Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="app.html">app package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="app.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="app.components.html">app.components package</a></li>
@@ -55,7 +59,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.app">app.app module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.html#app-database-admin-module">app.database_admin module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.html#module-app.database_admin">app.database_admin module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.database_updater">app.database_updater module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.element_styles">app.element_styles module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app.embedded_page_updater">app.embedded_page_updater module</a></li>
@@ -63,7 +67,7 @@
 <li class="toctree-l3"><a class="reference internal" href="app.html#module-app">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MSParser.html">MSParser Package</a></li>
 </ul>
 </li>
 </ul>
@@ -82,7 +86,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">2025_ProteoGyver</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Code Reference</a></li>
           <li class="breadcrumb-item"><a href="app.html">app package</a></li>
       <li class="breadcrumb-item active">app.pages package</li>
       <li class="wy-breadcrumbs-aside">
@@ -622,7 +626,7 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks, not_found_text].</p>
+<dd class="field-odd"><p>List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks].</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1022,6 +1026,26 @@ figure theme, and upload success styles.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.get_github_version">
+<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">get_github_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://github.com/varjolab/Proteogyver'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'main'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#get_github_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.get_github_version" title="Link to this definition"></a></dt>
+<dd><p>Fetch the version from the VERSION file in a GitHub repository.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>repo_url</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – GitHub repository URL.</p></li>
+<li><p><strong>branch</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Branch name to fetch from (default: ‘main’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Version string from GitHub, or None if fetch fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.handle_uploaded_data_table">
 <span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">handle_uploaded_data_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_contents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_upload_style</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#handle_uploaded_data_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.handle_uploaded_data_table" title="Link to this definition"></a></dt>
 <dd><p>Parse uploaded data table and populate stores.</p>
@@ -1352,7 +1376,7 @@ figure theme, and upload success styles.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.interactomics_saint_analysis">
-<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">interactomics_saint_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nclicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crapomes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proximity_filtering_checklist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_controls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#interactomics_saint_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.interactomics_saint_analysis" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">interactomics_saint_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nclicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_controls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crapomes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#interactomics_saint_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.interactomics_saint_analysis" title="Link to this definition"></a></dt>
 <dd><p>Initialize SAINT analysis with selected control samples and parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1362,8 +1386,8 @@ figure theme, and upload success styles.</p>
 <li><p><strong>additional_controls</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Selected additional control sets.</p></li>
 <li><p><strong>crapomes</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Selected CRAPome control sets.</p></li>
 <li><p><strong>uploaded_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Uploaded experimental data dictionary.</p></li>
-<li><p><strong>proximity_filtering_checklist</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Selected filtering options.</p></li>
-<li><p><strong>n_controls</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of nearest controls if proximity filtering enabled.</p></li>
+<li><p><strong>proximity_filtering_checklist</strong> – Selected filtering options.</p></li>
+<li><p><strong>n_controls</strong> – Number of nearest controls if proximity filtering enabled.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -2113,6 +2137,23 @@ figure theme, and upload success styles.</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Tuple of (data_dict, disable_download, warnings, hide_warnings).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.version_check">
+<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">version_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#version_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.version_check" title="Link to this definition"></a></dt>
+<dd><p>Create a version check div, which will be shown if there is a newer version available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>_</strong> – trigger for the callback.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Div</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Version check div with update notification if newer version is available.</p>
 </dd>
 </dl>
 </dd></dl>

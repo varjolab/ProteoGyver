@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -102,7 +106,6 @@
         <span class="mi">6</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">H6</span>
     <span class="p">},</span>
 <span class="p">}</span>
-
 
 <div class="viewcode-block" id="checklist">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.ui_components.checklist">[docs]</a>
@@ -881,44 +884,6 @@
                                     <span class="p">),</span>
                                 <span class="n">width</span><span class="o">=</span><span class="mi">4</span>
                             <span class="p">),</span>
-                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
-                                <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
-                                    <span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
-                                        <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
-                                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
-                                                <span class="n">checklist</span><span class="p">(</span>
-                                                    <span class="s1">&#39;Nearest control filtering&#39;</span><span class="p">,</span>
-                                                    <span class="p">[</span><span class="s1">&#39;Select&#39;</span><span class="p">],</span>
-                                                    <span class="p">[],</span>
-                                                    <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                                    <span class="n">id_prefix</span><span class="o">=</span><span class="s1">&#39;interactomics&#39;</span><span class="p">,</span>
-                                                    <span class="n">style_override</span><span class="o">=</span><span class="p">{</span>
-                                                        <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span><span class="p">,</span> <span class="s1">&#39;verticalAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span>
-                                                    <span class="p">},</span>
-                                                    <span class="n">prefix_list</span><span class="o">=</span><span class="p">[</span>
-                                                        <span class="n">tooltips</span><span class="o">.</span><span class="n">nearest_tooltip</span><span class="p">()</span>
-                                                    <span class="p">]</span>
-                                                <span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">3</span>
-                                            <span class="p">),</span>
-                                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
-                                                <span class="n">dbc</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span>
-                                                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-num-controls&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;number&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
-                                                    <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span><span class="p">,</span> <span class="s1">&#39;verticalAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span><span class="p">}</span>
-                                                <span class="p">),</span>
-                                                <span class="n">tooltips</span><span class="o">.</span><span class="n">interactomics_select_top_controls_tooltip</span><span class="p">()</span>
-                                            <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
-                                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
-                                                <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s1">&#39;most similar inbuilt control runs&#39;</span><span class="p">,</span>
-                                                    <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;5px&#39;</span><span class="p">,</span> <span class="s1">&#39;verticalAlign&#39;</span><span class="p">:</span> <span class="s1">&#39;center&#39;</span><span class="p">}),</span>
-                                                <span class="n">width</span><span class="o">=</span><span class="mi">6</span>
-                                            <span class="p">)</span>
-                                        <span class="p">])</span>
-                                    <span class="p">],</span>
-                                    <span class="n">hidden</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                    <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;interactomics-nearest-controls-div&#39;</span>
-                                <span class="p">)</span>
-                            <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">6</span><span class="p">),</span>
-                            <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
                         <span class="p">])</span>
                     <span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">9</span><span class="p">),</span>
                     <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>

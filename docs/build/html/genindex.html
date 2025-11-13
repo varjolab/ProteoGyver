@@ -42,8 +42,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Proteogyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example usecases for ProteoGyver using public datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code/modules.html">Code Reference</a></li>
 </ul>
@@ -116,6 +116,8 @@
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.add_samples_to_discarded">add_samples_to_discarded() (in module app.pages.QC_and_data_analysis)</a>
 </li>
       <li><a href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig.additional_controls">additional_controls (app.pipeline_module.pipeline_batch.BatchConfig attribute)</a>
+</li>
+      <li><a href="code/MSParser.html#utils.MSParser.MSparser.analyze">analyze() (in module utils.MSParser.MSparser)</a>
 </li>
       <li><a href="code/app.pages.html#app.pages.Documentation.announcements">announcements() (in module app.pages.Documentation)</a>
 </li>
@@ -343,13 +345,6 @@
 </li>
       </ul></li>
       <li>
-    app.components.infra
-
-      <ul>
-        <li><a href="code/app.components.html#module-app.components.infra">module</a>
-</li>
-      </ul></li>
-      <li>
     app.components.interactomics
 
       <ul>
@@ -452,6 +447,13 @@
 
       <ul>
         <li><a href="code/app.components.html#module-app.components.ui_components">module</a>
+</li>
+      </ul></li>
+      <li>
+    app.database_admin
+
+      <ul>
+        <li><a href="code/app.html#module-app.database_admin">module</a>
 </li>
       </ul></li>
       <li>
@@ -607,6 +609,8 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="code/MSParser.html#utils.MSParser.MSparser.calculate_auc">calculate_auc() (in module utils.MSParser.MSparser)</a>
+</li>
       <li><a href="code/app.html#app.app.celery_app">celery_app (in module app.app)</a>
 </li>
       <li><a href="code/app.components.html#app.components.parsing.check_bait">check_bait() (in module app.components.parsing)</a>
@@ -626,6 +630,8 @@
       <li><a href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig.chosen_enrichments">chosen_enrichments (app.pipeline_module.pipeline_batch.BatchConfig attribute)</a>
 </li>
       <li><a href="code/app.components.html#app.components.parsing.clean_column_name">clean_column_name() (in module app.components.parsing)</a>
+</li>
+      <li><a href="code/app.html#app.database_admin.clean_database">clean_database() (in module app.database_admin)</a>
 </li>
       <li><a href="code/app.components.html#app.components.parsing.clean_sample_names">clean_sample_names() (in module app.components.parsing)</a>
 </li>
@@ -661,6 +667,8 @@
 </li>
       <li><a href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig.control_group">control_group (app.pipeline_module.pipeline_batch.BatchConfig attribute)</a>
 </li>
+      <li><a href="code/MSParser.html#utils.MSParser.MSparser.count_intercepts">count_intercepts() (in module utils.MSParser.MSparser)</a>
+</li>
       <li><a href="code/app.components.html#app.components.interactomics.count_knowns">count_knowns() (in module app.components.interactomics)</a>
 </li>
       <li><a href="code/app.components.html#app.components.matrix_functions.count_per_sample">count_per_sample() (in module app.components.matrix_functions)</a>
@@ -695,6 +703,8 @@
 </li>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.create_qc_area">create_qc_area() (in module app.pages.QC_and_data_analysis)</a>
 </li>
+      <li><a href="code/app.html#app.database_admin.create_sqlite_from_schema">create_sqlite_from_schema() (in module app.database_admin)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -712,6 +722,8 @@
       <li><a href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig.data_table_path">data_table_path (app.pipeline_module.pipeline_batch.BatchConfig attribute)</a>
 </li>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.db_file">db_file (in module app.pages.QC_and_data_analysis)</a>
+</li>
+      <li><a href="code/MSParser.html#utils.MSParser.parse_thermo.deduplicate_nested_dicts">deduplicate_nested_dicts() (in module utils.MSParser.parse_thermo)</a>
 </li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.biogrid.deduplicate_str_dataframe_by_index">deduplicate_str_dataframe_by_index() (in module app.components.api_tools.biogrid)</a>
 </li>
@@ -841,8 +853,6 @@
 </li>
       <li><a href="code/app.components.html#app.components.parsing.format_data">format_data() (in module app.components.parsing)</a>
 </li>
-      <li><a href="code/app.components.html#app.components.infra.format_nested_list">format_nested_list() (in module app.components.infra)</a>
-</li>
       <li><a href="code/app.components.html#app.components.parsing.format_sample_group_name">format_sample_group_name() (in module app.components.parsing)</a>
 </li>
   </ul></td>
@@ -923,13 +933,17 @@
 </li>
       <li><a href="code/app.components.enrichment.html#app.components.enrichment.pantherdb.handler.get_default_panel">get_default_panel() (app.components.enrichment.pantherdb.handler method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.uniprot.get_default_uniprot_column_map">get_default_uniprot_column_map() (in module app.components.api_tools.uniprot)</a>
+</li>
+      <li><a href="code/MSParser.html#utils.MSParser.parse_timstof.get_directory_size">get_directory_size() (in module utils.MSParser.parse_timstof)</a>
 </li>
       <li><a href="code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin.get_disabled">get_disabled() (app.components.EnrichmentAdmin.EnrichmentAdmin method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.components.html#app.components.parsing.get_distribution_title">get_distribution_title() (in module app.components.parsing)</a>
+</li>
+      <li><a href="code/app.html#app.database_admin.get_external_versions">get_external_versions() (in module app.database_admin)</a>
 </li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.apitools.get_files_newer_than">get_files_newer_than() (in module app.components.api_tools.apitools)</a>
 </li>
@@ -946,6 +960,8 @@
       <li><a href="code/app.components.html#app.components.db_functions.get_from_table_match_with_priority">get_from_table_match_with_priority() (in module app.components.db_functions)</a>
 </li>
       <li><a href="code/app.components.html#app.components.db_functions.get_full_table_as_pd">get_full_table_as_pd() (in module app.components.db_functions)</a>
+</li>
+      <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.get_github_version">get_github_version() (in module app.pages.QC_and_data_analysis)</a>
 </li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.intact.get_ids">get_ids() (in module app.components.api_tools.intact)</a>
 </li>
@@ -983,6 +999,8 @@
 </li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.apitools.get_save_location">get_save_location() (in module app.components.api_tools.apitools)</a>
 </li>
+      <li><a href="code/MSParser.html#utils.MSParser.parse_thermo.get_scantypes">get_scantypes() (in module utils.MSParser.parse_thermo)</a>
+</li>
       <li><a href="code/app.components.figures.html#app.components.figures.network_plot.get_stylesheet">get_stylesheet() (in module app.components.figures.network_plot)</a>
 </li>
       <li><a href="code/app.components.html#app.components.quick_stats.get_sum_data">get_sum_data() (in module app.components.quick_stats)</a>
@@ -991,6 +1009,12 @@
 </li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.apitools.get_timestamp">get_timestamp() (in module app.components.api_tools.apitools)</a>
 </li>
+      <li><a href="code/MSParser.html#utils.MSParser.parse_thermo.get_traces">get_traces() (in module utils.MSParser.parse_thermo)</a>
+
+      <ul>
+        <li><a href="code/MSParser.html#utils.MSParser.parse_timstof.get_traces">(in module utils.MSParser.parse_timstof)</a>
+</li>
+      </ul></li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.uniprot.get_uniprot_column_map">get_uniprot_column_map() (in module app.components.api_tools.uniprot)</a>
 </li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.biogrid.get_upid">get_upid() (in module app.components.api_tools.biogrid)</a>
@@ -1009,6 +1033,8 @@
         <li><a href="code/app.components.api_tools.html#app.components.api_tools.intact.handle_and_split_save">(in module app.components.api_tools.intact)</a>
 </li>
       </ul></li>
+      <li><a href="code/MSParser.html#utils.MSParser.MSparser.handle_data">handle_data() (in module utils.MSParser.MSparser)</a>
+</li>
       <li><a href="code/app.html#app.database_updater.handle_merg_chunk">handle_merg_chunk() (in module app.database_updater)</a>
 </li>
       <li><a href="code/app.html#app.database_updater.handle_mods">handle_mods() (in module app.database_updater)</a>
@@ -1037,6 +1063,8 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="code/MSParser.html#utils.MSParser.ms_name_identifier.identify">identify() (in module utils.MSParser.ms_name_identifier)</a>
+</li>
       <li><a href="code/app.components.html#app.components.EnrichmentAdmin.EnrichmentAdmin.import_handlers">import_handlers() (app.components.EnrichmentAdmin.EnrichmentAdmin method)</a>
 </li>
       <li><a href="code/app.components.html#app.components.figure_functions.improve_text_position">improve_text_position() (in module app.components.figure_functions)</a>
@@ -1071,10 +1099,10 @@
 </li>
       <li><a href="code/app.components.html#app.components.ui_components.interactomics_crapome_col">interactomics_crapome_col() (in module app.components.ui_components)</a>
 </li>
-      <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_create_saint_filtering_container">interactomics_create_saint_filtering_container() (in module app.pages.QC_and_data_analysis)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_create_saint_filtering_container">interactomics_create_saint_filtering_container() (in module app.pages.QC_and_data_analysis)</a>
+</li>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_draw_saint_filtered_figure">interactomics_draw_saint_filtered_figure() (in module app.pages.QC_and_data_analysis)</a>
 </li>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_draw_saint_histogram">interactomics_draw_saint_histogram() (in module app.pages.QC_and_data_analysis)</a>
@@ -1105,8 +1133,6 @@
 </li>
       <li><a href="code/app.components.html#app.components.tooltips.interactomics_select_top_controls_tooltip">interactomics_select_top_controls_tooltip() (in module app.components.tooltips)</a>
 </li>
-      <li><a href="code/app.components.html#app.components.infra.invisible_utilities">invisible_utilities() (in module app.components.infra)</a>
-</li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.apitools.is_newer">is_newer() (in module app.components.api_tools.apitools)</a>
 </li>
       <li><a href="code/app.components.api_tools.html#app.components.api_tools.uniprot.is_newer_available">is_newer_available() (in module app.components.api_tools.uniprot)</a>
@@ -1131,6 +1157,8 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="code/app.html#app.database_admin.last_update">last_update() (in module app.database_admin)</a>
+</li>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.layout">layout (in module app.pages.QC_and_data_analysis)</a>
 </li>
       <li><a href="code/app.components.figures.html#app.components.figures.figure_legends.leg_rep">leg_rep() (in module app.components.figures.figure_legends)</a>
@@ -1178,9 +1206,13 @@
       <li><a href="code/app.html#app.app.main">main() (in module app.app)</a>
 
       <ul>
+        <li><a href="code/app.html#app.database_admin.main">(in module app.database_admin)</a>
+</li>
         <li><a href="code/app.pipeline_module.html#app.pipeline_module.batch_figure_builder_from_divs.main">(in module app.pipeline_module.batch_figure_builder_from_divs)</a>
 </li>
         <li><a href="code/app.html#app.run_as_pipeline.main">(in module app.run_as_pipeline)</a>
+</li>
+        <li><a href="code/MSParser.html#utils.MSParser.MSparser.main">(in module utils.MSParser.MSparser)</a>
 </li>
       </ul></li>
       <li><a href="code/app.components.html#app.components.ui_components.main_content_div">main_content_div() (in module app.components.ui_components)</a>
@@ -1327,8 +1359,6 @@
 </li>
         <li><a href="code/app.components.html#module-app.components.file_upload_api">app.components.file_upload_api</a>
 </li>
-        <li><a href="code/app.components.html#module-app.components.infra">app.components.infra</a>
-</li>
         <li><a href="code/app.components.html#module-app.components.interactomics">app.components.interactomics</a>
 </li>
         <li><a href="code/app.components.html#module-app.components.mathparser">app.components.mathparser</a>
@@ -1358,6 +1388,8 @@
         <li><a href="code/app.components.html#module-app.components.tooltips">app.components.tooltips</a>
 </li>
         <li><a href="code/app.components.html#module-app.components.ui_components">app.components.ui_components</a>
+</li>
+        <li><a href="code/app.html#module-app.database_admin">app.database_admin</a>
 </li>
         <li><a href="code/app.html#module-app.database_updater">app.database_updater</a>
 </li>
@@ -1392,6 +1424,16 @@
         <li><a href="code/app.resources.html#module-app.resources.get_cpu_count">app.resources.get_cpu_count</a>
 </li>
         <li><a href="code/app.html#module-app.run_as_pipeline">app.run_as_pipeline</a>
+</li>
+        <li><a href="code/MSParser.html#module-utils.MSParser">utils.MSParser</a>
+</li>
+        <li><a href="code/MSParser.html#module-utils.MSParser.ms_name_identifier">utils.MSParser.ms_name_identifier</a>
+</li>
+        <li><a href="code/MSParser.html#module-utils.MSParser.MSparser">utils.MSParser.MSparser</a>
+</li>
+        <li><a href="code/MSParser.html#module-utils.MSParser.parse_thermo">utils.MSParser.parse_thermo</a>
+</li>
+        <li><a href="code/MSParser.html#module-utils.MSParser.parse_timstof">utils.MSParser.parse_timstof</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1432,8 +1474,6 @@
 </li>
       <li><a href="code/app.components.tools.html#app.components.tools.utils.normalize_key">normalize_key() (in module app.components.tools.utils)</a>
 </li>
-      <li><a href="code/app.components.html#app.components.infra.notifiers">notifiers() (in module app.components.infra)</a>
-</li>
       <li><a href="code/app.pages.html#app.pages.MS_Inspector.num_of_traces_visible">num_of_traces_visible (in module app.pages.MS_Inspector)</a>
 </li>
   </ul></td>
@@ -1470,13 +1510,23 @@
 </li>
       <li><a href="code/app.components.html#app.components.parsing.parse_comparisons">parse_comparisons() (in module app.components.parsing)</a>
 </li>
+      <li><a href="code/MSParser.html#utils.MSParser.MSparser.parse_d">parse_d() (in module utils.MSParser.MSparser)</a>
+</li>
       <li><a href="code/app.components.html#app.components.parsing.parse_data_file">parse_data_file() (in module app.components.parsing)</a>
 </li>
       <li><a href="code/app.html#app.embedded_page_updater.parse_embed_file">parse_embed_file() (in module app.embedded_page_updater)</a>
 </li>
+      <li><a href="code/MSParser.html#utils.MSParser.parse_thermo.parse_file">parse_file() (in module utils.MSParser.parse_thermo)</a>
+
+      <ul>
+        <li><a href="code/MSParser.html#utils.MSParser.parse_timstof.parse_file">(in module utils.MSParser.parse_timstof)</a>
+</li>
+      </ul></li>
       <li><a href="code/app.pages.html#app.pages.Colocalizer.parse_metadata">parse_metadata() (in module app.pages.Colocalizer)</a>
 </li>
       <li><a href="code/app.components.html#app.components.parsing.parse_parameters">parse_parameters() (in module app.components.parsing)</a>
+</li>
+      <li><a href="code/MSParser.html#utils.MSParser.MSparser.parse_raw">parse_raw() (in module utils.MSParser.MSparser)</a>
 </li>
       <li><a href="code/app.components.html#app.components.parsing.parse_sample_table">parse_sample_table() (in module app.components.parsing)</a>
 </li>
@@ -1492,12 +1542,12 @@
         <li><a href="code/app.components.html#app.components.proteomics.pca">(in module app.components.proteomics)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.components.html#app.components.proteomics.perc_cvplot">perc_cvplot() (in module app.components.proteomics)</a>
 </li>
       <li><a href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig.plot_formats">plot_formats (app.pipeline_module.pipeline_batch.BatchConfig attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.plot_tic">plot_tic() (in module app.pages.QC_and_data_analysis)</a>
 </li>
       <li><a href="code/app.components.html#app.components.ui_components.post_saint_container">post_saint_container() (in module app.components.ui_components)</a>
@@ -1583,11 +1633,19 @@
       <li><a href="code/app.components.html#app.components.parsing.read_matrix">read_matrix() (in module app.components.parsing)</a>
 </li>
       <li><a href="code/app.components.tools.html#app.components.tools.utils.read_toml">read_toml() (in module app.components.tools.utils)</a>
+
+      <ul>
+        <li><a href="code/MSParser.html#utils.MSParser.MSparser.read_toml">(in module utils.MSParser.MSparser)</a>
 </li>
+      </ul></li>
       <li><a href="code/app.components.html#app.components.file_upload_api.register_file_upload_api">register_file_upload_api() (in module app.components.file_upload_api)</a>
 </li>
       <li><a href="code/app.components.html#app.components.text_handling.remove_accent_characters">remove_accent_characters() (in module app.components.text_handling)</a>
+
+      <ul>
+        <li><a href="code/MSParser.html#utils.MSParser.MSparser.remove_accent_characters">(in module utils.MSParser.MSparser)</a>
 </li>
+      </ul></li>
       <li><a href="code/app.components.html#app.components.parsing.remove_all_na">remove_all_na() (in module app.components.parsing)</a>
 </li>
       <li><a href="code/app.components.html#app.components.db_functions.remove_column">remove_column() (in module app.components.db_functions)</a>
@@ -1596,12 +1654,20 @@
 </li>
       <li><a href="code/app.components.html#app.components.parsing.remove_duplicate_protein_groups">remove_duplicate_protein_groups() (in module app.components.parsing)</a>
 </li>
+      <li><a href="code/app.components.html#app.components.parsing.remove_filepath_from_columns">remove_filepath_from_columns() (in module app.components.parsing)</a>
+</li>
       <li><a href="code/app.components.html#app.components.parsing.remove_from_table">remove_from_table() (in module app.components.parsing)</a>
 </li>
-      <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.remove_samples">remove_samples() (in module app.pages.QC_and_data_analysis)</a>
+      <li><a href="code/app.components.html#app.components.parsing.remove_rawfile_ending">remove_rawfile_ending() (in module app.components.parsing)</a>
+
+      <ul>
+        <li><a href="code/MSParser.html#utils.MSParser.MSparser.remove_rawfile_ending">(in module utils.MSParser.MSparser)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.remove_samples">remove_samples() (in module app.pages.QC_and_data_analysis)</a>
+</li>
       <li><a href="code/app.components.figures.html#app.components.figures.color_tools.remove_unwanted_colors">remove_unwanted_colors() (in module app.components.figures.color_tools)</a>
 </li>
       <li><a href="code/app.components.html#app.components.db_functions.rename_column">rename_column() (in module app.components.db_functions)</a>
@@ -1613,7 +1679,11 @@
       <li><a href="code/app.components.html#app.components.text_handling.replace_accent_and_special_characters">replace_accent_and_special_characters() (in module app.components.text_handling)</a>
 </li>
       <li><a href="code/app.components.html#app.components.text_handling.replace_special_characters">replace_special_characters() (in module app.components.text_handling)</a>
+
+      <ul>
+        <li><a href="code/MSParser.html#utils.MSParser.MSparser.replace_special_characters">(in module utils.MSParser.MSparser)</a>
 </li>
+      </ul></li>
       <li><a href="code/app.components.html#app.components.qc_analysis.reproducibility_plot">reproducibility_plot() (in module app.components.qc_analysis)</a>
 
       <ul>
@@ -1635,6 +1705,8 @@
       <li><a href="code/app.components.html#app.components.matrix_functions.reverse_log2">reverse_log2() (in module app.components.matrix_functions)</a>
 </li>
       <li><a href="code/app.components.figures.html#app.components.figures.color_tools.rgba_to_hex">rgba_to_hex() (in module app.components.figures.color_tools)</a>
+</li>
+      <li><a href="code/MSParser.html#utils.MSParser.parse_thermo.roundup">roundup() (in module utils.MSParser.parse_thermo)</a>
 </li>
       <li><a href="code/app.html#app.run_as_pipeline.run_batch_pipeline">run_batch_pipeline() (in module app.run_as_pipeline)</a>
 </li>
@@ -1744,18 +1816,14 @@
         <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.table_of_contents">(in module app.pages.QC_and_data_analysis)</a>
 </li>
       </ul></li>
-      <li><a href="code/app.components.html#app.components.infra.temporary_download_button_loading_divs">temporary_download_button_loading_divs() (in module app.components.infra)</a>
-</li>
-      <li><a href="code/app.components.html#app.components.infra.temporary_download_divs">temporary_download_divs() (in module app.components.infra)</a>
-</li>
       <li><a href="code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.BatchConfig.test_type">test_type (app.pipeline_module.pipeline_batch.BatchConfig attribute)</a>
 </li>
       <li><a href="code/app.components.html#app.components.tooltips.test_type_tooltip">test_type_tooltip() (in module app.components.tooltips)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.components.figures.html#app.components.figures.tic_graph.tic_figure">tic_figure() (in module app.components.figures.tic_graph)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.toggle_discard_modal">toggle_discard_modal() (in module app.pages.QC_and_data_analysis)</a>
 </li>
       <li><a href="code/app.pages.html#app.pages.MS_Inspector.toggle_graphs">toggle_graphs() (in module app.pages.MS_Inspector)</a>
@@ -1800,8 +1868,6 @@
 </li>
       <li><a href="code/app.html#app.database_updater.update_log_table">update_log_table() (in module app.database_updater)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.components.html#app.components.parsing.update_nested_dict">update_nested_dict() (in module app.components.parsing)</a>
 </li>
       <li><a href="code/app.html#app.embedded_page_updater.update_pages">update_pages() (in module app.embedded_page_updater)</a>
@@ -1812,6 +1878,8 @@
 </li>
       <li><a href="code/app.pages.html#app.pages.MS_Inspector.update_tic_graph">update_tic_graph() (in module app.pages.MS_Inspector)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.html#app.database_updater.update_uniprot">update_uniprot() (in module app.database_updater)</a>
 </li>
       <li><a href="code/app.html#app.database_updater.update_version_table">update_version_table() (in module app.database_updater)</a>
@@ -1828,6 +1896,41 @@
 </li>
       <li><a href="code/app.pages.html#app.pages.Colocalizer.utils">utils() (in module app.pages.Colocalizer)</a>
 </li>
+      <li>
+    utils.MSParser
+
+      <ul>
+        <li><a href="code/MSParser.html#module-utils.MSParser">module</a>
+</li>
+      </ul></li>
+      <li>
+    utils.MSParser.ms_name_identifier
+
+      <ul>
+        <li><a href="code/MSParser.html#module-utils.MSParser.ms_name_identifier">module</a>
+</li>
+      </ul></li>
+      <li>
+    utils.MSParser.MSparser
+
+      <ul>
+        <li><a href="code/MSParser.html#module-utils.MSParser.MSparser">module</a>
+</li>
+      </ul></li>
+      <li>
+    utils.MSParser.parse_thermo
+
+      <ul>
+        <li><a href="code/MSParser.html#module-utils.MSParser.parse_thermo">module</a>
+</li>
+      </ul></li>
+      <li>
+    utils.MSParser.parse_timstof
+
+      <ul>
+        <li><a href="code/MSParser.html#module-utils.MSParser.parse_timstof">module</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1838,10 +1941,12 @@
 </li>
       <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.validate_data">validate_data() (in module app.pages.QC_and_data_analysis)</a>
 </li>
-      <li><a href="code/app.components.figures.html#app.components.figures.figure_legends.volcano_heatmap_legend">volcano_heatmap_legend() (in module app.components.figures.figure_legends)</a>
+      <li><a href="code/app.pages.html#app.pages.QC_and_data_analysis.version_check">version_check() (in module app.pages.QC_and_data_analysis)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="code/app.components.figures.html#app.components.figures.figure_legends.volcano_heatmap_legend">volcano_heatmap_legend() (in module app.components.figures.figure_legends)</a>
+</li>
       <li><a href="code/app.components.figures.html#app.components.figures.volcano_plot.volcano_plot">volcano_plot() (in module app.components.figures.volcano_plot)</a>
 </li>
       <li><a href="code/app.components.figures.html#app.components.figures.figure_legends.volcano_plot_legend">volcano_plot_legend() (in module app.components.figures.figure_legends)</a>
@@ -1865,8 +1970,6 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="code/app.components.html#app.components.infra.working_data_stores">working_data_stores() (in module app.components.infra)</a>
-</li>
-      <li><a href="code/app.components.html#app.components.infra.write_README">write_README() (in module app.components.infra)</a>
 </li>
   </ul></td>
 </tr></table>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MSParser package &mdash; ProteoGyver Documentation</title>
+  <title>MSParser Package &mdash; ProteoGyver Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -44,18 +44,48 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Proteogyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Proteomics%20example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Interactomics%20example.html">Example usecases for ProteoGyver using public datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../user%20guide.html">ProteoGyver User Guide</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">2025_ProteoGyver</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Code Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="app.html">app package</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">MSParser package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#msparser-msparser-module">MSParser.MSparser module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#msparser-ms-name-identifier-module">MSParser.ms_name_identifier module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#msparser-parse-thermo-module">MSParser.parse_thermo module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#msparser-parse-timstof-module">MSParser.parse_timstof module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MSParser Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.MSParser.ms_name_identifier">MSParser.ms_name_identifier module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.ms_name_identifier.identify"><code class="docutils literal notranslate"><span class="pre">identify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.MSParser.MSparser">MSParser.MSparser module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.analyze"><code class="docutils literal notranslate"><span class="pre">analyze()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.calculate_auc"><code class="docutils literal notranslate"><span class="pre">calculate_auc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.count_intercepts"><code class="docutils literal notranslate"><span class="pre">count_intercepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.handle_data"><code class="docutils literal notranslate"><span class="pre">handle_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.parse_d"><code class="docutils literal notranslate"><span class="pre">parse_d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.parse_raw"><code class="docutils literal notranslate"><span class="pre">parse_raw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.read_toml"><code class="docutils literal notranslate"><span class="pre">read_toml()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.remove_accent_characters"><code class="docutils literal notranslate"><span class="pre">remove_accent_characters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.remove_rawfile_ending"><code class="docutils literal notranslate"><span class="pre">remove_rawfile_ending()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.MSparser.replace_special_characters"><code class="docutils literal notranslate"><span class="pre">replace_special_characters()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.MSParser.parse_thermo">MSParser.parse_thermo module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_thermo.deduplicate_nested_dicts"><code class="docutils literal notranslate"><span class="pre">deduplicate_nested_dicts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_thermo.get_scantypes"><code class="docutils literal notranslate"><span class="pre">get_scantypes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_thermo.get_traces"><code class="docutils literal notranslate"><span class="pre">get_traces()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_thermo.parse_file"><code class="docutils literal notranslate"><span class="pre">parse_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_thermo.roundup"><code class="docutils literal notranslate"><span class="pre">roundup()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.MSParser.parse_timstof">MSParser.parse_timstof module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_timstof.get_directory_size"><code class="docutils literal notranslate"><span class="pre">get_directory_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_timstof.get_traces"><code class="docutils literal notranslate"><span class="pre">get_traces()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils.MSParser.parse_timstof.parse_file"><code class="docutils literal notranslate"><span class="pre">parse_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.MSParser">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -76,8 +106,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">2025_ProteoGyver</a></li>
-      <li class="breadcrumb-item active">MSParser package</li>
+          <li class="breadcrumb-item"><a href="modules.html">Code Reference</a></li>
+      <li class="breadcrumb-item active">MSParser Package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/code/MSParser.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -88,24 +118,258 @@
            <div itemprop="articleBody">
              
   <section id="msparser-package">
-<h1>MSParser package<a class="headerlink" href="#msparser-package" title="Link to this heading"></a></h1>
+<h1>MSParser Package<a class="headerlink" href="#msparser-package" title="Link to this heading"></a></h1>
+<p>The MSParser package provides utilities for pre-analysis of MS raw data files,
+including parsers for Thermo and timsTOF instruments.</p>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+</div>
 </section>
-<section id="msparser-msparser-module">
-<h2>MSParser.MSparser module<a class="headerlink" href="#msparser-msparser-module" title="Link to this heading"></a></h2>
+<section id="module-utils.MSParser.ms_name_identifier">
+<span id="msparser-ms-name-identifier-module"></span><h2>MSParser.ms_name_identifier module<a class="headerlink" href="#module-utils.MSParser.ms_name_identifier" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.ms_name_identifier.identify">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.ms_name_identifier.</span></span><span class="sig-name descname"><span class="pre">identify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/ms_name_identifier.html#identify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.ms_name_identifier.identify" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="msparser-ms-name-identifier-module">
-<h2>MSParser.ms_name_identifier module<a class="headerlink" href="#msparser-ms-name-identifier-module" title="Link to this heading"></a></h2>
+<section id="module-utils.MSParser.MSparser">
+<span id="msparser-msparser-module"></span><h2>MSParser.MSparser module<a class="headerlink" href="#module-utils.MSParser.MSparser" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.analyze">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">analyze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#analyze"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.analyze" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.calculate_auc">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">calculate_auc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#calculate_auc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.calculate_auc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.count_intercepts">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">count_intercepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xydata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#count_intercepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.count_intercepts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.handle_data">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">handle_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#handle_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.handle_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.main">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.parse_d">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">parse_d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id_regex</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#parse_d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.parse_d" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.parse_raw">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">parse_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#parse_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.parse_raw" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.read_toml">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">read_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toml_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#read_toml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.read_toml" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.remove_accent_characters">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">remove_accent_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#remove_accent_characters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.remove_accent_characters" title="Link to this definition"></a></dt>
+<dd><p>Replace accented characters with their unaccented equivalents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Input string containing accented characters.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>String with accented characters replaced by unaccented equivalents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.remove_rawfile_ending">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">remove_rawfile_ending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#remove_rawfile_ending"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.remove_rawfile_ending" title="Link to this definition"></a></dt>
+<dd><p>Removes the raw file ending from a column name. For example, if the column name is ‘run1.raw’, it will be changed to ‘run1’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.MSparser.replace_special_characters">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.MSparser.</span></span><span class="sig-name descname"><span class="pre">replace_special_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replacewith</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_and_re</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replacement_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stripresult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_duplicates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make_lowercase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_numbers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_first_digit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/MSparser.html#replace_special_characters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.MSparser.replace_special_characters" title="Link to this definition"></a></dt>
+<dd><p>Replace special characters in a string with specified replacements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Input string containing special characters.</p></li>
+<li><p><strong>replacewith</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Character to use for replacement.</p></li>
+<li><p><strong>dict_and_re</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to apply both dictionary replacements and regex.</p></li>
+<li><p><strong>replacement_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span>) – Mapping of specific substrings to replacements.</p></li>
+<li><p><strong>stripresult</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Strip whitespace and replacement characters from result.</p></li>
+<li><p><strong>remove_duplicates</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Collapse consecutive replacement characters.</p></li>
+<li><p><strong>make_lowercase</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Convert result to lowercase.</p></li>
+<li><p><strong>allow_numbers</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Allow numbers in the result.</p></li>
+<li><p><strong>allow_space</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Allow spaces in the result.</p></li>
+<li><p><strong>mask_first_digit</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Character to prefix when first char is a digit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>String with special characters replaced.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="msparser-parse-thermo-module">
-<h2>MSParser.parse_thermo module<a class="headerlink" href="#msparser-parse-thermo-module" title="Link to this heading"></a></h2>
+<section id="module-utils.MSParser.parse_thermo">
+<span id="msparser-parse-thermo-module"></span><h2>MSParser.parse_thermo module<a class="headerlink" href="#module-utils.MSParser.parse_thermo" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_thermo.deduplicate_nested_dicts">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_thermo.</span></span><span class="sig-name descname"><span class="pre">deduplicate_nested_dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nest_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_thermo.html#deduplicate_nested_dicts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_thermo.deduplicate_nested_dicts" title="Link to this definition"></a></dt>
+<dd><p>Remove nested dicts based on inner dict values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>nest_dict</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionary of dictionaries.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A new dictionary with duplicates removed (keeps first occurrence, by sorted keys).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_thermo.get_scantypes">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_thermo.</span></span><span class="sig-name descname"><span class="pre">get_scantypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_thermo.html#get_scantypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_thermo.get_scantypes" title="Link to this definition"></a></dt>
+<dd><p>Get scantypes from a raw file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rawfile</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">RawFileReaderAdapter</span></code></span>) – Raw file reader adapter.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the scantypes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_thermo.get_traces">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_thermo.</span></span><span class="sig-name descname"><span class="pre">get_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_thermo.html#get_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_thermo.get_traces" title="Link to this definition"></a></dt>
+<dd><p>Get traces from a raw file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rawfile</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">RawFileReaderAdapter</span></code></span>) – Raw file reader adapter.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the traces.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_thermo.parse_file">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_thermo.</span></span><span class="sig-name descname"><span class="pre">parse_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_thermo.html#parse_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_thermo.parse_file" title="Link to this definition"></a></dt>
+<dd><p>Parse a raw file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_path</strong> – Path to the data file.</p></li>
+<li><p><strong>filename</strong> – Name of the data file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the parsed data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_thermo.roundup">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_thermo.</span></span><span class="sig-name descname"><span class="pre">roundup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_thermo.html#roundup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_thermo.roundup" title="Link to this definition"></a></dt>
+<dd><p>Round up a float to the nearest 100.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="msparser-parse-timstof-module">
-<h2>MSParser.parse_timstof module<a class="headerlink" href="#msparser-parse-timstof-module" title="Link to this heading"></a></h2>
+<section id="module-utils.MSParser.parse_timstof">
+<span id="msparser-parse-timstof-module"></span><h2>MSParser.parse_timstof module<a class="headerlink" href="#module-utils.MSParser.parse_timstof" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_timstof.get_directory_size">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_timstof.</span></span><span class="sig-name descname"><span class="pre">get_directory_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_timstof.html#get_directory_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_timstof.get_directory_size" title="Link to this definition"></a></dt>
+<dd><p>Calculate the total size of all files in a directory recursively.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_timstof.get_traces">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_timstof.</span></span><span class="sig-name descname"><span class="pre">get_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ms1_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ms2_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_timstof.html#get_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_timstof.get_traces" title="Link to this definition"></a></dt>
+<dd><p>Get traces from a Timstof file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ms1_df</strong> – DataFrame containing the MS1 data.</p></li>
+<li><p><strong>ms2_df</strong> – DataFrame containing the MS2 data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing the traces.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.MSParser.parse_timstof.parse_file">
+<span class="sig-prename descclassname"><span class="pre">utils.MSParser.parse_timstof.</span></span><span class="sig-name descname"><span class="pre">parse_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id_regex</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/MSParser/parse_timstof.html#parse_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.MSParser.parse_timstof.parse_file" title="Link to this definition"></a></dt>
+<dd><p>Parse a Timstof file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> – Root directory of the Timstof file.</p></li>
+<li><p><strong>run_name</strong> – Name of the run.</p></li>
+<li><p><strong>run_id_regex</strong> – Regular expression to match the run ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing the parsed data.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="module-utils.MSParser">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-utils.MSParser" title="Link to this heading"></a></h2>
+<p>MSParser for pre-analysis of MS raw data files.</p>
 </section>
 </section>
 
