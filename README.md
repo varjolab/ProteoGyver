@@ -207,6 +207,7 @@ Since the input .toml can be very minimal, for all parameters that are NOT in it
 #### Initiating pipeline analysis via API
 An alternative to direct file system access to the server is to use the API. The API is on the same port as the GUI, under /api/upload-pipeline-files. 
 Here is a complete usage example via python:
+>import requests
 >datafile = 'datafile.tsv'
 >sample_table = 'sampletable.tsv'
 >pipeline = 'pipeline.toml'
