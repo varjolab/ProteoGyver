@@ -474,6 +474,7 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
     :returns: Interactomics summary dict.
     """
     db_file = os.path.join(*params["Data paths"]["Database file"])
+    contaminant_list = db_functions.get_contaminants(db_file)
     divs = {}
     # Check if we have spectral count data
     if '"No data"' in data_dictionary["data tables"]["spc"]:
@@ -552,6 +553,17 @@ def _run_interactomics_workflow(cfg: BatchConfig, data_dictionary: Dict[str, Any
     known_div, filtered_saint_with_knowns = interactomics.known_plot(filtered_saint, db_file, rep_colors_with_cont, params['Figure defaults']['half-height'])
     _dump_json(cfg.outdir, "23_saint_filtered_and_intensity_mapped_with_knowns", filtered_saint_with_knowns)
     divs["known"] = known_div
+    # 4.5) Common proteins plot
+    saint_matrix = interactomics.get_saint_matrix(filtered_saint)
+    common_proteins_div, common_proteins_data = qc_analysis.common_proteins(
+        saint_matrix.to_json(orient='split'),
+        db_file,
+        params["Figure defaults"]["full-height"],
+        additional_groups={"Other contaminants": contaminant_list},
+        id_str="interactomics",
+    )
+    _dump_json(cfg.outdir, "23_common_proteins", common_proteins_data)
+    divs["common_proteins"] = common_proteins_div
     # 5) Generate network plot
     network_div, network_elements, interactions = interactomics.do_network(
         filtered_saint,

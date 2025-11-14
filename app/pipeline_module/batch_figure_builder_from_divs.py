@@ -120,7 +120,7 @@ def build_analysis_divs_from_saved_divs(batch_output_dir: str, workflow: str, pa
         
         # Define order for interactomics figures  
         interactomics_order = [
-            'saint', 'known', 'network', 'pca', 'enrichment', 'msmic'
+            'saint', 'known', 'common_proteins', 'network', 'pca', 'enrichment', 'msmic'
         ]
         
         # Add interactomics divs
