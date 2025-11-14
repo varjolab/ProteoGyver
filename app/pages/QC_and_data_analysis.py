@@ -96,13 +96,16 @@ def version_check(_: str) -> html.Div:
     available_version = get_github_version()
     div_contents = ''
     compstyle = {'color': 'white', 'font-size': '12px'}
-    if available_version is None:
-        # Could not fetch version, don't show anything
-        div_contents = 'Could not check for new version.'
-    elif available_version != __version__:
-        # Newer version available
-        div_contents = f'New version available: {available_version} (current: {__version__})'    
-        compstyle['font-size'] = '20px'
+    try:
+        if available_version is None:
+            # Could not fetch version, don't show anything
+            div_contents = 'Could not check for new version.'
+        elif available_version != __version__:
+            # Newer version available
+            div_contents = f'New version available: {available_version} (current: {__version__})'    
+            compstyle['font-size'] = '20px'
+    except Exception as e:
+        logger.error(f'Error checking for new version: {e}')
     return html.Div(div_contents, style=compstyle)
 
 

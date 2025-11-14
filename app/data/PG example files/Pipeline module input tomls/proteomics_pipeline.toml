@@ -16,6 +16,6 @@ na_filter_type = "sample-group"
 normalization = "no_normalization"  
 imputation = "QRILC"  
 
-control_group = "SampleGroup1" 
+control_group = "Control_Group_1" 
 fc_threshold = 1
 p_threshold = 0.05 
