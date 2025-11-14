@@ -131,13 +131,18 @@ def parse_json_files():
         done_jsons.append(file)
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-    msrows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_runs'], f'{timestamp}_jsonParser_MSruns.tsv')
-    tracerows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_plots'], f'{timestamp}_jsonParser_MStraces.tsv')
+    ms_runs_dir = os.path.join(*parameters['Database updater']['Update files']['ms_runs'])
+    ms_plots_dir = os.path.join(*parameters['Database updater']['Update files']['ms_plots'])
+    os.makedirs(ms_runs_dir, exist_ok=True)
+    os.makedirs(ms_plots_dir, exist_ok=True)
+    
+    msrows_filename = os.path.join(ms_runs_dir, f'{timestamp}_jsonParser_MSruns.tsv')
+    tracerows_filename = os.path.join(ms_plots_dir, f'{timestamp}_jsonParser_MStraces.tsv')
     i = 0
     while os.path.exists(msrows_filename):
         i+=1
-        msrows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_runs'], f'{timestamp}_jsonParser_MSruns_{i}.tsv')
-        tracerows_filename = os.path.join(*parameters['Database updater']['Update files']['ms_plots'], f'{timestamp}_jsonParser_MStraces_{i}.tsv')
+        msrows_filename = os.path.join(ms_runs_dir, f'{timestamp}_jsonParser_MSruns_{i}.tsv')
+        tracerows_filename = os.path.join(ms_plots_dir, f'{timestamp}_jsonParser_MStraces_{i}.tsv')
 
     pd.DataFrame(data = MS_rows, columns=headers).to_csv(msrows_filename,sep='\t',index=False)
     pd.DataFrame(data = trace_rows, columns=trace_keys).to_csv(tracerows_filename,sep='\t',index=False)
