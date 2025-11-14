@@ -14,7 +14,8 @@ args=()
 if [[ "${FORCE_PG_DB_UPDATE:-0}" == "1" ]]; then
   args+=("--force-full-update")
 fi
+if [[ "${FORCE_PG_DB_MINIMAL_UPDATE:-0}" == "1" ]]; then
+  args+=("--force-minimal-update")
+fi
 
 exec python /proteogyver/database_admin.py "${args[@]}" "$@"
-
-

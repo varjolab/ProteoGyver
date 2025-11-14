@@ -5,6 +5,7 @@ services:
     environment:
       TZ: Europe/Helsinki
       FORCE_PG_DB_UPDATE: '0' # set to '1' to force a full database update, otherwise only updates that are due will be performed.
+      FORCE_PG_DB_MINIMAL_UPDATE: '0' # set to '1' to force a minimal database update (only put in files that are in the input dir, do not fetch anything.)
     volumes:
       - /data/PG15/cache:/proteogyver/cache
       - /data/PG15/db:/proteogyver/data/db
