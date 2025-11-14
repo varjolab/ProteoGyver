@@ -100,7 +100,7 @@ After selecting the Proteomics workflow starting the analysis, the following opt
   - **Quantile**: Quantile normalization
   - **Vsn**: Variance Stabilizing Normalization
 - **Select control group**: Dropdown to choose a sample group from your data to use as the control/reference group for comparisons
-- **Or upload comparison file**: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons
+- **Or upload comparison file**: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons. Green indicator means successful upload, while yellow means the file was uploaded successfully, but some sample groups in the comparisons were not found in the uploaded sample set. 
 - **log2 fold change threshold for comparisons**: Radio buttons to set the fold change threshold (default: 2-fold, log2 = 1.0). 
 - **Adjusted p-value threshold for comparisons**: Radio buttons to set the significance threshold for differential abundance (default: 0.01). Values used are FDR(bh) adjusted p-values. 
 - **Test type for comparisons**: Radio buttons to select statistical test:
