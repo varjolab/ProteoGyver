@@ -50,12 +50,18 @@ echo "[INIT] Starting Celery worker in background..."
 SCHEDULE_FILE="/proteogyver/data/celerybeat-schedule.db"
 mkdir -p "$(dirname "$SCHEDULE_FILE")"
 rm -f "$SCHEDULE_FILE"
-celery -A app.celery_app worker --loglevel=DEBUG --concurrency=$CPU_COUNT & # For app
-celery -A app.celery_app beat --loglevel=DEBUG --schedule "$SCHEDULE_FILE" & # For scheduled tasks
+
+# Set log levels from environment variables with defaults
+CELERY_WORKER_LOGLEVEL=${CELERY_WORKER_LOGLEVEL:-DEBUG}
+CELERY_BEAT_LOGLEVEL=${CELERY_BEAT_LOGLEVEL:-DEBUG}
+GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-debug}
+
+celery -A app.celery_app worker --loglevel="${CELERY_WORKER_LOGLEVEL}" --concurrency=$CPU_COUNT & # For app
+celery -A app.celery_app beat --loglevel="${CELERY_BEAT_LOGLEVEL}" --schedule "$SCHEDULE_FILE" & # For scheduled tasks
 sleep 5  # Give Celery time to start
 
 # --- Start Dash app with Gunicorn ---
-echo "[INIT] Starting Dash app... workers=${WORKERS} threads=${THREADS}"
+echo "[INIT] Starting Dash app... workers=${WORKERS} threads=${THREADS} log-level=${GUNICORN_LOG_LEVEL}"
 
 exec gunicorn app:server \
   --bind 0.0.0.0:8050 \
@@ -63,5 +69,5 @@ exec gunicorn app:server \
   --threads "${THREADS}" \
   --timeout 1200 \
   --graceful-timeout 30 \
-  --log-level debug \
+  --log-level "${GUNICORN_LOG_LEVEL}" \
   --max-requests 2000 --max-requests-jitter 200

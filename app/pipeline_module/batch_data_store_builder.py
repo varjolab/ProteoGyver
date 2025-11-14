@@ -392,6 +392,20 @@ def build_data_stores_from_batch_output(batch_output_dir: str, workflow: str) ->
         with open(qc_data_path, 'r') as f:
             qc_data = json.load(f)
         
+        # Load and add version information
+        version_info_path = f"{batch_output_dir}/00_version_info.json"
+        try:
+            with open(version_info_path, 'r') as f:
+                version_dict = json.load(f)
+            # Convert to DataFrame format matching web interface
+            version_df = pd.DataFrame(list(version_dict.items()), columns=['Entity', 'Version'])
+            version_json = version_df.to_json(orient='split')
+            data_stores.append(create_data_store_component('version-data-store', version_json))
+        except FileNotFoundError:
+            logger.warning(f"Version info not found: {version_info_path}")
+        except Exception as e:
+            logger.error(f"Error loading version info: {e}")
+        
         # Build common data stores
         data_stores.append(build_upload_data_store(data_dict))
         data_stores.extend(build_replicate_colors_stores(data_dict))

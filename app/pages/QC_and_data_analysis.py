@@ -117,9 +117,9 @@ def version_check(_: str) -> html.Div:
     Input('begin-analysis-button', 'n_clicks'),
     prevent_initial_call=True
 )
-#TODO: implement clearing.
+#TODO: implement clearing of data stores before analysis starts.
 #TODO: Alternatively we could load the data store elements at this point, except for the ones needed to ingest files up to this point.
-def clear_data_stores(begin_clicks: Optional[int]) -> tuple[str, Dict[str, Any]]:
+def save_version_info(begin_clicks: Optional[int]) -> tuple[str, Dict[str, Any]]:
     """Clear all data stores before analysis begins. Also saves version information to the version data store.
 
     :param begin_clicks: Number of clicks on the begin analysis button.

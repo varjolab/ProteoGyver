@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os, json, base64, time
+import logging
 import pandas as pd
 from io import StringIO
 from dataclasses import dataclass, field, asdict, is_dataclass
@@ -13,7 +14,8 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from components import parsing, qc_analysis, proteomics, interactomics, db_functions
-from components.figures import color_tools 
+from components.figures import color_tools
+from _version import __version__ 
 
 def dash_to_wire(obj):
     """Recursively convert Dash/Plotly components to JSON-serializable structures.
@@ -123,6 +125,32 @@ def _dump_json(outdir: str, name: str, obj: Any):
     with open(os.path.join(outdir, f"{name}.json"), "w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2)
 
+def _collect_version_info(db_file: str) -> Dict[str, Any]:
+    """Collect version information for Proteogyver, database, and external data.
+    
+    Mirrors the save_version_info function from QC_and_data_analysis.py.
+    
+    :param db_file: Path to SQLite database file.
+    :returns: Dictionary mapping entity names to versions.
+    """
+    version_dict = {
+        'Proteogyver version': __version__,
+    }
+    # Get database versions
+    for update_type, version in db_functions.get_database_versions(db_file).items():
+        version_dict[f'Database: {update_type}'] = version
+    # Get external data versions
+    conn = db_functions.create_connection(db_file, mode='ro')
+    try:
+        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
+            version_dict[dataset] = version
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f'Error getting external versions: {e}')
+    finally:
+        conn.close()  # type: ignore
+    return version_dict
+
 # -------- Pipeline --------
 def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
     """Execute the batch pipeline mirroring the app's QC and analysis steps.
@@ -134,6 +162,10 @@ def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
     # 1) Load parameters & db/contaminants (mirrors QC_and_data_analysis.py)
     db_file = os.path.join(*params["Data paths"]["Database file"])
     contaminant_list = db_functions.get_contaminants(db_file)
+    
+    # 1.5) Collect and save version information (mirrors save_version_info callback)
+    version_info = _collect_version_info(db_file)
+    _dump_json(cfg.outdir, "00_version_info", version_info)
 
     # 2) “Upload” data & sample tables from disk (use same parsing functions the app uses)
     data_contents, data_name, data_mtime = _upload_contents_for_path(cfg.data_table_path)
