@@ -40,6 +40,8 @@ def cleanup_cache_folders():
         if isinstance(days_unused, str):
             if days_unused.upper() == 'NO CLEANUP':
                 continue
+            else:
+                days_unused = int(days_unused)
         else:
             days_unused = int(days_unused)
 
@@ -55,9 +57,8 @@ def cleanup_cache_folders():
             path = os.path.join(cache_dir, entry)
             manual_days_since = datetime.now() - datetime.strptime(entry.split('--')[0], "%Y-%m-%d-%H-%M-%S")
             if os.path.isdir(path):
-                last_access = os.path.getatime(path)
                 last_mod = os.path.getmtime(path)
-                if last_access < cutoff and last_mod < cutoff and manual_days_since > timedelta(days=days_unused):
+                if last_mod < cutoff and manual_days_since > timedelta(days=days_unused):
                     # Archive mode
                     if archive_dir:
                         # Remove empty folders

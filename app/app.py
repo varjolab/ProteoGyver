@@ -19,6 +19,7 @@ import os
 from pathlib import Path
 from celery import Celery
 from datetime import datetime
+import shutil
 from components.tools import utils
 from celery.schedules import crontab
 from _version import __version__
@@ -121,6 +122,13 @@ def toggle_navbar_collapse(n: int, is_open: bool) -> bool:
 root_dir = Path(__file__).resolve().parents[0]
 parameters_path = os.path.join(root_dir, 'config','parameters.toml')
 parameters = utils.read_toml(Path(parameters_path))
+
+if not os.path.exists(os.path.join(*parameters['Data paths']['Database file'])):
+    print('Database file does not exist.')
+    minimal_db_path = os.path.join(*parameters['Data paths']['Minimal database file'])
+    if os.path.exists(minimal_db_path):
+        print('Minimal database file found, using it.')
+        shutil.copy(minimal_db_path, os.path.join(*parameters['Data paths']['Database file']))
 server = app.server
 
 # Register file upload API endpoint

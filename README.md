@@ -44,6 +44,12 @@ Example files are downloadable from the sidebar of the main interface. These inc
 
 In more detail below.
 
+### Input size and scale
+
+PG can handle hundreds of runs, and has been tested with up to a thousand or so. However, the specific limits have not been explored as of yet, nor the impact of input size on e.g. RAM use on the server. With 16 GB of RAM, over a hundred samples should not be a problem even when multiple concurrent analyses are ongoing. 
+
+Currently the pipeline module is limited to a single worker, however that will be addressed in version 1.6 or 1.7.
+
 ### Input Data Format
 - Sample table must include:
   - "Sample name" column
@@ -248,6 +254,9 @@ Here is a complete usage example via python:
 >    print("Downloaded PG output.zip")
 >else:
 >    print(f"Error: {response.json()}")
+
+#### Autocleaning of pipeline module inputs
+Files from the pipeline module input directory will be cleaned out 7 days after creation or last modification. This is tunable in parameters.toml (Maintenance.Cleanup.Pipeline api input)
 
 ## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs
