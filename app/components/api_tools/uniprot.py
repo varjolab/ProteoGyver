@@ -23,9 +23,11 @@ import sys
 import os
 import re
 import warnings
+import time
 import requests
 import pandas as pd
 from requests.adapters import HTTPAdapter, Retry
+from requests.exceptions import ChunkedEncodingError, ConnectionError, RequestException
 import json
 from . import apitools
 
@@ -376,21 +378,50 @@ def get_default_uniprot_column_map() -> dict:
             }
 
 
-def __get_uniprot_batch(batch_url: str, session: requests.Session) -> tuple: #TODO: mark all tuple returns with Generator class once available
+def __get_uniprot_batch(batch_url: str | None, session: requests.Session, max_retries: int = 5, initial_backoff: float = 1.0) -> tuple: #TODO: mark all tuple returns with Generator class once available
     """
     Retrieves batches from UniProt, results response, and total number of results.
+    Implements retry logic for connection errors with exponential backoff.
 
+    :param batch_url: URL for the batch request.
+    :param session: Requests session object.
+    :param max_retries: Maximum number of retry attempts for connection errors.
+    :param initial_backoff: Initial backoff time in seconds (doubles on each retry).
     :yields: a tuple of (requests.models.Response, total:str)
     """
     while batch_url:
-        response = session.get(batch_url)
-        response.raise_for_status()
-        try:
-            total = response.headers["x-total-results"]
-        except KeyError:
-            total = 1
-        yield (response, total)
-        batch_url: str = __get_uniprot_next_link(response.headers)
+        retry_count = 0
+        backoff = initial_backoff
+        
+        while retry_count <= max_retries:
+            try:
+                response = session.get(batch_url, timeout=300)  # 5 minute timeout
+                response.raise_for_status()
+                # Force reading the content to catch ChunkedEncodingError early
+                # This ensures the full response is downloaded before we yield it
+                _ = response.content  # This will raise ChunkedEncodingError if connection fails
+                try:
+                    total = response.headers["x-total-results"]
+                except KeyError:
+                    total = 1
+                yield (response, total)
+                next_url = __get_uniprot_next_link(response.headers)
+                batch_url = next_url if next_url else None
+                break  # Success, exit retry loop
+            except (ChunkedEncodingError, ConnectionError, RequestException) as e:
+                retry_count += 1
+                if retry_count > max_retries:
+                    raise RuntimeError(
+                        f"Failed to download UniProt batch after {max_retries} retries. "
+                        f"Last error: {type(e).__name__}: {str(e)}"
+                    ) from e
+                warnings.warn(
+                    f"Connection error downloading UniProt batch (attempt {retry_count}/{max_retries}): {str(e)}. "
+                    f"Retrying in {backoff:.1f} seconds...",
+                    UserWarning
+                )
+                time.sleep(backoff)
+                backoff *= 2  # Exponential backoff
 
 
 def __get_uniprot_next_link(headers) -> str|None:

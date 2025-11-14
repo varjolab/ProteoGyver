@@ -2,6 +2,8 @@
 
 Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).
 
+Documentation also available in [ReadTheDocs](https://proteogyver.readthedocs.io/en/latest/)
+
 ## Table of contents:
 
 ## Security and compatibility
@@ -228,18 +230,18 @@ Here is a complete usage example via python:
 >
 >response = requests.post(f"http://{server_url}:{server_port}/api/upload-pipeline-files", files=files)
 >upload_dir_name = response.json()['upload_directory_name']
->----------------------------------------------
-># Check status later
+----------------------------------------------
+Check status later
 >status = requests.get(
 >    f"http://{server_url}:{server_port}/api/pipeline-status",
 >    params={'upload_directory_name': upload_dir_name}
 >).json()
 >print(f'Status: {status["status"]}, message: {status["message"]}')
-># The status also includes upload directory name
+The status also includes upload directory name
 >if status['status'] == 'error':
 >    print(f"Error: {status['error_message']}")
->----------------------------------------------
-># Download the output zip file
+----------------------------------------------
+Download the output zip file
 >response = requests.get(
 >    f"http://{server_url}:{server_port}/api/download-output",
 >    params={'upload_directory_name': upload_dir_name},
@@ -330,9 +332,11 @@ It will parse the rawfile, and produce a .json file in the output directory, whi
 
 ### Docker Installation (recommended)
 
+For running the images, docker compose files in ProteoGyver github repo are highly recommended:
+[proteogyver docker-compose.yml](dockerfiles/proteogyver/docker-compose.yaml)
+[pg_updater docker-compose.yml](dockerfiles/pg_updater/docker-compose.yaml)
 
-TODO: dockerhub/zenodo here.
-
+Tweak the volume mappings to suit your local environment, same with the env variables. 
 
 #### Running the docker images
 
