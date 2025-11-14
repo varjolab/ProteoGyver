@@ -386,7 +386,7 @@ def do_update(save_file, uniprots_to_get: set|None, organisms: set|None) -> None
         download_intact_ftp(save_file)
     generate_pandas(save_file, save_file.replace('.zip','.tsv'),uniprots_to_get, organisms)
 
-def update(version:str, uniprots_to_get: set|None = None, organisms: set|None = None) -> str:
+def update(version:str, uniprots_to_get: set|None = None, organisms: set|None = None) -> list[str]:
     """Update the local IntAct cache if a newer release is available.
 
     :param version: Current version string.
@@ -407,9 +407,9 @@ def update(version:str, uniprots_to_get: set|None = None, organisms: set|None = 
     if datetime.strptime(date_str, '%Y-%m-%d').date() > apitools.parse_timestamp_from_str(version):
         print('Updating IntAct')
         do_update(os.path.join(apitools.get_save_location('IntAct'),f'{apitools.get_timestamp()}_intact.zip'), uniprots_to_get, organisms)
-        return date_str
+        return [date_str]
     else:
-        return version
+        return [version]
 
 def read_file_chunks(filepath: str, organisms: set|None = None, subset_letter: str|None = None, since_date: datetime|None = None) -> pd.DataFrame:
     """Read a TSV shard in chunks and optionally filter by organism/date.

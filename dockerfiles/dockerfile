@@ -61,7 +61,7 @@ COPY requirements/environment.yml /proteogyver/environment.yml
 RUN curl -L https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj -C /usr/local/bin --strip-components=1 bin/micromamba && \
     micromamba shell init -s bash -r ${MAMBA_ROOT_PREFIX} && \
     micromamba create -y -n PG -f /proteogyver/environment.yml && \
-    micromamba clean -a -y
+    micromamba clean -a -y 
 
 # Copy application code and setup (this happens last for better caching)
 COPY app /proteogyver

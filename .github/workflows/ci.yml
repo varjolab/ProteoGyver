@@ -168,3 +168,87 @@ jobs:
         with:
           name: sphinx-documentation
           path: docs/build/html
+
+  build-docker:
+    name: Build Docker containers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Uncomment if you want to push to GitHub Container Registry
+      # packages: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract version from tag
+        id: tag_version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set default version
+        id: default_version
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          echo "version=latest" >> $GITHUB_OUTPUT
+          echo "tag=latest" >> $GITHUB_OUTPUT
+
+      - name: Build ProteoGyver container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./dockerfiles/dockerfile
+          push: false
+          tags: proteogyver:${{ steps.tag_version.outputs.tag || steps.default_version.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
+
+      - name: Build ProteoGyver updater container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./dockerfiles/dockerfile_updater
+          push: false
+          tags: pg_updater:${{ steps.tag_version.outputs.tag || steps.default_version.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
+
+      # Optional: Push to Docker Hub
+      # Uncomment and configure if you want to push images
+      # You need to add DOCKERHUB_USERNAME and DOCKERHUB_TOKEN as secrets in your repository
+      # - name: Login to Docker Hub
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #
+      # - name: Push ProteoGyver container
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: ./dockerfiles/dockerfile
+      #     push: true
+      #     tags: |
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/proteogyver:${{ steps.tag_version.outputs.tag }}
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/proteogyver:latest
+      #
+      # - name: Push ProteoGyver updater container
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: ./dockerfiles/dockerfile_updater
+      #     push: true
+      #     tags: |
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/pg_updater:${{ steps.tag_version.outputs.tag }}
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/pg_updater:latest 

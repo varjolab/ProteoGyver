@@ -398,7 +398,7 @@ def get_available() -> list[str]:
 
 
 #TODO: check uniprots in should_update bool check too, not just version. Also organisms should be checked too.
-def update(version: str, uniprots_to_get:set|None = None, organisms: set|None = None) -> str:
+def update(version: str, uniprots_to_get:set|None = None, organisms: set|None = None) -> list[str]:
     """Update the local BioGRID cache if a newer release is available.
 
     :param versions: List of current versions of the BioGRID database.
@@ -416,9 +416,9 @@ def update(version: str, uniprots_to_get:set|None = None, organisms: set|None = 
     if version != uzip.rsplit('.',maxsplit=1)[0]:
         print('Updating BioGRID')
         do_update(save_location, uzip, latest_zipname, uniprots_to_get, organisms)
-        return uzip.rsplit('.',maxsplit=1)[0]
+        return [uzip.rsplit('.',maxsplit=1)[0]]
     else:
-        return version
+        return [version]
 
 def get_method_annotation() -> dict:
     """Return annotations for BioGRID interaction identification methods.

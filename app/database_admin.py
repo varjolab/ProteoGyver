@@ -94,8 +94,8 @@ def get_external_versions(conn: sqlite3.Connection, externals: list[str]) -> dic
     """
     version_dict = { }
     try:
-        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
-            version_dict[dataset] = version
+        for _, row in db_functions.get_full_table_as_pd(conn, 'data_versions').iterrows():
+            version_dict[row['dataset']] = row['version']
     except DatabaseError:
         version_dict = { }
     return version_dict
