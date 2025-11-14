@@ -1,18 +1,18 @@
 services:
   proteogyver:
     image: proteogyver:1.5
-    container_name: pg15
+    container_name: proteogyver15
     ports:
       - "8050:8050"
     environment:
       TZ: Europe/Helsinki
-      MONITOR_RESOURCES: "true"
-      RESOURCE_LOG_DIR: /proteogyver/data/Server_output/logs/resources
+      MONITOR_RESOURCES: "false"
+      #RESOURCE_LOG_DIR: /proteogyver/data/Server_output/logs/resources
       RESOURCE_LOG_INTERVAL_SECONDS: 5
       RESOURCE_LOG_KEEP_DAYS: 30
-      CELERY_WORKER_LOGLEVEL: "DEBUG"
-      CELERY_BEAT_LOGLEVEL: "DEBUG"
-      GUNICORN_LOG_LEVEL: "debug"
+      CELERY_WORKER_LOGLEVEL: "WARNING"
+      CELERY_BEAT_LOGLEVEL: "WARNING"
+      GUNICORN_LOG_LEVEL: "warning"
     volumes:
       - /data/PG15/cache:/proteogyver/cache
       - /data/PG15/db:/proteogyver/data/db
