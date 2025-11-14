@@ -673,6 +673,8 @@ def update_external_data(conn, parameters, timestamp, organisms: set|None = None
         versions = { }
     if not 'uniprot' in versions:
         versions['uniprot'] = ['-1::no version']
+    elif isinstance(versions['uniprot'], str):
+        versions['uniprot'] = [versions['uniprot']]
     for d in ['biogrid', 'intact']:
         if not d in versions:
             versions[d] = 'no version'

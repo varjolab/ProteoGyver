@@ -145,7 +145,7 @@ def get_coverage_data(data_table: pd.DataFrame) -> pd.DataFrame:
         .astype(int)
         .sum(axis=1)
         .value_counts()
-    ).rename(columns={'count': 'Identified in # samples'})
+    ).rename(columns={'count': 'Protein count'})
 
 
 def get_na_data(data_table: pd.DataFrame) -> pd.DataFrame:
