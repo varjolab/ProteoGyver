@@ -79,14 +79,18 @@ COPY LICENSE /LICENSE
 
 # Make SAINT executable and final setup
 RUN chmod +x /docker_entrypoint.sh && \
-    cd /proteogyver/external/SAINTexpress && \
-    if [ -f SAINTexpress-spc ]; then \
-        chmod 777 SAINTexpress-spc && \
-        ln -s /proteogyver/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc; \
-    fi && \
-    if [ -f SAINTexpress-int ]; then \
-        chmod 777 SAINTexpress-int && \
-        ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt; \
+    if [ -d /proteogyver/external/SAINTexpress ]; then \
+        cd /proteogyver/external/SAINTexpress && \
+        if [ -f SAINTexpress-spc ]; then \
+            chmod 777 SAINTexpress-spc && \
+            ln -s /proteogyver/external/SAINTexpress/SAINTexpress-spc /usr/bin/SAINTexpressSpc; \
+        fi && \
+        if [ -f SAINTexpress-int ]; then \
+            chmod 777 SAINTexpress-int && \
+            ln -s /proteogyver/external/SAINTexpress/SAINTexpress-int /usr/bin/SAINTexpressInt; \
+        fi; \
+    else \
+        echo "WARNING: /proteogyver/external/SAINTexpress directory not found. SAINT executables will not be available."; \
     fi
 
 WORKDIR /proteogyver
