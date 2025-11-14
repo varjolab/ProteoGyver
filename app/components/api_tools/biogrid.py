@@ -394,6 +394,8 @@ def get_available() -> list[str]:
     :returns: List of shard basenames without the ``.tsv`` suffix.
     """
     filepath: str = get_latest(name_only=True) # type: ignore
+    if not os.path.exists(filepath):
+        return []
     return [f.split('.')[0] for f in os.listdir(filepath) if f.endswith('.tsv')]
 
 
