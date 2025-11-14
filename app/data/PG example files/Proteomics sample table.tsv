@@ -5,9 +5,6 @@ Sample name	Sample group
 359_Tomppa_25-B_re_S1-D8	SG2
 414_Tomppa_9-A_re_S1-A3	SG2
 353_Tomppa_23-C_re_S1-A8	SG2
-303_Tomppa_16-B_re_S1-H4	SG3
-355_Tomppa_23-D_re_S1-B8	SG3
-317_Tomppa_18-A_re_S1-G5	SG3
-361_Tomppa_25-C_re_S1-E8	
-439_Tomppa_33-A_re_S1-E4	
-520_Tomppa_58-C_re_S1-E5	
+303_Tomppa_16-B_re_S1-H4	Control_Group_1
+355_Tomppa_23-D_re_S1-B8	Control_Group_1
+317_Tomppa_18-A_re_S1-G5	Control_Group_1

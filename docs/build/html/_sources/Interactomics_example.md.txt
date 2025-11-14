@@ -1,4 +1,4 @@
-# Example Interactomcis usecase for ProteoGyver using a public dataset
+# Example Interactomcis usecase for ProteoGyver
 This guide documents the end to end QC analysis of a public interactomics dataset.
 
 ## Software and data prerequisites

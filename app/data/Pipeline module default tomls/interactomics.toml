@@ -1,7 +1,7 @@
 [interactomics]
 # Controls uploaded with your data (sample names from your experimental design)
 # Based on the sample table, these are the control groups
-uploaded_controls = ["Control_Group_1", "Control_Group_7"]
+uploaded_controls = []
 
 # Built-in control sets from the database (see parameters.toml for available sets)
 # Using available GFP control sets

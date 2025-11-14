@@ -1,5 +1,5 @@
 sample	control
-SG1	SG2
-SG2	SG3
-SG1	SG3
+SG1	Control_Group_1
+SG2	Control_Group_1
 SG3	SG2
+SG3	Control_Group_1

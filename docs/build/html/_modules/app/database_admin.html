@@ -43,7 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">Proteogyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../code/modules.html">Code Reference</a></li>
 </ul>
@@ -177,8 +177,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">version_dict</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_full_table_as_pd</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;data_versions&#39;</span><span class="p">):</span>
-            <span class="n">version_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="n">version</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_full_table_as_pd</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;data_versions&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">version_dict</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span>
     <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
         <span class="n">version_dict</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
     <span class="k">return</span> <span class="n">version_dict</span></div>
