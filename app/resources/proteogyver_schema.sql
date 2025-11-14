@@ -1,26 +1,4 @@
-CREATE TABLE control_sets (
-    control_set TEXT PRIMARY KEY,
-    control_set_name TEXT NOT NULL,
-    runs INTEGER NOT NULL,
-    is_disabled INTEGER NOT NULL,
-    is_default INTEGER NOT NULL,
-    control_table_name TEXT NOT NULL,
-    version_update_time TEXT NOT NULL,
-    prev_version TEXT
-);
-
-CREATE TABLE crapome_sets (
-    crapome_set TEXT PRIMARY KEY,
-    crapome_set_name TEXT NOT NULL,
-    runs INTEGER NOT NULL,
-    is_disabled INTEGER NOT NULL,
-    is_default INTEGER NOT NULL,
-    crapome_table_name TEXT NOT NULL,
-    version_update_time TEXT NOT NULL,
-    prev_version TEXT
-);
-
-CREATE TABLE  proteins (
+CREATE TABLE proteins (
     uniprot_id TEXT PRIMARY KEY,
     is_reviewed INTEGER NOT NULL,
     gene_name TEXT,
@@ -35,7 +13,7 @@ CREATE TABLE  proteins (
     prev_version TEXT
 );
 
-CREATE TABLE  contaminants (
+CREATE TABLE contaminants (
     uniprot_id TEXT PRIMARY KEY,
     is_reviewed INTEGER NOT NULL,
     gene_name TEXT,
@@ -116,24 +94,6 @@ CREATE TABLE common_proteins (
     prev_version TEXT
 );
 
-CREATE TABLE ms_runs (
-    internal_run_id TEXT PRIMARY KEY,
-    data_type TEXT,
-    file_name TEXT,
-    file_size INTEGER,
-    parsed_date TEXT,
-    sample_id TEXT,
-    file_name_clean TEXT,
-    sample_name TEXT,
-    run_date TEXT,
-    run_start_time REAL,
-    run_end_time REAL,
-    run_last_scan_number INTEGER,
-    inst_model TEXT,
-    inst_serial_no TEXT,
-    inst_name TEXT
-);
-
 CREATE TABLE ms_plots (
     internal_run_id TEXT PRIMARY KEY,
     BPC_auc REAL,
@@ -160,5 +120,29 @@ CREATE TABLE update_log (
     modification_type TEXT,
     tablename TEXT,
     count INTEGER
+);
+
+CREATE TABLE data_versions (
+            dataset TEXT,
+            version TEXT,
+            last_update_check TEXT
+        );
+
+CREATE TABLE "ms_runs"(
+  internal_run_id TEXT,
+  data_type TEXT,
+  file_name TEXT,
+  file_size INT,
+  parsed_date TEXT,
+  sample_id TEXT,
+  file_name_clean TEXT,
+  sample_name TEXT,
+  run_date TEXT,
+  run_start_time REAL,
+  run_end_time REAL,
+  run_last_scan_number INT,
+  inst_model TEXT,
+  inst_serial_no TEXT,
+  inst_name TEXT
 );
 
