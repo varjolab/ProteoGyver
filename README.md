@@ -9,7 +9,7 @@ Documentation also available in [ReadTheDocs](https://proteogyver.readthedocs.io
 ## Security and compatibility
 
 The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)
-ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, however should work just fine on other platforms as well. ARM-based systems may require a rebuild of the container.
+ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, and as such ubuntu linux is the only officially supported platform. However, the container should work just fine on other x86 platforms as well, as long as docker is available. ARM-based systems may require tweaks to the dockerfile, a rebuild of the container, and parts of the functionality, especially SAINTexpress, may still be nonfunctional.
 
 ## Example use cases
 [Example use cases](./example%20use%20cases/) cover both interactomics and proteomcis workflows, as well as typical use of MS inspector. The examples are rudimentary, but they do showcase the outputs of the tools quite well.
