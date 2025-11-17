@@ -1,6 +1,6 @@
 services:
   pg_database_updater:
-    image: pg_updater:1.5
+    image: pg_updater:1.5.2
     container_name: pgupdater
     environment:
       TZ: Europe/Helsinki
