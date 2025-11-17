@@ -34,8 +34,10 @@ def cleanup_cache_folders():
         else:
             cache_dir = os.path.join(*settings['Path'])
         days_unused = settings['Clean unused interval days']
-        archive_dir = settings['Archive cache dir'].strip()
-    
+        if 'Archive dir' in settings:
+            archive_dir = settings['Archive dir'].strip()
+        else:
+            archive_dir = None
 
         if isinstance(days_unused, str):
             if days_unused.upper() == 'NO CLEANUP':

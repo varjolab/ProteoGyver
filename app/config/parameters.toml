@@ -43,10 +43,10 @@ randomize = true
 # If set, old cache dirs are archived (zipped) here instead of deleted. Empty string = delete instead of archive.
 "Archive dir" = ""
 
-# Clean up pipeline inputs from API uploads, if they are older than 7 days.
+# Clean up pipeline inputs from API uploads, if they are older than N days.
 ["Maintenance"."Cleanup"."Pipeline api input"]
 "Path" = ["params:Data paths.Data import and export.Data import dir", "Pipeline_input"]
-"Clean unused interval days" = 7
+"Clean unused interval days" = 1
 
 ["Maintenance"."MS run parsing"]
 # Directory where MS run JSON files are monitored. Files are parsed and an input file is then generated for the pg_updater container, which adds the information into the database.
