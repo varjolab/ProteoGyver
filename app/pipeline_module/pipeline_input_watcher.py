@@ -10,6 +10,8 @@ from __future__ import annotations
 import os
 import time
 import traceback
+import multiprocessing
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any, List
@@ -356,6 +358,42 @@ def _debug(dir_path: Path, message: str) -> None:
             pass
 
 
+def _get_cpu_count() -> int:
+    """Get the CPU count limit from config parameters.toml.
+
+    Uses the same logic as app/resources/get_cpu_count.py.
+    Supports "ncpus" (use all CPUs) or an integer value.
+
+    :returns: CPU count to use for parallel processing.
+    """
+    try:
+        script_dir = Path(__file__).resolve().parent.parent
+        parameters_file = script_dir / 'config/parameters.toml'
+        
+        if not parameters_file.exists():
+            # Fallback to multiprocessing.cpu_count() if config not found
+            return multiprocessing.cpu_count()
+        
+        from components.tools import utils
+        config = utils.read_toml(parameters_file)
+        
+        cpu_limit = config.get('Config', {}).get('CPU count limit', 'ncpus')
+        
+        if cpu_limit == 'ncpus':
+            return multiprocessing.cpu_count()
+        else:
+            try:
+                cpu_count = int(cpu_limit)
+                # Ensure it's between 1 and actual CPU count
+                return max(1, min(cpu_count, multiprocessing.cpu_count()))
+            except (ValueError, TypeError):
+                # Fallback to cpu_count - 1 on invalid value
+                return max(1, multiprocessing.cpu_count() - 1)
+    except Exception:
+        # Fallback to multiprocessing.cpu_count() on any error
+        return multiprocessing.cpu_count()
+
+
 def _launch_pipeline(dir_path: Path, toml_file: Path) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
     """Launch the pipeline and capture success or error information.
 
@@ -382,9 +420,105 @@ def _launch_pipeline(dir_path: Path, toml_file: Path) -> Tuple[Optional[str], Op
         return f"Pipeline execution failed: {e}\n\n{tb}", None
 
 
+def _process_directory(entry: Path) -> None:
+    """Process a single directory: validate, mark, and launch pipeline.
+
+    This function handles all the validation, locking, and execution logic
+    for a single directory. It's designed to be called in parallel by
+    ThreadPoolExecutor.
+
+    :param entry: Directory path to process.
+    :returns: None.
+    """
+    _debug(entry, f"Processing directory: {entry.name}")
+
+    # Skip if currently analyzing
+    if _is_currently_analyzing(entry):
+        _debug(entry, "Currently analyzing; skipping")
+        return
+
+    # Determine whether to process (new or re-analyze conditions)
+    output_dir = _pg_output_dir(entry)
+    should_process: bool
+    if output_dir.exists():
+        should_process = _should_reanalyze(entry)
+    else:
+        should_process = True
+    _debug(entry, f"should_process={should_process}")
+
+    if not should_process:
+        _debug(entry, "No processing needed; skipping")
+        return
+
+    # If there is an error marker, skip per policy
+    if _has_error_file(entry):
+        _debug(entry, "Found error marker; skipping")
+        return
+
+    # Ensure directory tree is stable (not being copied to)
+    if not _tree_is_stable(entry, stable_seconds=60):
+        _debug(entry, "Directory not stable; skipping for now")
+        return
+    else:
+        _debug(entry, "Directory stable; proceeding")
+
+    # Resolve TOML selection
+    toml_file, selection_error = _select_pipeline_toml(entry)
+    if selection_error is not None or toml_file is None:
+        _debug(entry, f"TOML selection error: {selection_error}")
+        _safe_write_error(entry, ERRORS_FILENAME, selection_error or "Unknown TOML selection error")
+        return
+    else:
+        _debug(entry, f"Selected TOML: {toml_file.name}")
+
+    # Validate TOML keys and paths
+    validation_error = _validate_pipeline_toml(toml_file)
+    if validation_error is not None:
+        _debug(entry, f"Validation failed: {validation_error}")
+        _safe_write_error(entry, ERRORS_FILENAME, validation_error)
+        return
+    else:
+        _debug(entry, "Validation passed")
+
+    # Mark as analyzing to prevent duplicate runs
+    _mark_analyzing(entry)
+    _debug(entry, "Marked as analyzing")
+    try:
+        # Double-check stability right before launch
+        if not _tree_is_stable(entry, stable_seconds=60):
+            _clear_analyzing(entry)
+            _debug(entry, "Unstable just before launch; cleared analyzing and skipping")
+            return
+
+        # Launch the pipeline
+        error_message, result = _launch_pipeline(entry, toml_file)
+        if error_message:
+            _safe_write_error(entry, ERRORS_FILENAME, error_message)
+            _safe_write_end_of_processing(entry, 'failure')
+            _debug(entry, "Execution error written to ERRORS.txt")
+        else:
+            # Persist a lightweight run summary next to input folder
+            output_dir = _pg_output_dir(entry)
+            output_dir.mkdir(exist_ok=True)
+            if isinstance(result, dict):
+                # Write into PG output directory for easier discovery
+                _write_run_summary(output_dir, result)
+                _debug(entry, "run_summary.json written")
+                _safe_write_end_of_processing(entry, 'success')
+            else:
+                _safe_write_end_of_processing(entry, 'failure')
+    finally:
+        _clear_analyzing(entry)
+        _debug(entry, "Cleared analyzing lock")
+
+
 @shared_task(base=QueueOnce, once={"graceful": True})
 def watch_pipeline_input(watch_directory: list[str]) -> None:
     """Celery task that scans a watch directory and triggers pipeline runs.
+
+    Processes multiple directories in parallel based on CPU count. The function
+    first collects all directories that need processing, then launches them
+    concurrently using ThreadPoolExecutor.
 
     :param watch_directory: Directory path list (components) to monitor.
     :returns: None.
@@ -393,7 +527,9 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
     if not watch_dir.exists() or not watch_dir.is_dir():
         return
 
-    # Iterate immediate subdirectories of the watch directory
+    # Phase 1: Collect directories that need processing
+    directories_to_process: List[Path] = []
+    
     for entry in sorted(watch_dir.iterdir()):
         if not entry.is_dir():
             continue
@@ -410,7 +546,6 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
         should_process: bool
         if output_dir.exists():
             should_process = _should_reanalyze(entry)
-            reason = 'should reanalyze'
         else:
             should_process = True
         _debug(entry, f"should_process={should_process}")
@@ -449,33 +584,31 @@ def watch_pipeline_input(watch_directory: list[str]) -> None:
         else:
             _debug(entry, "Validation passed")
 
-        # Mark as analyzing to prevent duplicate runs
-        _mark_analyzing(entry)
-        _debug(entry, "Marked as analyzing")
-        try:
-            # Double-check stability right before launch
-            if not _tree_is_stable(entry, stable_seconds=60):
-                _clear_analyzing(entry)
-                _debug(entry, "Unstable just before launch; cleared analyzing and skipping")
-                continue
+        # Add to list of directories to process
+        directories_to_process.append(entry)
 
-            # Launch the pipeline
-            error_message, result = _launch_pipeline(entry, toml_file)
-            if error_message:
-                _safe_write_error(entry, ERRORS_FILENAME, error_message)
-                _safe_write_end_of_processing(entry, 'failure')
-                _debug(entry, "Execution error written to ERRORS.txt")
-            else:
-                # Persist a lightweight run summary next to input folder
-                output_dir = _pg_output_dir(entry)
-                output_dir.mkdir(exist_ok=True)
-                if isinstance(result, dict):
-                    # Write into PG output directory for easier discovery
-                    _write_run_summary(output_dir, result)
-                    _debug(entry, "run_summary.json written")
-                    _safe_write_end_of_processing(entry, 'success')
-                else:
-                    _safe_write_end_of_processing(entry, 'failure')
-        finally:
-            _clear_analyzing(entry)
-            _debug(entry, "Cleared analyzing lock")
+    # Phase 2: Launch pipelines in parallel
+    if not directories_to_process:
+        return
+
+    cpu_count = _get_cpu_count()
+    max_workers = min(cpu_count, len(directories_to_process))
+    
+    if max_workers == 0:
+        max_workers = 1  # Ensure at least 1 worker
+    
+    _debug(watch_dir, f"Launching {len(directories_to_process)} directories with {max_workers} parallel workers")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all directory processing tasks
+        future_to_dir = {executor.submit(_process_directory, entry): entry for entry in directories_to_process}
+        
+        # Wait for all tasks to complete (errors are handled within _process_directory)
+        for future in as_completed(future_to_dir):
+            entry = future_to_dir[future]
+            try:
+                future.result()  # This will raise any exceptions that occurred
+            except Exception as e:
+                # Log unexpected exceptions (though _process_directory should handle most)
+                _debug(entry, f"Unexpected error in parallel processing: {e}")
+                _safe_write_error(entry, ERRORS_FILENAME, f"Unexpected processing error: {e}")
