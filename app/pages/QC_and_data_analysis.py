@@ -83,6 +83,15 @@ def get_github_version(repo_url: str = "https://github.com/varjolab/Proteogyver"
             logging.warning(f"Failed to fetch version from GitHub: {e}")
         return None
 
+def get_version_str(ver_str: str) -> tuple[str,str,str]:
+    """Split version string into major, minor, and patch versions."""
+    major, minor = ver_str.split('.', maxsplit=1)
+    patch: str = ''
+    if '.' in minor:
+        minor, patch = minor.split('.')
+    return (major, minor, patch)
+
+
 @callback(
     Output('version-check-div', 'children'),
     Input('proteogyver-logo', 'src')
@@ -102,7 +111,16 @@ def version_check(_: str) -> html.Div:
             div_contents = 'Could not check for new version.'
         elif available_version != __version__:
             # Newer version available
-            div_contents = f'New version available: {available_version} (current: {__version__})'    
+            nmajor, nminor, npatch = get_version_str(available_version)
+            omajor, ominor, opatch = get_version_str(__version__)
+            ver_str:str = 'ver'
+            if nmajor != omajor:
+                ver_str = 'major version'
+            elif nminor != ominor:
+                ver_str = 'minor version'
+            elif npatch != opatch:
+                ver_str = 'patch version'
+            div_contents = f'New {ver_str} available: {available_version} (current: {__version__})'    
             compstyle['font-size'] = '20px'
     except Exception as e:
         logger.error(f'Error checking for new version: {e}')
@@ -132,7 +150,7 @@ def save_version_info(begin_clicks: Optional[int]) -> tuple[str, Dict[str, Any]]
         version_dict[f'Database: {update_type}'] = version
     conn = db_functions.create_connection(db_file, mode='ro')
     try:
-        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
+        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions').values:
             version_dict[dataset] = version
     except Exception as e:
         logger.error(f'Error getting external versions: {e}')

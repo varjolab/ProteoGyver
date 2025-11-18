@@ -142,7 +142,7 @@ def _collect_version_info(db_file: str) -> Dict[str, Any]:
     # Get external data versions
     conn = db_functions.create_connection(db_file, mode='ro')
     try:
-        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions'):
+        for dataset, version, _ in db_functions.get_full_table_as_pd(conn, 'data_versions').values:
             version_dict[dataset] = version
     except Exception as e:
         logger = logging.getLogger(__name__)
