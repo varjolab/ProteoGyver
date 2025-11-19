@@ -47,7 +47,6 @@ def update_table_with_file(cursor, table_name, file_path, parameters, timestamp,
         except Exception as e:
             print(e)
             pass
-        print(vals)
         run_index = max(vals) + 1
         base_id = 'PG_runID_'
         df['internal_run_id'] = [f'{base_id}{i}' for i in range(run_index, run_index + len(df))]
