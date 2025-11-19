@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 dash.register_page(__name__, path=f'/MS_inspector')
 logger.info(f'{__name__} loading')
 
-def description_card() -> html.Div:
+def description_card(run_limit: int) -> html.Div:
     """Create the description card component for the dashboard.
 
     :returns: Div containing dashboard title and descriptions.
@@ -76,19 +76,19 @@ def description_card() -> html.Div:
                 id="intro",
                 children=[
                     html.P("Explore TICs of any MS run or sample set. Choose runs based on times, run IDs, or sample types."),
-                    html.P(f"NOTE: only {RUN_LIMIT} runs can be loaded at once. If more than {RUN_LIMIT} runs are chosen, only the {RUN_LIMIT} most recent ones will be loaded."),
+                    html.P(f"NOTE: only {run_limit} runs can be loaded at once. If more than {run_limit} runs are chosen, only the {run_limit} most recent ones will be loaded."),
                     html.P("NOTE: If you want to switch to a different runset, you might want to reload the page. Otherwise it will load a bunch of runs right from the start. This will be fixed at some point, and there will be a note about it on the announcements page.")
                 ]
             ),
         ],
     )
 
-def generate_control_card() -> html.Div:
+def generate_control_card(mass_specs: dict, mintime: date, maxtime: date, data_types: list) -> html.Div:
     """Create the control card with input widgets.
 
     :returns: Div with controls for MS selection, date range, sample types, run IDs.
     """
-    ms_list: list = sorted(list(MASS_SPECS.keys()))
+    ms_list: list = sorted(list(mass_specs.keys()))
     return html.Div(
         id='control-card',
         children=[
@@ -103,19 +103,19 @@ def generate_control_card() -> html.Div:
             dcc.DatePickerRange(
                 id='date-picker-select',
                 display_format='YYYY.MM.DD',
-                start_date = MINTIME,
-                end_date = MAXTIME,
-                min_date_allowed = MINTIME,
-                max_date_allowed = MAXTIME,
-                initial_visible_month=MAXTIME
+                start_date = mintime,
+                end_date = maxtime,
+                min_date_allowed = mintime,
+                max_date_allowed = maxtime,
+                initial_visible_month=maxtime
             ),
             html.Br(),
             html.Br(),
             html.H5('Select data type'),
             dcc.Dropdown(
                 id='ddadia-select',
-                options=[{'label': i, 'value': i} for i in DATA_TYPES],
-                value=DATA_TYPES[:],
+                options=[{'label': i, 'value': i} for i in data_types],
+                value=data_types[:],
                 multi=True,
             ),
             html.Br(),
@@ -190,9 +190,25 @@ def reset_graphs(_) -> int:
     State('trace-dict','data'),
     State('plot-data','data'),
     State('plot-max-y','data'),
+    State('num-of-traces-visible-store', 'data'),
+    State('trace-color-store', 'data'),
     prevent_initial_call=True
     )
-def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str, supp_datatype:str, traces:dict, plot_data: str, max_y:dict) -> tuple:
+def update_tic_graph(
+    _,
+    __,
+    ___,
+    ____,
+    tic_index: int,
+    ticlist: list,
+    datatype: str,
+    supp_datatype: str,
+    traces: dict,
+    plot_data: str,
+    max_y: dict,
+    num_of_traces_visible: int,
+    trace_color: str,
+) -> tuple:
     """Update the TIC and supplementary metric graphs.
 
     :param tic_index: Current TIC index.
@@ -202,6 +218,8 @@ def update_tic_graph(_,__, ___, ____, tic_index: int, ticlist:list, datatype:str
     :param traces: Dict mapping run id -> trace dicts.
     :param plot_data: Plot data (pandas split-JSON).
     :param max_y: Dict of maximum y-values per trace type.
+    :param num_of_traces_visible: Number of traces visible.
+    :param trace_color: Trace color.
     :returns: Tuple of (tic fig, auc fig, mean fig, max fig, next index).
     """
     data_to_use: pd.DataFrame = pd.read_json(StringIO(plot_data),orient='split')
@@ -354,18 +372,42 @@ def delim_runs(runs):
     State('ddadia-select', 'value'),
     State('load-runs-from-runids','value'),
     State('load-runs-spinner-div','children'),
+    State('num-of-traces-visible-store', 'data'),
+    State('trace-color-store', 'data'),
+    State('required-maincols-store', 'data'),
+    State('run-limit-store', 'data'),
+    State('trace-types-store', 'data'),
+    State('database-file-store', 'data'),
     prevent_initial_call=True
 ) 
-def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_list, button_text) -> list:
+def update_run_choices(
+    _,
+    selected_ms,
+    start_date,
+    end_date,
+    data_types,
+    run_id_list,
+    button_text,
+    num_of_traces_visible: int,
+    trace_color: str,
+    required_maincols: list,
+    run_limit: int,
+    trace_types: list,
+    database_file: str,
+) -> tuple:
     """Update the list of runs based on selected criteria.
-
     :param selected_ms: Selected MS.
     :param start_date: Start date.
     :param end_date: End date.
     :param data_types: Selected data types.
     :param run_id_list: Optional string of run IDs to load.
     :param button_text: Current button text.
-    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks].
+    :param num_of_traces_visible: Number of traces visible.    
+    :param required_maincols: Required main columns.
+    :param run_limit: Run limit.
+    :param trace_types: Selected trace types.
+    :param database_file: Database file.
+    :returns: Tuple of (chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks).
     """
     db_conn = db_functions.create_connection(database_file)
     if (run_id_list is None ) or (run_id_list.strip() == ''):
@@ -381,7 +423,7 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
             'ms_runs',
             'run_date',
             (start, end),
-            select_col=', '.join(REQUIRED_MAINCOLS),
+            select_col=', '.join(required_maincols),
             as_pandas=True,
             operator = 'BETWEEN',
             pandas_index_col = 'internal_run_id'
@@ -390,16 +432,16 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
         chosen_runs = chosen_runs[chosen_runs['data_type'].isin(data_types)]
         chosen_runs.sort_values(by='run_date',ascending=True, inplace=True)
         #chosen_runs.index = chosen_runs.index.astype(str)# And flip back to make passing trace_dict easier. Keys of the dict will be converted to strings when passed through data store.
-        if chosen_runs.shape[0] > RUN_LIMIT:
-            chosen_runs = chosen_runs.tail(RUN_LIMIT)
+        if chosen_runs.shape[0] > run_limit:
+            chosen_runs = chosen_runs.tail(run_limit)
     else:
         run_ids = delim_runs(run_id_list)
-        chosen_runs = db_functions.get_from_table_by_list_criteria(
-            db_conn, 
+        chosen_runs = db_functions.get_from_table_by_list_criteria(  # pyright: ignore[reportAssignmentType]
+            db_conn,   # pyright: ignore[reportArgumentType]
             'ms_runs',
             'file_name_clean',
             run_ids,
-            select_col=', '.join(REQUIRED_MAINCOLS),
+            select_col=', '.join(required_maincols),
             pandas_index_col = 'internal_run_id'
         )
         chosen_runs.sort_values(by='run_date',ascending=True, inplace=True)
@@ -438,7 +480,90 @@ def update_run_choices(_, selected_ms, start_date, end_date, data_types, run_id_
         max_y,button_text,nclicks
     )
 
-def ms_analytics_layout():
+@callback(
+    Output('ms-inspector-container', 'children'),
+    Output('database-file-store', 'data'),
+    Output('parameters-store', 'data'),
+    Output('required-maincols-store', 'data'),
+    Output('trace-types-store', 'data'),
+    Output('trace-color-store', 'data'),
+    Output('num-of-traces-visible-store', 'data'),
+    Output('run-limit-store', 'data'),
+    Input('ms-inspector-startup-notifier', 'children')
+)
+def startup(_) -> tuple:
+    """Startup the MS inspector.
+
+    :param _: Placeholder for startup notifier.
+    :returns: Tuple of (app layout div, database_file, parameters, required_maincols, mass_specs, data_types, trace_types, trace_color, num_of_traces_visible, run_limit, min_time, max_time).
+    """
+    root_dir = Path(__file__).resolve().parents[1]
+    parameters_path = os.path.join(root_dir, 'config','parameters.toml')
+    parameters = parsing.parse_parameters(Path(parameters_path))
+    database_file = os.path.join(*parameters['Data paths']['Database file'])    
+
+    num_of_traces_visible = 7
+    trace_color = 'rgb(56, 8, 35)'
+    trace_types: list = ['TIC','BPC','MSn']
+    samplecols = ['file_name', 'file_name_clean']
+    required_maincols = [
+        'internal_run_id',
+        'inst_model',
+        'inst_serial_no',
+        'run_date',
+        'data_type'
+    ] + samplecols
+    required_plot_cols = ['internal_run_id']
+    for tracename in trace_types:
+        required_plot_cols.append(f'{tracename}_trace')
+        required_plot_cols.append(f'{tracename}_mean_intensity')
+        required_plot_cols.append(f'{tracename}_auc')
+        required_plot_cols.append(f'{tracename}_max_intensity')
+
+    db_conn = db_functions.create_connection(database_file)
+    data = db_functions.get_from_table(
+        db_conn,
+        'ms_runs', 
+        select_col = required_maincols,
+        as_pandas = True,
+        pandas_index_col = 'internal_run_id'
+    ).replace('',np.nan)
+    db_conn.close() # type: ignore
+
+    mass_specs = {}
+    for row in data[['inst_model','inst_serial_no']].drop_duplicates().values:
+        if not row[0]:
+            continue
+        if not row[1]:
+            continue
+        mass_specs.setdefault(row[0], [])
+        mass_specs[row[0]].append(row[1])
+    data_types = list(data['data_type'].unique())
+
+    if data.shape[0] > 0:
+        data['run_date'] = data.apply(lambda x: datetime.strptime(x['run_date'],parameters['Config']['Time format']),axis=1)
+        d = data['run_date'].max()
+        maxtime = date(d.year,d.month, d.day)
+        d = data['run_date'].min()
+        mintime = date(d.year,d.month, d.day)
+        del data
+        logger.info(f'{__name__} preliminary data loaded')
+        run_limit = 100
+        use_layout = ms_analytics_layout(trace_types, run_limit, mass_specs, mintime, maxtime, data_types)
+    else:
+        use_layout = html.Div('No MS runs in database.')
+    return (
+        use_layout,
+        database_file,
+        parameters,
+        required_maincols,
+        trace_types,
+        trace_color,
+        num_of_traces_visible,
+        run_limit
+    )
+
+def ms_analytics_layout(trace_types, run_limit, mass_specs, mintime, maxtime, data_types):
     """Create the main layout for the MS analytics dashboard.
 
     :returns: Div containing controls, TIC visualization, and supplementary graphs.
@@ -463,8 +588,8 @@ def ms_analytics_layout():
             ],style={'display':'none'}),
             dbc.Row([
                 dbc.Col([
-                    description_card(),
-                    generate_control_card()
+                    description_card(run_limit),
+                    generate_control_card(mass_specs, mintime, maxtime, data_types)
                 ],
                 width = 4),
                 dbc.Col([
@@ -476,7 +601,7 @@ def ms_analytics_layout():
                     dbc.Row([
                         html.H4('TICs'),
                         html.Hr(),
-                        dcc.Graph(id='tic-analytics-tic-graphs'),
+                        dcc.Graph(id='tic-analytics-tic-graphs', config={'toImageButtonOptions': {'filename': 'Chromatogram'}}),
                         html.Div([
                             html.P('Choose metric:    ',style={'float': 'left', 'margin': 'auto'}),
                             dcc.Dropdown(trace_types, 'TIC', id='datatype-dropdown'),
@@ -495,11 +620,11 @@ def ms_analytics_layout():
                             html.P('Choose metric for supplementary plots:    ',style={'float': 'left', 'margin': 'auto'}),
                             dcc.Dropdown(trace_types, 'TIC', id='datatype-supp-dropdown',style={'float': 'left', 'margin': 'auto'}),
                             html.B('Area under the curve'),
-                            dcc.Graph(id='auc-graph'),
+                            dcc.Graph(id='auc-graph', config={'toImageButtonOptions': {'filename': 'Chromatogram AUC'}}),
                             html.B('Mean intensity'),
-                            dcc.Graph(id='mean-intensity-graph'),
+                            dcc.Graph(id='mean-intensity-graph', config={'toImageButtonOptions': {'filename': 'Chromatogram mean intensity'}}),
                             html.B('Max intensity'),
-                            dcc.Graph(id='max-intensity-graph'),
+                            dcc.Graph(id='max-intensity-graph', config={'toImageButtonOptions': {'filename': 'Chromatogram max intensity'}}),
                     ])
                 ],
                 width = 8)
@@ -515,9 +640,10 @@ def ms_analytics_layout():
     State('mean-intensity-graph', 'figure'),
     State('max-intensity-graph', 'figure'),
     State('plot-data', 'data'),
+    State('parameters-store', 'data'),
     prevent_initial_call=True
 )
-def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
+def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data, parameters):
     """Create a ZIP with current graphs and data for download.
 
     :param n_clicks: Number of clicks on download button.
@@ -580,71 +706,18 @@ def download_graphs(n_clicks, tic_fig, auc_fig, mean_fig, max_fig, plot_data):
         logger.error(f"Error creating download package: {str(e)}")
         return no_update
     
-root_dir = Path(__file__).resolve().parents[1]
-parameters_path = os.path.join(root_dir, 'config','parameters.toml')
-parameters = parsing.parse_parameters(Path(parameters_path))
-database_file = os.path.join(*parameters['Data paths']['Database file'])    
-
-num_of_traces_visible = 7
-trace_color = 'rgb(56, 8, 35)'
-trace_types: list = ['TIC','BPC','MSn']
-samplecols = ['file_name', 'file_name_clean']
-REQUIRED_MAINCOLS = [
-    'internal_run_id',
-    'inst_model',
-    'inst_serial_no',
-    'run_date',
-    'data_type'
-] + samplecols
-required_plot_cols = ['internal_run_id']
-for tracename in trace_types:
-    required_plot_cols.append(f'{tracename}_trace')
-    required_plot_cols.append(f'{tracename}_mean_intensity')
-    required_plot_cols.append(f'{tracename}_auc')
-    required_plot_cols.append(f'{tracename}_max_intensity')
-
-db_conn = db_functions.create_connection(database_file)
-data = db_functions.get_from_table(
-    db_conn,
-    'ms_runs', 
-    select_col = REQUIRED_MAINCOLS,
-    as_pandas = True,
-    pandas_index_col = 'internal_run_id'
-).replace('',np.nan)
-db_conn.close() # type: ignore
-
-MASS_SPECS = {}
-for row in data[['inst_model','inst_serial_no']].drop_duplicates().values:
-    if not row[0]:
-        continue
-    if not row[1]:
-        continue
-    MASS_SPECS.setdefault(row[0], [])
-    MASS_SPECS[row[0]].append(row[1])
-DATA_TYPES = list(data['data_type'].unique())
-
-IDMAP: dict = {}
-# TODO: handle better runs with names or IDs that are repeated. e.g. two files with the same sample_id
-del_runs = set()
-for internal_run_id, row in data[samplecols].iterrows():
-    for c in samplecols:
-        if row[c] in IDMAP:
-            del_runs.add(row[c]) # For now we just delete ambiguous entries
-        else:
-            IDMAP[row[c]] = internal_run_id
-for d in del_runs:
-    del IDMAP[d]
-
-if data.shape[0] > 0:
-    data['run_date'] = data.apply(lambda x: datetime.strptime(x['run_date'],parameters['Config']['Time format']),axis=1)
-    d = data['run_date'].max()
-    MAXTIME = date(d.year,d.month, d.day)
-    d = data['run_date'].min()
-    MINTIME = date(d.year,d.month, d.day)
-    del data
-    logger.info(f'{__name__} preliminary data loaded')
-    RUN_LIMIT = 100
-    use_layout = ms_analytics_layout()
-else:
-    use_layout = html.Div('No MS runs in database.')
-layout = use_layout
+layout = html.Div([
+    html.Div(id='ms-inspector-container'),
+    html.Div(id='ms-inspector-startup-notifier', style={'display': 'none'}),
+    dcc.Store('parameters-store'),
+    dcc.Store('required-maincols-store'),
+    dcc.Store('database-file-store'),
+    dcc.Store('mass-specs-store'),
+    dcc.Store('data-types-store'),
+    dcc.Store('trace-types-store'),
+    dcc.Store('trace-color-store'),
+    dcc.Store('num-of-traces-visible-store'),
+    dcc.Store('run-limit-store'),
+    dcc.Store('min-time-store'),
+    dcc.Store('max-time-store')
+])

@@ -34,7 +34,7 @@ randomize = true
 
 # Cleanup settings - automated maintenance tasks run by Celery beat scheduler
 ["Maintenance"."Cleanup"."Cache dir"]
-# Path reference: Either a list (e.g. ["/proteogyver", "cache"]), or if a string, 
+# Path reference: Either a list (e.g. ["/tmp", "pg_cache"]), or if a string, 
 # the path must be found in "Data paths" below. e.g. in this case, "Cache dir" is a key both here and in "Data paths"
 "Path" = "Data paths"
 # Days of inactivity before cache folders are cleaned. Set to "NO CLEANUP" to disable automatic cleanup.
