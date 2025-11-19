@@ -10,9 +10,9 @@ services:
       #RESOURCE_LOG_DIR: /proteogyver/data/Server_output/logs/resources
       RESOURCE_LOG_INTERVAL_SECONDS: 5
       RESOURCE_LOG_KEEP_DAYS: 30
-      CELERY_WORKER_LOGLEVEL: "WARNING"
-      CELERY_BEAT_LOGLEVEL: "WARNING"
-      GUNICORN_LOG_LEVEL: "warning"
+      CELERY_WORKER_LOGLEVEL: "INFO"
+      CELERY_BEAT_LOGLEVEL: "INFO"
+      GUNICORN_LOG_LEVEL: "info"
     volumes:
       - /data/PG15/cache:/proteogyver/cache
       - /data/PG15/db:/proteogyver/data/db
