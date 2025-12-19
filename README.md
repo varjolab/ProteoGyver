@@ -4,6 +4,8 @@ Proteogyver (PG) is a low-threshold, web-based platform for proteomics and inter
 
 Documentation also available in [ReadTheDocs](https://proteogyver.readthedocs.io/en/latest/)
 
+ProteoGyver source code is also available through Zenodo: [https://zenodo.org/records/15745814](https://zenodo.org/records/15745814)
+
 ## Table of contents:
 
 ## Security and compatibility
@@ -279,7 +281,9 @@ Files from the pipeline module input directory will be cleaned out 7 days after 
 
 ### MS Inspector
 
-The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) performance through chromatogram graphs and related metrics.
+The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) performance through chromatogram graphs and related metrics. For examples, the default proteogyver database includes analyzed MS runs from two previous publications:
+- [Nuclear Factor I Family Members are Key Transcription Factors Regulating Gene Expression](https://doi.org/10.1016/j.mcpro.2024.100890)
+- [Human skeletal muscle possesses both reversible proteomic signatures and a retained proteomic memory after repeated resistance training](https://doi.org/10.1113/jp288104)
 
 #### Features
 - Interactive TIC visualization with animation controls
@@ -320,7 +324,7 @@ The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) 
 
 ### Microscopy Image Colocalizer
 
-The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format. 
+The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format. For demonstration purposes, we recommend the images shared by [Gregory Marquart and Harold Burgess](https://zenodo.org/records/3382102#.Y57rFnbMJaQ) under [CC-BY 4.0 License](https://creativecommons.org/licenses/by/4.0/legalcode).
 
 ## Installation
 

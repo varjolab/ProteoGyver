@@ -111,7 +111,6 @@
         <span class="n">StringIO</span><span class="p">(</span><span class="n">input_data_dict</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="s1">&#39;intensity&#39;</span><span class="p">]),</span>
         <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">data_table</span><span class="p">)</span>
     <span class="n">original_counts</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">matrix_functions</span><span class="o">.</span><span class="n">count_per_sample</span><span class="p">(</span>
         <span class="n">data_table</span><span class="p">,</span> <span class="n">input_data_dict</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;rev&#39;</span><span class="p">])</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>

@@ -157,6 +157,7 @@
 <h1>Proteogyver<a class="headerlink" href="#proteogyver" title="Link to this heading"></a></h1>
 <p>Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).</p>
 <p>Documentation also available in <a class="reference external" href="https://proteogyver.readthedocs.io/en/latest/">ReadTheDocs</a></p>
+<p>ProteoGyver source code is also available through Zenodo: <a class="reference external" href="https://zenodo.org/records/15745814">https://zenodo.org/records/15745814</a></p>
 <section id="table-of-contents">
 <h2>Table of contents:<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
 </section>
@@ -267,7 +268,7 @@ ProteoGyver is supplied as a docker container. It is only tested routinely on a 
 <h4>Limitations<a class="headerlink" href="#limitations" title="Link to this heading"></a></h4>
 <ul class="simple">
 <li><p>MzTab is currently not supported for pipeline or API input</p></li>
-<li><p>MzTab support in general is experimental</p></li>
+<li><p>MzTab support in general is experimental, and mostly reliant on mztab files following the format specified in the <a class="reference external" href="https://github.com/HUPO-PSI/mzTab/tree/master/examples/1_0-Proteomics-Release">HUPO-PSI github</a> by the labelfree_SQI.mzTab.</p></li>
 </ul>
 </section>
 </section>
@@ -502,7 +503,11 @@ print(f”Error: {response.json()}”)</p>
 </ul>
 <section id="ms-inspector">
 <h3>MS Inspector<a class="headerlink" href="#ms-inspector" title="Link to this heading"></a></h3>
-<p>The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) performance through chromatogram graphs and related metrics.</p>
+<p>The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) performance through chromatogram graphs and related metrics. For examples, the default proteogyver database includes analyzed MS runs from two previous publications:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://doi.org/10.1016/j.mcpro.2024.100890">Nuclear Factor I Family Members are Key Transcription Factors Regulating Gene Expression</a></p></li>
+<li><p><a class="reference external" href="https://doi.org/10.1113/jp288104">Human skeletal muscle possesses both reversible proteomic signatures and a retained proteomic memory after repeated resistance training</a></p></li>
+</ul>
 <section id="features">
 <h4>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h4>
 <ul class="simple">
@@ -564,7 +569,7 @@ print(f”Error: {response.json()}”)</p>
 </section>
 <section id="microscopy-image-colocalizer">
 <h3>Microscopy Image Colocalizer<a class="headerlink" href="#microscopy-image-colocalizer" title="Link to this heading"></a></h3>
-<p>The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format.</p>
+<p>The Microscopy image colocalizer is a simple tool to generate colocalization images from multichannel .lif files from confocal microscopes. The tool lets the user choose the image in the series, the timepoint, and the level in the z-stack, as well as colormap for the individual channels and colocalization image. The tool allows zooming into the location of interest, and seamless export in .png format. For demonstration purposes, we recommend the images shared by <a class="reference external" href="https://zenodo.org/records/3382102#.Y57rFnbMJaQ">Gregory Marquart and Harold Burgess</a> under <a class="reference external" href="https://creativecommons.org/licenses/by/4.0/legalcode">CC-BY 4.0 License</a>.</p>
 </section>
 </section>
 <section id="installation">
