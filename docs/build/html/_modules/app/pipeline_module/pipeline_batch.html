@@ -260,7 +260,7 @@
 
     <span class="c1"># Same functions the callbacks use:</span>
     <span class="c1"># parsing.parse_data_file -&gt; returns (upload_style, data_info, data_tables)</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">data_info</span><span class="p">,</span> <span class="n">data_tables</span><span class="p">,</span> <span class="n">warnings</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_data_file</span><span class="p">(</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">data_info</span><span class="p">,</span> <span class="n">data_tables</span><span class="p">,</span> <span class="n">warnings</span><span class="p">,</span> <span class="n">mztab_sampletable</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_data_file</span><span class="p">(</span>
         <span class="n">data_contents</span><span class="p">,</span> <span class="n">data_name</span><span class="p">,</span> <span class="n">data_mtime</span><span class="p">,</span> <span class="n">dummy_style</span><span class="p">,</span> <span class="n">file_loading_cfg</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -268,7 +268,7 @@
         <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;- This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)&#39;</span><span class="p">)</span>
     
     <span class="n">_</span><span class="p">,</span> <span class="n">expdes_info</span><span class="p">,</span> <span class="n">expdes_table</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_sample_table</span><span class="p">(</span>
-        <span class="n">sample_contents</span><span class="p">,</span> <span class="n">sample_name</span><span class="p">,</span> <span class="n">sample_mtime</span><span class="p">,</span> <span class="n">dummy_style</span>
+        <span class="n">sample_contents</span><span class="p">,</span> <span class="n">sample_name</span><span class="p">,</span> <span class="n">sample_mtime</span><span class="p">,</span> <span class="n">dummy_style</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;Sample table parsing&#39;</span><span class="p">][</span><span class="s1">&#39;SDRF&#39;</span><span class="p">]</span>
     <span class="p">)</span>
     <span class="n">exp_cols_found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">expdes_info</span><span class="p">[</span><span class="s1">&#39;required columns found&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exp_cols_found</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>

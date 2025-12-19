@@ -588,10 +588,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;commonality_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">only_groups</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
-        <span class="n">only_groups</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">only_groups</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">only_groups</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">only_groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">only_groups</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">only_groups</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">only_groups</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">only_groups</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">common_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_common_data</span><span class="p">(</span>
         <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
         <span class="n">rev_sample_groups</span><span class="p">,</span>
