@@ -6,8 +6,9 @@
 ProteoGyver documentation
 =========================
 
-Welcome to the ProteoGyver documentation. This documentation includes:
+Welcome to the ProteoGyver documentation!
 
+This documentation includes:
 * User guide and installation instructions
 * API reference for all modules
 * Code examples and usage patterns
