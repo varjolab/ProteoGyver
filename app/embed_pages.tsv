@@ -1,1 +1,3 @@
-Proteomics.fi	http://www.proteomics.fi
+# format is tab delimed, column 1 = label/name, column2 = url.
+# e.g.:
+#Proteomics.fi	http://www.proteomics.fi

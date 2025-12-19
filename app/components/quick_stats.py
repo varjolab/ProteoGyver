@@ -204,7 +204,7 @@ def get_comparative_data(data_table, sample_groups) -> tuple:
         comparative_data
     )
 
-def get_common_data(data_table: pd.DataFrame, rev_sample_groups: dict, only_groups: list = None) -> dict:
+def get_common_data(data_table: pd.DataFrame, rev_sample_groups: dict, only_groups: list|None = None) -> dict:
     """Collect sets of identified proteins per group.
 
     :param data_table: Input DataFrame with proteins as index and samples as columns.
@@ -218,7 +218,6 @@ def get_common_data(data_table: pd.DataFrame, rev_sample_groups: dict, only_grou
         group_name: str = rev_sample_groups[column]
         if (only_groups is not None) and (group_name not in only_groups):
             continue
-        if group_name not in group_sets:
-            group_sets[group_name] = set()
+        group_sets.setdefault(group_name, set())
         group_sets[group_name] |= col_proteins
     return group_sets

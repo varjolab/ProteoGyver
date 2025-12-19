@@ -51,6 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#qc-and-quick-analysis-toolset">QC and quick analysis toolset</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#core-analysis-workflows">Core Analysis Workflows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#input-size-and-scale">Input size and scale</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#input-data-format">Input Data Format</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#input-options-guide">Input options guide</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#general-input-options-main-sidebar">General Input Options (Main Sidebar)</a></li>
@@ -65,6 +66,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#pipeline-input-toml">Pipeline input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#parameters-not-in-the-input-toml">Parameters not in the input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#initiating-pipeline-analysis-via-api">Initiating pipeline analysis via API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#autocleaning-of-pipeline-module-inputs">Autocleaning of pipeline module inputs</a></li>
 </ul>
 </li>
 </ul>
@@ -151,13 +153,14 @@
   <section id="proteogyver">
 <h1>Proteogyver<a class="headerlink" href="#proteogyver" title="Link to this heading"></a></h1>
 <p>Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).</p>
+<p>Documentation also available in <a class="reference external" href="https://proteogyver.readthedocs.io/en/latest/">ReadTheDocs</a></p>
 <section id="table-of-contents">
 <h2>Table of contents:<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
 </section>
 <section id="security-and-compatibility">
 <h2>Security and compatibility<a class="headerlink" href="#security-and-compatibility" title="Link to this heading"></a></h2>
 <p>The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)
-ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, however should work just fine on other platforms as well. ARM-based systems may require a rebuild of the container.</p>
+ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, and as such ubuntu linux is the only officially supported platform. However, the container should work just fine on other x86 platforms as well, as long as docker is available. ARM-based systems may require tweaks to the dockerfile, a rebuild of the container, and parts of the functionality, especially SAINTexpress, may still be nonfunctional.</p>
 </section>
 <section id="example-use-cases">
 <h2>Example use cases<a class="headerlink" href="#example-use-cases" title="Link to this heading"></a></h2>
@@ -206,6 +209,11 @@ ProteoGyver is supplied as a docker container. It is only tested routinely on a 
 </ol>
 <p>In more detail below.</p>
 </section>
+<section id="input-size-and-scale">
+<h3>Input size and scale<a class="headerlink" href="#input-size-and-scale" title="Link to this heading"></a></h3>
+<p>PG can handle hundreds of runs, and has been tested with up to a thousand or so. However, the specific limits have not been explored as of yet, nor the impact of input size on e.g. RAM use on the server. With 16 GB of RAM, over a hundred samples should not be a problem even when multiple concurrent analyses are ongoing.</p>
+<p>Currently the pipeline module is limited to a single worker, however that will be addressed in version 1.6 or 1.7.</p>
+</section>
 <section id="input-data-format">
 <h3>Input Data Format<a class="headerlink" href="#input-data-format" title="Link to this heading"></a></h3>
 <ul class="simple">
@@ -214,6 +222,13 @@ ProteoGyver is supplied as a docker container. It is only tested routinely on a 
 <li><p>“Sample name” column</p></li>
 <li><p>“Sample group” column</p></li>
 <li><p>“Bait uniprot” column (for interactomics)</p></li>
+<li><p>sdrf format support for sample table is experimental.</p>
+<ul>
+<li><p>Currently sample name (MS run name) is expected to be in column “raw file” “comment[data file]” or “assay name”, whichever is encountered first in the file</p></li>
+<li><p>Sample group is expected to be in a column containing the string “factor value”, and be the first such column encountered.</p></li>
+<li><p>Requesting user input for column choice is also possible in the future, but currently undesirable due to the effort to present fewer choices to the user.</p></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><p>Supported data formats:</p>
@@ -231,6 +246,17 @@ ProteoGyver is supplied as a docker container. It is only tested routinely on a 
 <li><p>Generic matrix format (one row = one protein, one column = one sample)</p></li>
 </ul>
 </li>
+<li><p>mzTab support is experimental. Currently only supported according to the example files provided, with an embedded sample table.</p>
+<ul>
+<li><p>The example mzTab file is from HUPO-PSI, and represents a label free experiment with two study variables, and 6 total assays, where one assay consists of one MS run.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Supported software versions:</p>
+<ul>
+<li><p>FragPipe 23.1</p></li>
+<li><p>DIA-NN 2.2 academia</p></li>
 </ul>
 </li>
 </ul>
@@ -292,7 +318,7 @@ ProteoGyver is supplied as a docker container. It is only tested routinely on a 
 </ul>
 </li>
 <li><p><strong>Select control group</strong>: Dropdown to choose a sample group from your data to use as the control/reference group for comparisons</p></li>
-<li><p><strong>Or upload comparison file</strong>: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons</p></li>
+<li><p><strong>Or upload comparison file</strong>: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons. Green indicator means successful upload, while yellow means the file was uploaded successfully, but some sample groups in the comparisons were not found in the uploaded sample set.</p></li>
 <li><p><strong>log2 fold change threshold for comparisons</strong>: Radio buttons to set the fold change threshold (default: 2-fold, log2 = 1.0).</p></li>
 <li><p><strong>Adjusted p-value threshold for comparisons</strong>: Radio buttons to set the significance threshold for differential abundance (default: 0.01). Values used are FDR(bh) adjusted p-values.</p></li>
 <li><p><strong>Test type for comparisons</strong>: Radio buttons to select statistical test:</p>
@@ -408,7 +434,8 @@ data = “data.tsv”
 <p>An alternative to direct file system access to the server is to use the API. The API is on the same port as the GUI, under /api/upload-pipeline-files.
 Here is a complete usage example via python:</p>
 <blockquote>
-<div><p>datafile = ‘datafile.tsv’
+<div><p>import requests
+datafile = ‘datafile.tsv’
 sample_table = ‘sampletable.tsv’
 pipeline = ‘pipeline.toml’
 server_url = ‘proteogyver.server.com’
@@ -418,19 +445,25 @@ server_port = 8050</p>
 ‘sample_table’: open(sample_table, ‘rb’),
 ‘pipeline_toml’: open(pipeline, ‘rb’),
 }</p>
-<p class="rubric" id="response-requests-post-f-http-server-url-server-port-api-upload-pipeline-files-files-files-upload-dir-name-response-json-upload-directory-name">response = requests.post(f”http://{server_url}:{server_port}/api/upload-pipeline-files”, files=files)
+<p>response = requests.post(f”http://{server_url}:{server_port}/api/upload-pipeline-files”, files=files)
 upload_dir_name = response.json()[‘upload_directory_name’]</p>
-<p class="rubric" id="check-status-later">Check status later</p>
-<p>status = requests.get(
+</div></blockquote>
+<hr class="docutils" />
+<p>Check status later</p>
+<blockquote>
+<div><p>status = requests.get(
 f”http://{server_url}:{server_port}/api/pipeline-status”,
 params={‘upload_directory_name’: upload_dir_name}
 ).json()
-print(f’Status: {status[“status”]}, message: {status[“message”]}’)</p>
-<p class="rubric" id="the-status-also-includes-upload-directory-name">The status also includes upload directory name</p>
-<p class="rubric" id="if-status-status-error-print-f-error-status-error-message">if status[‘status’] == ‘error’:
+print(f’Status: {status[“status”]}, message: {status[“message”]}’)
+The status also includes upload directory name
+if status[‘status’] == ‘error’:
 print(f”Error: {status[‘error_message’]}”)</p>
-<p class="rubric" id="download-the-output-zip-file">Download the output zip file</p>
-<p>response = requests.get(
+</div></blockquote>
+<hr class="docutils" />
+<p>Download the output zip file</p>
+<blockquote>
+<div><p>response = requests.get(
 f”http://{server_url}:{server_port}/api/download-output”,
 params={‘upload_directory_name’: upload_dir_name},
 stream=True
@@ -444,6 +477,10 @@ print(“Downloaded PG output.zip”)
 else:
 print(f”Error: {response.json()}”)</p>
 </div></blockquote>
+</section>
+<section id="autocleaning-of-pipeline-module-inputs">
+<h4>Autocleaning of pipeline module inputs<a class="headerlink" href="#autocleaning-of-pipeline-module-inputs" title="Link to this heading"></a></h4>
+<p>Files from the pipeline module input directory will be cleaned out 7 days after creation or last modification. This is tunable in parameters.toml (Maintenance.Cleanup.Pipeline api input)</p>
 </section>
 </section>
 </section>
@@ -542,11 +579,13 @@ print(f”Error: {response.json()}”)</p>
 </section>
 <section id="docker-installation-recommended">
 <h3>Docker Installation (recommended)<a class="headerlink" href="#docker-installation-recommended" title="Link to this heading"></a></h3>
-<p>TODO: dockerhub/zenodo here.</p>
+<p>For running the images, the provided docker compose files are highly recommended:
+<a class="reference internal" href="#dockerfiles/proteogyver/docker-compose.yaml"><span class="xref myst">proteogyver docker-compose.yml</span></a>
+<a class="reference internal" href="#dockerfiles/pg_updater/docker-compose.yaml"><span class="xref myst">pg_updater docker-compose.yml</span></a></p>
+<p><strong>Tweak the volume mappings to suit your local environment, same with the env variables.</strong></p>
 <section id="running-the-docker-images">
 <h4>Running the docker images<a class="headerlink" href="#running-the-docker-images" title="Link to this heading"></a></h4>
-<p>Next modify docker-compose NOW to suit your local system if needed.</p>
-<p>For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn’t yet exist.</p>
+<p>For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first run, the updater will create a database, if one doesn’t yet exist.</p>
 <p>Building the updater container should take around a minute. Running the updater can take a long time, especially on the first run.
 <strong>All commands should be run from the proteogyver root folder</strong></p>
 <p>Then run the updater to generate a database:</p>

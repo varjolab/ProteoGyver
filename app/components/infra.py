@@ -72,6 +72,7 @@ data_store_export_configuration: dict = {
     'uploaded-data-table-info-data-store': ['txt', 'Input data info', 'Data table', 'input-file'],
     'uploaded-sample-table-info-data-store': ['txt', 'Input data info', 'Sample table', 'input-file'],
     'upload-data-store': ['json', 'Debug', '', ''],
+    'uploaded-mztab-sample-table': ['NO EXPORT', 'NO EXPORT', 'NO EXPORT', 'NO EXPORT'],
     'replicate-colors-data-store': ['json', 'Debug', '', ''],
     'replicate-colors-with-contaminants-data-store': ['json', 'Debug', '', ''],
     'discard-samples-data-store': ['json', 'Debug', '', ''],

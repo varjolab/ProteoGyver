@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -59,7 +63,6 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-          <li class="breadcrumb-item"><a href="../../../app.html">app</a></li>
       <li class="breadcrumb-item active">app.components.api_tools.uniprot</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -95,9 +98,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">requests.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPAdapter</span><span class="p">,</span> <span class="n">Retry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">requests.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChunkedEncodingError</span><span class="p">,</span> <span class="ne">ConnectionError</span><span class="p">,</span> <span class="n">RequestException</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">apitools</span>
 
@@ -454,21 +459,50 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">__get_uniprot_batch</span><span class="p">(</span><span class="n">batch_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span> <span class="c1">#TODO: mark all tuple returns with Generator class once available</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">__get_uniprot_batch</span><span class="p">(</span><span class="n">batch_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span> <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">initial_backoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span> <span class="c1">#TODO: mark all tuple returns with Generator class once available</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves batches from UniProt, results response, and total number of results.</span>
+<span class="sd">    Implements retry logic for connection errors with exponential backoff.</span>
 
+<span class="sd">    :param batch_url: URL for the batch request.</span>
+<span class="sd">    :param session: Requests session object.</span>
+<span class="sd">    :param max_retries: Maximum number of retry attempts for connection errors.</span>
+<span class="sd">    :param initial_backoff: Initial backoff time in seconds (doubles on each retry).</span>
 <span class="sd">    :yields: a tuple of (requests.models.Response, total:str)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">while</span> <span class="n">batch_url</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">batch_url</span><span class="p">)</span>
-        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">total</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;x-total-results&quot;</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">total</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">yield</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
-        <span class="n">batch_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">__get_uniprot_next_link</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+        <span class="n">retry_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">backoff</span> <span class="o">=</span> <span class="n">initial_backoff</span>
+        
+        <span class="k">while</span> <span class="n">retry_count</span> <span class="o">&lt;=</span> <span class="n">max_retries</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">batch_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>  <span class="c1"># 5 minute timeout</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="c1"># Force reading the content to catch ChunkedEncodingError early</span>
+                <span class="c1"># This ensures the full response is downloaded before we yield it</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>  <span class="c1"># This will raise ChunkedEncodingError if connection fails</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">total</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;x-total-results&quot;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">total</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+                <span class="n">next_url</span> <span class="o">=</span> <span class="n">__get_uniprot_next_link</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+                <span class="n">batch_url</span> <span class="o">=</span> <span class="n">next_url</span> <span class="k">if</span> <span class="n">next_url</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">break</span>  <span class="c1"># Success, exit retry loop</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">ChunkedEncodingError</span><span class="p">,</span> <span class="ne">ConnectionError</span><span class="p">,</span> <span class="n">RequestException</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">retry_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">retry_count</span> <span class="o">&gt;</span> <span class="n">max_retries</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Failed to download UniProt batch after </span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2"> retries. &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Last error: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Connection error downloading UniProt batch (attempt </span><span class="si">{</span><span class="n">retry_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Retrying in </span><span class="si">{</span><span class="n">backoff</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> seconds...&quot;</span><span class="p">,</span>
+                    <span class="ne">UserWarning</span>
+                <span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">backoff</span><span class="p">)</span>
+                <span class="n">backoff</span> <span class="o">*=</span> <span class="mi">2</span>  <span class="c1"># Exponential backoff</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">__get_uniprot_next_link</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span><span class="p">:</span>

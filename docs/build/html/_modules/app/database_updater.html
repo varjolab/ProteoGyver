@@ -43,7 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">Proteogyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../code/modules.html">Code Reference</a></li>
 </ul>
@@ -120,8 +120,9 @@
         <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">query</span> <span class="o">=</span> <span class="s1">&#39;SELECT internal_run_id FROM ms_runs&#39;</span>
-            <span class="n">vals</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">())</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()])</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">())</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">pass</span>
         <span class="n">run_index</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="n">base_id</span> <span class="o">=</span> <span class="s1">&#39;PG_runID_&#39;</span>
@@ -783,6 +784,8 @@
         <span class="n">versions</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;uniprot&#39;</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
         <span class="n">versions</span><span class="p">[</span><span class="s1">&#39;uniprot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-1::no version&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">versions</span><span class="p">[</span><span class="s1">&#39;uniprot&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">versions</span><span class="p">[</span><span class="s1">&#39;uniprot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">versions</span><span class="p">[</span><span class="s1">&#39;uniprot&#39;</span><span class="p">]]</span>
     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;biogrid&#39;</span><span class="p">,</span> <span class="s1">&#39;intact&#39;</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
             <span class="n">versions</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;no version&#39;</span>

@@ -34,6 +34,7 @@ def na_filter(input_data_dict, filtering_percentage, figure_defaults, title: str
         StringIO(input_data_dict['data tables']['intensity']),
         orient='split'
     )
+    print(data_table)
     original_counts: pd.Series = matrix_functions.count_per_sample(
         data_table, input_data_dict['sample groups']['rev'])
     logger.info(

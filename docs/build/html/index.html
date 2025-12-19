@@ -92,6 +92,7 @@
 <li class="toctree-l2"><a class="reference internal" href="README.html#qc-and-quick-analysis-toolset">QC and quick analysis toolset</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="README.html#core-analysis-workflows">Core Analysis Workflows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="README.html#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#input-size-and-scale">Input size and scale</a></li>
 <li class="toctree-l3"><a class="reference internal" href="README.html#input-data-format">Input Data Format</a></li>
 <li class="toctree-l3"><a class="reference internal" href="README.html#input-options-guide">Input options guide</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="README.html#general-input-options-main-sidebar">General Input Options (Main Sidebar)</a></li>
@@ -106,6 +107,7 @@
 <li class="toctree-l4"><a class="reference internal" href="README.html#pipeline-input-toml">Pipeline input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="README.html#parameters-not-in-the-input-toml">Parameters not in the input toml</a></li>
 <li class="toctree-l4"><a class="reference internal" href="README.html#initiating-pipeline-analysis-via-api">Initiating pipeline analysis via API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="README.html#autocleaning-of-pipeline-module-inputs">Autocleaning of pipeline module inputs</a></li>
 </ul>
 </li>
 </ul>
@@ -347,6 +349,8 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.generate_replicate_name"><code class="docutils literal notranslate"><span class="pre">generate_replicate_name()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.get_distribution_title"><code class="docutils literal notranslate"><span class="pre">get_distribution_title()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.guess_controls"><code class="docutils literal notranslate"><span class="pre">guess_controls()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.handle_mztab"><code class="docutils literal notranslate"><span class="pre">handle_mztab()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.identify_columns"><code class="docutils literal notranslate"><span class="pre">identify_columns()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.parse_comparisons"><code class="docutils literal notranslate"><span class="pre">parse_comparisons()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.parse_data_file"><code class="docutils literal notranslate"><span class="pre">parse_data_file()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.parse_parameters"><code class="docutils literal notranslate"><span class="pre">parse_parameters()</span></code></a></li>
@@ -362,6 +366,7 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_from_table"><code class="docutils literal notranslate"><span class="pre">remove_from_table()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.remove_rawfile_ending"><code class="docutils literal notranslate"><span class="pre">remove_rawfile_ending()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.rename_columns_and_update_expdesign"><code class="docutils literal notranslate"><span class="pre">rename_columns_and_update_expdesign()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.sdrf_to_table"><code class="docutils literal notranslate"><span class="pre">sdrf_to_table()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.unmix_dtypes"><code class="docutils literal notranslate"><span class="pre">unmix_dtypes()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.update_nested_dict"><code class="docutils literal notranslate"><span class="pre">update_nested_dict()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.parsing.validate_basic_inputs"><code class="docutils literal notranslate"><span class="pre">validate_basic_inputs()</span></code></a></li>
@@ -419,7 +424,6 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.nearest_tooltip"><code class="docutils literal notranslate"><span class="pre">nearest_tooltip()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.rescue_tooltip"><code class="docutils literal notranslate"><span class="pre">rescue_tooltip()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.test_type_tooltip"><code class="docutils literal notranslate"><span class="pre">test_type_tooltip()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.components.html#app.components.tooltips.use_svenn_tooltip"><code class="docutils literal notranslate"><span class="pre">use_svenn_tooltip()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l5"><a class="reference internal" href="code/app.components.html#module-app.components.ui_components">app.components.ui_components module</a><ul>
@@ -490,6 +494,7 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.ms_analytics_layout"><code class="docutils literal notranslate"><span class="pre">ms_analytics_layout()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.reset_graphs"><code class="docutils literal notranslate"><span class="pre">reset_graphs()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.sort_dates"><code class="docutils literal notranslate"><span class="pre">sort_dates()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.startup"><code class="docutils literal notranslate"><span class="pre">startup()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.toggle_graphs"><code class="docutils literal notranslate"><span class="pre">toggle_graphs()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.update_run_choices"><code class="docutils literal notranslate"><span class="pre">update_run_choices()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.MS_Inspector.update_tic_graph"><code class="docutils literal notranslate"><span class="pre">update_tic_graph()</span></code></a></li>
@@ -504,7 +509,6 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.add_samples_to_discarded"><code class="docutils literal notranslate"><span class="pre">add_samples_to_discarded()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.assign_replicate_colors"><code class="docutils literal notranslate"><span class="pre">assign_replicate_colors()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.check_inputs"><code class="docutils literal notranslate"><span class="pre">check_inputs()</span></code></a></li>
-<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.clear_data_stores"><code class="docutils literal notranslate"><span class="pre">clear_data_stores()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.collapse_or_uncollapse_input"><code class="docutils literal notranslate"><span class="pre">collapse_or_uncollapse_input()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.common_proteins_plot"><code class="docutils literal notranslate"><span class="pre">common_proteins_plot()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.commonality_plot"><code class="docutils literal notranslate"><span class="pre">commonality_plot()</span></code></a></li>
@@ -518,6 +522,7 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.generate_commonality_container"><code class="docutils literal notranslate"><span class="pre">generate_commonality_container()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.get_adiv_by_id"><code class="docutils literal notranslate"><span class="pre">get_adiv_by_id()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.get_github_version"><code class="docutils literal notranslate"><span class="pre">get_github_version()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.get_version_str"><code class="docutils literal notranslate"><span class="pre">get_version_str()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_data_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_data_table()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.handle_uploaded_sample_table"><code class="docutils literal notranslate"><span class="pre">handle_uploaded_sample_table()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.interactomics_add_crapome_to_saint"><code class="docutils literal notranslate"><span class="pre">interactomics_add_crapome_to_saint()</span></code></a></li>
@@ -560,6 +565,7 @@
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_interactomics_post_saint_figures"><code class="docutils literal notranslate"><span class="pre">save_interactomics_post_saint_figures()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_proteomics_figures"><code class="docutils literal notranslate"><span class="pre">save_proteomics_figures()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_qc_figures"><code class="docutils literal notranslate"><span class="pre">save_qc_figures()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_version_info"><code class="docutils literal notranslate"><span class="pre">save_version_info()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.save_workflow_stores"><code class="docutils literal notranslate"><span class="pre">save_workflow_stores()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.select_all_none_controls"><code class="docutils literal notranslate"><span class="pre">select_all_none_controls()</span></code></a></li>
 <li class="toctree-l6"><a class="reference internal" href="code/app.pages.html#app.pages.QC_and_data_analysis.select_all_none_crapomes"><code class="docutils literal notranslate"><span class="pre">select_all_none_crapomes()</span></code></a></li>

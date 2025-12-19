@@ -16,6 +16,8 @@ from pathlib import Path
 from components import db_functions, text_handling
 from components import EnrichmentAdmin
 from components.tools import utils
+from pyteomics import mztab
+import tempfile
 
 def update_nested_dict(base_dict: Dict[str, Any], update_dict: Dict[str, Any]) -> Dict[str, Any]:
     """Update a nested dictionary with values from another.
@@ -210,7 +212,7 @@ def read_dia_nn(data_table: pd.DataFrame) -> List[Union[pd.DataFrame, Dict[str, 
         data_cols: list = []
         for column in data_table.columns:
             col: list = column.split('.')
-            if col[-1] in ['d', 'raw']:
+            if col[-1].lower() in ['d', 'raw', 'mzml', 'dia', 'mzxml', 'wiff', 'scan']:
                 data_cols.append(column)
         if len(data_cols) == 0:
             gather: bool = False
@@ -384,18 +386,18 @@ def read_df_from_content(content: str, filename: str, lowercase_columns: bool = 
     _, content_string = content.split(',')
     decoded_content: bytes = base64.b64decode(content_string)
     f_end: str = filename.rsplit('.', maxsplit=1)[-1].lower()
-    data = None
+    data: pd.DataFrame = pd.DataFrame()
     if f_end == 'csv':
-        data: pd.DataFrame = pd.read_csv(io.StringIO(
+        data= pd.read_csv(io.StringIO(
             decoded_content.decode('utf-8')), index_col=False)
-    elif f_end in ['tsv', 'tab', 'txt']:
-        data: pd.DataFrame = pd.read_csv(io.StringIO(
+    elif f_end in (['tsv', 'tab', 'txt']) or ('sdrf' in filename.lower()):
+        data = pd.read_csv(io.StringIO(
             decoded_content.decode('utf-8')), sep='\t', index_col=False)
     elif f_end == 'xlsx':
-        data: pd.DataFrame = pd.read_excel(
+        data = pd.read_excel(
             io.BytesIO(decoded_content), engine='openpyxl')
     elif f_end == 'xls':
-        data: pd.DataFrame = pd.read_excel(
+        data = pd.read_excel(
             io.BytesIO(decoded_content), engine='xlrd')
     if lowercase_columns:
         data.columns = [c.lower() for c in data.columns]
@@ -423,80 +425,98 @@ def remove_filepath_from_columns(data_table: pd.DataFrame) -> None:
 
 def remove_rawfile_ending(column_name: str) -> str:
     """Removes the raw file ending from a column name. For example, if the column name is 'run1.raw', it will be changed to 'run1'."""
-    raw_file_endings: list[str] = ['.raw', '.d','.wiff','.scan','.mzml','.dia']
+    raw_file_endings: list[str] = ['.raw', '.d','.wiff','.scan','.mzml','.dia','.mzxml']
     for re in raw_file_endings:
         if column_name[-len(re):].lower() == re:
             return column_name[:-len(re)]
     return column_name
 
-def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tuple[Dict[str, str], Dict[str, Any]]:
+def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tuple[Dict[str, str], Dict[str, Any], str|None]:
     """Determine and apply the appropriate read function for a data file.
 
     :param file_contents: Contents of the uploaded file.
     :param filename: Name of the uploaded file.
     :param maxpsm: Maximum theoretical PSM value for spectral counting.
-    :returns: Tuple of (tables dict in JSON split, info dict).
+    :returns: Tuple of (tables dict in JSON split, info dict, json split str of sample table, if one could be generated from mztab input).
     """
-    table: pd.DataFrame = read_df_from_content(file_contents, filename)
-    remove_filepath_from_columns(table)
-    # Validation: initialize containers
     warnings: list[str] = []
     validation: dict[str, Any] = {}
-    # Pre-parse sanity metrics on initial table
-    try:
-        validation.update({
-            'rows_initial': int(table.shape[0]),
-            'cols_initial': int(table.shape[1]),
-            'numeric_cols_initial': int(table.select_dtypes(include=[np.number]).shape[1]),
-        })
-        if validation['rows_initial'] == 0:
-            warnings.append('Empty file: 0 rows')
-        if validation['cols_initial'] < 2:
-            warnings.append('Suspiciously few columns (<2)')
-        if validation['numeric_cols_initial'] == 0:
-            warnings.append('No numeric columns detected')
-    except Exception:
-        # Be conservative: do not fail parsing due to validation
-        pass
+    mztab_sample_table: str|None = None
+    if 'mztab' in filename.lower():
+        intensity_table, spc_table, mzst = handle_mztab(file_contents)
+        if mzst is not None:
+            mztab_sample_table = mzst.to_json(orient='split')
+        validation = {
+            'rows_initial': max((intensity_table.shape[0], spc_table.shape[0])),
+            'cols_initial': intensity_table.shape[1] + spc_table.shape[1],
+            'numeric_cols_initial': max(
+                (
+                    int(intensity_table.select_dtypes(include=[np.number]).shape[1]),
+                    int(spc_table.select_dtypes(include=[np.number]).shape[1]),
+                )
+            )
+        }
+        protein_length_dict = {}
+        data_type = ('Unknown','MzTab')
+    else:
+        table: pd.DataFrame = read_df_from_content(file_contents, filename)
+        remove_filepath_from_columns(table)
+        # Validation: initialize containers
+        # Pre-parse sanity metrics on initial table
+        try:
+            validation.update({
+                'rows_initial': int(table.shape[0]),
+                'cols_initial': int(table.shape[1]),
+                'numeric_cols_initial': int(table.select_dtypes(include=[np.number]).shape[1]),
+            })
+            if validation['rows_initial'] == 0:
+                warnings.append('Empty file: 0 rows')
+            if validation['cols_initial'] < 2:
+                warnings.append('Suspiciously few columns (<2)')
+            if validation['numeric_cols_initial'] == 0:
+                warnings.append('No numeric columns detected')
+        except Exception:
+            # Be conservative: do not fail parsing due to validation
+            pass
 
-    read_funcs: dict[tuple[str, str]] = {
-        ('DIA', 'DIA-NN'): read_dia_nn,
-        ('DDA', 'FragPipe'): read_fragpipe,
-        ('DDA/DIA', 'Unknown'): read_matrix,
-    }
-    data_type: tuple|None = None
-    keyword_args: dict = {}
-    if 'Protein.Ids' in table.columns:
-        if 'First.Protein.Description' in table.columns:
-            data_type = ('DIA', 'DIA-NN')
-    elif 'Top Peptide Probability' in table.columns:
-        if 'Protein Existence' in table.columns:
-            data_type = ('DDA', 'FragPipe')
-    if data_type is None:
-        data_type = ('DDA/DIA', 'Unknown')
-        keyword_args['max_spc_ever'] = maxpsm
-    intensity_table: pd.DataFrame
-    spc_table: pd.DataFrame
-    protein_length_dict: dict
-    intensity_table, spc_table, protein_length_dict = read_funcs[data_type](
-        table, **keyword_args)
-    
-    intensity_table.columns = [
-        text_handling.replace_accent_and_special_characters(
-            remove_rawfile_ending(x),
-            replacewith='_',
-            allow_numbers=True
-        ) for x in intensity_table.columns
-    ]
-    spc_table.columns = [
-        text_handling.replace_accent_and_special_characters(
-            remove_rawfile_ending(x),
-            replacewith='_',
-            allow_numbers=True
-        ) for x in spc_table.columns
-    ]
-    intensity_table = remove_duplicate_protein_groups(intensity_table)
-    spc_table = remove_duplicate_protein_groups(spc_table)
+        read_funcs: dict[tuple[str, str]] = {  # pyright: ignore[reportInvalidTypeArguments]
+            ('DIA', 'DIA-NN'): read_dia_nn,
+            ('DDA', 'FragPipe'): read_fragpipe,
+            ('DDA/DIA', 'Unknown'): read_matrix,
+        }
+        data_type: tuple|None = None
+        keyword_args: dict = {}
+        if 'Protein.Ids' in table.columns:
+            if 'First.Protein.Description' in table.columns:
+                data_type = ('DIA', 'DIA-NN')
+        elif 'Top Peptide Probability' in table.columns:
+            if 'Protein Existence' in table.columns:
+                data_type = ('DDA', 'FragPipe')
+        if data_type is None:
+            data_type = ('DDA/DIA', 'Unknown')
+            keyword_args['max_spc_ever'] = maxpsm
+        intensity_table: pd.DataFrame
+        spc_table: pd.DataFrame
+        protein_length_dict: dict
+        intensity_table, spc_table, protein_length_dict = read_funcs[data_type](
+            table, **keyword_args)
+        
+        intensity_table.columns = [
+            text_handling.replace_accent_and_special_characters(
+                remove_rawfile_ending(x),
+                replacewith='_',
+                allow_numbers=True
+            ) for x in intensity_table.columns
+        ]
+        spc_table.columns = [
+            text_handling.replace_accent_and_special_characters(
+                remove_rawfile_ending(x),
+                replacewith='_',
+                allow_numbers=True
+            ) for x in spc_table.columns
+        ]
+        intensity_table = remove_duplicate_protein_groups(intensity_table)
+        spc_table = remove_duplicate_protein_groups(spc_table)
     # Post-reader validation metrics for intensity and spc tables
     try:
         for name, df in [('intensity', intensity_table), ('spc', spc_table)]:
@@ -529,7 +549,7 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
             warnings.append('Both intensity and SPC tables are missing or tiny')
         if (validation.get('intensity_numeric_cols', 0) == 0) and (validation.get('spc_numeric_cols', 0) == 0):
             warnings.append('No numeric data available in intensity nor SPC')
-    except Exception:
+    except Exception as e:
         # Do not interrupt main flow due to validation
         pass
 
@@ -544,7 +564,7 @@ def read_data_from_content(file_contents: str, filename: str, maxpsm: int) -> Tu
         'spc': spc_table.to_json(orient='split'),
         'int': intensity_table.to_json(orient='split'),
     }
-    return table_dict, info_dict
+    return table_dict, info_dict, mztab_sample_table
 
 
 def guess_controls(sample_groups: Dict[str, List[str]], ctrl_indicators: List[str]) -> Tuple[List[str], List[List[str]]]:
@@ -625,10 +645,69 @@ def remove_duplicate_protein_groups(data_table: pd.DataFrame) -> pd.DataFrame:
             aggfuncs[column] = 'first'
     return data_table.groupby(data_table.index).agg(aggfuncs).replace(0, np.nan)
 
+def handle_mztab(mz_filecontents):
+    _, content_string = mz_filecontents.split(',')
+    decoded_content = base64.b64decode(content_string)
+    with tempfile.NamedTemporaryFile(suffix='.mztab', delete=True) as temp_file:
+        temp_file.write(decoded_content)  # Write binary data
+        temp_path = temp_file.name  # Get the path
+        mz = mztab.MzTab(temp_path)
+    def repst(val):
+        return val.replace('[','_').replace(']','_')
+    msrun_to_file = {}
+    for i in range(1, len(mz.ms_runs)+1):
+        filename = mz.ms_runs[i]['location'].rsplit('/',maxsplit=1)[-1].rsplit('\\',maxsplit=1)[-1]
+        msrun_to_file[f'ms_run[{i}]'] = filename
+    assay_to_file = {}
+    assay_to_msrun = {}
+    try:
+        for i in range(1, len(mz.assays)+1):
+            msrun = mz.assays[i]['ms_run_ref']
+            assay_to_file[f'assay[{i}]'] = msrun_to_file[msrun]
+            assay_to_msrun[f'assay[{i}]'] = msrun
+    except TypeError:
+        pass
+    sample_table = []
+    try:
+        for i in range(1, len(mz.study_variables)+1):
+            assays = mz.study_variables[i]['assay_refs'].split(',')
+            description = mz.study_variables[i]['description']
+            sample_table.extend([
+                [assay.strip(), description]
+                for assay in assays
+            ])
+        sample_table = pd.DataFrame(data=sample_table, columns=['sample name','sample group'])
+        keepcols = [c for c in mz.protein_table.columns if 'protein_abundance_assay' in c]
+        keepcols.extend([c for c in mz.protein_table.columns if 'num_psms_' in c])
+        data_table = mz.protein_table.loc[:,keepcols]
+        col_renames = {}
+        for c in data_table.columns:
+            if 'num_psms_' in c:
+                col_renames[c] = c.replace('ms_run','assay')
+        sample_table['sample name'] = sample_table['sample name'].apply(repst)
+        data_table.rename(columns=col_renames,inplace=True)
+        data_table.columns = [repst(c) for c in data_table.columns]
+    except TypeError:
+        sample_table = None
+        data_table = mz.protein_table.loc[:,[c for c in mz.protein_table.columns if (('protein_abundance' in c) or ('num_psms_' in c))]]
+        col_renames = {}
+        for c in data_table.columns:
+            if 'assay' in c:
+                ass = c.split('_',maxsplit=2)[-1]
+                col_renames[c] = 'protein_abundance_'+assay_to_file[ass]
+            elif 'ms_run' in c:
+                ass = c.split('_',maxsplit=2)[-1]
+                col_renames[c] = 'num_psms_' + msrun_to_file[ass]
+        data_table.rename(columns=col_renames, inplace=True)
+    int_table = data_table.loc[:,[c for c in data_table.columns if 'abundance' in c]]
+    spc_table = data_table.loc[:,[c for c in data_table.columns if 'psms' in c]]
+    int_table.rename(columns={c: c.replace('protein_abundance_','') for c in int_table.columns}, inplace=True)
+    spc_table.rename(columns={c: c.replace('num_psms_','') for c in int_table.columns}, inplace=True)
+    return (int_table.dropna(how='all'), spc_table.dropna(how='all'), sample_table)
 
 def parse_data_file(data_file_contents: str, data_file_name: str, 
                    data_file_modified_data: int, new_upload_style: Dict[str, str], 
-                   parameters: Dict[str, Any]) -> Tuple[Dict[str, str], Dict[str, Any], Dict[str, str], list[str]]:
+                   parameters: Dict[str, Any]) -> Tuple[Dict[str, str], Dict[str, Any], Dict[str, str], list[str], str|None]:
     """Parses a data file and validates its contents.
 
     Args:
@@ -644,6 +723,7 @@ def parse_data_file(data_file_contents: str, data_file_name: str,
             - dict: File info including metadata and data type
             - dict: Tables dictionary with intensity and spectral count data in split JSON format
             - list: List of warnings
+            - str: sample table in split json format, if uploaded file was mztab, and a sample table was able to be generated from it.
     Notes:
         - Validates file has sufficient numeric columns (>=3)
         - Sets background-color to 'green' if valid, 'red' if invalid
@@ -655,7 +735,7 @@ def parse_data_file(data_file_contents: str, data_file_name: str,
     }
     tables: dict
     more_info: dict
-    tables, more_info = read_data_from_content(
+    tables, more_info, mztab_stable = read_data_from_content(
         data_file_contents,
         data_file_name,
         parameters['Maximum psm ever theoretically encountered']
@@ -663,7 +743,6 @@ def parse_data_file(data_file_contents: str, data_file_name: str,
     for key, value in more_info.items():
         info[key] = value
     has_data: bool = False
-
 
     warnings: list[str] = []
     dt_info = more_info['validation']
@@ -685,7 +764,7 @@ def parse_data_file(data_file_contents: str, data_file_name: str,
     new_upload_style['background-color'] = 'green'
     if not has_data:
         new_upload_style['background-color'] = 'red'
-    return (new_upload_style, info, tables, warnings)
+    return (new_upload_style, info, tables, warnings, mztab_stable)
 
 
 def check_sample_table_column(column: str, accepted_values: List[str]) -> Optional[str]:
@@ -739,16 +818,81 @@ def check_required_columns(columns: List[str]) -> Tuple[Dict[str, str], Set[str]
                 break
     return (infodict, reqs_found)
 
+def identify_columns(df, column_criteria_list, keep_logic) -> tuple[str, bool]:
+    found_cols = []
+    for c in column_criteria_list:
+        filt, val = c.split('|')
+        for c2 in df.columns:
+            if filt == 'contain':
+                if val.lower() in c2.lower():
+                    found_cols.append(c2)
+                    break
+            elif filt == 'match':
+                if val.lower() == c2.lower():
+                    found_cols.append(c2)
+                    break
+    if len(found_cols) == 0:
+        return ('', True)
+    elif len(found_cols) > 1:
+        if keep_logic == 'first':
+            use_col = found_cols[0]
+        if keep_logic == 'last':
+            use_col = found_cols[-1]
+    else:
+        use_col = found_cols[0]
+    return (use_col, False)
+
+def sdrf_to_table(sdrf_df, parameters) -> tuple[pd.DataFrame, list[str]]:
+    """Convert SDRF file to sample table.
+    
+    Args:
+        sdrf_df: SDRF file as pandas DataFrame
+        parameters: Parameters dictionary
+        
+    Returns:
+        tuple: Contains:
+            - pd.DataFrame: Sample table
+            - list: List of problems
+    """
+    problem = []
+    run_col, hasproblem = identify_columns(sdrf_df, parameters['Run name columns'], parameters['Use run name column'])
+    if hasproblem:
+        problem.append(''.join(
+            [
+                'No sample name column identified. ',
+                'Please adjust parameters. ',
+                f'Currently looking for one of {",".join(parameters["Run name columns"])}.'
+            ]
+        ))
+    group_col, hasproblem = identify_columns(sdrf_df, parameters['Sample group columns'], parameters['Use sample group column'])
+    if hasproblem:
+        problem.append(''.join(
+            [
+                'No sample name column identified. ',
+                'Please adjust parameters. ',
+                f'Currently looking for one of {",".join(parameters["Sample group columns"])}.'
+            ]
+        ))
+    if len(problem) > 0:
+        sample_table = pd.DataFrame()
+    else:
+        sample_table = sdrf_df[[run_col, group_col]].drop_duplicates().rename(columns={
+            run_col: 'Sample name',
+            group_col: 'Sample group'
+        })
+    
+    return sample_table, problem
 
 def parse_sample_table(data_file_contents: str, data_file_name: str,
                       data_file_modified_data: int, 
-                      new_upload_style: Dict[str, str]) -> Tuple[Dict[str, str], Dict[str, Any], str]:
+                      new_upload_style: Dict[str, str], sdrf_parameters:dict) -> Tuple[Dict[str, str], Dict[str, Any], str|None]:
     """Parse and validate a sample metadata table.
 
     :param data_file_contents: Contents of the uploaded sample table file.
     :param data_file_name: Name of the uploaded file.
     :param data_file_modified_data: Last modified timestamp of the file.
     :param new_upload_style: Style dictionary for UI feedback.
+    :param sdrf_parameters: Parameters for identifying sample name and group columns from SDRF files.
     :returns: Tuple of (new style, info dict, table JSON split).
     """
     info: dict = {
@@ -760,6 +904,11 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
     indicator_color: str = 'green'
     if not ((decoded_table.shape[1] > 1) and (decoded_table.shape[0] > 1)):
         indicator_color = 'red'
+    elif 'sdrf' in data_file_name.lower():
+        decoded_table, problem = sdrf_to_table(decoded_table, sdrf_parameters)
+        if len(problem) > 0:
+            indicator_color = 'red'
+            info['sdrf warnings'] = problem
     reqs_found: set
     additional_info: dict
     additional_info, reqs_found = check_required_columns(decoded_table.columns)
@@ -770,7 +919,6 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
         indicator_color = 'red'
     elif 'bait uniprot' in info:
         indicator_color = 'blue'
-    new_upload_style['background-color'] = indicator_color
     if indicator_color != 'red':
         for c in decoded_table.columns:
             rep_args = {
@@ -789,6 +937,7 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
                     **rep_args
                 ) for x in decoded_table[c]
             ]
+    new_upload_style['background-color'] = indicator_color
     return (new_upload_style, info, decoded_table.to_json(orient='split'))
 
 
@@ -948,7 +1097,6 @@ def format_data(session_uid: str, data_tables: Dict[str, str],
     else:
         return_dict['data tables']['table to use'] = 'intensity'
         return_dict['other']['all proteins'] = list(intensity_table.index)
-
     return_dict['sample groups']['guessed control samples'] = guess_controls(
         sample_groups, control_indicators)
 

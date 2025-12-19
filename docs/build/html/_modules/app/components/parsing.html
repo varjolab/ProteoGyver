@@ -43,7 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
@@ -91,6 +91,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_functions</span><span class="p">,</span> <span class="n">text_handling</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnrichmentAdmin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">components.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyteomics</span><span class="w"> </span><span class="kn">import</span> <span class="n">mztab</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 
 <div class="viewcode-block" id="update_nested_dict">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.update_nested_dict">[docs]</a>
@@ -302,7 +304,7 @@
         <span class="n">data_cols</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">col</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">col</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;raw&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">col</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;raw&#39;</span><span class="p">,</span> <span class="s1">&#39;mzml&#39;</span><span class="p">,</span> <span class="s1">&#39;dia&#39;</span><span class="p">,</span> <span class="s1">&#39;mzxml&#39;</span><span class="p">,</span> <span class="s1">&#39;wiff&#39;</span><span class="p">,</span> <span class="s1">&#39;scan&#39;</span><span class="p">]:</span>
                 <span class="n">data_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">gather</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
@@ -485,18 +487,18 @@
     <span class="n">_</span><span class="p">,</span> <span class="n">content_string</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
     <span class="n">decoded_content</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">content_string</span><span class="p">)</span>
     <span class="n">f_end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">f_end</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
-        <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span>
             <span class="n">decoded_content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)),</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">f_end</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;tab&#39;</span><span class="p">,</span> <span class="s1">&#39;txt&#39;</span><span class="p">]:</span>
-        <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span>
+    <span class="k">elif</span> <span class="n">f_end</span> <span class="ow">in</span> <span class="p">([</span><span class="s1">&#39;tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;tab&#39;</span><span class="p">,</span> <span class="s1">&#39;txt&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;sdrf&#39;</span> <span class="ow">in</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span>
             <span class="n">decoded_content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">f_end</span> <span class="o">==</span> <span class="s1">&#39;xlsx&#39;</span><span class="p">:</span>
-        <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span>
             <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">decoded_content</span><span class="p">),</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;openpyxl&#39;</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">f_end</span> <span class="o">==</span> <span class="s1">&#39;xls&#39;</span><span class="p">:</span>
-        <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span>
             <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">decoded_content</span><span class="p">),</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;xlrd&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">lowercase_columns</span><span class="p">:</span>
         <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
@@ -533,7 +535,7 @@
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.remove_rawfile_ending">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">remove_rawfile_ending</span><span class="p">(</span><span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Removes the raw file ending from a column name. For example, if the column name is &#39;run1.raw&#39;, it will be changed to &#39;run1&#39;.&quot;&quot;&quot;</span>
-    <span class="n">raw_file_endings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.raw&#39;</span><span class="p">,</span> <span class="s1">&#39;.d&#39;</span><span class="p">,</span><span class="s1">&#39;.wiff&#39;</span><span class="p">,</span><span class="s1">&#39;.scan&#39;</span><span class="p">,</span><span class="s1">&#39;.mzml&#39;</span><span class="p">,</span><span class="s1">&#39;.dia&#39;</span><span class="p">]</span>
+    <span class="n">raw_file_endings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.raw&#39;</span><span class="p">,</span> <span class="s1">&#39;.d&#39;</span><span class="p">,</span><span class="s1">&#39;.wiff&#39;</span><span class="p">,</span><span class="s1">&#39;.scan&#39;</span><span class="p">,</span><span class="s1">&#39;.mzml&#39;</span><span class="p">,</span><span class="s1">&#39;.dia&#39;</span><span class="p">,</span><span class="s1">&#39;.mzxml&#39;</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="n">raw_file_endings</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">column_name</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">re</span><span class="p">):]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">re</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">column_name</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">re</span><span class="p">)]</span>
@@ -542,74 +544,92 @@
 
 <div class="viewcode-block" id="read_data_from_content">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.read_data_from_content">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">read_data_from_content</span><span class="p">(</span><span class="n">file_contents</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">maxpsm</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_data_from_content</span><span class="p">(</span><span class="n">file_contents</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">maxpsm</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine and apply the appropriate read function for a data file.</span>
 
 <span class="sd">    :param file_contents: Contents of the uploaded file.</span>
 <span class="sd">    :param filename: Name of the uploaded file.</span>
 <span class="sd">    :param maxpsm: Maximum theoretical PSM value for spectral counting.</span>
-<span class="sd">    :returns: Tuple of (tables dict in JSON split, info dict).</span>
+<span class="sd">    :returns: Tuple of (tables dict in JSON split, info dict, json split str of sample table, if one could be generated from mztab input).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">read_df_from_content</span><span class="p">(</span><span class="n">file_contents</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-    <span class="n">remove_filepath_from_columns</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
-    <span class="c1"># Validation: initialize containers</span>
     <span class="n">warnings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">validation</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c1"># Pre-parse sanity metrics on initial table</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">validation</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-            <span class="s1">&#39;rows_initial&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-            <span class="s1">&#39;cols_initial&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-            <span class="s1">&#39;numeric_cols_initial&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-        <span class="p">})</span>
-        <span class="k">if</span> <span class="n">validation</span><span class="p">[</span><span class="s1">&#39;rows_initial&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Empty file: 0 rows&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">validation</span><span class="p">[</span><span class="s1">&#39;cols_initial&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Suspiciously few columns (&lt;2)&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">validation</span><span class="p">[</span><span class="s1">&#39;numeric_cols_initial&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No numeric columns detected&#39;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="c1"># Be conservative: do not fail parsing due to validation</span>
-        <span class="k">pass</span>
+    <span class="n">mztab_sample_table</span><span class="p">:</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s1">&#39;mztab&#39;</span> <span class="ow">in</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">intensity_table</span><span class="p">,</span> <span class="n">spc_table</span><span class="p">,</span> <span class="n">mzst</span> <span class="o">=</span> <span class="n">handle_mztab</span><span class="p">(</span><span class="n">file_contents</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mzst</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mztab_sample_table</span> <span class="o">=</span> <span class="n">mzst</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+        <span class="n">validation</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;rows_initial&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">((</span><span class="n">intensity_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">spc_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+            <span class="s1">&#39;cols_initial&#39;</span><span class="p">:</span> <span class="n">intensity_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">spc_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;numeric_cols_initial&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">intensity_table</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">spc_table</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">protein_length_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">data_type</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unknown&#39;</span><span class="p">,</span><span class="s1">&#39;MzTab&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">read_df_from_content</span><span class="p">(</span><span class="n">file_contents</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">remove_filepath_from_columns</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        <span class="c1"># Validation: initialize containers</span>
+        <span class="c1"># Pre-parse sanity metrics on initial table</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">validation</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;rows_initial&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="s1">&#39;cols_initial&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="s1">&#39;numeric_cols_initial&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="p">})</span>
+            <span class="k">if</span> <span class="n">validation</span><span class="p">[</span><span class="s1">&#39;rows_initial&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Empty file: 0 rows&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">validation</span><span class="p">[</span><span class="s1">&#39;cols_initial&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Suspiciously few columns (&lt;2)&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">validation</span><span class="p">[</span><span class="s1">&#39;numeric_cols_initial&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No numeric columns detected&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># Be conservative: do not fail parsing due to validation</span>
+            <span class="k">pass</span>
 
-    <span class="n">read_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="p">(</span><span class="s1">&#39;DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;DIA-NN&#39;</span><span class="p">):</span> <span class="n">read_dia_nn</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;DDA&#39;</span><span class="p">,</span> <span class="s1">&#39;FragPipe&#39;</span><span class="p">):</span> <span class="n">read_fragpipe</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;DDA/DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">):</span> <span class="n">read_matrix</span><span class="p">,</span>
-    <span class="p">}</span>
-    <span class="n">data_type</span><span class="p">:</span> <span class="nb">tuple</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">keyword_args</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="s1">&#39;Protein.Ids&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;First.Protein.Description&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="n">data_type</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;DIA-NN&#39;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="s1">&#39;Top Peptide Probability&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;Protein Existence&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="n">data_type</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DDA&#39;</span><span class="p">,</span> <span class="s1">&#39;FragPipe&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">data_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">data_type</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DDA/DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
-        <span class="n">keyword_args</span><span class="p">[</span><span class="s1">&#39;max_spc_ever&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxpsm</span>
-    <span class="n">intensity_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
-    <span class="n">spc_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
-    <span class="n">protein_length_dict</span><span class="p">:</span> <span class="nb">dict</span>
-    <span class="n">intensity_table</span><span class="p">,</span> <span class="n">spc_table</span><span class="p">,</span> <span class="n">protein_length_dict</span> <span class="o">=</span> <span class="n">read_funcs</span><span class="p">[</span><span class="n">data_type</span><span class="p">](</span>
-        <span class="n">table</span><span class="p">,</span> <span class="o">**</span><span class="n">keyword_args</span><span class="p">)</span>
-    
-    <span class="n">intensity_table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">text_handling</span><span class="o">.</span><span class="n">replace_accent_and_special_characters</span><span class="p">(</span>
-            <span class="n">remove_rawfile_ending</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
-            <span class="n">replacewith</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span>
-            <span class="n">allow_numbers</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">intensity_table</span><span class="o">.</span><span class="n">columns</span>
-    <span class="p">]</span>
-    <span class="n">spc_table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">text_handling</span><span class="o">.</span><span class="n">replace_accent_and_special_characters</span><span class="p">(</span>
-            <span class="n">remove_rawfile_ending</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
-            <span class="n">replacewith</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span>
-            <span class="n">allow_numbers</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">spc_table</span><span class="o">.</span><span class="n">columns</span>
-    <span class="p">]</span>
-    <span class="n">intensity_table</span> <span class="o">=</span> <span class="n">remove_duplicate_protein_groups</span><span class="p">(</span><span class="n">intensity_table</span><span class="p">)</span>
-    <span class="n">spc_table</span> <span class="o">=</span> <span class="n">remove_duplicate_protein_groups</span><span class="p">(</span><span class="n">spc_table</span><span class="p">)</span>
+        <span class="n">read_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># pyright: ignore[reportInvalidTypeArguments]</span>
+            <span class="p">(</span><span class="s1">&#39;DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;DIA-NN&#39;</span><span class="p">):</span> <span class="n">read_dia_nn</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;DDA&#39;</span><span class="p">,</span> <span class="s1">&#39;FragPipe&#39;</span><span class="p">):</span> <span class="n">read_fragpipe</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;DDA/DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">):</span> <span class="n">read_matrix</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">data_type</span><span class="p">:</span> <span class="nb">tuple</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">keyword_args</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s1">&#39;Protein.Ids&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;First.Protein.Description&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">data_type</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;DIA-NN&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;Top Peptide Probability&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;Protein Existence&#39;</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">data_type</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DDA&#39;</span><span class="p">,</span> <span class="s1">&#39;FragPipe&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data_type</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DDA/DIA&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+            <span class="n">keyword_args</span><span class="p">[</span><span class="s1">&#39;max_spc_ever&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxpsm</span>
+        <span class="n">intensity_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+        <span class="n">spc_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+        <span class="n">protein_length_dict</span><span class="p">:</span> <span class="nb">dict</span>
+        <span class="n">intensity_table</span><span class="p">,</span> <span class="n">spc_table</span><span class="p">,</span> <span class="n">protein_length_dict</span> <span class="o">=</span> <span class="n">read_funcs</span><span class="p">[</span><span class="n">data_type</span><span class="p">](</span>
+            <span class="n">table</span><span class="p">,</span> <span class="o">**</span><span class="n">keyword_args</span><span class="p">)</span>
+        
+        <span class="n">intensity_table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">text_handling</span><span class="o">.</span><span class="n">replace_accent_and_special_characters</span><span class="p">(</span>
+                <span class="n">remove_rawfile_ending</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                <span class="n">replacewith</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span>
+                <span class="n">allow_numbers</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">intensity_table</span><span class="o">.</span><span class="n">columns</span>
+        <span class="p">]</span>
+        <span class="n">spc_table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">text_handling</span><span class="o">.</span><span class="n">replace_accent_and_special_characters</span><span class="p">(</span>
+                <span class="n">remove_rawfile_ending</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                <span class="n">replacewith</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span>
+                <span class="n">allow_numbers</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">spc_table</span><span class="o">.</span><span class="n">columns</span>
+        <span class="p">]</span>
+        <span class="n">intensity_table</span> <span class="o">=</span> <span class="n">remove_duplicate_protein_groups</span><span class="p">(</span><span class="n">intensity_table</span><span class="p">)</span>
+        <span class="n">spc_table</span> <span class="o">=</span> <span class="n">remove_duplicate_protein_groups</span><span class="p">(</span><span class="n">spc_table</span><span class="p">)</span>
     <span class="c1"># Post-reader validation metrics for intensity and spc tables</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;intensity&#39;</span><span class="p">,</span> <span class="n">intensity_table</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;spc&#39;</span><span class="p">,</span> <span class="n">spc_table</span><span class="p">)]:</span>
@@ -642,7 +662,7 @@
             <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Both intensity and SPC tables are missing or tiny&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;intensity_numeric_cols&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;spc_numeric_cols&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No numeric data available in intensity nor SPC&#39;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># Do not interrupt main flow due to validation</span>
         <span class="k">pass</span>
 
@@ -657,7 +677,7 @@
         <span class="s1">&#39;spc&#39;</span><span class="p">:</span> <span class="n">spc_table</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
         <span class="s1">&#39;int&#39;</span><span class="p">:</span> <span class="n">intensity_table</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
     <span class="p">}</span>
-    <span class="k">return</span> <span class="n">table_dict</span><span class="p">,</span> <span class="n">info_dict</span></div>
+    <span class="k">return</span> <span class="n">table_dict</span><span class="p">,</span> <span class="n">info_dict</span><span class="p">,</span> <span class="n">mztab_sample_table</span></div>
 
 
 
@@ -748,12 +768,74 @@
     <span class="k">return</span> <span class="n">data_table</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">data_table</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">aggfuncs</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="handle_mztab">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.handle_mztab">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_mztab</span><span class="p">(</span><span class="n">mz_filecontents</span><span class="p">):</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">content_string</span> <span class="o">=</span> <span class="n">mz_filecontents</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">decoded_content</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">content_string</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.mztab&#39;</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp_file</span><span class="p">:</span>
+        <span class="n">temp_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">decoded_content</span><span class="p">)</span>  <span class="c1"># Write binary data</span>
+        <span class="n">temp_path</span> <span class="o">=</span> <span class="n">temp_file</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># Get the path</span>
+        <span class="n">mz</span> <span class="o">=</span> <span class="n">mztab</span><span class="o">.</span><span class="n">MzTab</span><span class="p">(</span><span class="n">temp_path</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">repst</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">val</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span><span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="n">msrun_to_file</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mz</span><span class="o">.</span><span class="n">ms_runs</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">mz</span><span class="o">.</span><span class="n">ms_runs</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;location&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">msrun_to_file</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;ms_run[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
+    <span class="n">assay_to_file</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">assay_to_msrun</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mz</span><span class="o">.</span><span class="n">assays</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">msrun</span> <span class="o">=</span> <span class="n">mz</span><span class="o">.</span><span class="n">assays</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;ms_run_ref&#39;</span><span class="p">]</span>
+            <span class="n">assay_to_file</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;assay[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msrun_to_file</span><span class="p">[</span><span class="n">msrun</span><span class="p">]</span>
+            <span class="n">assay_to_msrun</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;assay[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">msrun</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">sample_table</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mz</span><span class="o">.</span><span class="n">study_variables</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">assays</span> <span class="o">=</span> <span class="n">mz</span><span class="o">.</span><span class="n">study_variables</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;assay_refs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">description</span> <span class="o">=</span> <span class="n">mz</span><span class="o">.</span><span class="n">study_variables</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+            <span class="n">sample_table</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="p">[</span><span class="n">assay</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">description</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">assay</span> <span class="ow">in</span> <span class="n">assays</span>
+            <span class="p">])</span>
+        <span class="n">sample_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">sample_table</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sample name&#39;</span><span class="p">,</span><span class="s1">&#39;sample group&#39;</span><span class="p">])</span>
+        <span class="n">keepcols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">mz</span><span class="o">.</span><span class="n">protein_table</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39;protein_abundance_assay&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]</span>
+        <span class="n">keepcols</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">mz</span><span class="o">.</span><span class="n">protein_table</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39;num_psms_&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">])</span>
+        <span class="n">data_table</span> <span class="o">=</span> <span class="n">mz</span><span class="o">.</span><span class="n">protein_table</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">keepcols</span><span class="p">]</span>
+        <span class="n">col_renames</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;num_psms_&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+                <span class="n">col_renames</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;ms_run&#39;</span><span class="p">,</span><span class="s1">&#39;assay&#39;</span><span class="p">)</span>
+        <span class="n">sample_table</span><span class="p">[</span><span class="s1">&#39;sample name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_table</span><span class="p">[</span><span class="s1">&#39;sample name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">repst</span><span class="p">)</span>
+        <span class="n">data_table</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_renames</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">repst</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="n">sample_table</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">data_table</span> <span class="o">=</span> <span class="n">mz</span><span class="o">.</span><span class="n">protein_table</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">mz</span><span class="o">.</span><span class="n">protein_table</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="p">((</span><span class="s1">&#39;protein_abundance&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;num_psms_&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">))]]</span>
+        <span class="n">col_renames</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;assay&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+                <span class="n">ass</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">2</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">col_renames</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;protein_abundance_&#39;</span><span class="o">+</span><span class="n">assay_to_file</span><span class="p">[</span><span class="n">ass</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s1">&#39;ms_run&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+                <span class="n">ass</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">2</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">col_renames</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;num_psms_&#39;</span> <span class="o">+</span> <span class="n">msrun_to_file</span><span class="p">[</span><span class="n">ass</span><span class="p">]</span>
+        <span class="n">data_table</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_renames</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">int_table</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39;abundance&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]]</span>
+    <span class="n">spc_table</span> <span class="o">=</span> <span class="n">data_table</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data_table</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s1">&#39;psms&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]]</span>
+    <span class="n">int_table</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;protein_abundance_&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">int_table</span><span class="o">.</span><span class="n">columns</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">spc_table</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;num_psms_&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">int_table</span><span class="o">.</span><span class="n">columns</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">int_table</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">),</span> <span class="n">spc_table</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">),</span> <span class="n">sample_table</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="parse_data_file">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.parse_data_file">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_data_file</span><span class="p">(</span><span class="n">data_file_contents</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
                    <span class="n">data_file_modified_data</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">new_upload_style</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> 
-                   <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+                   <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parses a data file and validates its contents.</span>
 
 <span class="sd">    Args:</span>
@@ -769,6 +851,7 @@
 <span class="sd">            - dict: File info including metadata and data type</span>
 <span class="sd">            - dict: Tables dictionary with intensity and spectral count data in split JSON format</span>
 <span class="sd">            - list: List of warnings</span>
+<span class="sd">            - str: sample table in split json format, if uploaded file was mztab, and a sample table was able to be generated from it.</span>
 <span class="sd">    Notes:</span>
 <span class="sd">        - Validates file has sufficient numeric columns (&gt;=3)</span>
 <span class="sd">        - Sets background-color to &#39;green&#39; if valid, &#39;red&#39; if invalid</span>
@@ -780,7 +863,7 @@
     <span class="p">}</span>
     <span class="n">tables</span><span class="p">:</span> <span class="nb">dict</span>
     <span class="n">more_info</span><span class="p">:</span> <span class="nb">dict</span>
-    <span class="n">tables</span><span class="p">,</span> <span class="n">more_info</span> <span class="o">=</span> <span class="n">read_data_from_content</span><span class="p">(</span>
+    <span class="n">tables</span><span class="p">,</span> <span class="n">more_info</span><span class="p">,</span> <span class="n">mztab_stable</span> <span class="o">=</span> <span class="n">read_data_from_content</span><span class="p">(</span>
         <span class="n">data_file_contents</span><span class="p">,</span>
         <span class="n">data_file_name</span><span class="p">,</span>
         <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Maximum psm ever theoretically encountered&#39;</span><span class="p">]</span>
@@ -788,7 +871,6 @@
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">more_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">info</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="n">has_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-
 
     <span class="n">warnings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">dt_info</span> <span class="o">=</span> <span class="n">more_info</span><span class="p">[</span><span class="s1">&#39;validation&#39;</span><span class="p">]</span>
@@ -810,7 +892,7 @@
     <span class="n">new_upload_style</span><span class="p">[</span><span class="s1">&#39;background-color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">has_data</span><span class="p">:</span>
         <span class="n">new_upload_style</span><span class="p">[</span><span class="s1">&#39;background-color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">new_upload_style</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">tables</span><span class="p">,</span> <span class="n">warnings</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="p">(</span><span class="n">new_upload_style</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">tables</span><span class="p">,</span> <span class="n">warnings</span><span class="p">,</span> <span class="n">mztab_stable</span><span class="p">)</span></div>
 
 
 
@@ -871,18 +953,89 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">infodict</span><span class="p">,</span> <span class="n">reqs_found</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="identify_columns">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.identify_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">identify_columns</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">column_criteria_list</span><span class="p">,</span> <span class="n">keep_logic</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+    <span class="n">found_cols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">column_criteria_list</span><span class="p">:</span>
+        <span class="n">filt</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">c2</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filt</span> <span class="o">==</span> <span class="s1">&#39;contain&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">c2</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">found_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c2</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">filt</span> <span class="o">==</span> <span class="s1">&#39;match&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">c2</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">found_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c2</span><span class="p">)</span>
+                    <span class="k">break</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">keep_logic</span> <span class="o">==</span> <span class="s1">&#39;first&#39;</span><span class="p">:</span>
+            <span class="n">use_col</span> <span class="o">=</span> <span class="n">found_cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">keep_logic</span> <span class="o">==</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span>
+            <span class="n">use_col</span> <span class="o">=</span> <span class="n">found_cols</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">use_col</span> <span class="o">=</span> <span class="n">found_cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">use_col</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sdrf_to_table">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.sdrf_to_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sdrf_to_table</span><span class="p">(</span><span class="n">sdrf_df</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert SDRF file to sample table.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        sdrf_df: SDRF file as pandas DataFrame</span>
+<span class="sd">        parameters: Parameters dictionary</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: Contains:</span>
+<span class="sd">            - pd.DataFrame: Sample table</span>
+<span class="sd">            - list: List of problems</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">run_col</span><span class="p">,</span> <span class="n">hasproblem</span> <span class="o">=</span> <span class="n">identify_columns</span><span class="p">(</span><span class="n">sdrf_df</span><span class="p">,</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Run name columns&#39;</span><span class="p">],</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Use run name column&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">hasproblem</span><span class="p">:</span>
+        <span class="n">problem</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;No sample name column identified. &#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Please adjust parameters. &#39;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s1">&#39;Currently looking for one of </span><span class="si">{</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Run name columns&quot;</span><span class="p">])</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">]</span>
+        <span class="p">))</span>
+    <span class="n">group_col</span><span class="p">,</span> <span class="n">hasproblem</span> <span class="o">=</span> <span class="n">identify_columns</span><span class="p">(</span><span class="n">sdrf_df</span><span class="p">,</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Sample group columns&#39;</span><span class="p">],</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Use sample group column&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">hasproblem</span><span class="p">:</span>
+        <span class="n">problem</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;No sample name column identified. &#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Please adjust parameters. &#39;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s1">&#39;Currently looking for one of </span><span class="si">{</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;Sample group columns&quot;</span><span class="p">])</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">]</span>
+        <span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sample_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sample_table</span> <span class="o">=</span> <span class="n">sdrf_df</span><span class="p">[[</span><span class="n">run_col</span><span class="p">,</span> <span class="n">group_col</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">run_col</span><span class="p">:</span> <span class="s1">&#39;Sample name&#39;</span><span class="p">,</span>
+            <span class="n">group_col</span><span class="p">:</span> <span class="s1">&#39;Sample group&#39;</span>
+        <span class="p">})</span>
+    
+    <span class="k">return</span> <span class="n">sample_table</span><span class="p">,</span> <span class="n">problem</span></div>
+
 
 <div class="viewcode-block" id="parse_sample_table">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.parse_sample_table">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_sample_table</span><span class="p">(</span><span class="n">data_file_contents</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                       <span class="n">data_file_modified_data</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
-                      <span class="n">new_upload_style</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+                      <span class="n">new_upload_style</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">sdrf_parameters</span><span class="p">:</span><span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="o">|</span><span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse and validate a sample metadata table.</span>
 
 <span class="sd">    :param data_file_contents: Contents of the uploaded sample table file.</span>
 <span class="sd">    :param data_file_name: Name of the uploaded file.</span>
 <span class="sd">    :param data_file_modified_data: Last modified timestamp of the file.</span>
 <span class="sd">    :param new_upload_style: Style dictionary for UI feedback.</span>
+<span class="sd">    :param sdrf_parameters: Parameters for identifying sample name and group columns from SDRF files.</span>
 <span class="sd">    :returns: Tuple of (new style, info dict, table JSON split).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -894,6 +1047,11 @@
     <span class="n">indicator_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">decoded_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">decoded_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)):</span>
         <span class="n">indicator_color</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;sdrf&#39;</span> <span class="ow">in</span> <span class="n">data_file_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">decoded_table</span><span class="p">,</span> <span class="n">problem</span> <span class="o">=</span> <span class="n">sdrf_to_table</span><span class="p">(</span><span class="n">decoded_table</span><span class="p">,</span> <span class="n">sdrf_parameters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">indicator_color</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;sdrf warnings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">problem</span>
     <span class="n">reqs_found</span><span class="p">:</span> <span class="nb">set</span>
     <span class="n">additional_info</span><span class="p">:</span> <span class="nb">dict</span>
     <span class="n">additional_info</span><span class="p">,</span> <span class="n">reqs_found</span> <span class="o">=</span> <span class="n">check_required_columns</span><span class="p">(</span><span class="n">decoded_table</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
@@ -904,7 +1062,6 @@
         <span class="n">indicator_color</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
     <span class="k">elif</span> <span class="s1">&#39;bait uniprot&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
         <span class="n">indicator_color</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
-    <span class="n">new_upload_style</span><span class="p">[</span><span class="s1">&#39;background-color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indicator_color</span>
     <span class="k">if</span> <span class="n">indicator_color</span> <span class="o">!=</span> <span class="s1">&#39;red&#39;</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">decoded_table</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">rep_args</span> <span class="o">=</span> <span class="p">{</span>
@@ -923,6 +1080,7 @@
                     <span class="o">**</span><span class="n">rep_args</span>
                 <span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">decoded_table</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
             <span class="p">]</span>
+    <span class="n">new_upload_style</span><span class="p">[</span><span class="s1">&#39;background-color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indicator_color</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">new_upload_style</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">decoded_table</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">))</span></div>
 
 
@@ -1088,7 +1246,6 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">return_dict</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="s1">&#39;table to use&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;intensity&#39;</span>
         <span class="n">return_dict</span><span class="p">[</span><span class="s1">&#39;other&#39;</span><span class="p">][</span><span class="s1">&#39;all proteins&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">intensity_table</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-
     <span class="n">return_dict</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;guessed control samples&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">guess_controls</span><span class="p">(</span>
         <span class="n">sample_groups</span><span class="p">,</span> <span class="n">control_indicators</span><span class="p">)</span>
 

@@ -14,7 +14,6 @@ from components.figures import bar_graph, comparative_plot, commonality_graph, r
 from components import quick_stats, db_functions
 from components.figures.figure_legends import QC_LEGENDS as legends
 from components.ui_components import checklist
-from components.tooltips import use_svenn_tooltip
 from datetime import datetime
 from io import StringIO
 from dash.dcc import Graph, Dropdown, Loading
@@ -474,18 +473,21 @@ def distribution_plot(pandas_json: str, replicate_colors: dict, sample_groups: d
     return (graph_div, pandas_json)
 
 
-def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, force_svenn: bool, only_groups: list = None) -> tuple:
+def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, only_groups: list = None) -> tuple:
     """Plot commonality across groups using heatmap or Supervenn.
 
     :param pandas_json: Data table in JSON split format.
     :param rev_sample_groups: Mapping sample -> group.
     :param defaults: Figure defaults and component config.
-    :param force_svenn: If ``True``, forces Supervenn.
     :param only_groups: Optional subset of group names to include.
     :returns: Tuple of (graph div, common proteins string, optional base64 PDF string).
     """
     start_time: datetime = datetime.now()
     logger.info(f'commonality_plot - started: {start_time}')
+    if only_groups == 'all':
+        only_groups = None
+    elif len(only_groups) == 1:
+        only_groups = None
     common_data: dict = quick_stats.get_common_data(
         pd_read_json(StringIO(pandas_json),orient='split'),
         rev_sample_groups,
@@ -494,7 +496,7 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
     logger.info(
         f'commonality_plot - summary stats calculated: {datetime.now() }')
     graph, image_str = commonality_graph.make_graph(
-        common_data, 'qc-commonality-plot', force_svenn, defaults)
+        common_data, 'qc-commonality-plot', defaults)
     if image_str == '':
         legend = legends['shared_id-plot-hm']
     else:
@@ -538,9 +540,6 @@ def generate_commonality_container(sample_groups):
     :param sample_groups: List of group names.
     :returns: Bootstrap ``Row`` with controls and graph area.
     """
-    def_for_force: list = []
-    if len(sample_groups) <= 6:
-        def_for_force.append('Use supervenn')
     return dbc.Row(
         [
             dbc.Col(
@@ -550,24 +549,13 @@ def generate_commonality_container(sample_groups):
                 options=sample_groups,
                 default_choice=sample_groups,
                 clean_id = False,
-                prefix_list = [html.H4('Select visible sample groups', style={'padding': '75px 0px 0px 0px'})],
-                postfix_list=checklist(
-                    label='toggle-additional-supervenn-options',
-                    options=['Use supervenn'],
-                    id_only=True,
-                    default_choice = def_for_force,
-                    clean_id = False,
-                    postfix_list = [
-                        dbc.Button('Update plot',id='qc-commonality-plot-update-plot-button'),
-                        use_svenn_tooltip()
-                    ]
-                )
-            ), width=2),
+                prefix_list = [html.H4('Select visible sample groups', style={'padding': '75px 0px 0px 0px'})]
+            ), width=1),
             dbc.Col(
                 [
                     Loading(html.Div(id = 'qc-commonality-graph-div'))
                 ],
-                width = 10
+                width = 11
             )
         ]
     )

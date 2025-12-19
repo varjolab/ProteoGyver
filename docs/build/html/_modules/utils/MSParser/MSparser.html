@@ -43,7 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
@@ -277,6 +277,8 @@
             <span class="n">data</span> <span class="o">=</span> <span class="n">parse_raw</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.d&#39;</span><span class="p">):</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">parse_d</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">tims_run_id_regex</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.mzml&#39;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">parse_mzml</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">handle_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">oname</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">)</span>

@@ -57,6 +57,10 @@ Currently the pipeline module is limited to a single worker, however that will b
   - "Sample name" column
   - "Sample group" column
   - "Bait uniprot" column (for interactomics)
+  - sdrf format support for sample table is experimental.
+    - Currently sample name (MS run name) is expected to be in column "raw file" "comment[data file]" or "assay name", whichever is encountered first in the file
+    - Sample group is expected to be in a column containing the string "factor value", and be the first such column encountered.
+    - Requesting user input for column choice is also possible in the future, but currently undesirable due to the effort to present fewer choices to the user.
 - Supported data formats:
   - Interactomics:
     - FragPipe (combined_prot.tsv, reprint.spc)
@@ -65,6 +69,11 @@ Currently the pipeline module is limited to a single worker, however that will b
     - FragPipe (combined_prot.tsv)
     - DIA-NN (pg_matrix.tsv)
     - Generic matrix format (one row = one protein, one column = one sample)
+  - mzTab support is experimental. Currently only supported according to the example files provided, with an embedded sample table.
+    - The example mzTab file is from HUPO-PSI, and represents a label free experiment with two study variables, and 6 total assays, where one assay consists of one MS run.
+- Supported software versions:
+  - FragPipe 23.1
+  - DIA-NN 2.2 academia
 
 ### Input options guide
 
@@ -332,21 +341,18 @@ It will parse the rawfile, and produce a .json file in the output directory, whi
 
 ### Docker Installation (recommended)
 
-For running the images, docker compose files in ProteoGyver github repo are highly recommended:
+For running the images, the provided docker compose files are highly recommended:
 [proteogyver docker-compose.yml](dockerfiles/proteogyver/docker-compose.yaml)
 [pg_updater docker-compose.yml](dockerfiles/pg_updater/docker-compose.yaml)
 
-Tweak the volume mappings to suit your local environment, same with the env variables. 
+**Tweak the volume mappings to suit your local environment, same with the env variables.** 
 
 #### Running the docker images
 
-Next modify docker-compose NOW to suit your local system if needed.
-
-For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn't yet exist.
+For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first run, the updater will create a database, if one doesn't yet exist.
 
 Building the updater container should take around a minute. Running the updater can take a long time, especially on the first run.
 **All commands should be run from the proteogyver root folder**
-
 
 Then run the updater to generate a database:
 ```

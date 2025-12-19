@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -75,6 +79,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">base64</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">is_dataclass</span>
@@ -84,7 +89,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">parsing</span><span class="p">,</span> <span class="n">qc_analysis</span><span class="p">,</span> <span class="n">proteomics</span><span class="p">,</span> <span class="n">interactomics</span><span class="p">,</span> <span class="n">db_functions</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures</span><span class="w"> </span><span class="kn">import</span> <span class="n">color_tools</span> 
+<span class="kn">from</span><span class="w"> </span><span class="nn">components.figures</span><span class="w"> </span><span class="kn">import</span> <span class="n">color_tools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">_version</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> 
 
 <div class="viewcode-block" id="dash_to_wire">
 <a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.dash_to_wire">[docs]</a>
@@ -200,6 +206,32 @@
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_collect_version_info</span><span class="p">(</span><span class="n">db_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Collect version information for Proteogyver, database, and external data.</span>
+<span class="sd">    </span>
+<span class="sd">    Mirrors the save_version_info function from QC_and_data_analysis.py.</span>
+<span class="sd">    </span>
+<span class="sd">    :param db_file: Path to SQLite database file.</span>
+<span class="sd">    :returns: Dictionary mapping entity names to versions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">version_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Proteogyver version&#39;</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1"># Get database versions</span>
+    <span class="k">for</span> <span class="n">update_type</span><span class="p">,</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_database_versions</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">version_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Database: </span><span class="si">{</span><span class="n">update_type</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">version</span>
+    <span class="c1"># Get external data versions</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">db_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;ro&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_full_table_as_pd</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="s1">&#39;data_versions&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="n">version_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="n">version</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error getting external versions: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+    <span class="k">return</span> <span class="n">version_dict</span>
+
 <span class="c1"># -------- Pipeline --------</span>
 <div class="viewcode-block" id="run_pipeline">
 <a class="viewcode-back" href="../../../code/app.pipeline_module.html#app.pipeline_module.pipeline_batch.run_pipeline">[docs]</a>
@@ -213,6 +245,10 @@
     <span class="c1"># 1) Load parameters &amp; db/contaminants (mirrors QC_and_data_analysis.py)</span>
     <span class="n">db_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;Data paths&quot;</span><span class="p">][</span><span class="s2">&quot;Database file&quot;</span><span class="p">])</span>
     <span class="n">contaminant_list</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_contaminants</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
+    
+    <span class="c1"># 1.5) Collect and save version information (mirrors save_version_info callback)</span>
+    <span class="n">version_info</span> <span class="o">=</span> <span class="n">_collect_version_info</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;00_version_info&quot;</span><span class="p">,</span> <span class="n">version_info</span><span class="p">)</span>
 
     <span class="c1"># 2) “Upload” data &amp; sample tables from disk (use same parsing functions the app uses)</span>
     <span class="n">data_contents</span><span class="p">,</span> <span class="n">data_name</span><span class="p">,</span> <span class="n">data_mtime</span> <span class="o">=</span> <span class="n">_upload_contents_for_path</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">data_table_path</span><span class="p">)</span>
@@ -372,7 +408,6 @@
         <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;data tables&#39;</span><span class="p">][</span><span class="s1">&#39;table to use&#39;</span><span class="p">]],</span>
         <span class="n">data_dictionary</span><span class="p">[</span><span class="s1">&#39;sample groups&#39;</span><span class="p">][</span><span class="s1">&#39;rev&#39;</span><span class="p">],</span>
         <span class="n">params</span><span class="p">[</span><span class="s1">&#39;Figure defaults&#39;</span><span class="p">][</span><span class="s1">&#39;full-height&#39;</span><span class="p">],</span>
-        <span class="n">cfg</span><span class="o">.</span><span class="n">force_supervenn</span><span class="p">,</span> 
     <span class="p">)</span>
     <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;commonality&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">commonality_data</span>
     <span class="n">artifacts</span><span class="p">[</span><span class="s2">&quot;commonality_pdf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf_str</span>
@@ -554,6 +589,7 @@
 <span class="sd">    :returns: Interactomics summary dict.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">db_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;Data paths&quot;</span><span class="p">][</span><span class="s2">&quot;Database file&quot;</span><span class="p">])</span>
+    <span class="n">contaminant_list</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_contaminants</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
     <span class="n">divs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c1"># Check if we have spectral count data</span>
     <span class="k">if</span> <span class="s1">&#39;&quot;No data&quot;&#39;</span> <span class="ow">in</span> <span class="n">data_dictionary</span><span class="p">[</span><span class="s2">&quot;data tables&quot;</span><span class="p">][</span><span class="s2">&quot;spc&quot;</span><span class="p">]:</span>
@@ -632,6 +668,17 @@
     <span class="n">known_div</span><span class="p">,</span> <span class="n">filtered_saint_with_knowns</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">known_plot</span><span class="p">(</span><span class="n">filtered_saint</span><span class="p">,</span> <span class="n">db_file</span><span class="p">,</span> <span class="n">rep_colors_with_cont</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;Figure defaults&#39;</span><span class="p">][</span><span class="s1">&#39;half-height&#39;</span><span class="p">])</span>
     <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;23_saint_filtered_and_intensity_mapped_with_knowns&quot;</span><span class="p">,</span> <span class="n">filtered_saint_with_knowns</span><span class="p">)</span>
     <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;known&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">known_div</span>
+    <span class="c1"># 4.5) Common proteins plot</span>
+    <span class="n">saint_matrix</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">get_saint_matrix</span><span class="p">(</span><span class="n">filtered_saint</span><span class="p">)</span>
+    <span class="n">common_proteins_div</span><span class="p">,</span> <span class="n">common_proteins_data</span> <span class="o">=</span> <span class="n">qc_analysis</span><span class="o">.</span><span class="n">common_proteins</span><span class="p">(</span>
+        <span class="n">saint_matrix</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
+        <span class="n">db_file</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;Figure defaults&quot;</span><span class="p">][</span><span class="s2">&quot;full-height&quot;</span><span class="p">],</span>
+        <span class="n">additional_groups</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Other contaminants&quot;</span><span class="p">:</span> <span class="n">contaminant_list</span><span class="p">},</span>
+        <span class="n">id_str</span><span class="o">=</span><span class="s2">&quot;interactomics&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_dump_json</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s2">&quot;23_common_proteins&quot;</span><span class="p">,</span> <span class="n">common_proteins_data</span><span class="p">)</span>
+    <span class="n">divs</span><span class="p">[</span><span class="s2">&quot;common_proteins&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_proteins_div</span>
     <span class="c1"># 5) Generate network plot</span>
     <span class="n">network_div</span><span class="p">,</span> <span class="n">network_elements</span><span class="p">,</span> <span class="n">interactions</span> <span class="o">=</span> <span class="n">interactomics</span><span class="o">.</span><span class="n">do_network</span><span class="p">(</span>
         <span class="n">filtered_saint</span><span class="p">,</span>

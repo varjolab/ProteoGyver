@@ -2,12 +2,14 @@
 
 Proteogyver (PG) is a low-threshold, web-based platform for proteomics and interactomics data analysis. It provides tools for quality control, data visualization, and statistical analysis of mass spectrometry-based proteomics data. These should be used as rapid ways to get preliminary data (or in simple cases, publishable results) out of manageable chunks of MS rundata. PG is not intended to be a full-featured analysis platform, but rather a quick way to identify issues, characterize results, and move on to more detailed analysis. The additional tools of PG can be used for inspecting how MS is performing across a sample set (MS Inspector), and for generating colocalization heatmaps from microscopy data (Microscopy Colocalizer).
 
+Documentation also available in [ReadTheDocs](https://proteogyver.readthedocs.io/en/latest/)
+
 ## Table of contents:
 
 ## Security and compatibility
 
 The app is insecure as it is. It is intended to be run on a network that is not exposed to the public internet. PG is designed to contain only nonsensitive data. Besides public databases, PG will optionally contain information about sample MS runs (run IDs, sample names, TIC/BPC etc.)
-ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, however should work just fine on other platforms as well. ARM-based systems may require a rebuild of the container.
+ProteoGyver is supplied as a docker container. It is only tested routinely on a ubuntu server, and as such ubuntu linux is the only officially supported platform. However, the container should work just fine on other x86 platforms as well, as long as docker is available. ARM-based systems may require tweaks to the dockerfile, a rebuild of the container, and parts of the functionality, especially SAINTexpress, may still be nonfunctional.
 
 ## Example use cases
 [Example use cases](./example%20use%20cases/) cover both interactomics and proteomcis workflows, as well as typical use of MS inspector. The examples are rudimentary, but they do showcase the outputs of the tools quite well.
@@ -44,11 +46,21 @@ Example files are downloadable from the sidebar of the main interface. These inc
 
 In more detail below.
 
+### Input size and scale
+
+PG can handle hundreds of runs, and has been tested with up to a thousand or so. However, the specific limits have not been explored as of yet, nor the impact of input size on e.g. RAM use on the server. With 16 GB of RAM, over a hundred samples should not be a problem even when multiple concurrent analyses are ongoing. 
+
+Currently the pipeline module is limited to a single worker, however that will be addressed in version 1.6 or 1.7.
+
 ### Input Data Format
 - Sample table must include:
   - "Sample name" column
   - "Sample group" column
   - "Bait uniprot" column (for interactomics)
+  - sdrf format support for sample table is experimental.
+    - Currently sample name (MS run name) is expected to be in column "raw file" "comment[data file]" or "assay name", whichever is encountered first in the file
+    - Sample group is expected to be in a column containing the string "factor value", and be the first such column encountered.
+    - Requesting user input for column choice is also possible in the future, but currently undesirable due to the effort to present fewer choices to the user.
 - Supported data formats:
   - Interactomics:
     - FragPipe (combined_prot.tsv, reprint.spc)
@@ -57,6 +69,11 @@ In more detail below.
     - FragPipe (combined_prot.tsv)
     - DIA-NN (pg_matrix.tsv)
     - Generic matrix format (one row = one protein, one column = one sample)
+  - mzTab support is experimental. Currently only supported according to the example files provided, with an embedded sample table.
+    - The example mzTab file is from HUPO-PSI, and represents a label free experiment with two study variables, and 6 total assays, where one assay consists of one MS run.
+- Supported software versions:
+  - FragPipe 23.1
+  - DIA-NN 2.2 academia
 
 ### Input options guide
 
@@ -100,7 +117,7 @@ After selecting the Proteomics workflow starting the analysis, the following opt
   - **Quantile**: Quantile normalization
   - **Vsn**: Variance Stabilizing Normalization
 - **Select control group**: Dropdown to choose a sample group from your data to use as the control/reference group for comparisons
-- **Or upload comparison file**: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons
+- **Or upload comparison file**: Alternative to selecting a control group - upload a TSV file specifying custom sample comparisons. Green indicator means successful upload, while yellow means the file was uploaded successfully, but some sample groups in the comparisons were not found in the uploaded sample set. 
 - **log2 fold change threshold for comparisons**: Radio buttons to set the fold change threshold (default: 2-fold, log2 = 1.0). 
 - **Adjusted p-value threshold for comparisons**: Radio buttons to set the significance threshold for differential abundance (default: 0.01). Values used are FDR(bh) adjusted p-values. 
 - **Test type for comparisons**: Radio buttons to select statistical test:
@@ -207,6 +224,7 @@ Since the input .toml can be very minimal, for all parameters that are NOT in it
 #### Initiating pipeline analysis via API
 An alternative to direct file system access to the server is to use the API. The API is on the same port as the GUI, under /api/upload-pipeline-files. 
 Here is a complete usage example via python:
+>import requests
 >datafile = 'datafile.tsv'
 >sample_table = 'sampletable.tsv'
 >pipeline = 'pipeline.toml'
@@ -221,18 +239,18 @@ Here is a complete usage example via python:
 >
 >response = requests.post(f"http://{server_url}:{server_port}/api/upload-pipeline-files", files=files)
 >upload_dir_name = response.json()['upload_directory_name']
->----------------------------------------------
-># Check status later
+----------------------------------------------
+Check status later
 >status = requests.get(
 >    f"http://{server_url}:{server_port}/api/pipeline-status",
 >    params={'upload_directory_name': upload_dir_name}
 >).json()
 >print(f'Status: {status["status"]}, message: {status["message"]}')
-># The status also includes upload directory name
+The status also includes upload directory name
 >if status['status'] == 'error':
 >    print(f"Error: {status['error_message']}")
->----------------------------------------------
-># Download the output zip file
+----------------------------------------------
+Download the output zip file
 >response = requests.get(
 >    f"http://{server_url}:{server_port}/api/download-output",
 >    params={'upload_directory_name': upload_dir_name},
@@ -247,6 +265,9 @@ Here is a complete usage example via python:
 >    print("Downloaded PG output.zip")
 >else:
 >    print(f"Error: {response.json()}")
+
+#### Autocleaning of pipeline module inputs
+Files from the pipeline module input directory will be cleaned out 7 days after creation or last modification. This is tunable in parameters.toml (Maintenance.Cleanup.Pipeline api input)
 
 ## Additional Tools
 - **MS Inspector**: Interactive visualization and analysis of MS performance through TIC graphs
@@ -320,19 +341,18 @@ It will parse the rawfile, and produce a .json file in the output directory, whi
 
 ### Docker Installation (recommended)
 
+For running the images, the provided docker compose files are highly recommended:
+[proteogyver docker-compose.yml](dockerfiles/proteogyver/docker-compose.yaml)
+[pg_updater docker-compose.yml](dockerfiles/pg_updater/docker-compose.yaml)
 
-TODO: dockerhub/zenodo here.
-
+**Tweak the volume mappings to suit your local environment, same with the env variables.** 
 
 #### Running the docker images
 
-Next modify docker-compose NOW to suit your local system if needed.
-
-For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first, run, the updater will create a database, if one doesn't yet exist.
+For production use, the updater is required for external data to stay up to date. It is encouraged to run the updater container as a periodical service, and adjust the intervals between e.g. external updates via the parameters.toml file (see below). On the first run, the updater will create a database, if one doesn't yet exist.
 
 Building the updater container should take around a minute. Running the updater can take a long time, especially on the first run.
 **All commands should be run from the proteogyver root folder**
-
 
 Then run the updater to generate a database:
 ```

@@ -46,7 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Proteogyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Code Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="app.html">app package</a><ul class="current">
@@ -502,7 +502,7 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.MS_Inspector.description_card">
-<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">description_card</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#description_card"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.description_card" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">description_card</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#description_card"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.description_card" title="Link to this definition"></a></dt>
 <dd><p>Create the description card component for the dashboard.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -516,7 +516,7 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.MS_Inspector.download_graphs">
-<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">download_graphs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tic_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auc_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#download_graphs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.download_graphs" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">download_graphs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tic_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auc_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#download_graphs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.download_graphs" title="Link to this definition"></a></dt>
 <dd><p>Create a ZIP with current graphs and data for download.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -537,7 +537,7 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.MS_Inspector.generate_control_card">
-<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">generate_control_card</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#generate_control_card"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.generate_control_card" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">generate_control_card</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mass_specs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mintime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxtime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_types</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#generate_control_card"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.generate_control_card" title="Link to this definition"></a></dt>
 <dd><p>Create the control card with input widgets.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -551,7 +551,7 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.MS_Inspector.ms_analytics_layout">
-<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">ms_analytics_layout</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#ms_analytics_layout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.ms_analytics_layout" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">ms_analytics_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_specs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mintime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxtime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_types</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#ms_analytics_layout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.ms_analytics_layout" title="Link to this definition"></a></dt>
 <dd><p>Create the main layout for the MS analytics dashboard.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -588,6 +588,23 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="app.pages.MS_Inspector.startup">
+<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">startup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#startup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.startup" title="Link to this definition"></a></dt>
+<dd><p>Startup the MS inspector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>_</strong> – Placeholder for startup notifier.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of (app layout div, database_file, parameters, required_maincols, mass_specs, data_types, trace_types, trace_color, num_of_traces_visible, run_limit, min_time, max_time).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="app.pages.MS_Inspector.toggle_graphs">
 <span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">toggle_graphs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#toggle_graphs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.toggle_graphs" title="Link to this definition"></a></dt>
 <dd><p>Toggle the graph animation state between running and stopped.</p>
@@ -609,31 +626,37 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.MS_Inspector.update_run_choices">
-<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">update_run_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#update_run_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.update_run_choices" title="Link to this definition"></a></dt>
-<dd><p>Update the list of runs based on selected criteria.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>selected_ms</strong> – Selected MS.</p></li>
-<li><p><strong>start_date</strong> – Start date.</p></li>
-<li><p><strong>end_date</strong> – End date.</p></li>
-<li><p><strong>data_types</strong> – Selected data types.</p></li>
-<li><p><strong>run_id_list</strong> – Optional string of run IDs to load.</p></li>
-<li><p><strong>button_text</strong> – Current button text.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks].</p>
-</dd>
-</dl>
+<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">update_run_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_of_traces_visible</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_maincols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#update_run_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.update_run_choices" title="Link to this definition"></a></dt>
+<dd><p>Update the list of runs based on selected criteria.
+:type selected_ms: 
+:param selected_ms: Selected MS.
+:type start_date: 
+:param start_date: Start date.
+:type end_date: 
+:param end_date: End date.
+:type data_types: 
+:param data_types: Selected data types.
+:type run_id_list: 
+:param run_id_list: Optional string of run IDs to load.
+:type button_text: 
+:param button_text: Current button text.
+:type num_of_traces_visible: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>
+:param num_of_traces_visible: Number of traces visible.
+:type required_maincols: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>
+:param required_maincols: Required main columns.
+:type run_limit: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>
+:param run_limit: Run limit.
+:type trace_types: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>
+:param trace_types: Selected trace types.
+:type database_file: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>
+:param database_file: Database file.
+:rtype: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span>
+:returns: Tuple of (chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks).</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.MS_Inspector.update_tic_graph">
-<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">update_tic_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">___</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">____</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tic_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supp_datatype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#update_tic_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.update_tic_graph" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.MS_Inspector.</span></span><span class="sig-name descname"><span class="pre">update_tic_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">___</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">____</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tic_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supp_datatype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_of_traces_visible</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_color</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/MS_Inspector.html#update_tic_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.MS_Inspector.update_tic_graph" title="Link to this definition"></a></dt>
 <dd><p>Update the TIC and supplementary metric graphs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -645,6 +668,8 @@ explore MS runs based on time periods, run IDs, or sample types.</p>
 <li><p><strong>traces</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict mapping run id -&gt; trace dicts.</p></li>
 <li><p><strong>plot_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Plot data (pandas split-JSON).</p></li>
 <li><p><strong>max_y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dict of maximum y-values per trace type.</p></li>
+<li><p><strong>num_of_traces_visible</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of traces visible.</p></li>
+<li><p><strong>trace_color</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Trace color.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -775,23 +800,6 @@ figure theme, and upload success styles.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.clear_data_stores">
-<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">clear_data_stores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">begin_clicks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#clear_data_stores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.clear_data_stores" title="Link to this definition"></a></dt>
-<dd><p>Clear all data stores before analysis begins. Also saves version information to the version data store.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>begin_clicks</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Number of clicks on the begin analysis button.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple of (empty string to clear notification, version dictionary).</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.collapse_or_uncollapse_input">
 <span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">collapse_or_uncollapse_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header_click</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">begin_click</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_is_open</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#collapse_or_uncollapse_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.collapse_or_uncollapse_input" title="Link to this definition"></a></dt>
 <dd><p>Toggle the collapse state of the input section.</p>
@@ -834,13 +842,13 @@ figure theme, and upload success styles.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.commonality_plot">
-<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">commonality_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dictionary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_only_groups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#commonality_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.commonality_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">commonality_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dictionary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_only_groups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#commonality_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.commonality_plot" title="Link to this definition"></a></dt>
 <dd><p>Create a commonality plot showing protein overlap between groups.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data_dictionary</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Data dictionary containing sample information.</p></li>
-<li><p><strong>additional_options</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Selected additional plot options.</p></li>
+<li><p><strong>additional_options</strong> – Selected additional plot options.</p></li>
 <li><p><strong>show_only_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]]</span>) – Optional dict specifying groups to display.</p></li>
 </ul>
 </dd>
@@ -1046,6 +1054,17 @@ figure theme, and upload success styles.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.get_version_str">
+<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">get_version_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ver_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#get_version_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.get_version_str" title="Link to this definition"></a></dt>
+<dd><p>Split version string into major, minor, and patch versions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.handle_uploaded_data_table">
 <span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">handle_uploaded_data_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_contents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_upload_style</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#handle_uploaded_data_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.handle_uploaded_data_table" title="Link to this definition"></a></dt>
 <dd><p>Parse uploaded data table and populate stores.</p>
@@ -1069,7 +1088,7 @@ figure theme, and upload success styles.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.handle_uploaded_sample_table">
-<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">handle_uploaded_sample_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_contents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_upload_style</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#handle_uploaded_sample_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.handle_uploaded_sample_table" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">handle_uploaded_sample_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_contents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_upload_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_table_from_mztab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#handle_uploaded_sample_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.handle_uploaded_sample_table" title="Link to this definition"></a></dt>
 <dd><p>Parse uploaded sample table and populate stores.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1913,6 +1932,23 @@ figure theme, and upload success styles.</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Tuple of (completion message, loading indicator text).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pages.QC_and_data_analysis.save_version_info">
+<span class="sig-prename descclassname"><span class="pre">app.pages.QC_and_data_analysis.</span></span><span class="sig-name descname"><span class="pre">save_version_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">begin_clicks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/pages/QC_and_data_analysis.html#save_version_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.pages.QC_and_data_analysis.save_version_info" title="Link to this definition"></a></dt>
+<dd><p>Clear all data stores before analysis begins. Also saves version information to the version data store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>begin_clicks</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Number of clicks on the begin analysis button.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of (empty string to clear notification, version dictionary).</p>
 </dd>
 </dl>
 </dd></dl>

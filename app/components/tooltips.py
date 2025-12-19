@@ -38,14 +38,6 @@ def interactomics_select_top_controls_tooltip(target='interactomics-num-controls
     """
     return generic_tooltip(target, 'Limit the number of inbuilt control runs to a specified number of most-similar runs (by euclidean distance). Increasing the number of control runs increases the SAINT running time, sometimes massively, sometimes barely, but does result in lower number of HCIs.')
 
-def use_svenn_tooltip(target = 'sidebar-force-supervenn') -> Tooltip:
-    """Tooltip for forcing Supervenn in commonality plot.
-
-    :param target: ID of the target element.
-    :returns: Bootstrap ``Tooltip`` component.
-    """
-    return generic_tooltip(target, 'This option will force the use of supervenn in commonality plot, instead of deciding between supervenn and a heatmap depending on the number of sample groups.')
-
 def rescue_tooltip(target = 'interactomics-rescue-filtered-out') -> Tooltip:
     """Tooltip explaining the rescue option for SAINT filtering.
 

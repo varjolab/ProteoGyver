@@ -21,6 +21,12 @@ LogLevel = 20
 # The script ensures that the cpu count limit will not be higher than the number of cores available.
 "CPU count limit" = "ncpus"
 
+["Sample table parsing"."SDRF"]
+# These specify how to identify sample and group column from SDRF file in format "keyword|value", where keyword is either contain or match, and value is what the matched column(s) must either contain or match exactly (case insensitive), respectively.
+"Run name columns" = ["match|raw file", "match|comment[data file]", "match|assay name"]
+"Use run name column" = "first" # either first or last. Will use either first or last found column that has unique value for each row. 
+"Sample group columns" = ["contain|factor value"] 
+"Use sample group column" = "first" # Either first or last
 
 ["Cytoscape layout parameters"]
 # Maximum time (ms) for force-directed layout simulation. Higher values = more stable layouts but slower rendering.

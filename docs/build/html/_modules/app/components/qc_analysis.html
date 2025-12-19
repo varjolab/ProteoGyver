@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -85,7 +89,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">components</span><span class="w"> </span><span class="kn">import</span> <span class="n">quick_stats</span><span class="p">,</span> <span class="n">db_functions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">components.figures.figure_legends</span><span class="w"> </span><span class="kn">import</span> <span class="n">QC_LEGENDS</span> <span class="k">as</span> <span class="n">legends</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">components.ui_components</span><span class="w"> </span><span class="kn">import</span> <span class="n">checklist</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">components.tooltips</span><span class="w"> </span><span class="kn">import</span> <span class="n">use_svenn_tooltip</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dash.dcc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span><span class="p">,</span> <span class="n">Dropdown</span><span class="p">,</span> <span class="n">Loading</span>
@@ -574,18 +577,21 @@
 
 <div class="viewcode-block" id="commonality_plot">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.qc_analysis.commonality_plot">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">commonality_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">force_svenn</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">only_groups</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">commonality_plot</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">only_groups</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot commonality across groups using heatmap or Supervenn.</span>
 
 <span class="sd">    :param pandas_json: Data table in JSON split format.</span>
 <span class="sd">    :param rev_sample_groups: Mapping sample -&gt; group.</span>
 <span class="sd">    :param defaults: Figure defaults and component config.</span>
-<span class="sd">    :param force_svenn: If ``True``, forces Supervenn.</span>
 <span class="sd">    :param only_groups: Optional subset of group names to include.</span>
 <span class="sd">    :returns: Tuple of (graph div, common proteins string, optional base64 PDF string).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">start_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;commonality_plot - started: </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">only_groups</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="n">only_groups</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">only_groups</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">only_groups</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">common_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">quick_stats</span><span class="o">.</span><span class="n">get_common_data</span><span class="p">(</span>
         <span class="n">pd_read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">pandas_json</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">),</span>
         <span class="n">rev_sample_groups</span><span class="p">,</span>
@@ -594,7 +600,7 @@
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
         <span class="sa">f</span><span class="s1">&#39;commonality_plot - summary stats calculated: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="w"> </span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">graph</span><span class="p">,</span> <span class="n">image_str</span> <span class="o">=</span> <span class="n">commonality_graph</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span>
-        <span class="n">common_data</span><span class="p">,</span> <span class="s1">&#39;qc-commonality-plot&#39;</span><span class="p">,</span> <span class="n">force_svenn</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+        <span class="n">common_data</span><span class="p">,</span> <span class="s1">&#39;qc-commonality-plot&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">image_str</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
         <span class="n">legend</span> <span class="o">=</span> <span class="n">legends</span><span class="p">[</span><span class="s1">&#39;shared_id-plot-hm&#39;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -641,9 +647,6 @@
 <span class="sd">    :param sample_groups: List of group names.</span>
 <span class="sd">    :returns: Bootstrap ``Row`` with controls and graph area.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">def_for_force</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_groups</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">:</span>
-        <span class="n">def_for_force</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Use supervenn&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">(</span>
         <span class="p">[</span>
             <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
@@ -653,24 +656,13 @@
                 <span class="n">options</span><span class="o">=</span><span class="n">sample_groups</span><span class="p">,</span>
                 <span class="n">default_choice</span><span class="o">=</span><span class="n">sample_groups</span><span class="p">,</span>
                 <span class="n">clean_id</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="n">prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="s1">&#39;Select visible sample groups&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;75px 0px 0px 0px&#39;</span><span class="p">})],</span>
-                <span class="n">postfix_list</span><span class="o">=</span><span class="n">checklist</span><span class="p">(</span>
-                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;toggle-additional-supervenn-options&#39;</span><span class="p">,</span>
-                    <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Use supervenn&#39;</span><span class="p">],</span>
-                    <span class="n">id_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                    <span class="n">default_choice</span> <span class="o">=</span> <span class="n">def_for_force</span><span class="p">,</span>
-                    <span class="n">clean_id</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="n">postfix_list</span> <span class="o">=</span> <span class="p">[</span>
-                        <span class="n">dbc</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s1">&#39;Update plot&#39;</span><span class="p">,</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;qc-commonality-plot-update-plot-button&#39;</span><span class="p">),</span>
-                        <span class="n">use_svenn_tooltip</span><span class="p">()</span>
-                    <span class="p">]</span>
-                <span class="p">)</span>
-            <span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+                <span class="n">prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="s1">&#39;Select visible sample groups&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;75px 0px 0px 0px&#39;</span><span class="p">})]</span>
+            <span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
             <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">(</span>
                 <span class="p">[</span>
                     <span class="n">Loading</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;qc-commonality-graph-div&#39;</span><span class="p">))</span>
                 <span class="p">],</span>
-                <span class="n">width</span> <span class="o">=</span> <span class="mi">10</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="mi">11</span>
             <span class="p">)</span>
         <span class="p">]</span>
     <span class="p">)</span></div>

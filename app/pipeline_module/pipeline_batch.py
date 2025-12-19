@@ -325,7 +325,6 @@ def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
         data_dictionary['data tables'][data_dictionary['data tables']['table to use']],
         data_dictionary['sample groups']['rev'],
         params['Figure defaults']['full-height'],
-        cfg.force_supervenn, 
     )
     artifacts["commonality"] = commonality_data
     artifacts["commonality_pdf"] = pdf_str

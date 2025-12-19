@@ -214,9 +214,14 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="app.components.figures.html#module-app.components.figures.commonality_graph">app.components.figures.commonality_graph module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.common_heatmap"><code class="docutils literal notranslate"><span class="pre">common_heatmap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.Intersection"><code class="docutils literal notranslate"><span class="pre">Intersection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.Intersection.bits"><code class="docutils literal notranslate"><span class="pre">Intersection.bits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.Intersection.label"><code class="docutils literal notranslate"><span class="pre">Intersection.label</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.Intersection.size"><code class="docutils literal notranslate"><span class="pre">Intersection.size</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.create_upset_figure"><code class="docutils literal notranslate"><span class="pre">create_upset_figure()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.make_graph"><code class="docutils literal notranslate"><span class="pre">make_graph()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="app.components.figures.html#app.components.figures.commonality_graph.supervenn"><code class="docutils literal notranslate"><span class="pre">supervenn()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="app.components.figures.html#module-app.components.figures.comparative_plot">app.components.figures.comparative_plot module</a><ul>
@@ -2749,6 +2754,21 @@ If False, preserves original sample names with numeric suffixes if needed.</p></
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="app.components.parsing.handle_mztab">
+<span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">handle_mztab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mz_filecontents</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#handle_mztab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.handle_mztab" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.parsing.identify_columns">
+<span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">identify_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_criteria_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_logic</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#identify_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.identify_columns" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="app.components.parsing.parse_comparisons">
 <span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">parse_comparisons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comparison_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sgroups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#parse_comparisons"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.parse_comparisons" title="Link to this definition"></a></dt>
 <dd><p>Parses control group and comparison data into pairwise comparisons.</p>
@@ -2797,6 +2817,7 @@ If False, preserves original sample names with numeric suffixes if needed.</p></
 <li><p>dict: File info including metadata and data type</p></li>
 <li><p>dict: Tables dictionary with intensity and spectral count data in split JSON format</p></li>
 <li><p>list: List of warnings</p></li>
+<li><p>str: sample table in split json format, if uploaded file was mztab, and a sample table was able to be generated from it.</p></li>
 </ul>
 </dd>
 </dl>
@@ -2833,7 +2854,7 @@ If False, preserves original sample names with numeric suffixes if needed.</p></
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.components.parsing.parse_sample_table">
-<span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">parse_sample_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_file_contents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_modified_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_upload_style</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#parse_sample_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.parse_sample_table" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">parse_sample_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_file_contents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_file_modified_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_upload_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdrf_parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#parse_sample_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.parse_sample_table" title="Link to this definition"></a></dt>
 <dd><p>Parse and validate a sample metadata table.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2842,10 +2863,11 @@ If False, preserves original sample names with numeric suffixes if needed.</p></
 <li><p><strong>data_file_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the uploaded file.</p></li>
 <li><p><strong>data_file_modified_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Last modified timestamp of the file.</p></li>
 <li><p><strong>new_upload_style</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Style dictionary for UI feedback.</p></li>
+<li><p><strong>sdrf_parameters</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Parameters for identifying sample name and group columns from SDRF files.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Tuple of (new style, info dict, table JSON split).</p>
@@ -2866,10 +2888,10 @@ If False, preserves original sample names with numeric suffixes if needed.</p></
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple of (tables dict in JSON split, info dict).</p>
+<dd class="field-odd"><p>Tuple of (tables dict in JSON split, info dict, json split str of sample table, if one could be generated from mztab input).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3091,6 +3113,33 @@ Defaults to 0</p></li>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Tuple of (sample groups mapping, discarded columns, used columns, updated expdesign).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.components.parsing.sdrf_to_table">
+<span class="sig-prename descclassname"><span class="pre">app.components.parsing.</span></span><span class="sig-name descname"><span class="pre">sdrf_to_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sdrf_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/parsing.html#sdrf_to_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.parsing.sdrf_to_table" title="Link to this definition"></a></dt>
+<dd><p>Convert SDRF file to sample table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sdrf_df</strong> – SDRF file as pandas DataFrame</p></li>
+<li><p><strong>parameters</strong> – Parameters dictionary</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Contains:</dt><dd><ul class="simple">
+<li><p>pd.DataFrame: Sample table</p></li>
+<li><p>list: List of problems</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3372,7 +3421,7 @@ use in the UI.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.components.qc_analysis.commonality_plot">
-<span class="sig-prename descclassname"><span class="pre">app.components.qc_analysis.</span></span><span class="sig-name descname"><span class="pre">commonality_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pandas_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rev_sample_groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_svenn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/qc_analysis.html#commonality_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.qc_analysis.commonality_plot" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.components.qc_analysis.</span></span><span class="sig-name descname"><span class="pre">commonality_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pandas_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rev_sample_groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/qc_analysis.html#commonality_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.qc_analysis.commonality_plot" title="Link to this definition"></a></dt>
 <dd><p>Plot commonality across groups using heatmap or Supervenn.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3380,7 +3429,6 @@ use in the UI.</p>
 <li><p><strong>pandas_json</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Data table in JSON split format.</p></li>
 <li><p><strong>rev_sample_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping sample -&gt; group.</p></li>
 <li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Figure defaults and component config.</p></li>
-<li><p><strong>force_svenn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, forces Supervenn.</p></li>
 <li><p><strong>only_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>) – Optional subset of group names to include.</p></li>
 </ul>
 </dd>
@@ -3647,7 +3695,7 @@ basic per-sample metrics used across figures.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data_table</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span>) – Input DataFrame with proteins as index and samples as columns.</p></li>
 <li><p><strong>rev_sample_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping from sample name to group name.</p></li>
-<li><p><strong>only_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></span>) – Optional subset of group names to include.</p></li>
+<li><p><strong>only_groups</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional subset of group names to include.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -3973,23 +4021,6 @@ application to document inputs and options.</p>
 <dt class="sig sig-object py" id="app.components.tooltips.test_type_tooltip">
 <span class="sig-prename descclassname"><span class="pre">app.components.tooltips.</span></span><span class="sig-name descname"><span class="pre">test_type_tooltip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'proteomics-test-type'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/tooltips.html#test_type_tooltip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.tooltips.test_type_tooltip" title="Link to this definition"></a></dt>
 <dd><p>Tooltip describing test type selection (paired vs independent).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>target</strong> – ID of the target element.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tooltip</span></code></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Bootstrap <code class="docutils literal notranslate"><span class="pre">Tooltip</span></code> component.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="app.components.tooltips.use_svenn_tooltip">
-<span class="sig-prename descclassname"><span class="pre">app.components.tooltips.</span></span><span class="sig-name descname"><span class="pre">use_svenn_tooltip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sidebar-force-supervenn'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/tooltips.html#use_svenn_tooltip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.tooltips.use_svenn_tooltip" title="Link to this definition"></a></dt>
-<dd><p>Tooltip for forcing Supervenn in commonality plot.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>target</strong> – ID of the target element.</p>

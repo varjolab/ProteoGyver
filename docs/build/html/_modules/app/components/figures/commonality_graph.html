@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -76,131 +80,269 @@
 <span class="sd">- ``supervenn``: Supervenn diagram for up to ~10 sets</span>
 <span class="sd">- ``common_heatmap``: Jaccard-like overlap heatmap for larger numbers</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.backend_bases</span><span class="w"> </span><span class="kn">import</span> <span class="n">FigureManagerBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.backends.backend_agg</span><span class="w"> </span><span class="kn">import</span> <span class="n">FigureCanvasAgg</span> <span class="k">as</span> <span class="n">FigureCanvas</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.figure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Figure</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">supervenn</span><span class="w"> </span><span class="kn">import</span> <span class="n">supervenn</span> <span class="k">as</span> <span class="n">svenn</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dash.dcc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dash.html</span><span class="w"> </span><span class="kn">import</span> <span class="n">Img</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">Index</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="kn">import</span> <span class="n">imshow</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">nan</span> <span class="k">as</span> <span class="n">NA</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<div class="viewcode-block" id="supervenn">
-<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.commonality_graph.supervenn">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">supervenn</span><span class="p">(</span><span class="n">group_sets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Render a Supervenn plot from named sets and return as a Dash image.</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">plotly.subplots</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_subplots</span>
 
-<span class="sd">    See `supervenn &lt;https://github.com/gecko984/supervenn&gt;`_.</span>
 
-<span class="sd">    :param group_sets: Mapping of group name to a set of identifiers.</span>
-<span class="sd">    :param id_str: Component ID for the returned image.</span>
-<span class="sd">    :returns: Tuple ``(dash.html.Img, pdf_data_base64)``.</span>
+<div class="viewcode-block" id="Intersection">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.commonality_graph.Intersection">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Intersection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Representation of an intersection used for plotting.&quot;&quot;&quot;</span>
+
+    <span class="n">bits</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">int</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_prepare_intersections</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">membership_columns</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">top_n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Intersection</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Aggregate intersection sizes and return the most prominent entries.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: Input dataframe where each membership column is boolean-like.</span>
+<span class="sd">        membership_columns: Ordered set labels used to build combinations.</span>
+<span class="sd">        top_n: Maximum number of intersections to keep (after filtering).</span>
+<span class="sd">        min_size: Drop intersections smaller than this threshold.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Buffer for use</span>
-    <span class="n">mpl</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
-    <span class="n">buffer</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-    <span class="n">buffer2</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-    <span class="n">fig</span><span class="p">:</span> <span class="n">mpl</span><span class="o">.</span><span class="n">figure</span>
-    <span class="n">axes</span><span class="p">:</span> <span class="n">mpl</span><span class="o">.</span><span class="n">Axes</span>
-    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">set_figheight</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">set_figwidth</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
-
-    <span class="n">plot_sets</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">plot_setnames</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">all_proteins</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">set_name</span><span class="p">,</span> <span class="n">set_proteins</span> <span class="ow">in</span> <span class="n">group_sets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">set_proteins</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">set_proteins</span><span class="p">)</span>
-        <span class="n">plot_sets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">set_proteins</span><span class="p">)</span>
-        <span class="n">all_proteins</span> <span class="o">|=</span> <span class="n">set_proteins</span>
-        <span class="n">plot_setnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">set_name</span><span class="p">)</span>
-    <span class="n">minwd</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">widths_minmax_ratio</span> <span class="o">=</span> <span class="mf">0.1</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plot_sets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span>
-        <span class="n">minwd</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_proteins</span><span class="p">)</span> <span class="o">/</span> <span class="mi">50</span><span class="p">)</span>
-        <span class="n">widths_minmax_ratio</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">svenn</span><span class="p">(</span>
-        <span class="n">plot_sets</span><span class="p">,</span>
-        <span class="n">plot_setnames</span><span class="p">,</span>
-        <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
-        <span class="n">rotate_col_annotations</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">col_annotations_area_height</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
-        <span class="n">widths_minmax_ratio</span><span class="o">=</span><span class="n">widths_minmax_ratio</span><span class="p">,</span>
-        <span class="n">min_width_for_annotation</span><span class="o">=</span><span class="n">minwd</span>
+    <span class="n">normalized</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">membership_columns</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">normalized</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">normalized</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Shared proteins&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Sample group&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">buffer2</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="n">data</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">buffer</span><span class="o">.</span><span class="n">getbuffer</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span>
-        <span class="s2">&quot;utf8&quot;</span><span class="p">)</span>  <span class="c1"># encode to html elements</span>
-    <span class="n">pdf_data</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">buffer2</span><span class="o">.</span><span class="n">getbuffer</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span>
-        <span class="s2">&quot;utf8&quot;</span><span class="p">)</span>  <span class="c1"># encode to html elements, this one will be used in PDF export later on.</span>
-    <span class="n">buffer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="n">buffer2</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="n">Img</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">id_str</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;data:image/png;base64,</span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
-        <span class="n">pdf_data</span>
-    <span class="p">)</span></div>
+
+    <span class="n">intersections</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Intersection</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">bits</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="n">min_size</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot; &amp; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">col</span> <span class="k">for</span> <span class="n">include</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">membership_columns</span><span class="p">)</span> <span class="k">if</span> <span class="n">include</span>
+        <span class="p">)</span>
+        <span class="c1"># Avoid empty labels for all-zero combinations.</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">label</span> <span class="ow">or</span> <span class="s2">&quot;∅&quot;</span>
+        <span class="n">intersections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Intersection</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">bits</span><span class="p">),</span> <span class="n">label</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">top_n</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">intersections</span> <span class="o">=</span> <span class="n">intersections</span><span class="p">[:</span><span class="n">top_n</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">intersections</span>
 
 
-
-<div class="viewcode-block" id="common_heatmap">
-<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.commonality_graph.common_heatmap">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">common_heatmap</span><span class="p">(</span><span class="n">group_sets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a heatmap of pairwise overlap ratios between groups.</span>
-
-<span class="sd">    The value for groups ``A`` and ``B`` is ``|A∩B| / |A∪B|`` (Jaccard index).</span>
-
-<span class="sd">    :param group_sets: Mapping of group name to a set of identifiers.</span>
-<span class="sd">    :param id_str: Component ID for the ``Graph``.</span>
-<span class="sd">    :param defaults: Figure defaults (expects ``height``, ``width``, ``config``).</span>
-<span class="sd">    :returns: Tuple ``(dash.dcc.Graph, &#39;&#39;)``.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_matrix_traces</span><span class="p">(</span>
+    <span class="n">intersections</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Intersection</span><span class="p">],</span>
+    <span class="n">membership_columns</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draw the boolean matrix that indicates which sets participate per bar.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">hmdata</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">index</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">group_sets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="n">done</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">][</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Shared identifications&#39;</span>
-    <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
-        <span class="n">hmdata</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
-        <span class="k">for</span> <span class="n">gname2</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
-            <span class="n">val</span><span class="p">:</span> <span class="nb">float</span>
-            <span class="k">if</span> <span class="n">gname</span> <span class="o">==</span> <span class="n">gname2</span><span class="p">:</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="n">NA</span>
-            <span class="n">nstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">gname</span><span class="p">,</span> <span class="n">gname2</span><span class="p">]))</span>
-            <span class="k">if</span> <span class="n">nstr</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="n">NA</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">group_sets</span><span class="p">[</span><span class="n">gname</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">group_sets</span><span class="p">[</span><span class="n">gname2</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">group_sets</span><span class="p">[</span><span class="n">gname</span><span class="p">]</span> <span class="o">|</span> <span class="n">group_sets</span><span class="p">[</span><span class="n">gname2</span><span class="p">])</span>
-            <span class="n">hmdata</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="n">Graph</span><span class="p">(</span>
-            <span class="nb">id</span><span class="o">=</span><span class="n">id_str</span><span class="p">,</span>
-            <span class="n">figure</span><span class="o">=</span><span class="n">imshow</span><span class="p">(</span>
-                <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">hmdata</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">index</span><span class="p">),</span>
-                <span class="n">height</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span>
-                <span class="n">width</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
-                <span class="n">zmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                <span class="n">zmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                <span class="n">color_continuous_scale</span> <span class="o">=</span> <span class="s1">&#39;Blues&#39;</span>
-            <span class="p">),</span>
-            <span class="n">config</span><span class="o">=</span><span class="n">config</span>
-        <span class="p">),</span>
-        <span class="s1">&#39;&#39;</span>
-    <span class="p">)</span></div>
+    <span class="n">col_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">membership_columns</span><span class="p">)}</span>
+    <span class="n">xs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">marker_colors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">line_traces</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">inter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">intersections</span><span class="p">):</span>
+        <span class="n">participating_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">include</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">membership_columns</span><span class="p">,</span> <span class="n">inter</span><span class="o">.</span><span class="n">bits</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">include</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">xs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_index</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+            <span class="n">marker_colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;#222&quot;</span><span class="p">)</span>
+            <span class="n">participating_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_index</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">participating_indices</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">line_traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">],</span>
+                    <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">participating_indices</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">participating_indices</span><span class="p">)],</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+                    <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;#222&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+                    <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;skip&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="n">scatter</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">xs</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">ys</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers&quot;</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">marker_colors</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;#000&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span>
+        <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;skip&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">scatter</span><span class="p">,</span> <span class="o">*</span><span class="n">line_traces</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="create_upset_figure">
+<a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.commonality_graph.create_upset_figure">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_upset_figure</span><span class="p">(</span>
+    <span class="n">set_membership</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">top_n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;UpSet Plot&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a Plotly UpSet graph representing set intersections.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        set_membership: Mapping of set label to an iterable of hashable entries.</span>
+<span class="sd">        top_n: Optional limit for the number of intersection bars to show.</span>
+<span class="sd">        min_size: Minimum intersection size; smaller entries are dropped.</span>
+<span class="sd">        title: Figure title.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Figure configured with bar and matrix sections.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">set_membership</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;At least one set is required.&quot;</span><span class="p">)</span>
+
+    <span class="n">ordered_sets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">set_membership</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">normalized_sets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">set_membership</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="n">entry_order</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">seen_entries</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">normalized_sets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entry</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_entries</span><span class="p">:</span>
+                <span class="n">seen_entries</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                <span class="n">entry_order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">entry_order</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided sets are empty; cannot build UpSet plot.&quot;</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">name</span><span class="p">:</span> <span class="p">[</span><span class="n">entry</span> <span class="ow">in</span> <span class="n">normalized_sets</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entry_order</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ordered_sets</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="n">intersections</span> <span class="o">=</span> <span class="n">_prepare_intersections</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">,</span> <span class="n">ordered_sets</span><span class="p">,</span> <span class="n">top_n</span><span class="o">=</span><span class="n">top_n</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">intersections</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No intersections left after filtering; relax criteria.&quot;</span><span class="p">)</span>
+
+    <span class="n">base_counts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">normalized_sets</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ordered_sets</span><span class="p">]</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">make_subplots</span><span class="p">(</span>
+        <span class="n">rows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">column_widths</span><span class="o">=</span><span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span>
+        <span class="n">row_heights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span>
+        <span class="n">specs</span><span class="o">=</span><span class="p">[[</span><span class="kc">None</span><span class="p">,</span> <span class="p">{}],</span> <span class="p">[{},</span> <span class="p">{}]],</span>
+        <span class="n">shared_xaxes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">vertical_spacing</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span>
+        <span class="n">horizontal_spacing</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Bar</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">inter</span><span class="o">.</span><span class="n">label</span> <span class="k">for</span> <span class="n">inter</span> <span class="ow">in</span> <span class="n">intersections</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">inter</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">inter</span> <span class="ow">in</span> <span class="n">intersections</span><span class="p">],</span>
+            <span class="n">marker_color</span><span class="o">=</span><span class="s2">&quot;#444&quot;</span><span class="p">,</span>
+        <span class="n">hovertemplate</span><span class="o">=</span><span class="s2">&quot;Intersection size: %</span><span class="si">{y}</span><span class="s2">&lt;extra&gt;&lt;/extra&gt;&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">matrix_traces</span> <span class="o">=</span> <span class="n">_build_matrix_traces</span><span class="p">(</span><span class="n">intersections</span><span class="p">,</span> <span class="n">ordered_sets</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">matrix_traces</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+        <span class="n">go</span><span class="o">.</span><span class="n">Bar</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">base_counts</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ordered_sets</span><span class="p">))),</span>
+            <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;h&quot;</span><span class="p">,</span>
+            <span class="n">marker_color</span><span class="o">=</span><span class="s2">&quot;#888&quot;</span><span class="p">,</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>
+            <span class="n">customdata</span><span class="o">=</span><span class="n">ordered_sets</span><span class="p">,</span>
+            <span class="n">hovertemplate</span><span class="o">=</span><span class="s2">&quot;%</span><span class="si">{customdata}</span><span class="s2">&lt;extra&gt;&lt;/extra&gt;&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">title_text</span><span class="o">=</span><span class="s2">&quot;Intersection size&quot;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">tickmode</span><span class="o">=</span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+        <span class="n">tickvals</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ordered_sets</span><span class="p">))),</span>
+        <span class="n">ticktext</span><span class="o">=</span><span class="n">ordered_sets</span><span class="p">,</span>
+        <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">),</span>
+        <span class="n">showticklabels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">tickmode</span><span class="o">=</span><span class="s2">&quot;array&quot;</span><span class="p">,</span>
+        <span class="n">tickvals</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ordered_sets</span><span class="p">))),</span>
+        <span class="n">ticktext</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ordered_sets</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span>
+        <span class="n">showticklabels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">title_text</span><span class="o">=</span><span class="s2">&quot;Number of proteins&quot;</span><span class="p">,</span>
+        <span class="n">autorange</span><span class="o">=</span><span class="s2">&quot;reversed&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">showticklabels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span>
+        <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">showticklabels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">tickmode</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+        <span class="n">dtick</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">showgrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">gridcolor</span><span class="o">=</span><span class="s2">&quot;#e3e3e3&quot;</span><span class="p">,</span>
+        <span class="n">gridwidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">zeroline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">matches</span><span class="o">=</span><span class="s2">&quot;x4&quot;</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+        <span class="n">bargap</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+        <span class="n">hovermode</span><span class="o">=</span><span class="s2">&quot;closest&quot;</span><span class="p">,</span>
+        <span class="n">template</span><span class="o">=</span><span class="s2">&quot;plotly_white&quot;</span><span class="p">,</span>
+        <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span></div>
 
 
 <div class="viewcode-block" id="make_graph">
 <a class="viewcode-back" href="../../../../code/app.components.figures.html#app.components.figures.commonality_graph.make_graph">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">make_graph</span><span class="p">(</span><span class="n">group_sets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_supervenn</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_graph</span><span class="p">(</span><span class="n">group_sets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">id_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Choose and build an overlap visualization based on group count.</span>
 
 <span class="sd">    :param group_sets: Mapping of group name to a set of identifiers.</span>
@@ -209,12 +351,15 @@
 <span class="sd">    :param defaults: Figure defaults (expects ``height``, ``width``, ``config``).</span>
 <span class="sd">    :returns: Tuple of (component, aux_data) where aux_data may be a base64 PDF.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">group_sets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
-        <span class="n">use_supervenn</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="n">use_supervenn</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">supervenn</span><span class="p">(</span><span class="n">group_sets</span><span class="p">,</span> <span class="n">id_str</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">common_heatmap</span><span class="p">(</span><span class="n">group_sets</span><span class="p">,</span> <span class="n">id_str</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span></div>
+    <span class="n">upset_figure</span> <span class="o">=</span> <span class="n">create_upset_figure</span><span class="p">(</span><span class="n">group_sets</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">Graph</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">id_str</span><span class="p">,</span>
+            <span class="n">figure</span><span class="o">=</span><span class="n">upset_figure</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="s1">&#39;&#39;</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

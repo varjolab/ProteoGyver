@@ -41,7 +41,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">2025_ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
 
         </div>
@@ -227,7 +231,7 @@
         <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
         <span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="s1">&#39;Identified in # samples&#39;</span><span class="p">})</span></div>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="s1">&#39;Protein count&#39;</span><span class="p">})</span></div>
 
 
 
@@ -301,7 +305,7 @@
 
 <div class="viewcode-block" id="get_common_data">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.quick_stats.get_common_data">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_common_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">only_groups</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_common_data</span><span class="p">(</span><span class="n">data_table</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">rev_sample_groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">only_groups</span><span class="p">:</span> <span class="nb">list</span><span class="o">|</span><span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Collect sets of identified proteins per group.</span>
 
 <span class="sd">    :param data_table: Input DataFrame with proteins as index and samples as columns.</span>
@@ -315,8 +319,7 @@
         <span class="n">group_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">rev_sample_groups</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">only_groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">group_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">only_groups</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">group_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">group_sets</span><span class="p">:</span>
-            <span class="n">group_sets</span><span class="p">[</span><span class="n">group_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">group_sets</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">group_name</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span>
         <span class="n">group_sets</span><span class="p">[</span><span class="n">group_name</span><span class="p">]</span> <span class="o">|=</span> <span class="n">col_proteins</span>
     <span class="k">return</span> <span class="n">group_sets</span></div>
 

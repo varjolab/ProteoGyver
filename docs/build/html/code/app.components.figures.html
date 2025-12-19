@@ -46,7 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Proteogyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Code Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="app.html">app package</a><ul class="current">
@@ -305,38 +305,60 @@ backgrounds.</p>
 <p>Provides two representations:
 - <code class="docutils literal notranslate"><span class="pre">supervenn</span></code>: Supervenn diagram for up to ~10 sets
 - <code class="docutils literal notranslate"><span class="pre">common_heatmap</span></code>: Jaccard-like overlap heatmap for larger numbers</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.Intersection">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">Intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#Intersection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.Intersection" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Representation of an intersection used for plotting.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.Intersection.bits">
+<span class="sig-name descname"><span class="pre">bits</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code><span class="pre">,</span> <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code><span class="pre">]</span></em><a class="headerlink" href="#app.components.figures.commonality_graph.Intersection.bits" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.Intersection.label">
+<span class="sig-name descname"><span class="pre">label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#app.components.figures.commonality_graph.Intersection.label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.Intersection.size">
+<span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#app.components.figures.commonality_graph.Intersection.size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
-<dt class="sig sig-object py" id="app.components.figures.commonality_graph.common_heatmap">
-<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">common_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#common_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.common_heatmap" title="Link to this definition"></a></dt>
-<dd><p>Create a heatmap of pairwise overlap ratios between groups.</p>
-<p>The value for groups <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> is <code class="docutils literal notranslate"><span class="pre">|A∩B|</span> <span class="pre">/</span> <span class="pre">|A∪B|</span></code> (Jaccard index).</p>
+<dt class="sig sig-object py" id="app.components.figures.commonality_graph.create_upset_figure">
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">create_upset_figure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">set_membership</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UpSet</span> <span class="pre">Plot'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#create_upset_figure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.create_upset_figure" title="Link to this definition"></a></dt>
+<dd><p>Build a Plotly UpSet graph representing set intersections.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>group_sets</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping of group name to a set of identifiers.</p></li>
-<li><p><strong>id_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>.</p></li>
-<li><p><strong>defaults</strong> – Figure defaults (expects <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>).</p></li>
+<li><p><strong>set_membership</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>]]</span>) – Mapping of set label to an iterable of hashable entries.</p></li>
+<li><p><strong>top_n</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Optional limit for the number of intersection bars to show.</p></li>
+<li><p><strong>min_size</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Minimum intersection size; smaller entries are dropped.</p></li>
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Figure title.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(dash.dcc.Graph,</span> <span class="pre">'')</span></code>.</p>
+<dd class="field-odd"><p>plotly.graph_objects.Figure configured with bar and matrix sections.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.components.figures.commonality_graph.make_graph">
-<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_supervenn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.make_graph" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">make_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#make_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.make_graph" title="Link to this definition"></a></dt>
 <dd><p>Choose and build an overlap visualization based on group count.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>group_sets</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping of group name to a set of identifiers.</p></li>
 <li><p><strong>id_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the output figure.</p></li>
-<li><p><strong>use_supervenn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, prefer Supervenn when feasible.</p></li>
+<li><p><strong>use_supervenn</strong> – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, prefer Supervenn when feasible.</p></li>
 <li><p><strong>defaults</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Figure defaults (expects <code class="docutils literal notranslate"><span class="pre">height</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">config</span></code>).</p></li>
 </ul>
 </dd>
@@ -345,27 +367,6 @@ backgrounds.</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Tuple of (component, aux_data) where aux_data may be a base64 PDF.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="app.components.figures.commonality_graph.supervenn">
-<span class="sig-prename descclassname"><span class="pre">app.components.figures.commonality_graph.</span></span><span class="sig-name descname"><span class="pre">supervenn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/app/components/figures/commonality_graph.html#supervenn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.components.figures.commonality_graph.supervenn" title="Link to this definition"></a></dt>
-<dd><p>Render a Supervenn plot from named sets and return as a Dash image.</p>
-<p>See <a class="reference external" href="https://github.com/gecko984/supervenn">supervenn</a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>group_sets</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Mapping of group name to a set of identifiers.</p></li>
-<li><p><strong>id_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Component ID for the returned image.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(dash.html.Img,</span> <span class="pre">pdf_data_base64)</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>

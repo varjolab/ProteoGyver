@@ -173,6 +173,8 @@ def analyze(filename, outdir, errorfile):
             data = parse_raw(root_dir, filename)
         elif filename.lower().endswith('.d'):
             data = parse_d(root_dir, filename, tims_run_id_regex)
+        elif filename.lower().endswith('.mzml'):
+            data = parse_mzml(root_dir, filename)
         if data is not None:
             handle_data(data, oname)
             print(filename, 'done')

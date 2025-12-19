@@ -43,7 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Proteogyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Proteomics_example.html">Example Proteomics usecase for ProteoGyver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver using a public dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Interactomics_example.html">Example Interactomcis usecase for ProteoGyver</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">ProteoGyver User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">Code Reference</a></li>
 </ul>
@@ -139,7 +139,7 @@
 
 <div class="viewcode-block" id="description_card">
 <a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.description_card">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">description_card</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">description_card</span><span class="p">(</span><span class="n">run_limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the description card component for the dashboard.</span>
 
 <span class="sd">    :returns: Div containing dashboard title and descriptions.</span>
@@ -153,7 +153,7 @@
                 <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;intro&quot;</span><span class="p">,</span>
                 <span class="n">children</span><span class="o">=</span><span class="p">[</span>
                     <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s2">&quot;Explore TICs of any MS run or sample set. Choose runs based on times, run IDs, or sample types.&quot;</span><span class="p">),</span>
-                    <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NOTE: only </span><span class="si">{</span><span class="n">RUN_LIMIT</span><span class="si">}</span><span class="s2"> runs can be loaded at once. If more than </span><span class="si">{</span><span class="n">RUN_LIMIT</span><span class="si">}</span><span class="s2"> runs are chosen, only the </span><span class="si">{</span><span class="n">RUN_LIMIT</span><span class="si">}</span><span class="s2"> most recent ones will be loaded.&quot;</span><span class="p">),</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NOTE: only </span><span class="si">{</span><span class="n">run_limit</span><span class="si">}</span><span class="s2"> runs can be loaded at once. If more than </span><span class="si">{</span><span class="n">run_limit</span><span class="si">}</span><span class="s2"> runs are chosen, only the </span><span class="si">{</span><span class="n">run_limit</span><span class="si">}</span><span class="s2"> most recent ones will be loaded.&quot;</span><span class="p">),</span>
                     <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s2">&quot;NOTE: If you want to switch to a different runset, you might want to reload the page. Otherwise it will load a bunch of runs right from the start. This will be fixed at some point, and there will be a note about it on the announcements page.&quot;</span><span class="p">)</span>
                 <span class="p">]</span>
             <span class="p">),</span>
@@ -163,12 +163,12 @@
 
 <div class="viewcode-block" id="generate_control_card">
 <a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.generate_control_card">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">generate_control_card</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_control_card</span><span class="p">(</span><span class="n">mass_specs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">mintime</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="n">maxtime</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="n">data_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the control card with input widgets.</span>
 
 <span class="sd">    :returns: Div with controls for MS selection, date range, sample types, run IDs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ms_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">MASS_SPECS</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">ms_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">mass_specs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
     <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
         <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;control-card&#39;</span><span class="p">,</span>
         <span class="n">children</span><span class="o">=</span><span class="p">[</span>
@@ -183,19 +183,19 @@
             <span class="n">dcc</span><span class="o">.</span><span class="n">DatePickerRange</span><span class="p">(</span>
                 <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;date-picker-select&#39;</span><span class="p">,</span>
                 <span class="n">display_format</span><span class="o">=</span><span class="s1">&#39;YYYY.MM.DD&#39;</span><span class="p">,</span>
-                <span class="n">start_date</span> <span class="o">=</span> <span class="n">MINTIME</span><span class="p">,</span>
-                <span class="n">end_date</span> <span class="o">=</span> <span class="n">MAXTIME</span><span class="p">,</span>
-                <span class="n">min_date_allowed</span> <span class="o">=</span> <span class="n">MINTIME</span><span class="p">,</span>
-                <span class="n">max_date_allowed</span> <span class="o">=</span> <span class="n">MAXTIME</span><span class="p">,</span>
-                <span class="n">initial_visible_month</span><span class="o">=</span><span class="n">MAXTIME</span>
+                <span class="n">start_date</span> <span class="o">=</span> <span class="n">mintime</span><span class="p">,</span>
+                <span class="n">end_date</span> <span class="o">=</span> <span class="n">maxtime</span><span class="p">,</span>
+                <span class="n">min_date_allowed</span> <span class="o">=</span> <span class="n">mintime</span><span class="p">,</span>
+                <span class="n">max_date_allowed</span> <span class="o">=</span> <span class="n">maxtime</span><span class="p">,</span>
+                <span class="n">initial_visible_month</span><span class="o">=</span><span class="n">maxtime</span>
             <span class="p">),</span>
             <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
             <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
             <span class="n">html</span><span class="o">.</span><span class="n">H5</span><span class="p">(</span><span class="s1">&#39;Select data type&#39;</span><span class="p">),</span>
             <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
                 <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;ddadia-select&#39;</span><span class="p">,</span>
-                <span class="n">options</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">DATA_TYPES</span><span class="p">],</span>
-                <span class="n">value</span><span class="o">=</span><span class="n">DATA_TYPES</span><span class="p">[:],</span>
+                <span class="n">options</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data_types</span><span class="p">],</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">data_types</span><span class="p">[:],</span>
                 <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">html</span><span class="o">.</span><span class="n">Br</span><span class="p">(),</span>
@@ -279,9 +279,25 @@
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;trace-dict&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;plot-data&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;plot-max-y&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;num-of-traces-visible-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;trace-color-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
     <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">update_tic_graph</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">__</span><span class="p">,</span> <span class="n">___</span><span class="p">,</span> <span class="n">____</span><span class="p">,</span> <span class="n">tic_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ticlist</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">datatype</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">supp_datatype</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">traces</span><span class="p">:</span><span class="nb">dict</span><span class="p">,</span> <span class="n">plot_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_y</span><span class="p">:</span><span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_tic_graph</span><span class="p">(</span>
+    <span class="n">_</span><span class="p">,</span>
+    <span class="n">__</span><span class="p">,</span>
+    <span class="n">___</span><span class="p">,</span>
+    <span class="n">____</span><span class="p">,</span>
+    <span class="n">tic_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">ticlist</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="n">datatype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">supp_datatype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">traces</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">plot_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">max_y</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">num_of_traces_visible</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">trace_color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the TIC and supplementary metric graphs.</span>
 
 <span class="sd">    :param tic_index: Current TIC index.</span>
@@ -291,6 +307,8 @@
 <span class="sd">    :param traces: Dict mapping run id -&gt; trace dicts.</span>
 <span class="sd">    :param plot_data: Plot data (pandas split-JSON).</span>
 <span class="sd">    :param max_y: Dict of maximum y-values per trace type.</span>
+<span class="sd">    :param num_of_traces_visible: Number of traces visible.</span>
+<span class="sd">    :param trace_color: Trace color.</span>
 <span class="sd">    :returns: Tuple of (tic fig, auc fig, mean fig, max fig, next index).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">data_to_use</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">plot_data</span><span class="p">),</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
@@ -452,18 +470,42 @@
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;ddadia-select&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;load-runs-from-runids&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;load-runs-spinner-div&#39;</span><span class="p">,</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;num-of-traces-visible-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;trace-color-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;required-maincols-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;run-limit-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;trace-types-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;database-file-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
     <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span> 
-<span class="k">def</span><span class="w"> </span><span class="nf">update_run_choices</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">selected_ms</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">data_types</span><span class="p">,</span> <span class="n">run_id_list</span><span class="p">,</span> <span class="n">button_text</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_run_choices</span><span class="p">(</span>
+    <span class="n">_</span><span class="p">,</span>
+    <span class="n">selected_ms</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="p">,</span>
+    <span class="n">end_date</span><span class="p">,</span>
+    <span class="n">data_types</span><span class="p">,</span>
+    <span class="n">run_id_list</span><span class="p">,</span>
+    <span class="n">button_text</span><span class="p">,</span>
+    <span class="n">num_of_traces_visible</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">trace_color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">required_maincols</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="n">run_limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">trace_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="n">database_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the list of runs based on selected criteria.</span>
-
 <span class="sd">    :param selected_ms: Selected MS.</span>
 <span class="sd">    :param start_date: Start date.</span>
 <span class="sd">    :param end_date: End date.</span>
 <span class="sd">    :param data_types: Selected data types.</span>
 <span class="sd">    :param run_id_list: Optional string of run IDs to load.</span>
 <span class="sd">    :param button_text: Current button text.</span>
-<span class="sd">    :returns: List of [chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks].</span>
+<span class="sd">    :param num_of_traces_visible: Number of traces visible.    </span>
+<span class="sd">    :param required_maincols: Required main columns.</span>
+<span class="sd">    :param run_limit: Run limit.</span>
+<span class="sd">    :param trace_types: Selected trace types.</span>
+<span class="sd">    :param database_file: Database file.</span>
+<span class="sd">    :returns: Tuple of (chosen_tics, trace_dict, plot_data, max_y, button_text, button_clicks).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">db_conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">run_id_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">run_id_list</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
@@ -479,7 +521,7 @@
             <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span>
             <span class="s1">&#39;run_date&#39;</span><span class="p">,</span>
             <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">),</span>
-            <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REQUIRED_MAINCOLS</span><span class="p">),</span>
+            <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">required_maincols</span><span class="p">),</span>
             <span class="n">as_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">operator</span> <span class="o">=</span> <span class="s1">&#39;BETWEEN&#39;</span><span class="p">,</span>
             <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
@@ -488,16 +530,16 @@
         <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">chosen_runs</span><span class="p">[</span><span class="n">chosen_runs</span><span class="p">[</span><span class="s1">&#39;data_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">data_types</span><span class="p">)]</span>
         <span class="n">chosen_runs</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;run_date&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1">#chosen_runs.index = chosen_runs.index.astype(str)# And flip back to make passing trace_dict easier. Keys of the dict will be converted to strings when passed through data store.</span>
-        <span class="k">if</span> <span class="n">chosen_runs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">RUN_LIMIT</span><span class="p">:</span>
-            <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">chosen_runs</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">RUN_LIMIT</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chosen_runs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">run_limit</span><span class="p">:</span>
+            <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">chosen_runs</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">run_limit</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">run_ids</span> <span class="o">=</span> <span class="n">delim_runs</span><span class="p">(</span><span class="n">run_id_list</span><span class="p">)</span>
-        <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span>
-            <span class="n">db_conn</span><span class="p">,</span> 
+        <span class="n">chosen_runs</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table_by_list_criteria</span><span class="p">(</span>  <span class="c1"># pyright: ignore[reportAssignmentType]</span>
+            <span class="n">db_conn</span><span class="p">,</span>   <span class="c1"># pyright: ignore[reportArgumentType]</span>
             <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span>
             <span class="s1">&#39;file_name_clean&#39;</span><span class="p">,</span>
             <span class="n">run_ids</span><span class="p">,</span>
-            <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REQUIRED_MAINCOLS</span><span class="p">),</span>
+            <span class="n">select_col</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">required_maincols</span><span class="p">),</span>
             <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
         <span class="p">)</span>
         <span class="n">chosen_runs</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;run_date&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -537,9 +579,95 @@
     <span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="startup">
+<a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.startup">[docs]</a>
+<span class="nd">@callback</span><span class="p">(</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;ms-inspector-container&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;database-file-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;parameters-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;required-maincols-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;trace-types-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;trace-color-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;num-of-traces-visible-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Output</span><span class="p">(</span><span class="s1">&#39;run-limit-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">Input</span><span class="p">(</span><span class="s1">&#39;ms-inspector-startup-notifier&#39;</span><span class="p">,</span> <span class="s1">&#39;children&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">startup</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Startup the MS inspector.</span>
+
+<span class="sd">    :param _: Placeholder for startup notifier.</span>
+<span class="sd">    :returns: Tuple of (app layout div, database_file, parameters, required_maincols, mass_specs, data_types, trace_types, trace_color, num_of_traces_visible, run_limit, min_time, max_time).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_parameters</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">))</span>
+    <span class="n">database_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Database file&#39;</span><span class="p">])</span>    
+
+    <span class="n">num_of_traces_visible</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">trace_color</span> <span class="o">=</span> <span class="s1">&#39;rgb(56, 8, 35)&#39;</span>
+    <span class="n">trace_types</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TIC&#39;</span><span class="p">,</span><span class="s1">&#39;BPC&#39;</span><span class="p">,</span><span class="s1">&#39;MSn&#39;</span><span class="p">]</span>
+    <span class="n">samplecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;file_name_clean&#39;</span><span class="p">]</span>
+    <span class="n">required_maincols</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;internal_run_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;inst_model&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;inst_serial_no&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;run_date&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data_type&#39;</span>
+    <span class="p">]</span> <span class="o">+</span> <span class="n">samplecols</span>
+    <span class="n">required_plot_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;internal_run_id&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">tracename</span> <span class="ow">in</span> <span class="n">trace_types</span><span class="p">:</span>
+        <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_trace&#39;</span><span class="p">)</span>
+        <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_mean_intensity&#39;</span><span class="p">)</span>
+        <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_auc&#39;</span><span class="p">)</span>
+        <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">)</span>
+
+    <span class="n">db_conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table</span><span class="p">(</span>
+        <span class="n">db_conn</span><span class="p">,</span>
+        <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span> 
+        <span class="n">select_col</span> <span class="o">=</span> <span class="n">required_maincols</span><span class="p">,</span>
+        <span class="n">as_pandas</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">db_conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># type: ignore</span>
+
+    <span class="n">mass_specs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[[</span><span class="s1">&#39;inst_model&#39;</span><span class="p">,</span><span class="s1">&#39;inst_serial_no&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="n">mass_specs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[])</span>
+        <span class="n">mass_specs</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">data_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">],</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Config&#39;</span><span class="p">][</span><span class="s1">&#39;Time format&#39;</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">maxtime</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">mintime</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">data</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> preliminary data loaded&#39;</span><span class="p">)</span>
+        <span class="n">run_limit</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">use_layout</span> <span class="o">=</span> <span class="n">ms_analytics_layout</span><span class="p">(</span><span class="n">trace_types</span><span class="p">,</span> <span class="n">run_limit</span><span class="p">,</span> <span class="n">mass_specs</span><span class="p">,</span> <span class="n">mintime</span><span class="p">,</span> <span class="n">maxtime</span><span class="p">,</span> <span class="n">data_types</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">use_layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="s1">&#39;No MS runs in database.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">use_layout</span><span class="p">,</span>
+        <span class="n">database_file</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">,</span>
+        <span class="n">required_maincols</span><span class="p">,</span>
+        <span class="n">trace_types</span><span class="p">,</span>
+        <span class="n">trace_color</span><span class="p">,</span>
+        <span class="n">num_of_traces_visible</span><span class="p">,</span>
+        <span class="n">run_limit</span>
+    <span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="ms_analytics_layout">
 <a class="viewcode-back" href="../../../code/app.pages.html#app.pages.MS_Inspector.ms_analytics_layout">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ms_analytics_layout</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ms_analytics_layout</span><span class="p">(</span><span class="n">trace_types</span><span class="p">,</span> <span class="n">run_limit</span><span class="p">,</span> <span class="n">mass_specs</span><span class="p">,</span> <span class="n">mintime</span><span class="p">,</span> <span class="n">maxtime</span><span class="p">,</span> <span class="n">data_types</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the main layout for the MS analytics dashboard.</span>
 
 <span class="sd">    :returns: Div containing controls, TIC visualization, and supplementary graphs.</span>
@@ -564,8 +692,8 @@
             <span class="p">],</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span><span class="s1">&#39;none&#39;</span><span class="p">}),</span>
             <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
                 <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
-                    <span class="n">description_card</span><span class="p">(),</span>
-                    <span class="n">generate_control_card</span><span class="p">()</span>
+                    <span class="n">description_card</span><span class="p">(</span><span class="n">run_limit</span><span class="p">),</span>
+                    <span class="n">generate_control_card</span><span class="p">(</span><span class="n">mass_specs</span><span class="p">,</span> <span class="n">mintime</span><span class="p">,</span> <span class="n">maxtime</span><span class="p">,</span> <span class="n">data_types</span><span class="p">)</span>
                 <span class="p">],</span>
                 <span class="n">width</span> <span class="o">=</span> <span class="mi">4</span><span class="p">),</span>
                 <span class="n">dbc</span><span class="o">.</span><span class="n">Col</span><span class="p">([</span>
@@ -577,7 +705,7 @@
                     <span class="n">dbc</span><span class="o">.</span><span class="n">Row</span><span class="p">([</span>
                         <span class="n">html</span><span class="o">.</span><span class="n">H4</span><span class="p">(</span><span class="s1">&#39;TICs&#39;</span><span class="p">),</span>
                         <span class="n">html</span><span class="o">.</span><span class="n">Hr</span><span class="p">(),</span>
-                        <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;tic-analytics-tic-graphs&#39;</span><span class="p">),</span>
+                        <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;tic-analytics-tic-graphs&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="s1">&#39;Chromatogram&#39;</span><span class="p">}}),</span>
                         <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
                             <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s1">&#39;Choose metric:    &#39;</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
                             <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">trace_types</span><span class="p">,</span> <span class="s1">&#39;TIC&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;datatype-dropdown&#39;</span><span class="p">),</span>
@@ -596,11 +724,11 @@
                             <span class="n">html</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="s1">&#39;Choose metric for supplementary plots:    &#39;</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
                             <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">trace_types</span><span class="p">,</span> <span class="s1">&#39;TIC&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;datatype-supp-dropdown&#39;</span><span class="p">,</span><span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">}),</span>
                             <span class="n">html</span><span class="o">.</span><span class="n">B</span><span class="p">(</span><span class="s1">&#39;Area under the curve&#39;</span><span class="p">),</span>
-                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;auc-graph&#39;</span><span class="p">),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;auc-graph&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="s1">&#39;Chromatogram AUC&#39;</span><span class="p">}}),</span>
                             <span class="n">html</span><span class="o">.</span><span class="n">B</span><span class="p">(</span><span class="s1">&#39;Mean intensity&#39;</span><span class="p">),</span>
-                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;mean-intensity-graph&#39;</span><span class="p">),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;mean-intensity-graph&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="s1">&#39;Chromatogram mean intensity&#39;</span><span class="p">}}),</span>
                             <span class="n">html</span><span class="o">.</span><span class="n">B</span><span class="p">(</span><span class="s1">&#39;Max intensity&#39;</span><span class="p">),</span>
-                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;max-intensity-graph&#39;</span><span class="p">),</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;max-intensity-graph&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;toImageButtonOptions&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="s1">&#39;Chromatogram max intensity&#39;</span><span class="p">}}),</span>
                     <span class="p">])</span>
                 <span class="p">],</span>
                 <span class="n">width</span> <span class="o">=</span> <span class="mi">8</span><span class="p">)</span>
@@ -619,9 +747,10 @@
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;mean-intensity-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;max-intensity-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
     <span class="n">State</span><span class="p">(</span><span class="s1">&#39;plot-data&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
+    <span class="n">State</span><span class="p">(</span><span class="s1">&#39;parameters-store&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">),</span>
     <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">download_graphs</span><span class="p">(</span><span class="n">n_clicks</span><span class="p">,</span> <span class="n">tic_fig</span><span class="p">,</span> <span class="n">auc_fig</span><span class="p">,</span> <span class="n">mean_fig</span><span class="p">,</span> <span class="n">max_fig</span><span class="p">,</span> <span class="n">plot_data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_graphs</span><span class="p">(</span><span class="n">n_clicks</span><span class="p">,</span> <span class="n">tic_fig</span><span class="p">,</span> <span class="n">auc_fig</span><span class="p">,</span> <span class="n">mean_fig</span><span class="p">,</span> <span class="n">max_fig</span><span class="p">,</span> <span class="n">plot_data</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a ZIP with current graphs and data for download.</span>
 
 <span class="sd">    :param n_clicks: Number of clicks on download button.</span>
@@ -685,74 +814,21 @@
         <span class="k">return</span> <span class="n">no_update</span></div>
 
     
-<span class="n">root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="n">parameters_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_dir</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span><span class="s1">&#39;parameters.toml&#39;</span><span class="p">)</span>
-<span class="n">parameters</span> <span class="o">=</span> <span class="n">parsing</span><span class="o">.</span><span class="n">parse_parameters</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">parameters_path</span><span class="p">))</span>
-<span class="n">database_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Data paths&#39;</span><span class="p">][</span><span class="s1">&#39;Database file&#39;</span><span class="p">])</span>    
-
-<span class="n">num_of_traces_visible</span> <span class="o">=</span> <span class="mi">7</span>
-<span class="n">trace_color</span> <span class="o">=</span> <span class="s1">&#39;rgb(56, 8, 35)&#39;</span>
-<span class="n">trace_types</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TIC&#39;</span><span class="p">,</span><span class="s1">&#39;BPC&#39;</span><span class="p">,</span><span class="s1">&#39;MSn&#39;</span><span class="p">]</span>
-<span class="n">samplecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;file_name_clean&#39;</span><span class="p">]</span>
-<span class="n">REQUIRED_MAINCOLS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;internal_run_id&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;inst_model&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;inst_serial_no&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;run_date&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;data_type&#39;</span>
-<span class="p">]</span> <span class="o">+</span> <span class="n">samplecols</span>
-<span class="n">required_plot_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;internal_run_id&#39;</span><span class="p">]</span>
-<span class="k">for</span> <span class="n">tracename</span> <span class="ow">in</span> <span class="n">trace_types</span><span class="p">:</span>
-    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_trace&#39;</span><span class="p">)</span>
-    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_mean_intensity&#39;</span><span class="p">)</span>
-    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_auc&#39;</span><span class="p">)</span>
-    <span class="n">required_plot_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tracename</span><span class="si">}</span><span class="s1">_max_intensity&#39;</span><span class="p">)</span>
-
-<span class="n">db_conn</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">create_connection</span><span class="p">(</span><span class="n">database_file</span><span class="p">)</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">db_functions</span><span class="o">.</span><span class="n">get_from_table</span><span class="p">(</span>
-    <span class="n">db_conn</span><span class="p">,</span>
-    <span class="s1">&#39;ms_runs&#39;</span><span class="p">,</span> 
-    <span class="n">select_col</span> <span class="o">=</span> <span class="n">REQUIRED_MAINCOLS</span><span class="p">,</span>
-    <span class="n">as_pandas</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">pandas_index_col</span> <span class="o">=</span> <span class="s1">&#39;internal_run_id&#39;</span>
-<span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-<span class="n">db_conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># type: ignore</span>
-
-<span class="n">MASS_SPECS</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[[</span><span class="s1">&#39;inst_model&#39;</span><span class="p">,</span><span class="s1">&#39;inst_serial_no&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="k">continue</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-        <span class="k">continue</span>
-    <span class="n">MASS_SPECS</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[])</span>
-    <span class="n">MASS_SPECS</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-<span class="n">DATA_TYPES</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
-
-<span class="n">IDMAP</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="c1"># TODO: handle better runs with names or IDs that are repeated. e.g. two files with the same sample_id</span>
-<span class="n">del_runs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">internal_run_id</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">samplecols</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">samplecols</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="ow">in</span> <span class="n">IDMAP</span><span class="p">:</span>
-            <span class="n">del_runs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">])</span> <span class="c1"># For now we just delete ambiguous entries</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">IDMAP</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">c</span><span class="p">]]</span> <span class="o">=</span> <span class="n">internal_run_id</span>
-<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">del_runs</span><span class="p">:</span>
-    <span class="k">del</span> <span class="n">IDMAP</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
-
-<span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">],</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Config&#39;</span><span class="p">][</span><span class="s1">&#39;Time format&#39;</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-    <span class="n">MAXTIME</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-    <span class="n">MINTIME</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
-    <span class="k">del</span> <span class="n">data</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> preliminary data loaded&#39;</span><span class="p">)</span>
-    <span class="n">RUN_LIMIT</span> <span class="o">=</span> <span class="mi">100</span>
-    <span class="n">use_layout</span> <span class="o">=</span> <span class="n">ms_analytics_layout</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">use_layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="s1">&#39;No MS runs in database.&#39;</span><span class="p">)</span>
-<span class="n">layout</span> <span class="o">=</span> <span class="n">use_layout</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+    <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;ms-inspector-container&#39;</span><span class="p">),</span>
+    <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;ms-inspector-startup-notifier&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">}),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;parameters-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;required-maincols-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;database-file-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;mass-specs-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;data-types-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;trace-types-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;trace-color-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;num-of-traces-visible-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;run-limit-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;min-time-store&#39;</span><span class="p">),</span>
+    <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="s1">&#39;max-time-store&#39;</span><span class="p">)</span>
+<span class="p">])</span>
 </pre></div>
 
            </div>
