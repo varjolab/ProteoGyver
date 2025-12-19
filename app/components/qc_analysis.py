@@ -484,10 +484,11 @@ def commonality_plot(pandas_json: str, rev_sample_groups: dict, defaults: dict, 
     """
     start_time: datetime = datetime.now()
     logger.info(f'commonality_plot - started: {start_time}')
-    if only_groups == 'all':
-        only_groups = None
-    elif len(only_groups) == 1:
-        only_groups = None
+    if only_groups is not None:
+        if only_groups == 'all':
+            only_groups = None
+        elif len(only_groups) == 1:
+            only_groups = None
     common_data: dict = quick_stats.get_common_data(
         pd_read_json(StringIO(pandas_json),orient='split'),
         rev_sample_groups,

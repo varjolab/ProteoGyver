@@ -75,6 +75,10 @@ Currently the pipeline module is limited to a single worker, however that will b
   - FragPipe 23.1
   - DIA-NN 2.2 academia
 
+#### Limitations
+- MzTab is currently not supported for pipeline or API input
+- MzTab support in general is experimental
+
 ### Input options guide
 
 This section describes all input options available in the ProteoGyver interface, organized by workflow type.

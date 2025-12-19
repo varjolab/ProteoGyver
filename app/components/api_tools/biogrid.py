@@ -251,6 +251,10 @@ def handle_and_split_save(df: pd.DataFrame, folder_path: str, normcols: list[str
         for n in new_rows:
             if n[1] == '-':
                 continue
+            if n[0].strip() == '':
+                continue
+            if n[1].strip() == '':
+                continue
             index = f'{n[0]}_-_{n[1]}'
             keys = dfcols
             datarows.setdefault(index, {v: set() for v in keys})

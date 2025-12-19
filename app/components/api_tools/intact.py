@@ -215,6 +215,10 @@ def handle_and_split_save(df: pd.DataFrame, temp_dir: str, sep: str = '\t') -> N
             for noiso1, noiso2 in [(getattr(row, f'noiso{n1}_split'), getattr(row, f'noiso{n2}_split'))]
         ]
         for n in new_rows:
+            if n[0].strip() == '':
+                continue
+            if n[1].strip() == '':
+                continue
             index = n[-1]
             keys = dfcols[:-1]
             datarows.setdefault(index, {v: set() for v in keys})

@@ -177,7 +177,7 @@ def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
 
     # Same functions the callbacks use:
     # parsing.parse_data_file -> returns (upload_style, data_info, data_tables)
-    _, data_info, data_tables, warnings = parsing.parse_data_file(
+    _, data_info, data_tables, warnings, mztab_sampletable = parsing.parse_data_file(
         data_contents, data_name, data_mtime, dummy_style, file_loading_cfg
     )
     if len(warnings) > 0:
@@ -185,7 +185,7 @@ def run_pipeline(cfg: BatchConfig, params: dict) -> Dict[str, Any]:
         warnings.append('- This might be due to file format. Supported formats are: csv (comma separated); tsv, txt, tab (tab separated); xlsx, xls (excel)')
     
     _, expdes_info, expdes_table = parsing.parse_sample_table(
-        sample_contents, sample_name, sample_mtime, dummy_style
+        sample_contents, sample_name, sample_mtime, dummy_style, params['Sample table parsing']['SDRF']
     )
     exp_cols_found: list[str] = expdes_info['required columns found']
     if len(exp_cols_found) < 2:
