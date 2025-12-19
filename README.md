@@ -77,7 +77,7 @@ Currently the pipeline module is limited to a single worker, however that will b
 
 #### Limitations
 - MzTab is currently not supported for pipeline or API input
-- MzTab support in general is experimental
+- MzTab support in general is experimental, and mostly reliant on mztab files following the format specified in the [HUPO-PSI github](https://github.com/HUPO-PSI/mzTab/tree/master/examples/1_0-Proteomics-Release) by the labelfree_SQI.mzTab.
 
 ### Input options guide
 
