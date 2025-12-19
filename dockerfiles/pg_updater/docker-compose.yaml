@@ -7,11 +7,11 @@ services:
       FORCE_PG_DB_UPDATE: '0' # set to '1' to force a full database update, otherwise only updates that are due will be performed.
       FORCE_PG_DB_MINIMAL_UPDATE: '0' # set to '1' to force a minimal database update (only put in files that are in the input dir, do not fetch anything.)
     volumes:
-      - /data/PG15/cache:/proteogyver/cache
-      - /data/PG15/db:/proteogyver/data/db
-      - /data/PG15/input:/proteogyver/data/Server_input
-      - /data/PG15/output:/proteogyver/data/Server_output
+      - /data/PG/cache:/proteogyver/cache
+      - /data/PG/db:/proteogyver/data/db
+      - /data/PG/input:/proteogyver/data/Server_input
+      - /data/PG/output:/proteogyver/data/Server_output
       # This is required for the updater to share one parameter file with the server.
-      - /data/PG15/config:/proteogyver/config
-      - /data/PG15/api_data:/proteogyver/components/api_tools/data
+      - /data/PG/config:/proteogyver/config
+      - /data/PG/api_data:/proteogyver/components/api_tools/data
     restart: no
