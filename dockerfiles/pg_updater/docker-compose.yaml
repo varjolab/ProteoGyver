@@ -1,6 +1,6 @@
 services:
   pg_database_updater:
-    image: ksal/pg_updater:1.5.3
+    image: ksal/pg_updater:1.5.4
     container_name: pgupdater
     environment:
       TZ: Europe/Helsinki
