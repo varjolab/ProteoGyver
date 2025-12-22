@@ -350,6 +350,8 @@ python3 MSParser.py /path/to/rawfile.raw /path/to/output_dir/for/jsons/ /path/to
 ```
 It will parse the rawfile, and produce a .json file in the output directory, which is understood by MS_run_json_parser.py (run on a schedule by the proteogyver main container). The parser runs in the background, and will digest files in the directory specified in parameters at Maintenance.MS run parsing.Input files. By default, it will move the jsons afterwards to the directory specified in parameters at Maintenance.MS run parsing.Move done jsons into subdir. If the latter parameter is empty, files will be deleted after parsing. The parsed json files, if kept, will also be compressed (zip), when they accumulate.
 
+Currently MSParser can read thermo .raw, bruker .d and the common .mzML file formats. With .mzML format, support is considered experimental, as we've only tested it with rawfiles converted from thermo .raw and bruker .d using the parameters from [FragPipe guide](https://fragpipe.nesvilab.org/docs/tutorial_convert.html). In these cases, MSParser is able to extract **less** information from .mzML compared to .raw or .d originals.
+
 ### Docker Installation (recommended)
 
 For running the images, the provided docker compose files are highly recommended:
