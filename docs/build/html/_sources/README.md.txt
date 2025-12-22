@@ -59,7 +59,7 @@ Currently the pipeline module is limited to a single worker, however that will b
   - "Sample name" column
   - "Sample group" column
   - "Bait uniprot" column (for interactomics)
-  - sdrf format support for sample table is experimental.
+  - sdrf format support for sample table is experimental for now and expected to improve in future versions. The parser implemented has been tested with sdrf files conforming to examples from [Proteomics sample metadata github](https://github.com/bigbio/proteomics-sample-metadata/blob/master/sdrf-specification-examples/PXD008934/PXD008934.sdrf.tsv).
     - Currently sample name (MS run name) is expected to be in column "raw file" "comment[data file]" or "assay name", whichever is encountered first in the file
     - Sample group is expected to be in a column containing the string "factor value", and be the first such column encountered.
     - Requesting user input for column choice is also possible in the future, but currently undesirable due to the effort to present fewer choices to the user.
@@ -71,8 +71,8 @@ Currently the pipeline module is limited to a single worker, however that will b
     - FragPipe (combined_prot.tsv)
     - DIA-NN (pg_matrix.tsv)
     - Generic matrix format (one row = one protein, one column = one sample)
-  - mzTab support is experimental. Currently only supported according to the example files provided, with an embedded sample table.
-    - The example mzTab file is from HUPO-PSI, and represents a label free experiment with two study variables, and 6 total assays, where one assay consists of one MS run.
+  - mzTab support is experimental and expected to improve in future versions. Currently only supported according to the example files provided, with an embedded sample table.
+    - The example mzTab file is from [HUPO-PSI](https://github.com/HUPO-PSI/mzTab/blob/master/examples/1_0-Proteomics-Release/SILAC_CQI.mzTab), and represents a label free experiment with two study variables, and 6 total assays, where one assay consists of one MS run.
 - Supported software versions:
   - FragPipe 23.1
   - DIA-NN 2.2 academia
