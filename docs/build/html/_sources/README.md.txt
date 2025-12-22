@@ -285,7 +285,7 @@ The MS Inspector is a tool for visualizing and analyzing Mass Spectrometry (MS) 
 - [Nuclear Factor I Family Members are Key Transcription Factors Regulating Gene Expression](https://doi.org/10.1016/j.mcpro.2024.100890)
 - [Human skeletal muscle possesses both reversible proteomic signatures and a retained proteomic memory after repeated resistance training](https://doi.org/10.1113/jp288104)
 
-The json files produced by MSParser (see ms run pre-analysis) are available for inspection in [github](https://github.com/varjolab/ProteoGyver/tree/main/app/data/Example%20MS%20run%20json%20files)
+The json files produced by MSParser (see ms run pre-analysis) are available for inspection in [github](https://github.com/varjolab/ProteoGyver/tree/main/app/data/Example%20MS%20run%20json%20files). These json files would then be digested by the main container from the (container) directory /proteogyver/data/Server_input/MS runs jsons. Typically the Server_input directory is mapped to a different directory on the host [as in the docker-compose file](https://raw.githubusercontent.com/varjolab/ProteoGyver/refs/heads/main/dockerfiles/proteogyver/docker-compose.yaml).
 
 #### Features
 - Interactive TIC visualization with animation controls
@@ -352,8 +352,8 @@ It will parse the rawfile, and produce a .json file in the output directory, whi
 ### Docker Installation (recommended)
 
 For running the images, the provided docker compose files are highly recommended:
-[proteogyver docker-compose.yml](dockerfiles/proteogyver/docker-compose.yaml)
-[pg_updater docker-compose.yml](dockerfiles/pg_updater/docker-compose.yaml)
+- [proteogyver docker-compose.yml](https://raw.githubusercontent.com/varjolab/ProteoGyver/refs/heads/main/dockerfiles/proteogyver/docker-compose.yaml)
+- [pg_updater docker-compose.yml](https://raw.githubusercontent.com/varjolab/ProteoGyver/refs/heads/main/dockerfiles/pg_updater/docker-compose.yaml)
 
 **Tweak the volume mappings to suit your local environment, same with the env variables.** 
 

@@ -508,7 +508,7 @@ print(f”Error: {response.json()}”)</p>
 <li><p><a class="reference external" href="https://doi.org/10.1016/j.mcpro.2024.100890">Nuclear Factor I Family Members are Key Transcription Factors Regulating Gene Expression</a></p></li>
 <li><p><a class="reference external" href="https://doi.org/10.1113/jp288104">Human skeletal muscle possesses both reversible proteomic signatures and a retained proteomic memory after repeated resistance training</a></p></li>
 </ul>
-<p>The json files produced by MSParser (see ms run pre-analysis) are available for inspection in <a class="reference external" href="https://github.com/varjolab/ProteoGyver/tree/main/app/data/Example%20MS%20run%20json%20files">github</a></p>
+<p>The json files produced by MSParser (see ms run pre-analysis) are available for inspection in <a class="reference external" href="https://github.com/varjolab/ProteoGyver/tree/main/app/data/Example%20MS%20run%20json%20files">github</a>. These json files would then be digested by the main container from the (container) directory /proteogyver/data/Server_input/MS runs jsons. Typically the Server_input directory is mapped to a different directory on the host <a class="reference external" href="https://raw.githubusercontent.com/varjolab/ProteoGyver/refs/heads/main/dockerfiles/proteogyver/docker-compose.yaml">as in the docker-compose file</a>.</p>
 <section id="features">
 <h4>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h4>
 <ul class="simple">
@@ -595,9 +595,11 @@ print(f”Error: {response.json()}”)</p>
 </section>
 <section id="docker-installation-recommended">
 <h3>Docker Installation (recommended)<a class="headerlink" href="#docker-installation-recommended" title="Link to this heading"></a></h3>
-<p>For running the images, the provided docker compose files are highly recommended:
-<a class="reference internal" href="#dockerfiles/proteogyver/docker-compose.yaml"><span class="xref myst">proteogyver docker-compose.yml</span></a>
-<a class="reference internal" href="#dockerfiles/pg_updater/docker-compose.yaml"><span class="xref myst">pg_updater docker-compose.yml</span></a></p>
+<p>For running the images, the provided docker compose files are highly recommended:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://raw.githubusercontent.com/varjolab/ProteoGyver/refs/heads/main/dockerfiles/proteogyver/docker-compose.yaml">proteogyver docker-compose.yml</a></p></li>
+<li><p><a class="reference external" href="https://raw.githubusercontent.com/varjolab/ProteoGyver/refs/heads/main/dockerfiles/pg_updater/docker-compose.yaml">pg_updater docker-compose.yml</a></p></li>
+</ul>
 <p><strong>Tweak the volume mappings to suit your local environment, same with the env variables.</strong></p>
 <section id="running-the-docker-images">
 <h4>Running the docker images<a class="headerlink" href="#running-the-docker-images" title="Link to this heading"></a></h4>
