@@ -1,6 +1,6 @@
 services:
   proteogyver:
-    image: ksal/proteogyver:1.5.4
+    image: ksal/proteogyver:1.5.5
     container_name: proteogyver
     ports:
       - "8050:8050"
