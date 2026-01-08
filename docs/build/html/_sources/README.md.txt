@@ -55,6 +55,7 @@ PG can handle hundreds of runs, and has been tested with up to a thousand or so.
 Currently the pipeline module is limited to a single worker, however that will be addressed in version 1.6 or 1.7.
 
 ### Input Data Format
+- All file paths will be removed from sample names and groups during parsing. Do not use / or \ in sample group names, or sample names.
 - Sample table must include:
   - "Sample name" column
   - "Sample group" column

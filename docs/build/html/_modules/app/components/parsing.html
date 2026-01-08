@@ -531,6 +531,17 @@
     <span class="n">data_table</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">col_renames</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="remove_file_path">
+<a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.remove_file_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_file_path</span><span class="p">(</span><span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Removes the file path from a column name. For example, if the column name is &#39;data/run1.raw&#39;, it will be changed to &#39;run1&#39;.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">column_name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">column_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">column_name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">column_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">column_name</span></div>
+
+
 <div class="viewcode-block" id="remove_rawfile_ending">
 <a class="viewcode-back" href="../../../code/app.components.html#app.components.parsing.remove_rawfile_ending">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">remove_rawfile_ending</span><span class="p">(</span><span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1076,7 +1087,7 @@
                     <span class="n">rep_args</span><span class="p">[</span><span class="s1">&#39;make_lowercase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">decoded_table</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">text_handling</span><span class="o">.</span><span class="n">replace_accent_and_special_characters</span><span class="p">(</span>
-                    <span class="n">remove_rawfile_ending</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span>
+                    <span class="n">remove_file_path</span><span class="p">(</span><span class="n">remove_rawfile_ending</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">))),</span>
                     <span class="o">**</span><span class="n">rep_args</span>
                 <span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">decoded_table</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
             <span class="p">]</span>
