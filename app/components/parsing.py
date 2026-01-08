@@ -423,6 +423,14 @@ def remove_filepath_from_columns(data_table: pd.DataFrame) -> None:
             col_renames[col] = rk
     data_table.rename(columns=col_renames, inplace=True)
 
+def remove_file_path(column_name: str) -> str:
+    """Removes the file path from a column name. For example, if the column name is 'data/run1.raw', it will be changed to 'run1'."""
+    if '/' in column_name:
+        return column_name.rsplit('/', 1)[-1]
+    if '\\' in column_name:
+        return column_name.rsplit('\\', 1)[-1]
+    return column_name
+
 def remove_rawfile_ending(column_name: str) -> str:
     """Removes the raw file ending from a column name. For example, if the column name is 'run1.raw', it will be changed to 'run1'."""
     raw_file_endings: list[str] = ['.raw', '.d','.wiff','.scan','.mzml','.dia','.mzxml']
@@ -933,7 +941,7 @@ def parse_sample_table(data_file_contents: str, data_file_name: str,
                     rep_args['make_lowercase'] = False
             decoded_table[c] = [
                 text_handling.replace_accent_and_special_characters(
-                    remove_rawfile_ending(str(x)),
+                    remove_file_path(remove_rawfile_ending(str(x))),
                     **rep_args
                 ) for x in decoded_table[c]
             ]
